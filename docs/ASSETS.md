@@ -1,29 +1,74 @@
 # ASSETS
 
-This project keeps assets practical and close to runtime needs.
+## Scope and rules
 
-## Core rules
+This project stores runtime assets under `design/character-assets/` and does not assume `SVG` as the default format.
 
-- Keep app assets managed inside the project repository.
-- Do not assume SVG as the default format.
-- Use only needed formats (`PNG`, `WebP`, etc.) based on actual usage.
-- Maintain transparent variants for character/decoration assets that require alpha backgrounds.
-- Keep file names meaningful.
-  - Recommended: lower-case kebab-case.
-  - Example: `butler-happy.png`, `result-badge-gold.webp`
-  - Avoid: `image1.png`, `final-final.png`
-- Avoid piling up unnecessary versioned copies of the same asset.
-- Remove unused assets only after checking real references in code.
-- Keep folder structure consistent with current code usage; do not create large new asset directories in bulk during this step.
+- Keep this app’s existing behavior when no portrait assets are available; fallback to emoji is intentional.
+- Set `OVERBUTLER_ASSETS[key]._available` to `true` only when the app can actually resolve all required runtime pose paths.
+- Avoid referencing non-existent files or folders in `OVERBUTLER_ASSETS`.
+- Use meaningful, lower-case, kebab-case names.
+- Do not introduce `final`, `new`, `real-final` style version naming.
+- Preserve existing directory structure unless there is a concrete need.
 
-## Naming policy
+## Runtime-relevant structure (current)
 
-- Use semantic names that reflect role/state.
-- Use one clear naming style per folder.
-- Prefer short names over cute-but-ambiguous names when possible.
+```text
+app.js
+design/character-assets/
+  ai-butler/
+    ai-butler-5-pose-sheet-chroma.png
+    ai-butler-5-pose-sheet-dynamic-chroma.png
+    ai-butler-5-pose-sheet-dynamic-transparent-hq.png
+    ai-butler-5-pose-sheet-dynamic-transparent.png
+    ai-butler-5-pose-sheet-transparent-hq.png
+    ai-butler-5-pose-sheet-transparent.png
+    ai-butler-reference.png
+    ui-poses/
+      ai-base.png
+      ai-praise.png
+  cat-butler/
+    cat-butler-5-pose-sheet-chroma.png
+    cat-butler-5-pose-sheet-transparent-hq.png
+    cat-butler-5-pose-sheet-transparent.png
+    cat-butler-reference.png
+  dog-butler/
+    dog-butler-5-pose-sheet-chroma.png
+    dog-butler-5-pose-sheet-transparent-hq.png
+    dog-butler-5-pose-sheet-transparent.png
+    dog-butler-reference.png
+  fairy-butler/
+    fairy-butler-5-pose-sheet-chroma-blue.png
+    fairy-butler-5-pose-sheet-transparent-hq.png
+    fairy-butler-5-pose-sheet-transparent.png
+    fairy-butler-reference.png
+  idol-butler/
+    idol-butler-5-pose-sheet-chroma.png
+    idol-butler-5-pose-sheet-transparent-hq.png
+    idol-butler-5-pose-sheet-transparent.png
+    idol-butler-reference.png
+  ninja-butler/
+    ninja-butler-5-pose-sheet-chroma.png
+    ninja-butler-5-pose-sheet-transparent-hq.png
+    ninja-butler-5-pose-sheet-transparent.png
+    ninja-butler-reference.png
+  witch-butler/
+    witch-butler-5-pose-sheet-chroma.png
+    witch-butler-5-pose-sheet-transparent-hq.png
+    witch-butler-5-pose-sheet-transparent.png
+    witch-butler-reference.png
+  zombie-butler/
+    zombie-butler-5-pose-sheet-chroma-blue.png
+    zombie-butler-5-pose-sheet-transparent-hq.png
+    zombie-butler-5-pose-sheet-transparent.png
+    zombie-butler-reference.png
+```
 
-## Review process
+## Current `OVERBUTLER_ASSETS` policy
 
-1. Confirm actual usage via code before adding or removing assets.
-2. Prefer replacing existing assets over adding duplicates.
-3. Keep transparent-background files when visual composition depends on them.
+- `ai`: `_available: true` and 1:1 UI pose paths are defined (`base`, `analysis`, `praise`, `power`, `gift`).
+- `cat`, `dog`, `alien`, `ninja`, `witch`, `fox`, `star`, `elf`: `_available: false` (emoji fallback retained).
+
+Notes:
+- `alien-butler` and `elf-butler` directories do not exist currently.
+- No code changes were made to `localStorage` schema, keys, or character-state persistence.

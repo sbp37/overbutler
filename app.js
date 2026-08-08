@@ -135,17 +135,6 @@
     }
   };
 
-  function emptyPoseSet(key, folder) {
-    return {
-      _available: false,
-      base: `design/character-assets/${folder}/ui-poses/${key}-base.png`,
-      analysis: `design/character-assets/${folder}/ui-poses/${key}-analysis.png`,
-      praise: `design/character-assets/${folder}/ui-poses/${key}-praise.png`,
-      power: `design/character-assets/${folder}/ui-poses/${key}-power.png`,
-      gift: `design/character-assets/${folder}/ui-poses/${key}-gift.png`
-    };
-  }
-
   const OVERBUTLER_ASSETS = {
     ai: {
       _available: true,
@@ -155,14 +144,14 @@
       power: "design/character-assets/ai-butler/ui-poses/ai-praise.png",
       gift: "design/character-assets/ai-butler/ui-poses/ai-praise.png"
     },
-    cat: emptyPoseSet("cat", "cat-butler"),
-    dog: emptyPoseSet("dog", "dog-butler"),
-    alien: emptyPoseSet("alien", "alien-butler"),
-    ninja: emptyPoseSet("ninja", "ninja-butler"),
-    witch: emptyPoseSet("witch", "witch-butler"),
-    fox: emptyPoseSet("zombie", "zombie-butler"),
-    star: emptyPoseSet("idol", "idol-butler"),
-    elf: emptyPoseSet("elf", "elf-butler")
+    cat: { _available: false },
+    dog: { _available: false },
+    alien: { _available: false },
+    ninja: { _available: false },
+    witch: { _available: false },
+    fox: { _available: false },
+    star: { _available: false },
+    elf: { _available: false }
   };
 
   const INITIAL_OWNED_BUTLERS = ["ai", "cat", "dog"];
