@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>과잉집사 인사 데이터 마이그레이션 픽스처</title>
+<script>
+  const days = Array.from({ length: 7 }, (_, index) => `2026.08.${String(index + 1).padStart(2, "0")}`);
+  const achievements = ["물 마심", "씻음", "답장함", "침대에서 일어남"].map((deed, index) => ({
+    id: `legacy-${index}`,
+    text: deed,
+    createdAt: `2026-08-0${index + 1}T09:00:00.000Z`,
+    contribution: `${90 + index}점`,
+    docNo: `대업-2026-${String(index + 1).padStart(4, "0")}`,
+    grade: "소소한 기적",
+    nickname: "생활력의 수호자",
+    report: `원조 기록 ${index + 1}`,
+    isCertificate: true,
+    character: "cat",
+    butlerName: "치즈대리"
+  }));
+  localStorage.setItem("butlermaker_v1", JSON.stringify({
+    onboarded: true,
+    character: "cat",
+    butlerName: "치즈대리",
+    obsession: 35,
+    achievements,
+    ownedButlers: ["ai", "cat", "dog"],
+    pendingApplicants: [],
+    deferredApplicants: [],
+    applicationHistory: [],
+    butlerStats: {
+      ai: { obsession: 22, gifts: 1, achievements: 2, activeDates: ["2026.07.31"], assignments: 1, customName: "오류팀장" },
+      cat: { obsession: 35, gifts: 0, achievements: 4, activeDates: days, assignments: 1, customName: "치즈대리" }
+    },
+    diary: [{ id: "old-ai-diary", date: "2026.07.31", deed: "메일 확인", text: "[원조 AI] 기록 보존 테스트", character: "ai", butlerName: "오류팀장" }]
+  }));
+  location.replace("../index.html?personnel-fixture=1");
+</script>

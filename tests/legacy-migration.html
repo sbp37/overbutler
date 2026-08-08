@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Legacy migration fixture</title>
+<script>
+  localStorage.setItem("butlermaker_v1", JSON.stringify({
+    username: "테스트주인님",
+    butlerName: "옛오류봇",
+    character: "ai",
+    points: 230,
+    emotion: 44,
+    totalTodos: 9,
+    totalGifts: 2,
+    streak: 3,
+    startDate: new Date().toDateString(),
+    todos: [{ id: "legacy-1", text: "옛 할 일", done: true, date: new Date().toDateString() }],
+    diary: [{ date: "2026.08.07", todos: ["옛 할 일"], text: "[일일보고] 원문 보존", character: "ai" }]
+  }));
+  location.replace("../index.html");
+</script>

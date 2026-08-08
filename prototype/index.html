@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f4f1" />
+    <title>과잉집사 · 홈 프로토타입</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --canvas: #f7f4f1;
+        --surface: #ffffff;
+        --surface-soft: #fbf9f7;
+        --ink: #252122;
+        --muted: #777071;
+        --faint: #a9a2a0;
+        --line: #e8e2df;
+        --coral: #ff6577;
+        --coral-strong: #eb5063;
+        --coral-soft: #fff0f2;
+        --butter: #fff2bd;
+        --lavender: #f0edff;
+        --shadow: 0 12px 36px rgba(62, 46, 48, 0.08);
+        --radius-lg: 22px;
+        --radius-md: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: #e9e5e2;
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+          "Noto Sans KR", sans-serif;
+        color: var(--ink);
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: #e9e5e2;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        color: inherit;
+      }
+
+      .app {
+        position: relative;
+        width: min(100%, 430px);
+        min-height: 100svh;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--canvas);
+        box-shadow: 0 0 0 1px rgba(37, 33, 34, 0.04);
+      }
+
+      .page {
+        padding: calc(18px + env(safe-area-inset-top)) 20px 112px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 52px;
+      }
+
+      .avatar {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid #e2ddec;
+        border-radius: 15px;
+        background: var(--lavender);
+        font-size: 28px;
+      }
+
+      .brand {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .brand h1 {
+        margin: 0 0 3px;
+        font-size: 19px;
+        line-height: 1.2;
+        letter-spacing: -0.04em;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 560;
+        line-height: 1.3;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        flex: 0 0 auto;
+        border-radius: 999px;
+        background: var(--coral);
+        box-shadow: 0 0 0 3px var(--coral-soft);
+      }
+
+      .count {
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+        min-width: 54px;
+        justify-content: center;
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.78);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .count strong {
+        color: var(--coral-strong);
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hero {
+        padding: 48px 2px 26px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 14px;
+        padding: 6px 9px;
+        border-radius: 8px;
+        background: var(--butter);
+        color: #5f5018;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+
+      .hero h2 {
+        margin: 0;
+        font-size: clamp(34px, 10vw, 42px);
+        font-weight: 790;
+        line-height: 1.08;
+        letter-spacing: -0.065em;
+      }
+
+      .hero p {
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.6;
+        letter-spacing: -0.025em;
+      }
+
+      .entry-card {
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .field-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 11px;
+        font-size: 14px;
+        font-weight: 760;
+        letter-spacing: -0.025em;
+      }
+
+      .field-label span {
+        color: var(--faint);
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      textarea {
+        display: block;
+        width: 100%;
+        min-height: 112px;
+        resize: none;
+        padding: 15px 16px;
+        border: 1px solid #ded8d5;
+        outline: none;
+        border-radius: 14px;
+        background: var(--surface-soft);
+        color: var(--ink);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.55;
+        letter-spacing: -0.025em;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      textarea::placeholder {
+        color: #b2abab;
+        font-weight: 500;
+      }
+
+      textarea:focus {
+        border-color: var(--coral);
+        background: var(--surface);
+        box-shadow: 0 0 0 4px var(--coral-soft);
+      }
+
+      .suggestions {
+        display: flex;
+        gap: 8px;
+        margin: 12px 0 16px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .suggestions::-webkit-scrollbar {
+        display: none;
+      }
+
+      .suggestion {
+        flex: 0 0 auto;
+        padding: 9px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        color: #514b4c;
+        font-size: 13px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+        cursor: pointer;
+      }
+
+      .suggestion:active {
+        transform: scale(0.97);
+      }
+
+      .submit {
+        width: 100%;
+        min-height: 54px;
+        border: 0;
+        border-radius: 15px;
+        background: var(--coral);
+        color: white;
+        font-size: 16px;
+        font-weight: 780;
+        letter-spacing: -0.025em;
+        box-shadow: 0 8px 18px rgba(235, 80, 99, 0.2);
+        cursor: pointer;
+        transition: transform 120ms ease, background 120ms ease;
+      }
+
+      .submit:active {
+        transform: translateY(1px) scale(0.995);
+        background: var(--coral-strong);
+      }
+
+      .microcopy {
+        min-height: 17px;
+        margin: 10px 0 0;
+        color: var(--faint);
+        font-size: 11px;
+        font-weight: 530;
+        line-height: 1.5;
+        text-align: center;
+        letter-spacing: -0.025em;
+      }
+
+      .microcopy.error {
+        color: var(--coral-strong);
+      }
+
+      .recent {
+        margin-top: 31px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .section-head h3 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: -0.045em;
+      }
+
+      .section-head button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .achievement-list {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--surface);
+      }
+
+      .achievement {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) auto 16px;
+        align-items: center;
+        gap: 11px;
+        min-height: 74px;
+        padding: 12px 14px;
+      }
+
+      .achievement + .achievement {
+        border-top: 1px solid var(--line);
+      }
+
+      .achievement-icon {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--coral-soft);
+        font-size: 20px;
+      }
+
+      .achievement:nth-child(2) .achievement-icon {
+        background: #eff4ef;
+      }
+
+      .achievement-copy {
+        min-width: 0;
+      }
+
+      .achievement-copy strong {
+        display: block;
+        margin-bottom: 4px;
+        overflow: hidden;
+        font-size: 14px;
+        line-height: 1.25;
+        letter-spacing: -0.03em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .achievement-copy span {
+        display: block;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 520;
+        line-height: 1.3;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .achievement time {
+        color: var(--faint);
+        font-size: 10px;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .chevron {
+        color: #aaa3a1;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .tabbar {
+        position: fixed;
+        z-index: 5;
+        bottom: 0;
+        left: 50%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: min(100%, 430px);
+        min-height: calc(76px + env(safe-area-inset-bottom));
+        padding: 7px 12px env(safe-area-inset-bottom);
+        border-top: 1px solid rgba(216, 208, 205, 0.9);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(18px);
+        transform: translateX(-50%);
+      }
+
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        border: 0;
+        background: transparent;
+        color: #999190;
+        font-size: 10px;
+        font-weight: 650;
+      }
+
+      .tab-icon {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 9px;
+        font-size: 17px;
+      }
+
+      .tab.active {
+        color: var(--coral-strong);
+      }
+
+      .tab.active .tab-icon {
+        background: var(--coral-soft);
+      }
+
+      .overlay {
+        position: fixed;
+        z-index: 20;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        display: grid;
+        align-items: end;
+        width: min(100%, 430px);
+        padding: 18px;
+        background: rgba(36, 30, 31, 0.38);
+        backdrop-filter: blur(4px);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-50%);
+        transition: opacity 180ms ease;
+      }
+
+      .overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .sheet {
+        padding: 12px 18px calc(20px + env(safe-area-inset-bottom));
+        border-radius: 26px;
+        background: var(--surface);
+        box-shadow: 0 24px 70px rgba(41, 29, 31, 0.22);
+        transform: translateY(24px);
+        transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      .overlay.open .sheet {
+        transform: translateY(0);
+      }
+
+      .handle {
+        width: 38px;
+        height: 4px;
+        margin: 0 auto 22px;
+        border-radius: 99px;
+        background: #ddd6d3;
+      }
+
+      .sheet-emoji {
+        display: grid;
+        width: 54px;
+        height: 54px;
+        margin-bottom: 15px;
+        place-items: center;
+        border-radius: 17px;
+        background: var(--lavender);
+        font-size: 31px;
+      }
+
+      .sheet h4 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.2;
+        letter-spacing: -0.05em;
+      }
+
+      .sheet .submitted {
+        margin: 8px 0 20px;
+        color: var(--coral-strong);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+      }
+
+      .steps {
+        display: grid;
+        gap: 9px;
+      }
+
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 13px;
+        border-radius: 13px;
+        background: var(--surface-soft);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 620;
+      }
+
+      .step-indicator {
+        display: grid;
+        width: 21px;
+        height: 21px;
+        place-items: center;
+        border: 1px solid #cec6c3;
+        border-radius: 50%;
+        font-size: 11px;
+      }
+
+      .step.done {
+        color: var(--ink);
+      }
+
+      .step.done .step-indicator {
+        border-color: var(--coral);
+        background: var(--coral-soft);
+        color: var(--coral-strong);
+      }
+
+      .step.active {
+        background: var(--coral-soft);
+        color: var(--coral-strong);
+      }
+
+      .result {
+        display: none;
+      }
+
+      .result.show {
+        display: block;
+      }
+
+      .analysis.hidden {
+        display: none;
+      }
+
+      .result-label {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 6px 8px;
+        border-radius: 7px;
+        background: var(--butter);
+        color: #5f5018;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .result h4 {
+        margin-bottom: 8px;
+      }
+
+      .result p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 520;
+        line-height: 1.65;
+        letter-spacing: -0.025em;
+      }
+
+      .result-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        margin-bottom: 16px;
+      }
+
+      .result-meta div {
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+      }
+
+      .result-meta span {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--faint);
+        font-size: 10px;
+        font-weight: 650;
+      }
+
+      .result-meta strong {
+        font-size: 15px;
+        letter-spacing: -0.03em;
+      }
+
+      .close-sheet {
+        width: 100%;
+        min-height: 50px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 750;
+      }
+
+      .shake {
+        animation: shake 260ms ease;
+      }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app" aria-label="과잉집사 홈 프로토타입">
+      <section class="page">
+        <header class="topbar">
+          <div class="avatar" aria-hidden="true">🤖</div>
+          <div class="brand">
+            <h1>과잉집사</h1>
+            <div class="status"><i class="status-dot"></i>오류 난 AI 집사 · 보고 대기 중</div>
+          </div>
+          <div class="count" aria-label="이번 주 대업 3건"><span>대업</span><strong>3</strong></div>
+        </header>
+
+        <section class="hero">
+          <div class="eyebrow">오늘의 대업 접수</div>
+          <h2>오늘 뭐라도<br />하셨나요?</h2>
+          <p>사소할수록 집사가 신나게 과장합니다.</p>
+        </section>
+
+        <section class="entry-card" id="entryCard">
+          <label class="field-label" for="achievementInput">오늘 한 일 <span>100자 이내</span></label>
+          <textarea id="achievementInput" maxlength="100" placeholder="예: 침대에서 일어남"></textarea>
+          <div class="suggestions" aria-label="입력 예시">
+            <button class="suggestion" type="button">물 마심</button>
+            <button class="suggestion" type="button">답장함</button>
+            <button class="suggestion" type="button">택배 뜯음</button>
+            <button class="suggestion" type="button">씻음</button>
+          </div>
+          <button class="submit" id="submitButton" type="button">대업으로 접수하기</button>
+          <p class="microcopy" id="microcopy">접수 후 취소할 수 있으나 집사가 서운해합니다.</p>
+        </section>
+
+        <section class="recent">
+          <div class="section-head">
+            <h3>최근 대업</h3>
+            <button type="button">전체 보기</button>
+          </div>
+          <div class="achievement-list">
+            <article class="achievement">
+              <div class="achievement-icon" aria-hidden="true">🪥</div>
+              <div class="achievement-copy">
+                <strong>양치함</strong>
+                <span>개인위생 분야 국가적 성취</span>
+              </div>
+              <time>10분 전</time>
+              <span class="chevron" aria-hidden="true">›</span>
+            </article>
+            <article class="achievement">
+              <div class="achievement-icon" aria-hidden="true">⏰</div>
+              <div class="achievement-copy">
+                <strong>알람 한 번에 끔</strong>
+                <span>고난도 자제력 발휘</span>
+              </div>
+              <time>어제</time>
+              <span class="chevron" aria-hidden="true">›</span>
+            </article>
+          </div>
+        </section>
+      </section>
+
+      <nav class="tabbar" aria-label="주 메뉴">
+        <button class="tab active" type="button"><span class="tab-icon">✎</span>대업 접수</button>
+        <button class="tab" type="button"><span class="tab-icon">▣</span>보관함</button>
+        <button class="tab" type="button"><span class="tab-icon">🤖</span>담당 집사</button>
+      </nav>
+
+      <div class="overlay" id="overlay" aria-hidden="true">
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+          <div class="handle"></div>
+          <div class="analysis" id="analysis">
+            <div class="sheet-emoji" aria-hidden="true">🤖</div>
+            <h4 id="sheetTitle">대업 가치 분석 중</h4>
+            <p class="submitted" id="submittedText">“택배 뜯음”</p>
+            <div class="steps">
+              <div class="step active"><span class="step-indicator">1</span>업적 가치 측정 중</div>
+              <div class="step"><span class="step-indicator">2</span>국가 기여도 과장 중</div>
+              <div class="step"><span class="step-indicator">3</span>칭찬 문구 최종 검토</div>
+            </div>
+          </div>
+          <div class="result" id="result">
+            <span class="result-label">접수 완료</span>
+            <h4 id="resultTitle">택배 뜯음</h4>
+            <p>해당 행동은 생활사 발전에 크게 기여한 것으로 임시 판단했습니다.</p>
+            <div class="result-meta">
+              <div><span>인류 기여도</span><strong>98점</strong></div>
+              <div><span>담당 집사 의견</span><strong>매우 놀람</strong></div>
+            </div>
+            <button class="close-sheet" id="closeSheet" type="button">확인했습니다</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const input = document.querySelector("#achievementInput");
+      const entryCard = document.querySelector("#entryCard");
+      const microcopy = document.querySelector("#microcopy");
+      const submitButton = document.querySelector("#submitButton");
+      const overlay = document.querySelector("#overlay");
+      const submittedText = document.querySelector("#submittedText");
+      const analysis = document.querySelector("#analysis");
+      const result = document.querySelector("#result");
+      const resultTitle = document.querySelector("#resultTitle");
+      const closeSheet = document.querySelector("#closeSheet");
+      const steps = [...document.querySelectorAll(".step")];
+
+      document.querySelectorAll(".suggestion").forEach((button) => {
+        button.addEventListener("click", () => {
+          input.value = button.textContent.trim();
+          microcopy.textContent = "접수 후 취소할 수 있으나 집사가 서운해합니다.";
+          microcopy.classList.remove("error");
+          input.focus();
+        });
+      });
+
+      submitButton.addEventListener("click", () => {
+        const value = input.value.trim();
+        if (!value) {
+          microcopy.textContent = "진짜 별거 아니어도 괜찮아요. 아무거나 적어주세요.";
+          microcopy.classList.add("error");
+          entryCard.classList.remove("shake");
+          void entryCard.offsetWidth;
+          entryCard.classList.add("shake");
+          input.focus();
+          return;
+        }
+
+        analysis.classList.remove("hidden");
+        result.classList.remove("show");
+        steps.forEach((step, index) => {
+          step.classList.toggle("active", index === 0);
+          step.classList.remove("done");
+        });
+        submittedText.textContent = `“${value}”`;
+        resultTitle.textContent = value;
+        overlay.classList.add("open");
+        overlay.setAttribute("aria-hidden", "false");
+
+        steps.forEach((step, index) => {
+          window.setTimeout(() => {
+            steps.forEach((item) => item.classList.remove("active"));
+            step.classList.add("done");
+            step.querySelector(".step-indicator").textContent = "✓";
+            if (steps[index + 1]) steps[index + 1].classList.add("active");
+          }, 440 + index * 430);
+        });
+
+        window.setTimeout(() => {
+          analysis.classList.add("hidden");
+          result.classList.add("show");
+        }, 1850);
+      });
+
+      closeSheet.addEventListener("click", () => {
+        overlay.classList.remove("open");
+        overlay.setAttribute("aria-hidden", "true");
+        input.value = "";
+      });
+
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) closeSheet.click();
+      });
+    </script>
+  </body>
+</html>
