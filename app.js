@@ -139,10 +139,10 @@
     ai: {
       _available: true,
       base: "design/character-assets/ai-butler/ui-poses/ai-base.png",
-      analysis: "design/character-assets/ai-butler/ai-butler-5-pose-sheet-dynamic-transparent.png",
+      analysis: "design/character-assets/ai-butler/ui-poses/ai-analysis.png",
       praise: "design/character-assets/ai-butler/ui-poses/ai-praise.png",
-      power: "design/character-assets/ai-butler/ui-poses/ai-praise.png",
-      gift: "design/character-assets/ai-butler/ui-poses/ai-praise.png"
+      power: "design/character-assets/ai-butler/ui-poses/ai-power.png",
+      gift: "design/character-assets/ai-butler/ui-poses/ai-gift.png"
     },
     cat: {
       _available: true,
@@ -407,7 +407,7 @@
     image.dataset.character = character;
     image.dataset.pose = pose;
     image.alt = `${CHARACTER_PROFILES[normalizeCharacter(character)].name} ${pose}`;
-    image.classList.toggle("pose-sheet", character === "ai" && pose === "analysis");
+    image.classList.remove("pose-sheet");
     image.onerror = () => {
       image.onerror = null;
       image.src = assetFor(character, "base");

@@ -25,7 +25,10 @@ design/character-assets/
     ai-butler-5-pose-sheet-transparent.png
     ai-butler-reference.png
     ui-poses/
+      ai-analysis.png
       ai-base.png
+      ai-gift.png
+      ai-power.png
       ai-praise.png
   cat-butler/
     cat-butler-5-pose-sheet-chroma.png
