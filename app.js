@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2.3.0";
+  const APP_VERSION = "2.3.1";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
@@ -418,7 +418,8 @@
 
   function getPraise(deed, obsession = state.obsession, character = state.character) {
     const profile = CHARACTER_PROFILES[normalizeCharacter(character)];
-    const tier = stageIndexFor(obsession);
+    const baseTier = stageIndexFor(obsession);
+    const tier = character === "ai" ? clamp(baseTier + 1, 0, profile.praise.length - 1) : baseTier;
     return template(randomItem(profile.praise[tier]), deed);
   }
 
