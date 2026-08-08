@@ -40,6 +40,12 @@ design/character-assets/
     dog-butler-5-pose-sheet-transparent-hq.png
     dog-butler-5-pose-sheet-transparent.png
     dog-butler-reference.png
+    ui-poses/
+      dog-analysis.png
+      dog-base.png
+      dog-gift.png
+      dog-power.png
+      dog-praise.png
   fairy-butler/
     fairy-butler-5-pose-sheet-chroma-blue.png
     fairy-butler-5-pose-sheet-transparent-hq.png
@@ -70,7 +76,8 @@ design/character-assets/
 ## Current `OVERBUTLER_ASSETS` policy
 
 - `ai`: `_available: true` and 1:1 UI pose paths are defined (`base`, `analysis`, `praise`, `power`, `gift`).
-- `cat`, `dog`, `alien`, `ninja`, `witch`, `fox`, `star`, `elf`: `_available: false` (emoji fallback retained).
+- `cat`, `dog`: `_available: true` with 1:1 UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
+- `alien`, `ninja`, `witch`, `fox`, `star`, `elf`: `_available: false` (emoji fallback retained).
 
 Notes:
 - `alien-butler` and `elf-butler` directories do not exist currently.

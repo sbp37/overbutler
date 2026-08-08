@@ -152,7 +152,14 @@
       power: "design/character-assets/cat-butler/ui-poses/cat-power.png",
       gift: "design/character-assets/cat-butler/ui-poses/cat-gift.png"
     },
-    dog: { _available: false },
+    dog: {
+      _available: true,
+      base: "design/character-assets/dog-butler/ui-poses/dog-base.png",
+      analysis: "design/character-assets/dog-butler/ui-poses/dog-analysis.png",
+      praise: "design/character-assets/dog-butler/ui-poses/dog-praise.png",
+      power: "design/character-assets/dog-butler/ui-poses/dog-power.png",
+      gift: "design/character-assets/dog-butler/ui-poses/dog-gift.png"
+    },
     alien: { _available: false },
     ninja: { _available: false },
     witch: { _available: false },
