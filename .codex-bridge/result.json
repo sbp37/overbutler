@@ -1,11 +1,11 @@
 {
-  "taskId": "overbutler-bridge-test-20260809-1231",
-  "status": "failed",
-  "success": false,
-  "summary": "Local branch must be main.",
+  "taskId": "overbutler-bridge-test-20260809-r2",
+  "status": "completed",
+  "success": true,
+  "summary": "- 프로젝트 이름: `overbutler`\n- GitHub 원격 저장소: `https://github.com/sbp37/overbutler`\n- 현재 브랜치: `main`\n- 작업 트리: Clean\n\n코드와 파일은 수정하지 않았습니다.",
   "changedFiles": [],
   "gitDiffSummary": "",
-  "blocker": "safe-sync-blocked",
-  "startedAt": "2026-08-09T03:24:35Z",
-  "completedAt": "2026-08-09T03:24:35Z"
+  "blocker": null,
+  "startedAt": "2026-08-09T03:27:59Z",
+  "completedAt": "2026-08-09T03:28:45Z"
 }
