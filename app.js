@@ -498,7 +498,7 @@
     $$(".archive-panel").forEach(panel => panel.classList.toggle("active", panel.id === `archive-${name}`));
   }
 
-  function render() {
+  function render(options = {}) {
     const status = certificationStatus();
     $("#fame-count").textContent = state.fame;
     $("#header-level").textContent = `과몰입 ${state.obsession}`;
@@ -508,7 +508,10 @@
       ? `첫 공식 인증까지 ${status.remaining}건 남았습니다.`
       : `다음 공식 인증까지 ${status.remaining}건 남았습니다.`;
     $("#urgency-copy").textContent = ["이유 없이 최상", "국가적 관심 필요", "집사만 긴급함", "본성 보고 직전", "경광등 과열 중", "보고서 폭주 중", "전 직원 기립"][status.progress] || "이유 없이 최상";
-    $("#stamp-circles").innerHTML = Array.from({ length: status.target }, (_, index) => `<i class="${index < status.progress ? "filled" : ""}">${index < status.progress ? "✓" : ""}</i>`).join("");
+    $("#stamp-circles").innerHTML = Array.from({ length: status.target }, (_, index) => `<i class="${index < status.progress ? "filled" : ""}${options.animateStamp && index === status.progress - 1 ? " inked-now" : ""}"><span>${index + 1}</span></i>`).join("");
+    const stampProgress = $(".stamp-progress");
+    stampProgress.classList.toggle("stamp-awarded", Boolean(options.animateStamp));
+    if (options.animateStamp) window.setTimeout(() => stampProgress.classList.remove("stamp-awarded"), 760);
     applyCurrentButlerToUI();
     renderRecords();
     renderArchive();
@@ -646,10 +649,12 @@
     $("#achievement-input").value = "";
     $("#char-count").textContent = "0";
     $("#analysis-overlay").hidden = true;
+    document.body.style.overflow = "";
     $("#briefing-message").textContent = record.report;
-    render();
+    render({ animateStamp: !duplicate });
     if (duplicate) showToast("같은 행동이라 도장은 제외하고 칭찬만 지급했습니다.");
-    openCertificate(record);
+    if (duplicate) openCertificate(record);
+    else window.setTimeout(() => openCertificate(record), 720);
   }
 
   function categoryForDeed(deed) {
@@ -753,6 +758,8 @@
     ctx.strokeStyle = "#2c2528"; ctx.lineWidth = 5; ctx.strokeRect(55, 55, 970, 1240);
     ctx.lineWidth = 2; ctx.strokeRect(72, 72, 936, 1206);
     ctx.textAlign = "center"; ctx.fillStyle = "#a44054"; ctx.font = "700 28px sans-serif"; ctx.fillText("하찮은 업적청 공식 인증", 540, 145);
+    ctx.strokeStyle = "#b38a45"; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(540, 102, 28, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#b38a45"; ctx.font = "800 18px sans-serif"; ctx.fillText("OB", 540, 109);
     ctx.fillStyle = "#2c2528"; ctx.font = "800 70px sans-serif"; ctx.fillText("대 업 인 증 서", 540, 235);
     ctx.font = "28px sans-serif"; ctx.fillStyle = "#887b73"; ctx.fillText(`문서번호 대업-${new Date().getFullYear()}-${String(currentCertificate.number).padStart(6, "0")}`, 540, 285);
     ctx.strokeStyle = "#2c2528"; ctx.beginPath(); ctx.moveTo(260, 340); ctx.lineTo(820, 340); ctx.stroke();
@@ -764,8 +771,10 @@
     ctx.fillStyle = "#756966"; ctx.font = "24px sans-serif"; ctx.fillText("공식 난이도", 340, nextY + 120); ctx.fillText("인류 기여도", 740, nextY + 120);
     ctx.fillStyle = "#2c2528"; ctx.font = "800 44px sans-serif"; ctx.fillText("★★★★★", 340, nextY + 180); ctx.fillText(`${currentCertificate.score}점`, 740, nextY + 180);
     ctx.fillStyle = "#2c2528"; ctx.font = "30px sans-serif"; wrapCanvasText(ctx, `“${currentCertificate.report}”`, 540, nextY + 310, 800, 48);
-    ctx.strokeStyle = "#c34758"; ctx.lineWidth = 7; ctx.beginPath(); ctx.arc(825, 1120, 90, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = "#c34758"; ctx.font = "800 35px sans-serif"; ctx.fillText("공식 대업 인증", 825, 1132);
+    ctx.fillStyle = "#9b7334"; ctx.beginPath(); ctx.moveTo(775, 1170); ctx.lineTo(800, 1255); ctx.lineTo(830, 1225); ctx.lineTo(860, 1255); ctx.lineTo(878, 1168); ctx.fill();
+    ctx.fillStyle = "#c49b4d"; ctx.beginPath(); ctx.arc(825, 1120, 94, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#8a642d"; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(825, 1120, 79, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#fff4ce"; ctx.font = "800 31px sans-serif"; ctx.fillText("공식 대업 인증", 825, 1131);
     ctx.fillStyle = "#6f6261"; ctx.font = "25px sans-serif"; ctx.textAlign = "left"; ctx.fillText(`담당 집사: ${butler.name} · ${currentCertificate.date}`, 150, 1190);
     const link = document.createElement("a");
     link.download = `과잉집사-${currentCertificate.deed}.png`;

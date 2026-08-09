@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="과잉집사">
   <title>과잉집사</title>
+  <link rel="icon" type="image/png" href="design/character-assets/ai-butler/ui-poses/ai-base.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&amp;display=swap">
@@ -172,6 +173,7 @@
   <div class="overlay certificate-overlay" id="certificate-overlay" role="dialog" aria-modal="true" aria-labelledby="certificate-title" hidden>
     <div class="certificate-modal">
       <article class="certificate" id="certificate-card">
+        <div class="certificate-crest" aria-hidden="true"><span>OB</span></div>
         <p class="certificate-overline">하찮은 업적청 공식 인증</p>
         <h2 id="certificate-title">대 업 인 증 서</h2>
         <small id="certificate-number">문서번호 대업-2026-000001</small>
@@ -187,7 +189,7 @@
         <div class="certificate-signoff">
           <img id="certificate-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-praise.png" alt="감격한 AI 집사">
           <p>담당 집사: <span id="certificate-butler-name">오류봇</span><br><small id="certificate-date"></small></p>
-          <div class="official-stamp">공식<br>대업<br>인증</div>
+          <div class="official-stamp" aria-label="공식 대업 인증"><span>공식<br>대업<br>인증</span></div>
         </div>
       </article>
       <div class="certificate-actions">
