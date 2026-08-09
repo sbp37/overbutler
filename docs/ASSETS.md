@@ -10,6 +10,8 @@ This project stores runtime assets under `design/character-assets/` and does not
 - Use meaningful, lower-case, kebab-case names.
 - Do not introduce `final`, `new`, `real-final` style version naming.
 - Preserve existing directory structure unless there is a concrete need.
+- Every extracted UI pose must include the complete character with transparent padding on all sides and no fragments from neighboring poses.
+- Platform bundles include runtime pose/reference files only. Source sheets, concept boards, and mockups stay in the repository but are excluded from submission artifacts.
 
 ## Runtime-relevant structure (current)
 

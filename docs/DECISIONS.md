@@ -61,6 +61,10 @@ Use the format:
   **Decision**: Persist each diary reflection when it is written and backfill legacy reflections once without changing the `butlermaker_v1` key.
   **Reason**: A past diary must retain the original butler, owner name, and wording even after a handover or later dialogue updates.
 
+- **Date**: 2026-08-09
+  **Decision**: Package Apps in Toss through an isolated official SDK adapter, then package iOS and Android from the approved local web build instead of wrapping a remote URL.
+  **Reason**: Platform-specific configuration must not destabilize the public web app, the Toss bundle has a strict size limit, and native stores require a complete app-like submission rather than a thin website wrapper.
+
 ## Future additions
 
 Append future entries with the same three-field format so decisions remain searchable and easy to audit.

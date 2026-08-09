@@ -30,7 +30,12 @@ This checklist preserves the agreed product order. Complete each batch with mobi
 - [x] Audit broken assets, back navigation, repeated taps, storage failures, share/save failures, and accessibility
 - [x] Prepare legal pages, app icon/splash/share art, versioning, platform safe areas, and analytics events
 - [x] Validate the public web build with the complete mobile relationship flow
-- [ ] Validate Apps in Toss, then App Store/Play Store packaging against current platform requirements
+- [x] Audit Apps in Toss, App Store, and Play Store packaging against current official requirements
+- [ ] Confirm the Apps in Toss console `appName` and icon URL, then add the isolated SDK adapter
+- [ ] Build a runtime-only `.ait` bundle under 100 MB and validate it in Toss Sandbox
+- [ ] Create locally bundled iOS/Android containers and validate native navigation, sharing, lifecycle, and signing
+- [ ] Confirm the final domain, operator/support details, store metadata, and submission accounts
+- [ ] Run `quality-handoff` and `release-check` on each exact submission artifact
 
 ## Deferred until proven necessary
 
