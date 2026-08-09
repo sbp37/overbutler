@@ -1,12 +1,24 @@
 {
-  "taskId": "overbutler-auto-entry-e2e-20260809-1339-r2",
+  "taskId": "overbutler-retro-office-home-20260809-1342-r3",
   "status": "completed",
   "success": true,
-  "summary": "- 저장소 이름: `overbutler-auto-runtime`\n- 현재 브랜치: `main`\n\n파일 변경, 커밋, 푸시, 배포는 수행하지 않았습니다.",
-  "changedFiles": [],
-  "gitDiffSummary": "",
+  "summary": "HOME 리디자인을 완료했습니다.\n\n- 캐릭터 중심 전담 배정 카드, 빠른 입력/직접 입력, 보고 CTA, 오늘 기록 요약으로 재구성\n- 기존 `localStorage`, 분석·인증·기록·채용 데이터 흐름 유지\n- 390px Chrome 검수 완료: 가로 넘침·콘솔 오류 없음, 전체 보고 흐름 정상\n- 360px/430px 추가 검수 통과\n- HOME의 현행 9개 런타임 캐릭터 모두 실제 repo 자산 표시 확인\n- 커밋·푸시·배포하지 않음\n\n상세 결과는 [result.json](/Users/mac/.oing-codex-bridge/workspace/overbutler-auto-runtime/.codex-bridge/result.json)에 기록했습니다.",
+  "changedFiles": [
+    ".codex-bridge/result.json",
+    "app.css",
+    "app.js",
+    "docs/ASSETS.md",
+    "index.html",
+    "design/character-assets/home-portraits/alien-base.png",
+    "design/character-assets/home-portraits/elf-base.png",
+    "design/character-assets/home-portraits/idol-base.png",
+    "design/character-assets/home-portraits/ninja-base.png",
+    "design/character-assets/home-portraits/witch-base.png",
+    "design/character-assets/home-portraits/zombie-base.png"
+  ],
+  "gitDiffSummary": ".codex-bridge/result.json | 50 ++++++++++++++++++++++++++++++-----\n app.css                   | 66 +++++++++++++++++++++++++++++++++++++++++++++--\n app.js                    | 37 ++++++++++++++++++++++++--\n docs/ASSETS.md            | 12 +++++++++\n index.html                | 46 +++++++++++++++++----------------\n 5 files changed, 178 insertions(+), 33 deletions(-)\nUntracked files:\ndesign/character-assets/home-portraits/alien-base.png\ndesign/character-assets/home-portraits/elf-base.png\ndesign/character-assets/home-portraits/idol-base.png\ndesign/character-assets/home-portraits/ninja-base.png\ndesign/character-assets/home-portraits/witch-base.png\ndesign/character-assets/home-portraits/zombie-base.png",
   "blocker": null,
-  "startedAt": "2026-08-09T04:38:58Z",
-  "completedAt": "2026-08-09T04:39:17Z",
+  "startedAt": "2026-08-09T04:43:48Z",
+  "completedAt": "2026-08-09T04:59:27Z",
   "transport": "gmail"
 }
