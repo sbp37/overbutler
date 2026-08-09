@@ -1,11 +1,12 @@
 {
-  "taskId": "overbutler-bridge-test-20260809-r2",
+  "taskId": "overbutler-post-restart-smoketest-20260809-1251-r1",
   "status": "completed",
   "success": true,
-  "summary": "- 프로젝트 이름: `overbutler`\n- GitHub 원격 저장소: `https://github.com/sbp37/overbutler`\n- 현재 브랜치: `main`\n- 작업 트리: Clean\n\n코드와 파일은 수정하지 않았습니다.",
+  "summary": "```json\n{\n  \"project\": \"Overbutler\",\n  \"branch\": \"main\",\n  \"working_tree_clean\": true\n}\n```\n\n읽기 전용 조건에 따라 실제 `result.json` 파일은 생성하거나 수정하지 않았습니다.",
   "changedFiles": [],
   "gitDiffSummary": "",
   "blocker": null,
-  "startedAt": "2026-08-09T03:27:59Z",
-  "completedAt": "2026-08-09T03:28:45Z"
+  "startedAt": "2026-08-09T03:54:56Z",
+  "completedAt": "2026-08-09T03:55:37Z",
+  "transport": "gmail"
 }
