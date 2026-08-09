@@ -31,7 +31,7 @@
   <link rel="apple-touch-startup-image" href="design/brand/launch-splash-1170x2532.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&amp;family=Noto+Serif+KR:wght@700;800;900&amp;display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;800;900&amp;display=swap">
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="home-final.css">
   <link rel="stylesheet" href="records-final.css">
@@ -41,6 +41,7 @@
   <link rel="stylesheet" href="flow-final.css">
   <link rel="stylesheet" href="reaction-final.css">
   <link rel="stylesheet" href="relationship-final.css">
+  <link rel="stylesheet" href="ux-polish.css">
 </head>
 <body>
   <div class="app-shell" id="app-shell">
@@ -124,7 +125,7 @@
             <span>톡톡 · 말 걸기</span>
           </button>
           <div class="briefing-panel">
-            <small>기록·판단·과잉 칭찬 담당</small>
+            <small id="home-butler-role-title">기록·판단·과잉 칭찬 담당</small>
             <h1 id="home-butler-name">요정 집사</h1>
             <p class="butler-role" id="home-butler-desc">사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
             <div class="home-relationship-status"><span id="home-relationship-stage">업무상 관심</span><small id="home-relationship-next">다음 관계까지 15</small></div>
@@ -290,7 +291,7 @@
               <div class="manager-nameplate">현 담당 · 과잉 칭찬 근무 중</div>
             </div>
             <div class="manager-profile-copy">
-              <div class="manager-status-line"><span>현 담당 집사</span><b>전담 중</b></div>
+              <div class="manager-status-line"><span id="manager-role-title">현 담당 집사</span><b id="manager-status-label">전담 중</b></div>
               <h1 id="manager-title"><span id="manager-butler-name">오류 난 AI 집사</span><small id="manager-butler-symbol">✦</small></h1>
               <p id="manager-butler-desc">감정이 없어야 하는데 주인님 일에는 자꾸 과열됨</p>
               <dl class="manager-facts">
@@ -341,7 +342,7 @@
         <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 신규 지원 조건 확인</strong><span id="recruit-description">주인님의 명성이 업계에 퍼지고 있습니다.</span></button>
         <button class="manager-change-button" id="manager-change-button" type="button">담당 변경 및 인수인계 <span>›</span></button>
         <footer class="app-information" aria-label="앱 정보">
-          <div><strong>과잉집사</strong><span>버전 <b id="app-version">2.17.0</b> · 기기 안에 기록 저장</span></div>
+          <div><strong>과잉집사</strong><span>버전 <b id="app-version">2.18.0</b> · 기기 안에 기록 저장</span></div>
           <nav aria-label="정책 문서"><a href="privacy.html" target="_blank" rel="noopener" data-analytics-event="privacy_open">개인정보 처리방침</a><a href="terms.html" target="_blank" rel="noopener" data-analytics-event="terms_open">이용약관</a></nav>
         </footer>
       </section>
@@ -542,15 +543,19 @@
       </header>
       <article class="gift-receipt">
         <div class="reaction-document-meta"><span>집사 선물 인수증 · GIFT 02</span><b>접수 완료</b></div>
-        <div class="gift-character-stage">
-          <span class="gift-ribbon" aria-hidden="true"></span>
-          <img id="gift-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-gift.png" alt="선물을 받은 AI 집사">
-          <div class="reaction-stamp" aria-label="선물 수령 완료">수령<br>완료</div>
+        <div class="gift-reaction-hero">
+          <div class="gift-character-stage">
+            <span class="gift-ribbon" aria-hidden="true"></span>
+            <img id="gift-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-gift.png" alt="선물을 받은 AI 집사">
+            <div class="reaction-stamp" aria-label="선물 수령 완료">수령<br>완료</div>
+          </div>
+          <div class="gift-reaction-copy">
+            <small class="gift-overline">담당 집사 공식 반응</small>
+            <span class="gift-reaction-badge" id="gift-reaction-badge" data-reaction="normal">선물 접수</span>
+            <h1 id="gift-title">선물 수령으로<br>집사 행복 회로 폭주</h1>
+            <p><strong id="gift-butler-name">오류봇</strong> 집사가 <b id="gift-received-name">선물</b>을 안전하게 인수했습니다.</p>
+          </div>
         </div>
-        <small class="gift-overline">담당 집사 공식 반응</small>
-        <span class="gift-reaction-badge" id="gift-reaction-badge" data-reaction="normal">선물 접수</span>
-        <h1 id="gift-title">선물 수령으로<br>집사 행복 회로 폭주</h1>
-        <p><strong id="gift-butler-name">오류봇</strong> 집사가 <b id="gift-received-name">선물</b>을 안전하게 인수했습니다.</p>
         <blockquote id="gift-message">[선물 수신] 행복 수치 최대치 도달. 감사 표현 모듈 무한 반복 중.</blockquote>
         <section class="relationship-result" id="gift-relationship-result" aria-live="polite">
           <span id="gift-relationship-kicker">관계 기록 업데이트 · +3</span>

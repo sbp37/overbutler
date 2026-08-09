@@ -213,7 +213,7 @@ button{cursor:pointer}
 .certificate-signoff p{font-size:12px;line-height:1.55}
 #header-butler-type{font-style:normal}
 .briefing-status b{font-weight:850}
-.briefing-speech{position:relative;min-height:104px;padding:15px 14px;border:1px solid #c4b3aa;border-radius:0 16px 16px 16px;background:#fffdf9;color:#312a2d;box-shadow:0 7px 16px rgba(76,53,51,.07);font-size:22px;font-weight:720;line-height:1.32;word-break:keep-all;white-space:pre-line;font-family:"Gaegu","Wanted Sans Variable","Wanted Sans",sans-serif}
+.briefing-speech{position:relative;min-height:104px;padding:15px 14px;border:1px solid #c4b3aa;border-radius:0 16px 16px 16px;background:#fffdf9;color:#312a2d;box-shadow:0 7px 16px rgba(76,53,51,.07);font-size:22px;font-weight:720;line-height:1.32;word-break:keep-all;white-space:pre-line;font-family:"Wanted Sans Variable","Wanted Sans",sans-serif}
 .journal-copy{display:block;margin-top:4px;line-height:1.45}
 .recruit-note{margin-top:13px;padding:13px;border:1px dashed var(--line);background:#eee4d8;cursor:pointer}
 .recruit-note.available{border-style:solid;border-color:var(--burgundy)}

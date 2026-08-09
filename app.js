@@ -1,13 +1,13 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2.17.0";
+  const APP_VERSION = "2.18.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
-      "원조 집사메이커의 시간대별 인사와 캐릭터 말투 복원",
-      "집사별 장기 미접속·관계 상승·선물·인수인계 반응 보강",
-      "집사 일지에 캐릭터가 하루를 받아들이는 고유 문체 적용"
+      "핵심 화면의 캐릭터 크기와 좌측 배치 규칙 통일",
+      "긴 대사에도 흔들리지 않는 캐릭터·텍스트 분리 레이아웃 적용",
+      "대사와 본문을 읽기 쉬운 UI 서체로 정리"
     ]
   }];
   const STORAGE_KEY = "butlermaker_v1";
@@ -187,6 +187,28 @@
       handover: "전임 집사에게 기록을 반짝반짝하게 인수받았어요. 이제 제가 더 크게 빛내드릴게요!"
     }
   };
+
+  const CHARACTER_UI_IDENTITY = Object.freeze({
+    ai: { roleTitle: "대업 분석 담당", statusLabel: "감정 회로 가동 중" },
+    cat: { roleTitle: "기록 감찰 담당", statusLabel: "시큰둥 근무 중" },
+    dog: { roleTitle: "응원 지원 담당", statusLabel: "꼬리 가동 중" },
+    alien: { roleTitle: "지구 관측 담당", statusLabel: "관측 보고 중" },
+    ninja: { roleTitle: "비밀 임무 담당", statusLabel: "은밀 근무 중" },
+    witch: { roleTitle: "대업 예언 담당", statusLabel: "수정구 관측 중" },
+    fox: { roleTitle: "야간 기록 담당", statusLabel: "느리게 근무 중" },
+    star: { roleTitle: "과몰입 진행 담당", statusLabel: "리액션 대기 중" },
+    elf: { roleTitle: "장기 기록 담당", statusLabel: "온화 근무 중" },
+    fairy: { roleTitle: "대업 반짝임 담당", statusLabel: "별가루 근무 중" }
+  });
+
+  Object.entries(CHARACTER_PROFILES).forEach(([id, profile]) => {
+    const identity = CHARACTER_UI_IDENTITY[id] || {};
+    profile.id = id;
+    profile.displayName = profile.name;
+    profile.roleTitle = identity.roleTitle || "대업 기록 담당";
+    profile.statusLabel = identity.statusLabel || "업무 중";
+    profile.tagline = profile.desc;
+  });
 
   const OVERBUTLER_ASSETS = {
     ai: {
@@ -1013,17 +1035,20 @@
     const profile = CHARACTER_PROFILES[state.character];
     $$('[data-butler-pose]').forEach(image => setPoseImage(image, state.character, image.id === "briefing-butler-image" ? rememberedPoseFor() : image.dataset.butlerPose || pose));
     $("#header-butler-type").textContent = profile.shortName || profile.name;
-    $("#briefing-butler-label").textContent = `${profile.shortName || profile.name} · 업무 중`;
+    $("#briefing-butler-label").textContent = `${profile.shortName || profile.displayName} · ${profile.statusLabel}`;
     $("#briefing-character-action")?.setAttribute("aria-label", `${profile.shortName || profile.name}에게 말 걸기`);
-    $("#home-butler-name").textContent = profile.name;
-    $("#home-butler-desc").textContent = profile.desc;
+    $("#home-butler-role-title").textContent = profile.roleTitle;
+    $("#home-butler-name").textContent = profile.displayName;
+    $("#home-butler-desc").textContent = profile.tagline;
     setPoseImage($("#archive-butler-image"), state.character, "base");
-    $("#archive-butler-name").textContent = profile.name;
+    $("#archive-butler-name").textContent = profile.displayName;
     $("#archive-butler-message").textContent = profile.briefings[0];
     setPoseImage($("#report-butler-image"), state.character, "base");
-    $("#report-butler-name").textContent = profile.name;
-    $("#manager-butler-name").textContent = profile.name;
-    $("#manager-butler-desc").textContent = profile.desc;
+    $("#report-butler-name").textContent = profile.displayName;
+    $("#manager-role-title").textContent = profile.roleTitle;
+    $("#manager-status-label").textContent = profile.statusLabel;
+    $("#manager-butler-name").textContent = profile.displayName;
+    $("#manager-butler-desc").textContent = profile.tagline;
   }
 
   function getPraise(deed, obsession = state.obsession, character = state.character, verdictType = "praise") {
@@ -1376,7 +1401,7 @@
     const labels = {
       records: ["RECORD DESK · FILE 02", "오늘의 기록", "금일 기록 담당"],
       diary: ["BUTLER DIARY · FILE 03", "집사 일기", "일지 작성 담당"],
-      certificates: ["CERTIFICATE ARCHIVE · FILE 04", "공식 대업 인증서", "기록 보관 담당"]
+      certificates: ["CERTIFICATE ARCHIVE · FILE 04", "인증서 보관함", "기록 보관 담당"]
     };
     const [kicker, title, role] = labels[name] || labels.certificates;
     $("#archive-kicker").textContent = kicker;
@@ -1489,7 +1514,7 @@
     const certificateFiles = state.certificates.slice().reverse().map((certificate, index) => {
       const sourceIndex = state.certificates.length - 1 - index;
       return `<article class="archive-cabinet-row">
-        <div class="archive-folder-icon" aria-hidden="true"><i></i><span>대업<br>FILE</span></div>
+        <div class="archive-certificate-thumb" aria-hidden="true"><span>공식<br>인증서</span><img src="${recordPortrait(certificate, "praise")}" alt=""></div>
         <div class="archive-file-copy"><strong>${escapeHtml(certificate.deed)}</strong><p>${escapeHtml(certificate.grade)}</p><small>${escapeHtml(certificate.date)} · 문서 ${String(certificate.number || sourceIndex + 1).padStart(2, "0")}</small></div>
         <div class="archive-file-action"><span>보관 완료</span><button type="button" data-cert-index="${sourceIndex}" aria-label="${escapeHtml(certificate.deed)} 인증서 열람">›</button></div>
       </article>`;
@@ -1500,7 +1525,7 @@
       <b style="--archive-progress:${Math.round(status.progress / status.target * 100)}%"><i></i></b>
     </section>
     <div class="archive-cabinet-heading"><strong>기록 보관 서고</strong><span>총 ${state.certificates.length}건</span></div>
-    <div class="archive-cabinet-list">${certificateFiles || '<div class="records-empty"><span>EMPTY CABINET</span><p>아직 발급된 공식 인증서가 없습니다.<br>대업 도장을 모으면 이곳에 안전하게 보관됩니다.</p></div>'}</div>
+    <div class="archive-cabinet-list">${certificateFiles || '<div class="records-empty certificate-empty"><i aria-hidden="true"></i><span>인증서 보관 대기</span><p>아직 발급된 공식 인증서가 없습니다.<br>대업 도장을 모으면 이곳에 첫 문서가 보관됩니다.</p></div>'}</div>
     <div class="archive-security-note"><span aria-hidden="true">▣</span><p>모든 공식 인증서는 기기 안에 안전하게 보관되며<br>언제든 다시 열람할 수 있습니다.</p></div>`;
     renderArchiveRecords();
     renderButlerDiary();
@@ -1731,13 +1756,16 @@
     const next = APPLICANT_ORDER.find(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
     const requirement = next ? applicantStatus(next) : null;
     if (state.pendingApplicants.length) {
+      $("#recruit-note").dataset.recruitState = "arrived";
       $("#recruit-title").textContent = `✉ 신규 지원서 ${state.pendingApplicants.length}건 도착`;
       $("#recruit-description").textContent = "채용 검토를 기다리고 있습니다.";
     } else if (next && requirement) {
       const done = requirement.rows.filter(row => row.current >= row.required).length;
+      $("#recruit-note").dataset.recruitState = requirement.ready ? "ready" : "progress";
       $("#recruit-title").textContent = `✉ ${CHARACTER_PROFILES[next].name} 지원 조건`;
       $("#recruit-description").textContent = `${done}/${requirement.rows.length}개 조건 충족 · 눌러서 보유 집사를 관리하세요.`;
     } else {
+      $("#recruit-note").dataset.recruitState = "complete";
       $("#recruit-title").textContent = "✉ 현재 공개된 집사 전원 채용 가능";
       $("#recruit-description").textContent = "눌러서 보유 집사와 인수인계 기록을 확인하세요.";
     }
@@ -2424,7 +2452,7 @@
     ctx.font = '850 16px "WantedSansVariable", sans-serif';
     ctx.fillText(`${butler.name} 집사의 한마디`, 132, quoteY + 31);
     ctx.fillStyle = "#554541";
-    ctx.font = '700 28px Gaegu, sans-serif';
+    ctx.font = '700 28px "Wanted Sans", sans-serif';
     const reportLines = canvasTextLines(ctx, `“${record.report}”`, 810, 2);
     reportLines.forEach((line, index) => ctx.fillText(line, 132, quoteY + 70 + index * 35));
 

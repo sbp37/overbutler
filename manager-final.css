@@ -25,7 +25,7 @@
 .manager-facts{margin:0;border-top:1px solid #e2d7ca}
 .manager-facts>div{display:grid;grid-template-columns:37px minmax(0,1fr);gap:5px;padding:6px 0;border-bottom:1px solid #ebe3d9}
 .manager-facts dt{color:#9a7b50;font-size:10px;font-weight:850}.manager-facts dd{margin:0;color:#5e514d;font-size:11px;line-height:1.4}
-.manager-handnote{position:relative;z-index:2;margin:10px 3px 0 145px;padding:11px 12px;border:1px solid #dbcdbd;background:#f8efe3;color:#5f514c;box-shadow:0 4px 9px rgba(71,48,37,.06);font:700 16px/1.35 Gaegu,sans-serif;transform:rotate(-1deg)}
+.manager-handnote{position:relative;z-index:2;margin:10px 3px 0 145px;padding:11px 12px;border:1px solid #dbcdbd;background:#f8efe3;color:#5f514c;box-shadow:0 4px 9px rgba(71,48,37,.06);font:700 16px/1.35 "Wanted Sans Variable","Wanted Sans",sans-serif;transform:rotate(-1deg)}
 .manager-obsession{position:relative;z-index:2;margin-top:12px;padding:11px;border:1px solid #ded2c5;border-radius:7px;background:#faf5ed}
 #view-manager .obsession-heading{display:flex;align-items:center;justify-content:space-between;margin:0;color:#6d605a;font-size:11px;font-weight:750}
 #view-manager .obsession-heading b{color:#7b1b2d;font-size:12px}
