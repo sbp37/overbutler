@@ -1,12 +1,12 @@
 {
-  "taskId": "overbutler-post-restart-smoketest-20260809-1251-r1",
+  "taskId": "overbutler-gmail-e2e-20260809-1305-r1",
   "status": "completed",
   "success": true,
-  "summary": "```json\n{\n  \"project\": \"Overbutler\",\n  \"branch\": \"main\",\n  \"working_tree_clean\": true\n}\n```\n\n읽기 전용 조건에 따라 실제 `result.json` 파일은 생성하거나 수정하지 않았습니다.",
+  "summary": "- 프로젝트 이름: `overbutler`\n- 현재 브랜치: `main`\n- 작업 트리: clean (변경 사항 없음)",
   "changedFiles": [],
   "gitDiffSummary": "",
   "blocker": null,
-  "startedAt": "2026-08-09T03:54:56Z",
-  "completedAt": "2026-08-09T03:55:37Z",
+  "startedAt": "2026-08-09T04:04:45Z",
+  "completedAt": "2026-08-09T04:05:05Z",
   "transport": "gmail"
 }
