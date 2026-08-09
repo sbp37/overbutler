@@ -1,9 +1,8 @@
 {
-  "id": "overbutler-bridge-test-20260809-1231",
-  "status": "failed",
+  "id": "overbutler-bridge-test-20260809-r2",
+  "status": "approved",
   "project": "overbutler",
   "prompt": "코드나 파일을 절대 수정하지 말고 현재 프로젝트 이름, GitHub 원격 저장소, 현재 브랜치, 작업 트리 clean 여부만 읽어서 결과로 보고해줘.",
-  "createdAt": "2026-08-09T03:24:09Z",
-  "requiresPushApproval": false,
-  "completedAt": "2026-08-09T03:24:35Z"
+  "createdAt": "2026-08-09T03:27:35Z",
+  "requiresPushApproval": false
 }
