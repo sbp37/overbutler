@@ -1,11 +1,11 @@
 {
-  "taskId": "",
-  "status": "idle",
-  "success": null,
-  "summary": "",
+  "taskId": "overbutler-bridge-test-20260809-1231",
+  "status": "failed",
+  "success": false,
+  "summary": "Local branch must be main.",
   "changedFiles": [],
   "gitDiffSummary": "",
-  "blocker": null,
-  "startedAt": null,
-  "completedAt": null
+  "blocker": "safe-sync-blocked",
+  "startedAt": "2026-08-09T03:24:35Z",
+  "completedAt": "2026-08-09T03:24:35Z"
 }
