@@ -2,6 +2,7 @@
   "version": 2,
   "framework": null,
   "buildCommand": "",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . \":(exclude).codex-bridge/**\"",
   "outputDirectory": ".",
   "routes": [
     { "handle": "filesystem" },
