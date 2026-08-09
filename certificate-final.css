@@ -1,0 +1,54 @@
+/* CERTIFICATE — capture-worthy official result */
+.certificate-overlay{padding:0;background:#f3eadf;overflow-y:auto}
+.certificate-modal{width:min(100%,430px);min-height:100dvh;padding:18px 15px 28px;background:linear-gradient(180deg,#f7f0e6,#efe3d4);color:#3c3030}
+.certificate-screen-header{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:8px;align-items:center;padding:2px 0 15px;border-bottom:1px solid #d2c2ae}
+.certificate-screen-header>button{width:40px;height:40px;border:1px solid #cab9a5;border-radius:50%;background:#fffaf2;color:#4d403c;font-size:21px}
+.certificate-screen-header>div{text-align:center}.certificate-screen-header>div strong{display:block;color:#721c2b;font:900 27px/.95 "Noto Serif KR",serif;letter-spacing:-.07em}.certificate-screen-header>div span{display:block;margin-top:5px;color:#835b58;font-size:7px;font-weight:850;letter-spacing:.15em}
+.certificate-screen-header>small{display:flex;align-items:center;gap:5px;padding:7px 8px;border:1px solid #cbbba7;border-radius:99px;background:#fffaf3;color:#5f514d;font-size:8px;font-weight:800;white-space:nowrap}.certificate-screen-header>small i{width:6px;height:6px;border-radius:50%;background:#8b172c}
+.certificate-page-title{display:flex;align-items:center;justify-content:center;gap:10px;padding:20px 0 16px;text-align:center}.certificate-page-title>span{color:#aa7e3c;font-size:13px}.certificate-page-title h1{margin:0;color:#493737;font:850 25px "Noto Serif KR",serif;letter-spacing:.02em}.certificate-page-title p{margin:6px 0 0;color:#85766d;font-size:11px}
+#certificate-card.certificate{position:relative;padding:64px 25px 23px;border:1px solid #cfb680;border-radius:12px;background:linear-gradient(rgba(255,253,248,.96),rgba(255,252,245,.98)),repeating-linear-gradient(45deg,rgba(170,135,72,.035) 0 2px,transparent 2px 8px);color:#3d3030;box-shadow:inset 0 0 0 7px #fffdf8,inset 0 0 0 8px #d9c08a,inset 0 0 0 13px #fffdf8,inset 0 0 0 14px #ead7ad,0 12px 25px rgba(79,54,35,.12);overflow:visible}
+#certificate-card.certificate:before,#certificate-card.certificate:after{content:"✦";top:21px;color:#b38b45;font-size:11px}#certificate-card.certificate:before{left:23px}#certificate-card.certificate:after{right:23px}
+#certificate-card .certificate-crest{top:20px;width:42px;height:42px;border-color:#a8792f;background:linear-gradient(145deg,#fff5cf,#d4ae5e);box-shadow:inset 0 0 0 3px #fff0be,inset 0 0 0 4px #aa792f;color:#7a541f}
+#certificate-card .certificate-crest span{font:900 10px "Noto Serif KR",serif}
+#certificate-card .certificate-overline{margin:4px 0 7px;color:#9e7537;font-size:9px;letter-spacing:.14em}
+#certificate-card h2{margin:0;color:#4a3535;font:900 29px/1.2 "Noto Serif KR",serif;letter-spacing:.04em}
+.certificate-declaration{margin:8px 0 5px;color:#85756d;font-size:10px}
+.certificate-recipient{margin:0 0 10px;color:#6e5b52;font-size:11px}.certificate-recipient strong{color:#711b2c;font:850 14px "Noto Serif KR",serif}
+#certificate-card>small{display:inline-block;padding:4px 8px;border:1px solid #e2d6c6;border-radius:99px;color:#887971;font-size:9px}
+#certificate-card hr{width:72%;margin:18px auto 14px;border-top-color:#cbae78}
+#certificate-card .certificate-grade{display:inline-block;margin:0;padding:5px 10px;border:1px solid #d9bd84;border-radius:99px;background:#fff8e7;color:#8d652b;font-size:11px}
+#certificate-card h3{margin:13px 0 5px;color:#711b2c;font:900 25px/1.25 "Noto Serif KR",serif;letter-spacing:-.04em;word-break:keep-all}
+#certificate-card[data-deed-length="long"] h3{font-size:22px;word-break:break-word}
+#certificate-card[data-deed-length="extra-long"] h3{font-size:19px;line-height:1.35;word-break:break-word}
+#certificate-card .certificate-nickname{margin:0 0 17px;color:#927348;font-size:11px}
+#certificate-card .certificate-metrics{margin:0 auto 18px;border-color:#dfd0bc;background:#fffdfa}
+#certificate-card .certificate-metrics div{padding:11px 5px;border-color:#e4d8c8}
+#certificate-card .certificate-metrics dt{font-size:10px}#certificate-card .certificate-metrics dd{margin-top:5px;color:#6f1d2c;font-size:18px}
+#certificate-card .certificate-signoff{grid-template-columns:84px minmax(0,1fr) 74px;gap:9px;align-items:center;margin:0 2px 15px;padding-top:13px;border-top:1px solid #dfd1bf;text-align:left}
+#certificate-card .certificate-signoff img{width:80px;height:92px;border:1px solid #d4c2aa;border-radius:50%;background:#f7eee3;object-fit:contain;filter:drop-shadow(0 3px 1px rgba(67,43,30,.08))}
+#certificate-card .certificate-signoff p{margin:0;color:#756760;font-size:10px;line-height:1.4}#certificate-card .certificate-signoff p small{color:#9a887b;font-size:9px}#certificate-card .certificate-signoff p strong{color:#4c3c39;font:850 17px "Noto Serif KR",serif}#certificate-card .certificate-signoff p span{font-size:9px}#certificate-card .certificate-signoff p i{display:block;margin-top:8px;padding-top:4px;border-top:1px solid #8c796d;color:#9c846d;font-size:6px;font-style:normal;letter-spacing:.08em}
+#certificate-card .official-stamp{width:72px;height:72px;border:0;background:radial-gradient(circle at 35% 28%,#b7434b 0 10%,#922536 43%,#641522 100%);box-shadow:inset 0 0 0 3px #c95b62,inset 0 0 0 5px #681623,0 4px 7px rgba(84,29,34,.25);color:#ffe9d5;font-size:10px}
+#certificate-card .official-stamp:before,#certificate-card .official-stamp:after{display:none}
+#certificate-card blockquote{position:relative;margin:0;padding:14px 15px;border:1px solid #ddcdb8;background:#f8eee0;color:#5a4a45;font:700 15px/1.45 Gaegu,sans-serif;text-align:left;transform:rotate(-.5deg)}
+#certificate-card blockquote:before{content:"집사의 한마디";display:block;margin-bottom:6px;color:#7b1b2d;font:850 10px WantedSansVariable,sans-serif}
+#certificate-card[data-verdict="rare"]{border-color:#b68b3f;background:linear-gradient(rgba(255,253,243,.97),rgba(255,248,226,.98)),repeating-linear-gradient(45deg,rgba(171,126,37,.045) 0 2px,transparent 2px 8px);box-shadow:inset 0 0 0 7px #fffdf5,inset 0 0 0 8px #b58a3f,inset 0 0 0 13px #fffdf5,inset 0 0 0 14px #e0bf74,0 12px 25px rgba(79,54,35,.14)}
+#certificate-card[data-verdict="rare"] .certificate-grade{border-color:#b68b3f;background:#fff4cc;color:#76511f}
+#certificate-card[data-verdict="rare"] .official-stamp{background:radial-gradient(circle at 35% 28%,#c5963f 0 10%,#94681f 43%,#65430f 100%);box-shadow:inset 0 0 0 3px #d9ae5b,inset 0 0 0 5px #6e4810,0 4px 7px rgba(84,55,20,.25)}
+#certificate-card[data-certification="commemorative"]{border-color:#d3b98c;box-shadow:inset 0 0 0 7px #fffdf8,inset 0 0 0 8px #d9c6a2,inset 0 0 0 13px #fffdf8,inset 0 0 0 14px #eadcc2,0 12px 25px rgba(79,54,35,.1)}
+#certificate-card[data-certification="commemorative"] .certificate-crest{background:linear-gradient(145deg,#fff3dc,#d8b879)}
+#certificate-card[data-certification="commemorative"] .official-stamp{background:radial-gradient(circle at 35% 28%,#c6686d 0 10%,#98404e 43%,#702331 100%);box-shadow:inset 0 0 0 3px #d88487,inset 0 0 0 5px #732432,0 4px 7px rgba(84,29,34,.2)}
+.certificate-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:15px 2px 0}
+.certificate-actions button{min-height:52px;margin:0;border-radius:8px;font-size:13px}
+.certificate-actions .secondary-button{border-color:#cbb9a4;background:#fffaf2;color:#493c38}
+.certificate-actions .primary-button{border-color:#5e1723;background:linear-gradient(#861f33,#681420);color:#fff;box-shadow:0 3px 0 #4c1019}
+.certificate-actions button[aria-busy="true"]{cursor:wait;opacity:.68;box-shadow:none;transform:translateY(2px)}
+.certificate-actions .text-button{grid-column:1/-1;min-height:34px;color:#796a63;font-size:11px}
+.certificate-footnote{margin:3px 0 0;color:#8d7c70;font-size:10px;line-height:1.5;text-align:center}
+
+@media(max-width:370px){
+  .certificate-modal{padding-right:11px;padding-left:11px}
+  .certificate-screen-header{grid-template-columns:38px minmax(0,1fr) auto}.certificate-screen-header>button{width:36px;height:36px}.certificate-screen-header>div strong{font-size:24px}.certificate-screen-header>small{padding:6px;font-size:7px}
+  #certificate-card.certificate{padding-right:19px;padding-left:19px}
+  #certificate-card h2{font-size:26px}#certificate-card h3{font-size:22px}
+  #certificate-card .certificate-signoff{grid-template-columns:72px minmax(0,1fr) 64px}#certificate-card .certificate-signoff img{width:70px;height:82px}#certificate-card .official-stamp{width:64px;height:64px;font-size:9px}
+}

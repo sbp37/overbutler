@@ -51,11 +51,23 @@ design/character-assets/
     fairy-butler-5-pose-sheet-transparent-hq.png
     fairy-butler-5-pose-sheet-transparent.png
     fairy-butler-reference.png
+    ui-poses/
+      fairy-analysis.png
+      fairy-base.png
+      fairy-gift.png
+      fairy-power.png
+      fairy-praise.png
   idol-butler/
     idol-butler-5-pose-sheet-chroma.png
     idol-butler-5-pose-sheet-transparent-hq.png
     idol-butler-5-pose-sheet-transparent.png
     idol-butler-reference.png
+    ui-poses/
+      idol-analysis.png
+      idol-base.png
+      idol-gift.png
+      idol-power.png
+      idol-praise.png
   ninja-butler/
     ninja-butler-5-pose-sheet-chroma.png
     ninja-butler-5-pose-sheet-transparent-hq.png
@@ -73,11 +85,34 @@ design/character-assets/
     zombie-butler-reference.png
 ```
 
+## Brand and release artwork
+
+Release-facing artwork is stored under `design/brand/`. Character artwork is composed at its original color and aspect ratio; no CSS filter or generative redraw is used.
+
+```text
+design/brand/
+  app-icon-1024.png
+  app-icon-512.png
+  app-icon-192.png
+  apple-touch-icon-180.png
+  favicon-32.png
+  launch-splash-1170x2532.png
+  share-card-1200x630.png
+  brand-assets-source.html
+```
+
+- `brand-assets-source.html` is the reproducible composition source for these raster outputs.
+- The app icon uses the office seal/wordmark rather than cropping a character portrait.
+- The splash and share art reuse the existing `ui-poses/*-base.png` files without recoloring or ratio changes.
+- `manifest.webmanifest` and the document metadata reference only the generated PNG files above.
+
 ## Current `OVERBUTLER_ASSETS` policy
 
 - `ai`: `_available: true` and 1:1 UI pose paths are defined (`base`, `analysis`, `praise`, `power`, `gift`).
 - `cat`, `dog`: `_available: true` with 1:1 UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
-- `alien`, `ninja`, `witch`, `fox`, `star`, `elf`: `_available: false` (emoji fallback retained).
+- `fairy`: `_available: true` with 1:1 UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
+- `star`: `_available: true` with 1:1 idol UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
+- `alien`, `ninja`, `witch`, `fox`, `elf`: `_available: false` (fallback retained until a complete runtime pose set exists).
 
 Notes:
 - `alien-butler` and `elf-butler` directories do not exist currently.

@@ -1,0 +1,108 @@
+/* RELATIONSHIP LOOP — owner memory, diary and gift interaction */
+.owner-name-field{display:block;margin:14px 0 12px;padding:12px;border:1px solid #d3c2ae;border-radius:8px;background:#faf3e8;text-align:left}
+.owner-name-field>span{display:block;color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.1em}
+.owner-name-field>strong{display:block;margin:4px 0 9px;color:#473938;font-size:14px}
+.owner-name-field>div{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;border:1px solid #cdbca8;border-radius:7px;background:#fff;overflow:hidden}
+.owner-name-field input{width:100%;height:46px;padding:0 12px;border:0;background:transparent;color:#392e2d;font:750 16px Paperlogy,sans-serif;outline:0}
+.owner-name-field em{padding:0 12px;color:#7a1b2d;font-size:14px;font-style:normal;font-weight:850}
+.owner-name-field>small{display:block;margin-top:7px;color:#8a796f;font-size:10px;line-height:1.4}
+.briefing-speech{white-space:pre-line}
+.briefing-speech.typing:after,.gift-receipt blockquote.typing:after,.praise-result-document blockquote.typing:after{content:"";display:inline-block;width:2px;height:1em;margin-left:3px;background:#8b2639;vertical-align:-.12em;animation:relationship-caret .72s steps(1) infinite}
+.home-relationship-status{display:flex;align-items:center;gap:6px;margin:-4px 0 8px;white-space:nowrap}
+.home-relationship-status span{padding:4px 6px;border:1px solid rgba(128,34,51,.34);border-radius:99px;background:#fff8f2;color:#7e2233;font-size:10px;font-weight:900}
+.home-relationship-status small{min-width:0;color:#8c7b70;font-size:10px;overflow:hidden;text-overflow:ellipsis}
+
+.relationship-summary{position:relative;margin-top:10px;padding:11px 12px;border:1px solid #d8cabb;background:#fffaf2}
+.relationship-summary>span{display:inline-block;color:#8b2639;font-size:10px;font-weight:900;letter-spacing:.05em}
+.relationship-summary>strong{display:block;margin-top:3px;color:#453736;font:850 17px/1.25 "Noto Serif KR",serif}
+.relationship-summary>p{margin:4px 0 7px;color:#77685f;font-size:12px;line-height:1.45;word-break:keep-all}
+.relationship-summary>small{display:block;color:#8b2639;font-size:11px;font-weight:800}
+.stage-list>span{position:relative;align-content:center;gap:2px}
+.stage-list>span b{font-size:10px;line-height:1.25}.stage-list>span i{font-size:8px;font-style:normal;opacity:.72}
+.stage-list>span.done{border-color:#bca98f;background:#f7eee1;color:#654e44}.stage-list>span.done:after{content:"✓";position:absolute;right:4px;top:3px;color:#8b2639;font-size:9px;font-weight:900}
+
+.relationship-result{margin:13px 0;padding:11px 12px;border:1px solid #d6c6b3;background:#faf1e5;color:#483a38}
+.relationship-result>span{display:block;color:#8b2639;font-size:10px;font-weight:900;letter-spacing:.07em}
+.relationship-result>div{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0 7px}.relationship-result>div strong{font:850 16px/1.25 "Noto Serif KR",serif}.relationship-result>div small{color:#806f65;font-size:10px;font-weight:750;text-align:right}
+.relationship-result>b{display:block;height:5px;background:#dfd2c3;overflow:hidden}.relationship-result>b i{display:block;width:0;height:100%;background:linear-gradient(90deg,#7e1f31,#bc6874);transition:width .5s ease}
+.relationship-result>p{margin:8px 0 0;color:#675753;font:700 15px/1.35 Gaegu,sans-serif;word-break:keep-all}
+.relationship-result.upgraded{border-color:#9b5a64;background:linear-gradient(135deg,#fff7eb,#f7e4e2);box-shadow:inset 3px 0 #8b2639;animation:relationship-upgrade-in .65s cubic-bezier(.2,.86,.2,1)}
+.relationship-result.upgraded>span:before{content:"✦ ";color:#b18b4f}.relationship-result.upgraded>div strong{color:#7a1d2e}
+
+#view-archive .archive-tabs{grid-template-columns:repeat(3,1fr)}
+#view-archive[data-archive-mode="diary"] .archive-butler-brief{min-height:190px}
+.diary-intro{padding:2px 2px 13px;border-bottom:1px solid #ded2c3}
+.diary-intro>span{color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.12em}
+.diary-intro h2{margin:5px 0 4px;color:#3e3231;font:850 23px/1.2 "Noto Serif KR",serif;letter-spacing:-.05em}
+.diary-intro p{margin:0;color:#7b6d65;font-size:12px;line-height:1.5}
+.butler-diary-list{display:grid;gap:13px;margin-top:13px}
+.diary-ledger-summary{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #d8cbbb;border-radius:8px;background:#faf4ea;overflow:hidden}
+.diary-ledger-summary>div{min-width:0;padding:10px 5px;border-right:1px solid #e1d6ca;text-align:center}.diary-ledger-summary>div:last-child{border:0}
+.diary-ledger-summary span{display:block;color:#806f65;font-size:10px;font-weight:750}.diary-ledger-summary strong{display:block;margin-top:4px;color:#7b1b2d;font:850 20px/1 Paperlogy,sans-serif}.diary-ledger-summary strong small{margin-left:2px;color:#665752;font:750 10px Wanted Sans,sans-serif}
+.butler-diary-page{position:relative;padding:13px 12px 10px;border:1px solid #d3c4b2;border-radius:8px;background:#fffef9;box-shadow:0 5px 12px rgba(72,49,38,.06);overflow:hidden}
+.butler-diary-page:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 30px,rgba(170,147,118,.1) 31px);pointer-events:none}
+.butler-diary-page>header,.butler-diary-page>footer,.diary-paper-lines{position:relative;z-index:1}
+.butler-diary-page>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid #dfd3c5}
+.butler-diary-page>header>div{display:flex;align-items:center;min-width:0;gap:9px}
+.butler-diary-page header img{width:44px;height:52px;object-fit:contain;object-position:center bottom;border:1px solid #dfd2c2;border-radius:50%;background:#faf4ea}
+.butler-diary-page header span{min-width:0}.butler-diary-page header b{display:block;color:#443635;font-size:13px}.butler-diary-page header small{display:block;margin-top:3px;color:#8e7c70;font-size:10px}
+.butler-diary-page header em{padding:5px 7px;border:1px solid #cebda9;border-radius:99px;color:#8b2639;font-size:8px;font-style:normal;font-weight:900;letter-spacing:.08em;white-space:nowrap}
+.diary-paper-lines{padding:13px 4px 8px;color:#4a3b39}
+.diary-paper-lines p{margin:0 0 8px;font-size:13px}.diary-paper-lines p strong{font-family:"Noto Serif KR",serif}
+.diary-paper-lines ul{display:grid;gap:5px;margin:0;padding:0;list-style:none}.diary-paper-lines li{position:relative;padding-left:17px;font-size:13px;line-height:1.45}.diary-paper-lines li:before{content:"✓";position:absolute;left:0;color:#8b2639;font-weight:900}
+.diary-paper-lines blockquote{margin:12px 0 0;padding:11px 12px;border-left:3px solid #b58c51;background:rgba(248,239,225,.84);color:#453737;font:700 17px/1.5 Gaegu,sans-serif;word-break:keep-all}
+.butler-diary-page>footer{display:flex;align-items:center;justify-content:space-between;gap:9px;padding-top:9px;border-top:1px solid #dfd3c5;color:#88776d;font-size:10px}.butler-diary-page footer b{padding:4px 6px;border:2px double rgba(128,34,51,.58);color:#8b2639;font-size:9px;transform:rotate(-3deg)}
+.diary-empty-page{padding:42px 16px;border:1px dashed #d3c4b2;background:#faf4ea;text-align:center}.diary-empty-page span{color:#a18f80;font-size:9px;font-weight:900;letter-spacing:.14em}.diary-empty-page p{margin:9px 0 0;color:#74665e;font-size:13px;line-height:1.55}
+
+.owner-name-overlay{z-index:60;place-items:center;padding:20px;background:rgba(43,31,29,.52);backdrop-filter:blur(3px)}
+.owner-name-card{width:min(100%,360px);padding:22px 18px 17px;border:1px solid #cbb9a4;border-radius:14px;background:#fffaf2;box-shadow:0 18px 50px rgba(49,31,28,.22);text-align:left}
+.owner-name-card>span{color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.11em}.owner-name-card h2{margin:8px 0 7px;color:#3f3131;font:900 26px/1.26 "Noto Serif KR",serif;letter-spacing:-.055em}.owner-name-card>p{margin:0 0 15px;color:#796a62;font-size:12px;line-height:1.5}
+.owner-name-card>label{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;margin-bottom:13px;border:1px solid #ccbba7;border-radius:8px;background:#fff;overflow:hidden}.owner-name-card input{height:50px;padding:0 13px;border:0;background:transparent;color:#3d3130;font:750 16px Paperlogy,sans-serif;outline:0}.owner-name-card label em{padding:0 13px;color:#7b1b2d;font-size:14px;font-style:normal;font-weight:850}.owner-name-card>.primary-button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:52px}.owner-name-card>.primary-button b{font-size:20px}
+
+.gift-desk-overlay{z-index:45;place-items:start center;padding:0;background:var(--home-canvas,#f2eadf);overflow-y:auto}
+.gift-desk-modal{width:min(100%,430px);min-height:100dvh;padding:18px 14px calc(24px + env(safe-area-inset-bottom));background-color:#f7efe4;background-image:radial-gradient(rgba(116,88,61,.035) .7px,transparent .8px),linear-gradient(180deg,#faf4eb,#f1e6d8);background-size:6px 6px,100% 100%;color:#413434}
+.gift-desk-header{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:9px;padding:2px 1px 13px;border-bottom:1px solid #d3c3b0}
+.gift-desk-header>button{width:40px;height:40px;border:1px solid #ccbba6;border-radius:50%;background:#fffaf2;color:#433635;font-size:21px}.gift-desk-header>div{min-width:0}.gift-desk-header strong{display:block;color:#74192a;font:900 30px/.95 "Noto Serif KR",serif;letter-spacing:-.075em}.gift-desk-header div span{display:block;margin-top:5px;color:#825856;font-size:8px;font-weight:850;letter-spacing:.14em}.gift-desk-header>small{padding:7px 9px;border:1px solid #cdbda8;border-radius:99px;background:#fff9ef;color:#745f50;font-size:10px;font-weight:800;white-space:nowrap}.gift-desk-header>small b{color:#7a1b2d;font-size:14px}
+.gift-desk-sheet{margin-top:13px;padding:16px 12px 14px;border:1px solid #d0bfaa;border-radius:11px;background:#fffdf8;box-shadow:0 9px 24px rgba(67,44,34,.08)}
+.gift-desk-title>span{color:#8b2639;font-size:10px;font-weight:900;letter-spacing:.08em}.gift-desk-title h1{margin:6px 0 4px;color:#3e3130;font:900 27px/1.2 "Noto Serif KR",serif;letter-spacing:-.055em}.gift-desk-title p{margin:0;color:#6f6058;font-size:13px}
+.gift-drop-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-height:275px;margin:14px 0 15px;padding:36px 12px 15px;border:2px dashed #ccb58f;border-radius:12px;background:radial-gradient(circle at 50% 46%,#fff 0 29%,#f6ecdd 70%);transition:.18s}
+.gift-drop-zone.receiving{border-color:#8b2639;background:radial-gradient(circle at 50% 46%,#fff 0 25%,#f3dddc 72%);box-shadow:0 0 0 4px rgba(139,38,57,.08);transform:scale(.99)}
+.gift-drop-status{position:absolute;left:12px;right:12px;top:10px;padding:8px;border:1px solid #dacbb8;border-radius:99px;background:rgba(255,253,248,.94);color:#76645a;font-size:11px;font-weight:800;text-align:center}
+.gift-drop-zone img{display:block;width:100%;height:190px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 6px 2px rgba(68,44,33,.08));transition:.2s}.gift-drop-zone.receiving img{transform:translateY(-3px) scale(1.05)}
+.gift-drop-zone>strong{margin-top:2px;color:#6f1c2c;font-size:17px}.gift-drop-zone>p{margin:5px 0 0;color:#554746;font:700 15px/1.35 Gaegu,sans-serif;text-align:center;word-break:keep-all}
+.gift-list-heading{display:flex;align-items:end;justify-content:space-between;gap:8px;margin:0 2px 9px}.gift-list-heading h2{margin:0;color:#453737;font-size:17px}.gift-list-heading small{color:#827066;font-size:10px}
+.gift-catalog{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.gift-catalog-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:105px;padding:8px 4px;border:1px solid #ded2c4;border-radius:9px;background:#fff;box-shadow:0 3px 7px rgba(76,51,40,.05);color:#493c39;touch-action:none;user-select:none}.gift-catalog-item.affordable{border-color:#d2bd97}.gift-catalog-item.selected{border-color:#8b2639;background:#fff7f3;box-shadow:0 0 0 2px rgba(139,38,57,.1)}.gift-catalog-item.locked{opacity:.46;filter:grayscale(.28)}
+.gift-catalog-item>span{font-size:31px;line-height:1}.gift-catalog-item>strong{display:block;max-width:100%;margin:7px 0 4px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gift-catalog-item>small{padding:3px 7px;border-radius:99px;background:#f2e4ca;color:#735725;font-size:10px;font-weight:850}.gift-catalog-item>i{position:absolute;right:5px;top:5px;color:#806e62;font-size:8px;font-style:normal}
+.gift-catalog-item>mark{position:absolute;left:5px;top:5px;padding:3px 5px;border:0;border-radius:99px;background:#f3e4d2;color:#7d5b35;font-size:8px;font-weight:900;letter-spacing:-.02em}.gift-catalog-item.gift-favorite>mark{background:#f7e3e6;color:#8b2639}.gift-catalog-item.gift-rare>mark{background:#f3e4bd;color:#76551f}.gift-catalog-item.gift-duplicate>mark{background:#e7e2ef;color:#665776}
+.gift-history-block{margin-top:15px;padding-top:12px;border-top:1px solid #dfd4c7}.gift-history-block>div{display:flex;justify-content:space-between;align-items:center}.gift-history-block>div strong{font-size:14px}.gift-history-block>div span{color:#8b2639;font-size:11px;font-weight:850}.gift-history-block ul{display:grid;gap:6px;margin:9px 0 0;padding:0;list-style:none}.gift-history-block li{display:grid;grid-template-columns:27px minmax(0,1fr) auto;align-items:center;gap:7px;padding:8px 9px;border:1px solid #e1d6ca;background:#faf5ed}.gift-history-block li span{font-size:19px}.gift-history-block li b{font-size:12px}.gift-history-block li time{color:#86746a;font-size:10px}.gift-history-block li.empty{display:block;color:#807067;font-size:12px;text-align:center}
+.gift-history-block li b em{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:99px;background:#efe1d2;color:#7a2637;font-size:8px;font-style:normal;font-weight:850;vertical-align:1px}
+.gift-drag-ghost{position:fixed;z-index:1000;left:0;top:0;display:grid;place-items:center;width:60px;height:60px;border:1px solid #cdbb9d;border-radius:50%;background:#fffaf1;box-shadow:0 10px 24px rgba(44,28,26,.2);font-size:36px;pointer-events:none;will-change:transform}
+.gift-receipt>p #gift-received-name{color:#8b2639}
+.gift-reaction-badge{display:inline-flex;align-items:center;min-height:25px;margin:7px 0 0;padding:4px 9px;border:1px solid #d5c3ac;border-radius:99px;background:#f8f0e4;color:#745f4d;font-size:10px;font-weight:900}.gift-reaction-badge[data-reaction="favorite"]{border-color:#d9aeb7;background:#faeaed;color:#8b2639}.gift-reaction-badge[data-reaction="duplicate"]{border-color:#c9bfd5;background:#f0ebf5;color:#665776}.gift-reaction-badge[data-reaction="rare"]{border-color:#ccb170;background:#f7edcf;color:#725116}
+
+@keyframes relationship-caret{0%,48%{opacity:1}49%,100%{opacity:0}}
+@keyframes relationship-upgrade-in{0%{opacity:.25;transform:scale(.96)}65%{opacity:1;transform:scale(1.015)}100%{transform:scale(1)}}
+
+@media(max-width:370px){
+  .owner-name-field{margin-top:11px;padding:10px}.owner-name-field>strong{font-size:13px}.owner-name-field input{height:43px}
+  #view-archive .archive-tabs button{padding:0 4px;font-size:12px}
+  .gift-desk-modal{padding-right:10px;padding-left:10px}.gift-desk-header strong{font-size:27px}.gift-desk-sheet{padding-right:10px;padding-left:10px}.gift-drop-zone{min-height:250px}.gift-drop-zone img{height:170px}.gift-catalog-item{min-height:98px}.gift-catalog-item>strong{font-size:11px}
+  .owner-name-card{padding-right:15px;padding-left:15px}.owner-name-card h2{font-size:24px}
+  .home-relationship-status{gap:4px}.home-relationship-status span,.home-relationship-status small{font-size:9px}
+  .stage-list>span b{font-size:9px}
+}
+
+@media(prefers-reduced-motion:reduce){.briefing-speech.typing:after,.gift-receipt blockquote.typing:after,.praise-result-document blockquote.typing:after,.relationship-result.upgraded{animation:none}.gift-drop-zone,.gift-drop-zone img{transition:none}}
+
+/* Edge-content guard: preserve full stored text while keeping narrow mobile layouts stable. */
+.briefing-panel,.archive-butler-copy,.record-main,.archive-file-copy,.record-detail-title-copy,.manager-profile-copy,.manager-facts dd,.manager-duty-list span,.praise-result-summary,.praise-result-deed,.gift-receipt,.diary-paper-lines{min-width:0}
+.briefing-panel h1,.briefing-speech,.butler-role,.archive-butler-copy h2,.archive-butler-copy p,.record-main strong,.record-main p,.record-main small,.record-number span,.record-approval figcaption,.archive-file-copy strong,.archive-file-copy p,.archive-file-copy small,.record-detail-title-copy h2,.record-detail-title-copy p,.record-detail-document blockquote,.record-detail-facts dd,.diary-paper-lines strong,.diary-paper-lines li,.diary-paper-lines blockquote,.manager-profile-copy h1,.manager-profile-copy>p,.manager-facts dd,.manager-handnote,.praise-result-summary h1,.praise-result-summary p,.praise-result-deed strong,.praise-result-document blockquote,.praise-result-metrics dd,.gift-receipt h1,.gift-receipt blockquote,#certificate-card h3,#certificate-card .certificate-nickname,#certificate-card blockquote,#certificate-card .certificate-signoff p{overflow-wrap:anywhere}
+.manager-profile-copy h1,.record-detail-meta,.record-detail-note,.archive-file-action,.record-approval{min-width:0}
+
+/* Keyboard, storage-error and repeated-action affordances without changing the visual system. */
+:where(button,input,textarea,select,[role="button"],[tabindex="0"]):focus-visible{outline:3px solid rgba(123,27,45,.42);outline-offset:2px}
+button:disabled,[aria-busy="true"]{cursor:not-allowed}
+#report-button[aria-busy="true"]{opacity:.72}
+#view-manager .recruit-note{display:block;width:100%;font:inherit;text-align:left}
+.toast{width:max-content;max-width:calc(100vw - 28px);border-radius:12px;line-height:1.4;text-align:center;white-space:normal}
+.visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
