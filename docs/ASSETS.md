@@ -16,6 +16,16 @@ This project stores runtime assets under `design/character-assets/` and does not
 ```text
 app.js
 design/character-assets/
+  brand-portraits/
+    alien-portrait.png
+    angel-portrait.png
+    cat-portrait.png
+    elf-portrait.png
+    fairy-portrait.png
+    idol-portrait.png
+    ninja-portrait.png
+    witch-portrait.png
+    zombie-portrait.png
   ai-butler/
     ai-butler-5-pose-sheet-chroma.png
     ai-butler-5-pose-sheet-dynamic-chroma.png
@@ -80,5 +90,7 @@ design/character-assets/
 - `alien`, `ninja`, `witch`, `fox`, `star`, `elf`: `_available: false` (emoji fallback retained).
 
 Notes:
+- `brand-portraits/` contains transparent, single-character crops from the repository's approved source sheets. These are presentation portraits, not substitutes for the five-pose runtime contract.
+- The manager roster uses approved runtime base poses for AI and dog, plus the isolated brand portraits for characters whose runtime base pose is unavailable or unsuitable for the compact roster crop.
 - `alien-butler` and `elf-butler` directories do not exist currently.
 - No code changes were made to `localStorage` schema, keys, or character-state persistence.

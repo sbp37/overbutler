@@ -168,6 +168,18 @@
     elf: { _available: false }
   };
 
+  const OVERBUTLER_PORTRAITS = {
+    ai: "design/character-assets/ai-butler/ui-poses/ai-base.png",
+    cat: "design/character-assets/brand-portraits/cat-portrait.png",
+    dog: "design/character-assets/dog-butler/ui-poses/dog-base.png",
+    alien: "design/character-assets/brand-portraits/alien-portrait.png",
+    ninja: "design/character-assets/brand-portraits/ninja-portrait.png",
+    witch: "design/character-assets/brand-portraits/witch-portrait.png",
+    fox: "design/character-assets/brand-portraits/zombie-portrait.png",
+    star: "design/character-assets/brand-portraits/idol-portrait.png",
+    elf: "design/character-assets/brand-portraits/elf-portrait.png"
+  };
+
   const INITIAL_OWNED_BUTLERS = ["ai", "cat", "dog"];
   const APPLICANT_ORDER = ["star", "witch", "fox"];
   const APPLICANT_REQUIREMENTS = {
@@ -408,6 +420,11 @@
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   }
 
+  function portraitFor(character) {
+    const key = normalizeCharacter(character);
+    return OVERBUTLER_PORTRAITS[key] || assetFor(key, "base");
+  }
+
   function setPoseImage(image, character, pose) {
     if (!image) return;
     image.src = assetFor(character, pose);
@@ -428,6 +445,8 @@
     $("#briefing-butler-label").textContent = `${profile.shortName || profile.name} · 업무 중`;
     $("#manager-butler-name").textContent = profile.name;
     $("#manager-butler-desc").textContent = profile.desc;
+    document.documentElement.dataset.butler = state.character;
+    $$('[data-roster-character]').forEach(card => card.classList.toggle("active", card.dataset.rosterCharacter === state.character));
   }
 
   function getPraise(deed, obsession = state.obsession, character = state.character) {
@@ -781,7 +800,7 @@
     const status = applicantStatus(key);
     $("#recruitment-sheet").innerHTML = `
       <span class="file-tab burgundy">신규 지원서 · PERSONNEL</span>
-      <div class="applicant-portrait" aria-hidden="true">${profile.emoji}</div>
+      <div class="applicant-portrait"><img src="${portraitFor(key)}" alt="${escapeHtml(profile.name)}"></div>
       <small>과잉집사 중앙인사국 검토 완료</small>
       <h2 id="applicant-name">${escapeHtml(profile.name)}</h2>
       <p>${escapeHtml(profile.desc)}</p>
@@ -799,7 +818,7 @@
       const profile = CHARACTER_PROFILES[key];
       const stat = ensureButlerStat(key);
       const current = key === state.character;
-      return `<button class="secondary-button" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}>${profile.emoji} ${escapeHtml(stat.customName || profile.defaultName)} · ${current ? "현재 담당" : stat.assignments > 0 ? "다시 맡기기" : "담당 맡기기"}</button>`;
+      return `<button class="secondary-button personnel-option" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}><img src="${portraitFor(key)}" alt=""><span><strong>${escapeHtml(stat.customName || profile.defaultName)}</strong><small>${current ? "현재 담당" : stat.assignments > 0 ? "다시 맡기기" : "담당 맡기기"}</small></span></button>`;
     }).join("");
     $("#recruitment-sheet").innerHTML = `
       <span class="file-tab burgundy">보유 인력 · PERSONNEL</span>
@@ -855,8 +874,7 @@
       <span class="file-tab burgundy">담당 변경 승인서 · HANDOVER</span>
       <small>과잉집사 중앙인사국</small>
       <h2 id="applicant-name">${returning ? "기존 집사를 다시 호출합니다" : "담당 집사를 변경할까요?"}</h2>
-      <p>${previousProfile.emoji} ${escapeHtml(ensureButlerStat(previousKey).customName)}<br>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</p>
-      <p>→ ${nextProfile.emoji} ${escapeHtml(nextStat.customName)}<br>${escapeHtml(RELATION_LINES[key]?.[returning ? "return" : "welcome"] || nextProfile.handover)}</p>
+      <div class="handover-people"><div><img src="${portraitFor(previousKey)}" alt=""><p><strong>${escapeHtml(ensureButlerStat(previousKey).customName)}</strong><br>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</p></div><i>→</i><div><img src="${portraitFor(key)}" alt=""><p><strong>${escapeHtml(nextStat.customName)}</strong><br>${escapeHtml(RELATION_LINES[key]?.[returning ? "return" : "welcome"] || nextProfile.handover)}</p></div></div>
       <small>대업·인증서·집사 일지는 유지되며 각 집사의 이름·과몰입·선물·관계 기록도 따로 보존됩니다.</small>
       <button class="primary-button" data-personnel-action="switch" data-character="${key}" type="button">${returning ? "다시 담당 맡기기" : "인수인계 승인"}</button>
       <button class="secondary-button" data-personnel-action="pool" type="button">조금 더 함께 있기</button>`;
