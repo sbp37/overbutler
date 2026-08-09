@@ -1,12 +1,12 @@
 {
-  "taskId": "overbutler-retro-office-home-20260809-1315-r2",
+  "taskId": "overbutler-auto-entry-e2e-20260809-1335-r1",
   "status": "failed",
   "success": false,
-  "summary": "Local project has uncommitted or untracked changes. Bridge stopped without touching them.",
+  "summary": "git fetch origin failed: fatal: '/Users/mac/Documents/Codex/overbutler' does not appear to be a git repository\nfatal: Could not read from remote repository.\n\nPlease make sure you have the correct access rights\nand the repository exists.\n",
   "changedFiles": [],
   "gitDiffSummary": "",
   "blocker": "safe-sync-blocked",
-  "startedAt": "2026-08-09T04:33:40Z",
-  "completedAt": "2026-08-09T04:33:40Z",
+  "startedAt": "2026-08-09T04:36:50Z",
+  "completedAt": "2026-08-09T04:36:51Z",
   "transport": "gmail"
 }
