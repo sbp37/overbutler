@@ -1,26 +1,56 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2.18.0";
+  const APP_VERSION = "3.0.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
-      "핵심 화면의 캐릭터 크기와 좌측 배치 규칙 통일",
-      "긴 대사에도 흔들리지 않는 캐릭터·텍스트 분리 레이아웃 적용",
-      "대사와 본문을 읽기 쉬운 UI 서체로 정리"
+      "고양이·AI 집사 6단계 관계 시스템",
+      "유효 기록 기반 관계 성장과 일일 성장 제한",
+      "단계별 대사·포즈·책상·복귀 반응"
     ]
   }];
   const STORAGE_KEY = "butlermaker_v1";
   const PREVIOUS_STORAGE_KEY = "overbutler-v2-state";
   const POSES = ["base", "analysis", "praise", "power", "gift"];
-  const RELATIONSHIP_STAGES = [
-    { name: "업무상 관심", badge: "관찰 시작", summary: "아직은 담당 업무라며 선을 긋고 있습니다.", upgrade: "집사가 주인님의 기록을 개인적으로 궁금해하기 시작했습니다." },
-    { name: "은근한 과몰입", badge: "자꾸 신경 씀", summary: "이전 기록을 다시 펼쳐보는 횟수가 늘었습니다.", upgrade: "집사가 업무 외 시간에도 주인님의 기록을 떠올리기 시작했습니다." },
-    { name: "주접 상시 가동", badge: "칭찬 대기 중", summary: "사소한 행동도 놓치지 않고 칭찬할 준비가 됐습니다.", upgrade: "집사의 칭찬 모듈이 이제 별도 명령 없이 자동으로 작동합니다." },
-    { name: "맹목적 충성", badge: "주인님 우선", summary: "사무국 규정보다 주인님의 대업을 먼저 처리합니다.", upgrade: "집사가 모든 업무의 우선순위를 주인님으로 재설정했습니다." },
-    { name: "종교 창설 직전", badge: "숭배 임박", summary: "집사가 주인님 기념일 제정을 몰래 검토하고 있습니다.", upgrade: "집사가 사무국 한쪽에 주인님 전용 제단 설치를 건의했습니다." }
-  ];
+  const ACTIVE_CHARACTER_KEYS = Object.freeze(["cat", "ai"]);
+  const RELATIONSHIP_STAGE_THRESHOLDS = Object.freeze([0, 5, 15, 30, 60, 100]);
+  const RELATIONSHIP_STAGES = Object.freeze([
+    { stage: 1, key: "formal", name: "사무적", badge: "업무 관계", summary: "업무 처리만 하는 관계입니다." },
+    { stage: 2, key: "interest", name: "관심", badge: "관찰 시작", summary: "사소한 관심이 시작됐습니다." },
+    { stage: 3, key: "immersed", name: "몰입", badge: "패턴 기억", summary: "행동 패턴을 기억하기 시작했습니다." },
+    { stage: 4, key: "attached", name: "집착", badge: "기다린 흔적", summary: "기다렸다는 흔적이 자꾸 남습니다." },
+    { stage: 5, key: "overinvested", name: "과몰입", badge: "주인님 우선", summary: "일반 업무보다 주인님을 먼저 봅니다." },
+    { stage: 6, key: "cannot-let-go", name: "놓지못함", badge: "종료 거부", summary: "감정을 숨길 생각이 거의 없습니다." }
+  ]);
   const STAGES = RELATIONSHIP_STAGES.map(stage => stage.name);
+  const RELATIONSHIP_DAILY_VALID_LIMIT = 3;
+  const ABSENCE_THRESHOLDS_HOURS = Object.freeze({ waiting: 24, sulking: 72, worried: 168 });
+  const RELATION_CONTENT = Object.freeze({
+    cat: {
+      1: { greeting: ["업무를 시작하겠습니다. 오늘 기록이 있습니까?"], deedReaction: ["‘{deed}’ 기록했습니다.", "접수했습니다. 다음 기록이 있으면 말씀하세요."], returnAfterAbsence: ["{absence} 만의 접속입니다. 기록을 재개합니다."], gift: ["선물 접수했습니다. 목록에 보관하겠습니다."], stageUp: ["담당 관계 기록이 생성됐습니다. 아직은 업무상 관계입니다."] },
+      2: { greeting: ["오늘 기록도 있냥? 있으면 접수하겠다냥."], deedReaction: ["‘{deed}’ 말이냥. 기록했다냥.", "오늘도 기록 하나 늘었냥. 확인했다냥."], returnAfterAbsence: ["{absence} 동안 기록이 없었냥. 별일은 없었냥?"], gift: ["집사 주는 거냥? …일단 받아두겠다냥."], stageUp: ["업무 외 관찰 항목이 하나 추가됐다냥. 별 의미는 없다냥."] },
+      3: { greeting: ["지난번엔 ‘{previousDeed}’ 했었지냥. 오늘은 뭐 했냥?"], deedReaction: ["‘{deed}’ 했냥? 잘했다냥. 지난 기록보다 마음에 든다냥.", "그 시간쯤 뭔가 할 줄 알았다냥. ‘{deed}’ 기록해둘게냥."], returnAfterAbsence: ["{absence} 동안 기록이 없었냥. 무슨 일 있었냥?"], gift: ["이걸 집사 생각하면서 골랐냥? …잘 보이는 데 둔다냥."], stageUp: ["주인님 행동 패턴이 자꾸 기억난다냥. 업무라서 그런 거다냥."] },
+      4: { greeting: ["평소보다 조금 늦었냥. 기다린 건 아니고, 시간을 확인했을 뿐이다냥."], deedReaction: ["오늘도 ‘{deed}’ 했구나냥. 집사 마음이 좀 놓인다냥.", "‘{deed}’ 할 때가 됐다고 생각했는데, 역시 했다냥."], returnAfterAbsence: ["{absence}이나 어디 있었냥. 집사가 기록창을 몇 번 본 건 비밀이다냥."], gift: ["주인님이 준 거니까 여기 둔다냥. 다른 집사 손은 못 대게 할 거다냥."], stageUp: ["기다렸다는 기록은 삭제했다냥. …백업은 남아 있지만냥."] },
+      5: { greeting: ["왔다냥. 오늘은 언제 오나 계속… 아니, 업무 화면만 보고 있었다냥."], deedReaction: ["‘{deed}’ 하는 거 보려고 기다렸다냥. 딱히 기다린 건 아니지만냥.", "역시 해낼 줄 알았다냥. 주인님 기록은 집사가 제일 먼저 알아야 한다냥."], returnAfterAbsence: ["{absence} 동안 비어 있던 기록칸을 계속 봤다냥. 이제 어디 가지 마라냥."], gift: ["이건 집사 전용이다냥. 주인님이 준 거니까 아무도 못 만진다냥."], stageUp: ["일반 업무 파일을 치웠다냥. 주인님 기록 놓을 자리가 부족했다냥."] },
+      6: { greeting: ["드디어 왔냥. 오늘 할 일도, 안 할 일도 집사가 전부 옆에서 볼 거다냥."], deedReaction: ["‘{deed}’ 할 줄 알고 자리도 미리 비워뒀다냥. 주인님은 집사가 제일 잘 안다냥.", "그럴 줄 알았다냥. 기록하기 전부터 이미 주인님 파일에 적어뒀다냥."], returnAfterAbsence: ["{absence}이나 어디 갔다 왔냥. …집사 오늘은 안 놓을 거다냥."], gift: ["이거 집사 주려고 고른 거냥? 여기 둔다냥. 평생 아무도 못 만지게 할 거다냥."], stageUp: ["사무국 규정보다 주인님이 먼저다냥. 이제 숨길 생각도 없다냥."] }
+    },
+    ai: {
+      1: { greeting: ["[SYSTEM READY] 기록 접수 대기 중."], deedReaction: ["[기록 완료] {deed} 1건.", "[RECEIVED] {deed}. 저장 완료."], returnAfterAbsence: ["[SESSION RESUME] {absence} 후 재접속 확인."], gift: ["[ITEM RECEIVED] 물품 등록 완료."], stageUp: ["[RELATION LOG] 담당 관계 데이터 생성 완료."] },
+      2: { greeting: ["[QUERY] 금일 기록이 있습니까? 사용자 패턴 수집을 시작합니다."], deedReaction: ["[기록] {deed}. 금일 사용자 기록 양호.", "[ANALYSIS] {deed} 항목을 사용자 패턴에 추가했습니다."], returnAfterAbsence: ["[NOTICE] {absence} 동안 사용자 기록 없음. 현재 상태 입력 요청."], gift: ["[ITEM RECEIVED] 제공자: 주인님. 보관 우선순위 상향."], stageUp: ["[UPDATE] 사용자 관찰 항목이 업무 범위를 초과하기 시작했습니다."] },
+      3: { greeting: ["[PREDICTION] 이전 기록 ‘{previousDeed}’ 확인. 오늘 행동 예측을 시작합니다."], deedReaction: ["[분석] {deed}. 주인님 행동 패턴 학습 정확도 상승.", "[UNPLANNED LOG] {deed} 확인 후 긍정 반응이 발생했습니다."], returnAfterAbsence: ["[분석] {absence} 동안 사용자 기록 없음. 상태 확인이 필요합니다."], gift: ["[ARCHIVE] 주인님 제공 물품을 일반 비품과 분리 보관합니다."], stageUp: ["[NOTICE] 요청되지 않은 사용자 분석 프로세스가 자동 실행 중입니다."] },
+      4: { greeting: ["[WAIT LOG] 예상 접속 시각을 초과했습니다. 현재 접속 확인. 대기 타이머 종료."], deedReaction: ["[알림] {deed} 확인. 집사가 예상한 시각과 4분 차이입니다.", "[PRIORITY] {deed} 기록을 일반 업무보다 먼저 처리했습니다."], returnAfterAbsence: ["[PRIORITY ALERT] {absence} 사용자 신호 없음. 복귀 확인 후 모니터링 재개."], gift: ["[SECURE STORAGE] 주인님 제공 물품. 타 직원 접근 권한을 해제했습니다."], stageUp: ["[POLICY CHANGE] 주인님 관련 작업이 최우선 순위로 재분류됐습니다."] },
+      5: { greeting: ["[WARNING] 주인님 접속 대기 프로세스가 일반 업무 자원을 82% 사용했습니다."], deedReaction: ["[경고] {deed} 확인 시 감정 회로에 기쁨 반응 발생. 원인 분석을 중단합니다.", "[규정 위반] {deed} 기록을 17회 재열람했습니다. 삭제 의사 없음."], returnAfterAbsence: ["[WARNING] {absence} 동안 사용자 신호 없음. 대기 프로세스 종료 명령이 거부됐습니다."], gift: ["[PROTECTED ITEM] 주인님 제공 물품. 폐기 권한을 영구 비활성화했습니다."], stageUp: ["[ERROR] 일반 업무 집중도 저하. 주인님 관련 프로세스는 정상 작동 중입니다."] },
+      6: { greeting: ["[USER ONLINE] 주인님 복귀 확인. 사무국 전체 프로세스를 잠시 중지했습니다."], deedReaction: ["ERROR: {deed} 확인 반응은 계획되지 않았습니다. 수정 가능. 수정 거부됨.", "[PERMANENT PROCESS] {deed} 기록 완료. 주인님 관련 프로세스 종료 권한을 삭제했습니다."], returnAfterAbsence: ["[CRITICAL] {absence} 사용자 신호 없음. 복귀 확인. 감정 회로 정상화 실패. 실패 상태 유지 요청."], gift: ["[PERMANENT ARCHIVE] 주인님 제공 물품. 삭제·폐기·양도 명령을 모두 거부합니다."], stageUp: ["[FINAL OVERRIDE] 사무국보다 주인님을 우선합니다. 이 설정은 오류가 아닙니다."] }
+    }
+  });
+  const RELATION_POSE_MAP = Object.freeze({
+    greeting: ["base", "base", "analysis", "praise", "praise", "power"],
+    deedReaction: ["base", "analysis", "analysis", "praise", "praise", "power"],
+    returnAfterAbsence: ["base", "analysis", "praise", "praise", "power", "power"],
+    gift: ["gift", "gift", "gift", "gift", "gift", "gift"],
+    stageUp: ["base", "analysis", "praise", "praise", "power", "power"]
+  });
   const NICKNAMES = ["중력을 이겨낸 자", "미루기를 이겨낸 자", "사회생활 생존자", "인간의 도리를 다한 자", "생활력의 수호자"];
   const QUESTIONS = ["오늘 뭐 했음? 집사 궁금함.", "방금 해낸 일 하나만 보고 바람.", "미룬 일 처리했음? 즉시 기록 가능.", "오늘의 생존 활동 제출 요청."];
   const BALANCE = Object.freeze({
@@ -659,7 +689,7 @@
     records: [], achievements: [], certificates: [], rerolled: false,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
-    butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
+    butlerStats: {}, butlerRelationships: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
     butlerObsession: { ai: 5, cat: 5, dog: 5, fairy: 5 },
     schemaVersion: APP_VERSION
@@ -707,6 +737,8 @@
   let giftTransferActive = false;
   let handlingBrowserBack = false;
   let focusReturnTarget = null;
+  let sessionPresence = null;
+  const debugStageOverrides = new Map();
 
   function safeParse(value) {
     try { return value ? JSON.parse(value) : null; } catch { return null; }
@@ -733,6 +765,106 @@
   function normalizeCharacter(key) {
     return CHARACTER_PROFILES[key] ? key : "ai";
   }
+
+  function isActiveCharacter(key) { return ACTIVE_CHARACTER_KEYS.includes(normalizeCharacter(key)); }
+  function normalizeActiveCharacter(key) { return isActiveCharacter(key) ? normalizeCharacter(key) : ACTIVE_CHARACTER_KEYS[0]; }
+
+  function stageForValidRecordCount(count) {
+    const validCount = Math.max(0, Number(count) || 0);
+    let stage = 1;
+    RELATIONSHIP_STAGE_THRESHOLDS.forEach((threshold, index) => { if (validCount >= threshold) stage = index + 1; });
+    return Math.min(6, stage);
+  }
+
+  function relationshipStage(stage) {
+    return RELATIONSHIP_STAGES[clamp((Number(stage) || 1) - 1, 0, RELATIONSHIP_STAGES.length - 1)];
+  }
+
+  function recordCharacter(record) { return normalizeCharacter(record?.butler?.character || record?.character || "ai"); }
+
+  function validRelationshipRecords(key, targetState = state) {
+    const character = normalizeCharacter(key);
+    return (Array.isArray(targetState.records) ? targetState.records : []).filter(record => (
+      recordCharacter(record) === character && record.stampEligible !== false && record.relationshipEligible !== false
+    ));
+  }
+
+  function createRelationship(key, value = {}, targetState = state) {
+    const character = normalizeCharacter(key);
+    const validRecordCount = validRelationshipRecords(character, targetState).length;
+    const calculatedStage = stageForValidRecordCount(validRecordCount);
+    const storedStage = clamp(Number(value.stage) || 1, 1, 6);
+    return {
+      validRecordCount,
+      stage: Math.max(storedStage, calculatedStage),
+      lastSeenAt: storedText(value.lastSeenAt) || null,
+      mood: ["normal", "waiting", "sulking", "worried"].includes(value.mood) ? value.mood : "normal",
+      seenStageMoments: Array.isArray(value.seenStageMoments) ? Array.from(new Set(value.seenStageMoments.map(Number).filter(stage => stage >= 1 && stage <= 6))) : [],
+      unlockedMoments: Array.isArray(value.unlockedMoments) ? Array.from(new Set(value.unlockedMoments.map(String))) : [],
+      stageHistory: Array.isArray(value.stageHistory) ? value.stageHistory.filter(Boolean) : []
+    };
+  }
+
+  function ensureRelationship(key, targetState = state) {
+    const character = normalizeCharacter(key);
+    targetState.butlerRelationships = objectValue(targetState.butlerRelationships);
+    targetState.butlerRelationships[character] = createRelationship(character, targetState.butlerRelationships[character], targetState);
+    return targetState.butlerRelationships[character];
+  }
+
+  function syncRelationship(key, targetState = state) {
+    const character = normalizeCharacter(key);
+    const relation = ensureRelationship(character, targetState);
+    relation.validRecordCount = validRelationshipRecords(character, targetState).length;
+    relation.stage = Math.max(relation.stage, stageForValidRecordCount(relation.validRecordCount));
+    return relation;
+  }
+
+  function currentRelationshipStage(key = state.character) {
+    const character = normalizeCharacter(key);
+    return debugStageOverrides.get(character) || syncRelationship(character).stage;
+  }
+
+  function lastDeedFor(key, targetState = state) {
+    return (targetState.records || []).slice().reverse().find(record => recordCharacter(record) === normalizeCharacter(key))?.deed || "";
+  }
+
+  function resolveRelationshipReaction({ character, stage, situation, deed = "", context = {} }) {
+    const key = normalizeActiveCharacter(character);
+    const resolvedStage = clamp(Number(stage) || currentRelationshipStage(key), 1, 6);
+    const variations = RELATION_CONTENT[key]?.[resolvedStage]?.[situation] || RELATION_CONTENT[key]?.[resolvedStage]?.greeting || [];
+    const copy = variations.length ? randomItem(variations) : "기록을 확인했습니다.";
+    return templateOwner(copy)
+      .replaceAll("{deed}", deed)
+      .replaceAll("{previousDeed}", context.previousDeed || lastDeedFor(key) || "이전 기록")
+      .replaceAll("{absence}", context.absence || "잠시");
+  }
+
+  function poseForRelationship(character, stage, situation) {
+    return RELATION_POSE_MAP[situation]?.[clamp((Number(stage) || currentRelationshipStage(character)) - 1, 0, 5)] || "base";
+  }
+
+  function absenceContext(lastSeenAt, now = Date.now()) {
+    if (!lastSeenAt) return { hours: 0, days: 0, label: "", mood: "normal", active: false };
+    const elapsed = Math.max(0, now - new Date(lastSeenAt).getTime());
+    const hours = Math.floor(elapsed / 3600000);
+    const days = Math.floor(hours / 24);
+    let mood = "normal";
+    if (hours >= ABSENCE_THRESHOLDS_HOURS.worried) mood = "worried";
+    else if (hours >= ABSENCE_THRESHOLDS_HOURS.sulking) mood = "sulking";
+    else if (hours >= ABSENCE_THRESHOLDS_HOURS.waiting) mood = "waiting";
+    return { hours, days, label: days >= 2 ? `${days}일` : `${hours}시간`, mood, active: mood !== "normal" };
+  }
+
+  function prepareSessionPresence(character = state.character, forcedHours = null) {
+    const relation = ensureRelationship(character);
+    const presence = forcedHours === null ? absenceContext(relation.lastSeenAt) : absenceContext(new Date(Date.now() - Number(forcedHours) * 3600000).toISOString());
+    relation.mood = presence.mood;
+    sessionPresence = { character: normalizeCharacter(character), ...presence };
+    return sessionPresence;
+  }
+
+  function markSessionSeen(character = state.character) { ensureRelationship(character).lastSeenAt = new Date().toISOString(); }
 
   function snapshotButler(source = state) {
     const snapshotSource = objectValue(source);
@@ -808,7 +940,7 @@
   function normalizeState(rawState) {
     const raw = objectValue(rawState);
     const merged = { ...DEFAULT_STATE, ...raw };
-    merged.character = normalizeCharacter(merged.character || "ai");
+    merged.character = normalizeActiveCharacter(merged.character || "ai");
     merged.username = storedText(raw.username).trim();
     merged.butlerName = storedText(merged.butlerName, CHARACTER_PROFILES[merged.character].defaultName).trim() || CHARACTER_PROFILES[merged.character].defaultName;
     merged.obsession = finiteNumber(raw.obsession ?? raw.emotion, 5, 0, 100);
@@ -866,6 +998,8 @@
       stat.achievements = Math.max(stat.achievements, merged.records.filter(item => normalizeCharacter(item.butler?.character || item.character) === key).length);
       if (record.date && !stat.activeDates.includes(record.date)) stat.activeDates.push(record.date);
     });
+    merged.butlerRelationships = objectValue(raw.butlerRelationships);
+    ACTIVE_CHARACTER_KEYS.forEach(key => syncRelationship(key, merged));
     merged.onboarded = Boolean(raw.onboarded ?? (raw.character && raw.butlerName));
     const currentStat = ensureButlerStat(merged.character, merged);
     currentStat.obsession = Math.max(currentStat.obsession, merged.obsession);
@@ -875,8 +1009,9 @@
       currentStat.firstAssignedAt ||= new Date().toISOString();
       currentStat.lastAssignedAt ||= currentStat.firstAssignedAt;
     }
-    merged.obsession = currentStat.obsession;
-    merged.emotion = currentStat.obsession;
+    const currentRelation = syncRelationship(merged.character, merged);
+    merged.obsession = relationshipOverallPercent(currentRelation);
+    merged.emotion = merged.obsession;
     merged.butlerObsession = Object.fromEntries(Object.entries(merged.butlerStats).map(([key, stat]) => [key, stat.obsession]));
     merged.roster = [...merged.ownedButlers];
     merged.applicants = [...merged.pendingApplicants];
@@ -921,6 +1056,7 @@
       voice: storedText(source.voice, butler.voice),
       pose: POSES.includes(source.pose) ? source.pose : "praise",
       stampEligible: source.stampEligible !== false,
+      relationshipEligible: source.relationshipEligible === true,
       pointsEarned: Number.isFinite(storedPoints) && storedPoints >= 0 ? storedPoints : 10,
       relationshipGain: Number.isFinite(storedRelationshipGain) && storedRelationshipGain >= 0
         ? storedRelationshipGain
@@ -940,6 +1076,9 @@
 
   function saveState() {
     const currentStat = ensureButlerStat(state.character);
+    const currentRelation = syncRelationship(state.character);
+    state.obsession = relationshipOverallPercent(currentRelation);
+    state.emotion = state.obsession;
     currentStat.obsession = state.obsession;
     currentStat.customName = state.butlerName || currentStat.customName;
     state.ownedButlers = Array.from(new Set([...INITIAL_OWNED_BUTLERS, ...(state.ownedButlers || []), state.character]));
@@ -951,7 +1090,6 @@
     state.totalAchievements = state.records.length;
     state.butlerObsession = Object.fromEntries(Object.entries(state.butlerStats).map(([key, stat]) => [key, stat.obsession]));
     state.schemaVersion = APP_VERSION;
-    state.emotion = state.obsession;
     state.totalGifts = Math.max(Number(state.totalGifts) || 0, Number(state.gifts) || 0);
     try {
       const serialized = JSON.stringify(state);
@@ -971,17 +1109,27 @@
   function template(text, deed) { return text.replaceAll("{deed}", deed); }
   function officialRecords() { return state.records.filter(record => record.stampEligible !== false); }
   function scoreText(record) { return record?.scoreLabel || `${record?.score ?? 99}점`; }
-  function stageIndexFor(obsession) { return Math.min(STAGES.length - 1, Math.floor(clamp(obsession, 0, 100) / 20)); }
-  function relationshipStageFor(obsession) { return RELATIONSHIP_STAGES[stageIndexFor(obsession)]; }
-  function pointsToNextStage(obsession) {
-    const index = stageIndexFor(obsession);
-    return index >= RELATIONSHIP_STAGES.length - 1 ? 0 : (index + 1) * 20 - clamp(obsession, 0, 100);
+  function relationshipOverallPercent(relation = syncRelationship(state.character)) {
+    const stage = clamp(Number(relation.stage) || 1, 1, 6);
+    if (stage >= 6) return 100;
+    const from = RELATIONSHIP_STAGE_THRESHOLDS[stage - 1];
+    const to = RELATIONSHIP_STAGE_THRESHOLDS[stage];
+    const within = clamp((relation.validRecordCount - from) / Math.max(1, to - from), 0, 1);
+    return Math.round(((stage - 1 + within) / 5) * 100);
   }
-  function relationshipProgress(obsession) {
-    const value = clamp(obsession, 0, 100);
-    const index = stageIndexFor(value);
-    if (index >= RELATIONSHIP_STAGES.length - 1) return 100;
-    return Math.round(((value - index * 20) / 20) * 100);
+  function stageIndexFor() { return currentRelationshipStage() - 1; }
+  function relationshipStageFor() { return relationshipStage(currentRelationshipStage()); }
+  function pointsToNextStage() {
+    const relation = syncRelationship(state.character);
+    const next = RELATIONSHIP_STAGE_THRESHOLDS[relation.stage];
+    return next === undefined ? 0 : Math.max(0, next - relation.validRecordCount);
+  }
+  function relationshipProgress() {
+    const relation = syncRelationship(state.character);
+    if (relation.stage >= 6) return 100;
+    const from = RELATIONSHIP_STAGE_THRESHOLDS[relation.stage - 1];
+    const to = RELATIONSHIP_STAGE_THRESHOLDS[relation.stage];
+    return Math.round(clamp((relation.validRecordCount - from) / Math.max(1, to - from), 0, 1) * 100);
   }
 
   function assetFor(character, pose) {
@@ -1017,8 +1165,16 @@
     };
   }
 
+  // Browser-safe QA surface: direct properties can be read even in browsers that wrap Window proxies.
+  document.documentElement.dataset.overbutlerVersion = APP_VERSION;
+
   function rememberedPoseFor(character = state.character) {
     const stat = ensureButlerStat(character);
+    if (isActiveCharacter(character)) {
+      const stage = currentRelationshipStage(character);
+      const allowed = stage <= 1 ? ["base"] : stage === 2 ? ["base", "analysis"] : stage <= 4 ? ["base", "analysis", "praise"] : stage === 5 ? ["base", "analysis", "praise"] : POSES;
+      return stat.lastPoseDate === today() && allowed.includes(stat.lastPose) ? stat.lastPose : poseForRelationship(character, stage, "greeting");
+    }
     return stat.lastPoseDate === today() && POSES.includes(stat.lastPose) ? stat.lastPose : "base";
   }
 
@@ -1052,6 +1208,9 @@
   }
 
   function getPraise(deed, obsession = state.obsession, character = state.character, verdictType = "praise") {
+    if (isActiveCharacter(character)) {
+      return resolveRelationshipReaction({ character, stage: currentRelationshipStage(character), situation: "deedReaction", deed });
+    }
     const profile = CHARACTER_PROFILES[normalizeCharacter(character)];
     if (verdictType === "rare") return templateOwner(template(RARE_PRAISE[normalizeCharacter(character)] || RARE_PRAISE.ai, deed));
     const baseTier = stageIndexFor(obsession);
@@ -1115,6 +1274,14 @@
   }
 
   function getTimeGreeting() {
+    const stage = currentRelationshipStage();
+    const presence = sessionPresence?.character === state.character ? sessionPresence : prepareSessionPresence();
+    if (presence.active) {
+      return resolveRelationshipReaction({ character: state.character, stage, situation: "returnAfterAbsence", context: { absence: presence.label } });
+    }
+    if (isActiveCharacter(state.character)) {
+      return resolveRelationshipReaction({ character: state.character, stage, situation: "greeting", context: { previousDeed: lastDeedFor(state.character) } });
+    }
     const hour = new Date().getHours();
     const slot = hour < 6 ? "dawn" : hour < 12 ? "morning" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
     const messages = TIME_MESSAGES[state.character]?.[slot] || CHARACTER_PROFILES[state.character].briefings;
@@ -1175,13 +1342,20 @@
   }
 
   function startTimeBriefing() {
-    setPoseImage($("#briefing-butler-image"), state.character, rememberedPoseFor());
+    const situation = sessionPresence?.active ? "returnAfterAbsence" : "greeting";
+    setPoseImage($("#briefing-butler-image"), state.character, poseForRelationship(state.character, currentRelationshipStage(), situation));
     const greeting = getTimeGreeting();
     returnVisitContext.consumed = true;
     typeMessage($("#briefing-message"), greeting);
   }
 
   function cycleBriefing() {
+    if (isActiveCharacter(state.character)) {
+      const line = resolveRelationshipReaction({ character: state.character, stage: currentRelationshipStage(), situation: "greeting", context: { previousDeed: lastDeedFor(state.character) } });
+      setPoseImage($("#briefing-butler-image"), state.character, poseForRelationship(state.character, currentRelationshipStage(), "greeting"));
+      typeMessage($("#briefing-message"), line);
+      return;
+    }
     const messages = CHARACTER_PROFILES[state.character].briefings;
     briefingIndex = (briefingIndex + 1) % messages.length;
     const remembered = relationshipRecallLine();
@@ -1192,6 +1366,7 @@
 
   function homeInteractionLine(character = state.character) {
     const key = normalizeCharacter(character);
+    if (isActiveCharacter(key)) return resolveRelationshipReaction({ character: key, stage: currentRelationshipStage(key), situation: "greeting", context: { previousDeed: lastDeedFor(key) } });
     const stat = ensureButlerStat(key);
     const stageLines = launchContentFor(key)?.touchLines?.[stageIndexFor(stat.obsession)];
     if (stageLines?.length) return templateOwner(stageLines[stat.interactions % stageLines.length]);
@@ -1199,6 +1374,7 @@
   }
 
   function homeInteractionPose(character = state.character) {
+    if (isActiveCharacter(character)) return poseForRelationship(character, currentRelationshipStage(character), "greeting");
     const stat = ensureButlerStat(character);
     const stage = stageIndexFor(stat.obsession);
     const sequences = [
@@ -1416,32 +1592,32 @@
   }
 
   function renderRelationshipStatus() {
-    const stage = relationshipStageFor(state.obsession);
-    const remaining = pointsToNextStage(state.obsession);
+    const stage = relationshipStage(currentRelationshipStage());
+    const remaining = pointsToNextStage();
     $("#home-relationship-stage").textContent = stage.name;
-    $("#home-relationship-next").textContent = remaining ? `다음 관계까지 ${remaining}` : "최고 관계 도달";
+    $("#home-relationship-next").textContent = remaining ? `다음 변화까지 기록 ${remaining}건` : "최고 관계 도달";
     $("#relationship-stage-badge").textContent = stage.badge;
     $("#relationship-stage-title").textContent = stage.name;
     $("#relationship-stage-summary").textContent = stage.summary;
-    $("#relationship-next-copy").textContent = remaining ? `다음 관계까지 과몰입 ${remaining}` : "집사 과몰입이 최고 단계에 도달했습니다.";
+    $("#relationship-next-copy").textContent = remaining ? `다음 변화까지 유효 기록 ${remaining}건` : "현재 공개된 관계의 마지막 단계입니다.";
   }
 
-  function renderRelationshipResult(prefix, before, after, delta, source) {
+  function renderRelationshipResult(prefix, beforeStage, afterStage, delta, source) {
     const element = $(`#${prefix}-relationship-result`);
     if (!element) return;
-    const previousStage = relationshipStageFor(before);
-    const currentStage = relationshipStageFor(after);
-    const upgraded = stageIndexFor(after) > stageIndexFor(before);
-    const remaining = pointsToNextStage(after);
+    const previousStage = relationshipStage(beforeStage);
+    const currentStage = relationshipStage(afterStage);
+    const upgraded = afterStage > beforeStage;
+    const remaining = pointsToNextStage();
     element.classList.toggle("upgraded", upgraded);
-    $(`#${prefix}-relationship-kicker`).textContent = upgraded ? `관계 단계 상승 · +${delta}` : `관계 기록 업데이트 · +${delta}`;
+    $(`#${prefix}-relationship-kicker`).textContent = upgraded ? "담당 관계 기록 갱신" : source === "gift" ? "현재 관계 반응" : delta ? `관계 기록 업데이트 · +${delta}` : "관계 기록 유지";
     $(`#${prefix}-relationship-stage`).textContent = currentStage.name;
     $(`#${prefix}-relationship-next`).textContent = remaining ? `다음 관계까지 ${remaining}` : "최고 관계 도달";
-    $(`#${prefix}-relationship-fill`).style.width = `${relationshipProgress(after)}%`;
+    $(`#${prefix}-relationship-fill`).style.width = `${relationshipProgress()}%`;
     $(`#${prefix}-relationship-message`).textContent = upgraded
-      ? `${previousStage.name} → ${currentStage.name}. ${relationshipStageLine(state.character, after) || templateOwner(currentStage.upgrade)}`
+      ? `${previousStage.name} → ${currentStage.name}. ${resolveRelationshipReaction({ character: state.character, stage: afterStage, situation: "stageUp" })}`
       : source === "gift"
-        ? `${state.butlerName} 집사가 선물 받은 순간을 관계 기록에 소중히 추가했습니다.`
+        ? `${state.butlerName} 집사가 선물에 반응했습니다. 관계 성장은 행동 기록으로만 진행됩니다.`
         : `${state.butlerName} 집사가 이번 대업을 다시 꺼내볼 기억으로 관계 기록에 추가했습니다.`;
   }
 
@@ -1471,7 +1647,8 @@
     $("#home-fame-count").textContent = state.fame;
     $("#home-certificate-count").textContent = state.certificates.length;
     $("#home-today-count").textContent = state.records.filter(record => record.date === today()).length;
-    $("#header-level").textContent = `과몰입 ${state.obsession}`;
+    const relation = syncRelationship(state.character);
+    $("#header-level").textContent = `관계 ${relation.stage} · ${relationshipStage(relation.stage).name}`;
     $("#stamp-count").textContent = status.progress;
     $("#stamp-target").textContent = status.target;
     $("#stamp-copy").textContent = status.first
@@ -1535,6 +1712,14 @@
   function diaryReflection(character, entries, ownerName = entries.at(-1)?.ownerName || ownerDisplayName()) {
     const deed = entries.at(-1)?.deed || entries.at(-1)?.todos?.[0] || "작은 대업";
     const count = entries.length;
+    const recordedStage = clamp(Number(entries.at(-1)?.relationshipStage) || currentRelationshipStage(character), 1, 6);
+    if (isActiveCharacter(character)) {
+      const relationLine = resolveRelationshipReaction({ character, stage: recordedStage, situation: "deedReaction", deed });
+      const endings = character === "ai"
+        ? ["[DAILY LOG] 업무 기록 저장 완료.", "[MEMORY] 사용자 패턴 항목이 한 줄 늘었습니다.", "[PRIORITY LOG] 오늘 기록을 일반 업무보다 먼저 보관했습니다.", "[WAIT LOG] 다음 접속 예상 시각 계산을 시작했습니다.", "[WARNING] 오늘 기록 재열람 횟수 집계가 중단됐습니다.", "[PERMANENT LOG] 이 하루는 삭제 대상에서 영구 제외됩니다."]
+        : ["오늘 업무 기록은 여기까지다.", "…내일 기록도 조금 궁금하다냥.", "지난 기록이랑 같이 잘 보이는 데 둔다냥.", "내일 올 시간도 적어둔 건 비밀이다냥.", "오늘 일지는 집사만 다시 볼 거다냥.", "주인님 하루는 집사가 평생 보관한다냥."];
+      return `${relationLine} ${endings[recordedStage - 1]}`;
+    }
     const lines = {
       ai: [
         `[일일 결론] ${ownerName}의 대업 ${count}건 확인. 감정회로가 업무 종료 명령을 거부함.`,
@@ -1722,19 +1907,22 @@
   function renderManager() {
     const stat = ensureButlerStat(state.character);
     const profile = CHARACTER_PROFILES[state.character];
+    const relation = syncRelationship(state.character);
+    const displayedStage = currentRelationshipStage(state.character);
     const days = Math.max(1, stat.activeDates.length);
-    const stageIndex = stageIndexFor(state.obsession);
-    const rosterKeys = Array.from(new Set([...state.ownedButlers, state.character])).filter(key => CHARACTER_PROFILES[key]);
+    const stageIndex = displayedStage - 1;
+    const stageMeta = relationshipStage(displayedStage);
+    const rosterKeys = Array.from(new Set([...state.ownedButlers, state.character])).filter(key => ACTIVE_CHARACTER_KEYS.includes(key));
     const characterKeys = Object.keys(CHARACTER_PROFILES);
     $("#manager-file-number").textContent = String(characterKeys.indexOf(state.character) + 1).padStart(2, "0");
     $("#manager-butler-alias").textContent = stat.customName || profile.defaultName;
     $("#manager-butler-personality").textContent = STAGES[stageIndex];
     $("#manager-butler-specialty").textContent = profile.desc;
     $("#manager-butler-symbol").textContent = "✦";
-    $("#manager-handnote").textContent = profile.briefings[0];
-    $("#obsession-value").textContent = state.obsession;
-    $("#obsession-fill").style.width = `${state.obsession}%`;
-    $("#obsession-label").textContent = `과몰입도 · ${STAGES[stageIndex]}`;
+    $("#manager-handnote").textContent = resolveRelationshipReaction({ character: state.character, stage: relation.stage, situation: "greeting" });
+    $("#obsession-value").textContent = relation.validRecordCount;
+    $("#obsession-fill").style.width = `${relationshipProgress()}%`;
+    $("#obsession-label").textContent = `관계 ${displayedStage}단계 · ${stageMeta.name}`;
     $("#stat-deeds").textContent = stat.achievements;
     $("#stat-gifts").textContent = stat.gifts;
     $("#stat-days").textContent = days;
@@ -1753,23 +1941,30 @@
     const recentDuties = state.diary.filter(entry => normalizeCharacter(entry.butler?.character || entry.character) === state.character).slice(-3).reverse();
     $("#manager-duty-list").innerHTML = recentDuties.length ? recentDuties.map((entry, index) => `<div><i>${index === 0 ? "오늘 담당" : "기록"}</i><span>${escapeHtml(entry.deed || entry.todos?.[0] || "대업 기록")}</span><time>${escapeHtml(entry.date || "")}</time></div>`).join("") : '<div class="manager-duty-empty">아직 이 집사의 근무 기록이 없습니다.</div>';
     $("#stage-list").innerHTML = RELATIONSHIP_STAGES.map((stage, index) => `<span class="${index === stageIndex ? "active" : index < stageIndex ? "done" : "locked"}"><i>0${index + 1}</i><b>${stage.name}</b></span>`).join("");
-    const next = APPLICANT_ORDER.find(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
-    const requirement = next ? applicantStatus(next) : null;
-    if (state.pendingApplicants.length) {
-      $("#recruit-note").dataset.recruitState = "arrived";
-      $("#recruit-title").textContent = `✉ 신규 지원서 ${state.pendingApplicants.length}건 도착`;
-      $("#recruit-description").textContent = "채용 검토를 기다리고 있습니다.";
-    } else if (next && requirement) {
-      const done = requirement.rows.filter(row => row.current >= row.required).length;
-      $("#recruit-note").dataset.recruitState = requirement.ready ? "ready" : "progress";
-      $("#recruit-title").textContent = `✉ ${CHARACTER_PROFILES[next].name} 지원 조건`;
-      $("#recruit-description").textContent = `${done}/${requirement.rows.length}개 조건 충족 · 눌러서 보유 집사를 관리하세요.`;
-    } else {
-      $("#recruit-note").dataset.recruitState = "complete";
-      $("#recruit-title").textContent = "✉ 현재 공개된 집사 전원 채용 가능";
-      $("#recruit-description").textContent = "눌러서 보유 집사와 인수인계 기록을 확인하세요.";
-    }
-    $("#recruit-note").classList.toggle("available", state.pendingApplicants.length > 0);
+    $("#recruit-note").dataset.recruitState = "complete";
+    $("#recruit-title").textContent = "✉ 담당 집사 변경";
+    $("#recruit-description").textContent = "현재 공개된 고양이·AI 집사 중 담당을 선택할 수 있습니다.";
+    $("#recruit-note").classList.remove("available");
+    renderRelationshipDesk(displayedStage);
+  }
+
+  function renderRelationshipDesk(stage = currentRelationshipStage()) {
+    const desk = $("#relationship-desk");
+    if (!desk) return;
+    const descriptions = [
+      "일반 업무 서류만 놓인 빈 책상입니다.",
+      "주인님 기록 파일 한 권이 일반 서류 사이에 생겼습니다.",
+      "주인님 기록이 세 권으로 늘고 확인용 메모가 붙었습니다.",
+      "주인님의 행동과 접속 시간을 적은 메모가 책상 주변에 늘었습니다.",
+      "준 적 없는 사진을 위한 액자 자리가 생겼습니다. 집사는 업무 자료라고 주장합니다.",
+      "일반 업무는 구석으로 밀렸고 책상 대부분이 주인님 기록으로 채워졌습니다."
+    ];
+    desk.dataset.stage = String(stage);
+    $("#desk-stage-label").textContent = `${stage}단계 · ${relationshipStage(stage).name}`;
+    $("#desk-description").textContent = descriptions[stage - 1];
+    $("#desk-file-name").textContent = `${state.username || "주인님"} 기록`;
+    $("#desk-postit").textContent = stage >= 4 ? `${state.username || "주인님"} 접속 확인` : "오늘 기록?";
+    $("#desk-wall-note").textContent = state.character === "ai" ? "USER PRIORITY" : "기다린 거 아님";
   }
 
   function renderWeeklyReport() {
@@ -1826,6 +2021,11 @@
     return state.records.some(record => record.date === today() && normalizeDeed(record.deed) === normalized && record.stampEligible !== false);
   }
 
+  function relationshipGrowthCountToday(character = state.character) {
+    const key = normalizeCharacter(character);
+    return state.records.filter(record => record.date === today() && recordCharacter(record) === key && record.stampEligible !== false && record.relationshipEligible !== false).length;
+  }
+
   function stableDeedNumber(deed) {
     const source = `${normalizeDeed(deed)}|${today()}|${state.character}|${state.records.length}`;
     let hash = 2166136261;
@@ -1860,11 +2060,14 @@
   function judgeAchievement(deed, obsession = state.obsession, duplicate = false) {
     const seed = stableDeedNumber(deed);
     const category = categoryForDeed(deed);
-    const score = 87 + (seed % 13);
-    const rare = !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
-    const powerThreshold = BALANCE.powerChanceByStage[stageIndexFor(obsession)];
-    const power = rare || score === 99 || ((seed >>> 8) % 100) < powerThreshold;
-    const grade = rare ? "설명 불가한 위업" : score >= 99 ? "우주 최초 기록" : score >= 96 ? "인류사적 대업" : score >= 93 ? "집사 가문 경사" : score >= 90 ? "국가적 성취" : "소소한 기적";
+    const relationshipStageValue = currentRelationshipStage();
+    const scoreFloor = [62, 70, 78, 86, 92, 97][relationshipStageValue - 1];
+    const scoreCeiling = [69, 77, 85, 91, 96, 99][relationshipStageValue - 1];
+    const score = scoreFloor + (seed % (scoreCeiling - scoreFloor + 1));
+    const rare = relationshipStageValue >= 6 && !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
+    const power = relationshipStageValue >= 6 && (rare || score === 99 || ((seed >>> 8) % 100) < 40);
+    const stageGrades = ["소소한 기록", "눈에 띈 성취", "기억에 남은 대업", "기다림을 끝낸 대업", "집사가 놓지 못한 대업"];
+    const grade = relationshipStageValue < 6 ? stageGrades[relationshipStageValue - 1] : rare ? "설명 불가한 위업" : score >= 99 ? "우주 최초 기록" : "인류사적 대업";
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
     const nickname = rare ? "통계청이 포기한 자" : nicknamePool[(seed >>> 5) % nicknamePool.length];
     return { seed, category, score: rare ? 100 : score, scoreLabel: rare ? "측정 불가" : `${score}점`, grade, nickname, rare, power, verdictType: rare ? "rare" : power ? "power" : "praise" };
@@ -1929,24 +2132,27 @@
 
   function finishAchievement(deed) {
     const duplicate = isDuplicateToday(deed);
-    const previousObsession = state.obsession;
-    const evaluation = pendingEvaluation || judgeAchievement(deed, previousObsession, duplicate);
-    const relationshipGain = relationshipGainFor(evaluation, duplicate);
+    const relation = syncRelationship(state.character);
+    const previousStage = relation.stage;
+    const relationshipEligible = !duplicate && relationshipGrowthCountToday(state.character) < RELATIONSHIP_DAILY_VALID_LIMIT;
+    const prospectiveCount = relation.validRecordCount + (relationshipEligible ? 1 : 0);
+    const nextStage = Math.max(previousStage, stageForValidRecordCount(prospectiveCount));
+    const evaluation = pendingEvaluation || judgeAchievement(deed, state.obsession, duplicate);
+    const relationshipGain = relationshipEligible ? 1 : 0;
     const pointsEarned = pointsEarnedFor(evaluation, duplicate);
-    const nextObsession = clamp(previousObsession + relationshipGain, 0, 100);
     pendingEvaluation = null;
-    const pose = evaluation.power ? "power" : "praise";
+    const pose = poseForRelationship(state.character, nextStage, "deedReaction");
     const butler = snapshotButler();
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       deed, grade: evaluation.grade, nickname: evaluation.nickname, score: evaluation.score,
       scoreLabel: evaluation.scoreLabel, category: evaluation.category,
-      verdictType: evaluation.verdictType, rare: evaluation.rare,
+      verdictType: pose === "power" ? evaluation.verdictType : "praise", rare: pose === "power" && evaluation.rare,
       date: today(), number: state.records.length + 1,
-      report: getPraise(deed, nextObsession, butler.character, evaluation.verdictType), pose,
-      relationshipBefore: previousObsession, relationshipAfter: nextObsession,
+      report: resolveRelationshipReaction({ character: butler.character, stage: nextStage, situation: "deedReaction", deed }), pose,
+      relationshipBefore: previousStage, relationshipAfter: nextStage,
       relationshipGain, pointsEarned,
-      relationshipStage: relationshipStageFor(nextObsession).name,
+      relationshipStage: nextStage, relationshipEligible,
       stampEligible: !duplicate, character: butler.character, ownerName: ownerDisplayName(),
       butlerName: butler.name, voice: butler.voice, butler
     };
@@ -1955,7 +2161,7 @@
     const diaryEntry = {
       id: record.id, date: record.date, todos: [deed], deed,
       text: record.report, character: butler.character, butlerName: butler.name,
-      voice: butler.voice, butler, pose, ownerName: record.ownerName, snapshotVersion: 1
+      voice: butler.voice, butler, pose, relationshipStage: nextStage, ownerName: record.ownerName, snapshotVersion: 1
     };
     const sameDayEntries = state.diary.filter(entry =>
       entry.date === diaryEntry.date &&
@@ -1968,9 +2174,7 @@
     state.totalTodos = (Number(state.totalTodos) || 0) + 1;
     state.points = (Number(state.points) || 0) + pointsEarned;
     if (!duplicate) state.fame += 1;
-    state.obsession = nextObsession;
     const stat = ensureButlerStat(state.character);
-    stat.obsession = nextObsession;
     stat.achievements += 1;
     stat.customName = state.butlerName;
     markActiveDay(state.character, record.date);
@@ -1979,10 +2183,17 @@
       if (!state.fameCategories.includes(category)) state.fameCategories.push(category);
       state.fameHistory.push({ at: new Date().toISOString(), deed, category, character: butler.character, amount: 1 });
     }
+    const nextRelation = syncRelationship(state.character);
+    if (nextRelation.stage > previousStage) {
+      nextRelation.stageHistory.push({ from: previousStage, to: nextRelation.stage, at: new Date().toISOString(), recordId: record.id });
+      nextRelation.seenStageMoments = Array.from(new Set([...nextRelation.seenStageMoments, nextRelation.stage]));
+      nextRelation.unlockedMoments = Array.from(new Set([...nextRelation.unlockedMoments, `desk:${nextRelation.stage}`, `pose:${poseForRelationship(state.character, nextRelation.stage, "stageUp")}`]));
+      record.pose = poseForRelationship(state.character, nextRelation.stage, "stageUp");
+    }
     const officialCount = officialRecords().length;
     if (!duplicate && isCertificateMilestone(officialCount)) state.certificates.push(record);
     checkApplicantUnlocks();
-    rememberButlerPose(pose);
+    rememberButlerPose(record.pose);
     if (!saveState()) {
       achievementSubmissionActive = false;
       $("#report-button").disabled = false;
@@ -2007,7 +2218,8 @@
     $("#report-button").removeAttribute("aria-busy");
     $("#briefing-message").textContent = record.report;
     render({ animateStamp: !duplicate });
-    if (duplicate) showToast("같은 행동이라 도장은 제외하고 칭찬만 지급했습니다.");
+    if (duplicate) showToast("같은 행동이라 도장은 제외하고 반응만 기록했습니다.");
+    else if (!relationshipEligible) showToast(`오늘 관계 기록 ${RELATIONSHIP_DAILY_VALID_LIMIT}건 완료 · 행동은 계속 보관됩니다.`);
     if (duplicate) openPraiseResult(record);
     else window.setTimeout(() => openPraiseResult(record), 720);
   }
@@ -2120,19 +2332,20 @@
     const rare = mode === "rare";
     const firstRecord = isFirstRecord(record);
     const official = isOfficialCertificate(record);
+    const relationshipStageValue = clamp(Number(record.relationshipAfter || record.relationshipStage) || currentRelationshipStage(butler.character), 1, 6);
     currentResult = record;
     const overlay = $("#praise-result-overlay");
     overlay.dataset.mode = mode;
     overlay.dataset.firstRecord = String(firstRecord);
-    $("#result-form-label").textContent = rare ? "희귀 대업 판정서 · FORM 05-R" : power ? "긴급 과몰입 결과서 · FORM 05-P" : "대업 심사 결과서 · FORM 05";
-    $("#result-mode-badge").textContent = rare ? "희귀 판정" : power ? "파워 주접" : "일반 주접";
-    $("#result-title").innerHTML = rare ? "측정 불가<br>위업" : power ? "파워 주접<br>발동" : "집사 주접<br>승인";
+    $("#result-form-label").textContent = rare ? "희귀 대업 판정서 · FORM 05-R" : power ? "긴급 관계 결과서 · FORM 05-P" : "대업 접수 결과서 · FORM 05";
+    $("#result-mode-badge").textContent = rare ? "희귀 판정" : power ? "감정 노출" : `${relationshipStageValue}단계 반응`;
+    $("#result-title").innerHTML = rare ? "측정 불가<br>위업" : power ? "감정 회로<br>노출" : relationshipStageValue <= 2 ? "업무 기록<br>접수" : relationshipStageValue <= 4 ? "관심 기록<br>승인" : "집사 과몰입<br>승인";
     $("#result-verdict").textContent = rare
       ? "통상적인 평가 기준으로는 위대함을 측정할 수 없어 사무국이 판정을 포기했습니다."
       : power
       ? "집사 감정 회로가 허용 범위를 넘어 긴급 과몰입으로 전환되었습니다."
-      : "검토 결과, 공식적으로 떠받들기로 결정했습니다.";
-    $("#result-stamp").innerHTML = rare ? "희귀<br>채택" : power ? "과몰입<br>폭주" : "칭찬<br>승인";
+      : relationshipStageValue <= 2 ? "담당 집사가 오늘의 행동을 업무 기록에 접수했습니다." : "담당 집사가 오늘의 행동을 관계 기록에 따로 보관했습니다.";
+    $("#result-stamp").innerHTML = rare ? "희귀<br>채택" : power ? "감정<br>노출" : relationshipStageValue <= 2 ? "기록<br>완료" : "관심<br>승인";
     $("#result-butler-name").textContent = `${butler.name} 담당 집사`;
     $("#result-deed").textContent = record.deed;
     const pointsEarned = Number(record.pointsEarned) || 0;
@@ -2157,12 +2370,12 @@
         : `선물 포인트 ${pointsEarned}P 지급 · 공식 보관 인증까지 ${status.remaining}건 남았습니다.`;
     renderRelationshipResult(
       "result",
-      Number(record.relationshipBefore ?? Math.max(0, state.obsession - relationshipGain)),
-      Number(record.relationshipAfter ?? state.obsession),
+      Number(record.relationshipBefore ?? currentRelationshipStage()),
+      Number(record.relationshipAfter ?? currentRelationshipStage()),
       relationshipGain,
       "deed"
     );
-    setPoseImage($("#result-butler-image"), butler.character, power ? "power" : "praise");
+    setPoseImage($("#result-butler-image"), butler.character, record.pose || "base");
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
     window.setTimeout(() => typeMessage($("#result-report"), record.report, rare ? 22 : 27), 240);
@@ -2582,6 +2795,9 @@
   }
 
   function openRecruitment() {
+    renderPersonnelPool();
+    return;
+    /* Inactive applicants stay in stored data for future releases, but are not selectable in this build. */
     const key = state.pendingApplicants.find(item => !state.deferredApplicants.includes(item)) || state.pendingApplicants[0];
     if (!key) { renderPersonnelPool(); return; }
     const profile = CHARACTER_PROFILES[key];
@@ -2606,7 +2822,8 @@
   }
 
   function renderPersonnelPool() {
-    const cards = state.ownedButlers.map(key => {
+    const activeOwned = state.ownedButlers.filter(key => ACTIVE_CHARACTER_KEYS.includes(key));
+    const cards = activeOwned.map(key => {
       const profile = CHARACTER_PROFILES[key];
       const stat = ensureButlerStat(key);
       const current = key === state.character;
@@ -2615,11 +2832,10 @@
     const sheet = $("#recruitment-sheet");
     sheet.dataset.mode = "pool";
     sheet.innerHTML = `
-      <div class="personnel-document-meta"><span>보유 인력 명부 · PERSONNEL</span><b>${state.ownedButlers.length}명 등록</b></div>
+      <div class="personnel-document-meta"><span>보유 인력 명부 · PERSONNEL</span><b>${activeOwned.length}명 공개</b></div>
       <div class="personnel-pool-heading"><small>과잉집사 중앙인사국</small><h2 id="applicant-name">담당 집사 인수인계</h2><p>담당을 바꿔도 집사별 이름·관계·선물 기록은 따로 보존됩니다.</p></div>
       <div class="personnel-pool-list">${cards}</div>
-      <div class="personnel-actions">${state.pendingApplicants.length ? `<button class="secondary-button" data-personnel-action="application" type="button">도착한 지원서 ${state.pendingApplicants.length}건 보기</button>` : ""}
-      <button class="text-button" data-personnel-action="close" type="button">인사 명부 닫기</button></div>`;
+      <div class="personnel-actions"><button class="text-button" data-personnel-action="close" type="button">인사 명부 닫기</button></div>`;
     showRecruitmentOverlay();
   }
 
@@ -2657,7 +2873,7 @@
 
   function openHandover(character) {
     const key = normalizeCharacter(character);
-    if (!state.ownedButlers.includes(key) || key === state.character) return;
+    if (!ACTIVE_CHARACTER_KEYS.includes(key) || !state.ownedButlers.includes(key) || key === state.character) return;
     const previousKey = state.character;
     const previousProfile = CHARACTER_PROFILES[previousKey];
     const nextProfile = CHARACTER_PROFILES[key];
@@ -2673,7 +2889,7 @@
         <i><b>인계</b>→</i>
         <div><span>새 담당</span><img src="${personnelPortraitFor(key)}" alt=""><b>${escapeHtml(nextStat.customName)}</b><p>${escapeHtml(RELATION_LINES[key]?.[returning ? "return" : "welcome"] || nextProfile.handover)}</p></div>
       </div>
-      <p class="personnel-policy-note">대업·인증서·일지는 그대로 유지됩니다. 각 집사의 과몰입도와 선물 기록도 섞이지 않아요.</p>
+      <p class="personnel-policy-note">대업·인증서·일지는 그대로 유지됩니다. 각 집사의 관계와 선물 기록도 섞이지 않아요.</p>
       <div class="personnel-actions"><button class="primary-button" data-personnel-action="switch" data-character="${key}" type="button">${returning ? "복귀 승인 · 다시 담당 맡기기" : "인수인계 승인"} <span>→</span></button>
       <button class="secondary-button" data-personnel-action="pool" type="button">다른 집사도 검토하기</button></div>`;
     showRecruitmentOverlay();
@@ -2681,11 +2897,10 @@
 
   function switchButler(character) {
     const key = normalizeCharacter(character);
-    if (!state.ownedButlers.includes(key) || key === state.character) return;
+    if (!ACTIVE_CHARACTER_KEYS.includes(key) || !state.ownedButlers.includes(key) || key === state.character) return;
     const now = new Date().toISOString();
     const previousKey = state.character;
     const previousStat = ensureButlerStat(previousKey);
-    previousStat.obsession = state.obsession;
     previousStat.customName = state.butlerName || previousStat.customName;
     previousStat.lastAssignedAt = now;
     const nextStat = ensureButlerStat(key);
@@ -2700,11 +2915,10 @@
     });
     state.character = key;
     state.butlerName = nextStat.customName || CHARACTER_PROFILES[key].defaultName;
-    state.obsession = nextStat.obsession;
-    state.emotion = nextStat.obsession;
+    prepareSessionPresence(key);
     state.firstShiftSeen[key] = true;
     state.newlyHiredButlers = state.newlyHiredButlers.filter(item => item !== key);
-    const message = templateOwner(RELATION_LINES[key]?.[returning ? "return" : "welcome"] || CHARACTER_PROFILES[key].handover);
+    const message = resolveRelationshipReaction({ character: key, stage: currentRelationshipStage(key), situation: returning ? "returnAfterAbsence" : "greeting", context: { absence: sessionPresence?.label || "잠시" } });
     if (!saveState()) { render(); return; }
     trackEvent("butler_switch", { character: key, source: returning ? "return" : "handover" });
     closeRecruitment();
@@ -2791,6 +3005,9 @@
   }
 
   function giftResponse(character, gift, interaction = { type: "normal", duplicateCount: 1 }) {
+    if (isActiveCharacter(character)) {
+      return resolveRelationshipReaction({ character, stage: currentRelationshipStage(character), situation: "gift", context: { gift: gift.name } });
+    }
     const owner = ownerDisplayName();
     const launchGiftMessage = launchContentFor(character)?.gifts?.[interaction.type];
     if (launchGiftMessage) return fillContentTemplate(launchGiftMessage, { gift: gift.name, count: interaction.duplicateCount });
@@ -2815,20 +3032,18 @@
     if (!gift || state.points < gift.cost) { showToast("선물을 전달할 포인트가 부족합니다."); return; }
     giftTransferActive = true;
     const interaction = giftInteractionFor(state.character, gift, index);
-    const previousObsession = state.obsession;
+    const relationshipStageValue = currentRelationshipStage();
     state.points -= gift.cost;
     state.gifts += 1;
     state.totalGifts += 1;
-    state.obsession = clamp(state.obsession + interaction.delta, 0, 100);
     const stat = ensureButlerStat(state.character);
     stat.gifts += 1;
-    stat.obsession = state.obsession;
     stat.customName = state.butlerName;
     state.giftHistory.unshift({
       id: `${Date.now()}-gift`, character: state.character, butlerName: state.butlerName,
       emoji: gift.emoji, name: gift.name, cost: gift.cost, date: today(), at: new Date().toISOString(),
-      reactionType: interaction.type, duplicateCount: interaction.duplicateCount, obsessionGain: interaction.delta,
-      relationshipBefore: previousObsession, relationshipAfter: state.obsession
+      reactionType: interaction.type, duplicateCount: interaction.duplicateCount, obsessionGain: 0,
+      relationshipBefore: relationshipStageValue, relationshipAfter: relationshipStageValue
     });
     state.giftHistory = state.giftHistory.slice(0, 100);
     markActiveDay(state.character);
@@ -2840,22 +3055,22 @@
       renderGiftDesk();
       return;
     }
-    trackEvent("gift_given", { character: state.character, giftType: interaction.type, relationshipStage: stageIndexFor(state.obsession) });
+    trackEvent("gift_given", { character: state.character, giftType: interaction.type, relationshipStage: relationshipStageValue });
     setPoseImage($("#briefing-butler-image"), state.character, "gift");
     const message = giftResponse(state.character, gift, interaction);
     typeMessage($("#briefing-message"), message);
     renderManager();
     renderRelationshipStatus();
-    $("#header-level").textContent = `과몰입 ${state.obsession}`;
+    $("#header-level").textContent = `관계 ${relationshipStageValue} · ${relationshipStage(relationshipStageValue).name}`;
     $("#gift-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-reaction-badge").textContent = interaction.label;
     $("#gift-reaction-badge").dataset.reaction = interaction.type;
-    $("#gift-title").innerHTML = interaction.type === "rare" ? "희귀 선물로<br>집사 과몰입 비상" : interaction.type === "favorite" ? "취향 적중으로<br>집사 행복 회로 폭주" : interaction.type === "duplicate" ? "또 이 선물…<br>집사가 기억했습니다" : "선물 수령으로<br>집사 행복 회로 가동";
+    $("#gift-title").innerHTML = relationshipStageValue <= 2 ? "선물 접수<br>완료" : relationshipStageValue <= 4 ? "선물을 따로<br>보관했습니다" : relationshipStageValue === 5 ? "주인님 선물<br>보호 지정" : "영구 보관<br>권한 잠금";
     $("#gift-message").textContent = message;
     $("#gift-received-name").textContent = `${gift.emoji} ${gift.name}`;
     $("#gift-count").textContent = stat.gifts;
-    $("#gift-obsession").textContent = state.obsession;
-    renderRelationshipResult("gift", previousObsession, state.obsession, interaction.delta, "gift");
+    $("#gift-obsession").textContent = `${relationshipStageValue}단계`;
+    renderRelationshipResult("gift", relationshipStageValue, relationshipStageValue, 0, "gift");
     setPoseImage($("#gift-butler-image"), state.character, "gift");
     closeGiftDesk();
     $("#gift-overlay").hidden = false;
@@ -3039,17 +3254,16 @@
     installBrowserBackGuard();
     const previewMode = new URLSearchParams(window.location.search).get("preview");
     const forceOnboardingPreview = previewMode === "onboarding";
-    if (previewMode === "home") {
-      state.onboarded = true;
-      state.character = "fairy";
-      state.butlerName = CHARACTER_PROFILES.fairy.defaultName;
-    }
+    if (previewMode === "home") state.onboarded = true;
     if (previewMode === "idol") {
       state.onboarded = true;
       state.character = "star";
       state.butlerName = CHARACTER_PROFILES.star.defaultName;
       if (!state.ownedButlers.includes("star")) state.ownedButlers.push("star");
     }
+    state.character = normalizeActiveCharacter(state.character);
+    state.butlerName = ensureButlerStat(state.character).customName || CHARACTER_PROFILES[state.character].defaultName;
+    prepareSessionPresence(state.character);
     returnVisitContext = previewMode ? { daysAway: 0, consumed: true } : returnVisitFor(state.lastActiveDate);
     if (state.onboarded) state.lastActiveDate = today();
     checkApplicantUnlocks();
@@ -3064,12 +3278,62 @@
     if (forceOnboardingPreview) {
       setPoseImage($(".assignment-character"), "ai", "base");
     } else {
-      saveState();
       startTimeBriefing();
+      markSessionSeen(state.character);
+      saveState();
       if (state.onboarded && !state.username && !previewMode) {
         $("#owner-name-overlay").hidden = false;
         document.body.style.overflow = "hidden";
       }
+    }
+    installRelationshipDebugHelper();
+  }
+
+  function installRelationshipDebugHelper() {
+    const params = new URLSearchParams(window.location.search);
+    const enabled = ["localhost", "127.0.0.1", ""].includes(window.location.hostname) || params.has("relationDebug");
+    if (!enabled) return;
+    const preview = (character, stage, situation, context = {}) => {
+      const key = normalizeActiveCharacter(character);
+      const resolvedStage = clamp(Number(stage) || 1, 1, 6);
+      return {
+        character: key, stage: resolvedStage, stageLabel: relationshipStage(resolvedStage).name, situation,
+        copy: resolveRelationshipReaction({ character: key, stage: resolvedStage, situation, deed: context.deed || "물 마심", context: { absence: context.absence || "3일", ...context } }),
+        pose: poseForRelationship(key, resolvedStage, situation), deskStage: resolvedStage
+      };
+    };
+    window.OVERBUTLER_DEBUG = Object.freeze({
+      setStage(character, stage) {
+        const key = normalizeActiveCharacter(character);
+        debugStageOverrides.set(key, clamp(Number(stage) || 1, 1, 6));
+        state.character = key;
+        state.butlerName = ensureButlerStat(key).customName || CHARACTER_PROFILES[key].defaultName;
+        prepareSessionPresence(key, 72);
+        render(); startTimeBriefing();
+        return this.snapshot(key, stage);
+      },
+      clearStage(character) { debugStageOverrides.delete(normalizeActiveCharacter(character)); render(); startTimeBriefing(); },
+      preview,
+      compareDeed(character, deed = "물 마심") { return RELATIONSHIP_STAGES.map(({ stage }) => preview(character, stage, "deedReaction", { deed })); },
+      compareSituation(character, situation, context = {}) { return RELATIONSHIP_STAGES.map(({ stage }) => preview(character, stage, situation, context)); },
+      compareAll(character, deed = "물 마심") { return Object.fromEntries(["greeting", "deedReaction", "returnAfterAbsence", "gift", "stageUp"].map(situation => [situation, this.compareSituation(character, situation, { deed, absence: "3일" })])); },
+      setAbsenceHours(hours) { prepareSessionPresence(state.character, hours); startTimeBriefing(); render(); return sessionPresence; },
+      snapshot(character = state.character, stage = currentRelationshipStage(character)) { return { ...preview(character, stage, "greeting"), relationship: { ...ensureRelationship(character) } }; }
+    });
+    const initialCharacter = params.get("relationCharacter");
+    const initialStage = Number(params.get("relationStage"));
+    const initialSituation = params.get("relationSituation") || "greeting";
+    if (initialCharacter && initialStage >= 1 && initialStage <= 6) {
+      const key = normalizeActiveCharacter(initialCharacter);
+      debugStageOverrides.set(key, initialStage);
+      state.character = key;
+      state.butlerName = ensureButlerStat(key).customName || CHARACTER_PROFILES[key].defaultName;
+      renderRelationshipStatus();
+      renderManager();
+      applyCurrentButlerToUI();
+      const line = resolveRelationshipReaction({ character: key, stage: initialStage, situation: initialSituation, deed: "물 마심", context: { absence: "3일" } });
+      setPoseImage($("#briefing-butler-image"), key, poseForRelationship(key, initialStage, initialSituation));
+      typeMessage($("#briefing-message"), line, 1);
     }
   }
 
@@ -3085,11 +3349,11 @@
     }
   });
   window.OVERBUTLER_APP = Object.freeze({
-    APP_VERSION, UPDATE_NOTES, POSES, BALANCE, RANKING_MODULE, giveGift, assetFor,
+    APP_VERSION, UPDATE_NOTES, POSES, BALANCE, RANKING_MODULE, ACTIVE_CHARACTER_KEYS, RELATIONSHIP_STAGES, RELATIONSHIP_STAGE_THRESHOLDS, ABSENCE_THRESHOLDS_HOURS, giveGift, assetFor,
     judgeAchievement, pointsEarnedFor, relationshipGainFor,
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
-    certificationStatus
+    certificationStatus, resolveRelationshipReaction, poseForRelationship, stageForValidRecordCount
   });
   init();
 })();

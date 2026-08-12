@@ -92,6 +92,31 @@
   .stage-list>span b{font-size:9px}
 }
 
+/* Six-stage relationship desk: latest office UI stays intact; only the evidence on the desk grows. */
+.relationship-desk-card{margin-top:16px;padding:18px;overflow:hidden}
+.relationship-desk{position:relative;min-height:190px;margin-top:14px;border:1px solid #d9c8b5;border-radius:16px;background:linear-gradient(180deg,#f3eadc 0 58%,#8b6047 58% 100%);box-shadow:inset 0 1px rgba(255,255,255,.85);overflow:hidden}
+.desk-backboard{position:absolute;inset:0 0 42% 0;background:linear-gradient(#f7f0e5,#efe3d3)}
+.desk-backboard i{position:absolute;top:18px;right:16px;max-width:108px;padding:7px 9px;background:#fff7dc;color:#6f2833;font:700 10px/1.35 var(--font-ui,sans-serif);transform:rotate(2deg);box-shadow:0 2px 5px rgba(67,44,34,.12);opacity:0}
+.desk-backboard b{position:absolute;width:38px;height:28px;border:1px solid #cdbca9;background:#fffdf7;opacity:0}
+.desk-backboard b:nth-of-type(1){left:25px;top:29px;transform:rotate(-3deg)}
+.desk-backboard b:nth-of-type(2){left:69px;top:19px;transform:rotate(4deg)}
+.desk-surface{position:absolute;inset:58% 0 0;background:linear-gradient(165deg,#9d7054,#714631)}
+.desk-office-files,.desk-owner-files,.desk-postit,.desk-photo{position:absolute;bottom:20px}
+.desk-office-files{left:18px;width:74px;height:31px;border:1px solid #9b8068;background:repeating-linear-gradient(0deg,#d8c4a9 0 6px,#efe4d2 7px 10px);box-shadow:2px 3px 0 rgba(45,28,20,.15)}
+.desk-owner-files{left:112px;width:82px;height:35px;padding:8px 6px;border:1px solid #7d2435;background:#9b3346;color:#fff8ef;font:700 9px/1.1 var(--font-ui,sans-serif);text-align:center;box-shadow:2px 3px 0 rgba(45,28,20,.15);opacity:0}
+.desk-postit{right:18px;bottom:33px;width:68px;min-height:48px;padding:9px 7px;background:#f6dfa5;color:#614f3d;font:700 9px/1.4 var(--font-ui,sans-serif);transform:rotate(-4deg);opacity:0}
+.desk-photo{right:24px;width:48px;height:60px;border:5px solid #b89465;background:linear-gradient(#f8f2e9,#d9c8b6);box-shadow:2px 3px 0 rgba(45,28,20,.16);opacity:0}
+.relationship-desk[data-stage="2"] .desk-owner-files{opacity:1;width:56px}
+.relationship-desk[data-stage="3"] .desk-owner-files{opacity:1;width:82px;box-shadow:5px -5px 0 #b65a66,9px -9px 0 #e5c8ae}
+.relationship-desk[data-stage="3"] .desk-postit,.relationship-desk[data-stage="4"] .desk-postit{opacity:1}
+.relationship-desk[data-stage="4"] .desk-owner-files,.relationship-desk[data-stage="5"] .desk-owner-files,.relationship-desk[data-stage="6"] .desk-owner-files{opacity:1;width:98px;box-shadow:5px -5px 0 #b65a66,9px -9px 0 #e5c8ae}
+.relationship-desk[data-stage="4"] .desk-backboard i,.relationship-desk[data-stage="4"] .desk-backboard b,.relationship-desk[data-stage="5"] .desk-backboard i,.relationship-desk[data-stage="5"] .desk-backboard b,.relationship-desk[data-stage="6"] .desk-backboard i,.relationship-desk[data-stage="6"] .desk-backboard b{opacity:1}
+.relationship-desk[data-stage="5"] .desk-postit,.relationship-desk[data-stage="6"] .desk-postit,.relationship-desk[data-stage="5"] .desk-photo,.relationship-desk[data-stage="6"] .desk-photo{opacity:1}
+.relationship-desk[data-stage="6"] .desk-owner-files{left:75px;width:125px;box-shadow:5px -5px 0 #b65a66,9px -9px 0 #e5c8ae,13px -13px 0 #9b3346}
+.relationship-desk[data-stage="6"] .desk-office-files{width:34px;opacity:.45}
+.relationship-desk-description{margin:12px 2px 0;color:#70645c;font-size:12px;line-height:1.55}
+@media(max-width:320px){.relationship-desk-card{padding:14px}.relationship-desk{min-height:172px}.desk-owner-files{left:94px}.desk-postit{right:10px}}
+
 @media(prefers-reduced-motion:reduce){.briefing-speech.typing:after,.gift-receipt blockquote.typing:after,.praise-result-document blockquote.typing:after,.relationship-result.upgraded{animation:none}.gift-drop-zone,.gift-drop-zone img{transition:none}}
 
 /* Edge-content guard: preserve full stored text while keeping narrow mobile layouts stable. */

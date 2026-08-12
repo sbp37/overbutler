@@ -303,7 +303,7 @@
           </div>
           <div class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</div>
           <div class="manager-obsession">
-            <div class="obsession-heading"><span id="obsession-label">과몰입도 · 낯가림</span><b><span id="obsession-value">5</span> / 100</b></div>
+            <div class="obsession-heading"><span id="obsession-label">관계 1단계 · 사무적</span><b><span id="obsession-value">0</span>건</b></div>
             <div class="obsession-track"><i id="obsession-fill"></i></div>
             <div class="relationship-summary">
               <span id="relationship-stage-badge">관찰 시작</span>
@@ -312,6 +312,15 @@
               <small id="relationship-next-copy">다음 관계까지 과몰입 15</small>
             </div>
           </div>
+        </section>
+
+        <section class="relationship-desk-card document-card" aria-labelledby="relationship-desk-title">
+          <div class="manager-section-title"><h2 id="relationship-desk-title">담당 집사의 책상</h2><small id="desk-stage-label">1단계 · 사무적</small></div>
+          <div class="relationship-desk" id="relationship-desk" data-stage="1" role="img" aria-label="담당 집사의 관계 책상">
+            <div class="desk-backboard"><i id="desk-wall-note">업무 기록</i><b></b><b></b></div>
+            <div class="desk-surface"><span class="desk-office-files"></span><span class="desk-owner-files" id="desk-file-name">주인님 기록</span><span class="desk-postit" id="desk-postit">오늘 기록?</span><span class="desk-photo"></span></div>
+          </div>
+          <p class="relationship-desk-description" id="desk-description">일반 업무 서류만 놓인 빈 책상입니다.</p>
         </section>
 
         <section class="butler-roster-card document-card">
@@ -336,13 +345,13 @@
         </section>
 
         <section class="stages-card document-card">
-          <div class="manager-section-title"><h2>과몰입 진행 기록</h2><small>관계가 깊어질수록 반응이 더 커집니다.</small></div>
+          <div class="manager-section-title"><h2>관계 변화 기록</h2><small>기록이 쌓일수록 집사의 태도가 달라집니다.</small></div>
           <div class="stage-list" id="stage-list"></div>
         </section>
         <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 신규 지원 조건 확인</strong><span id="recruit-description">주인님의 명성이 업계에 퍼지고 있습니다.</span></button>
         <button class="manager-change-button" id="manager-change-button" type="button">담당 변경 및 인수인계 <span>›</span></button>
         <footer class="app-information" aria-label="앱 정보">
-          <div><strong>과잉집사</strong><span>버전 <b id="app-version">2.18.0</b> · 기기 안에 기록 저장</span></div>
+          <div><strong>과잉집사</strong><span>버전 <b id="app-version">3.0.0</b> · 기기 안에 기록 저장</span></div>
           <nav aria-label="정책 문서"><a href="privacy.html" target="_blank" rel="noopener" data-analytics-event="privacy_open">개인정보 처리방침</a><a href="terms.html" target="_blank" rel="noopener" data-analytics-event="terms_open">이용약관</a></nav>
         </footer>
       </section>
@@ -427,8 +436,8 @@
         <blockquote id="result-report">주인님께서 무려 침대에서 일어나셨습니다. 집사 감정 회로가 과열되었습니다.</blockquote>
         <div class="rare-verdict-note" id="result-rare-note" hidden><span>RARE VERDICT</span><strong>사무국 최초 측정 포기</strong><p>너무 위대하여 통상적인 점수 체계 적용을 중단했습니다.</p></div>
         <section class="relationship-result" id="result-relationship-result" aria-live="polite">
-          <span id="result-relationship-kicker">관계 기록 업데이트 · +3</span>
-          <div><strong id="result-relationship-stage">업무상 관심</strong><small id="result-relationship-next">다음 관계까지 15</small></div>
+          <span id="result-relationship-kicker">관계 기록 업데이트 · +1</span>
+          <div><strong id="result-relationship-stage">사무적</strong><small id="result-relationship-next">다음 변화까지 기록 5건</small></div>
           <b><i id="result-relationship-fill"></i></b>
           <p id="result-relationship-message">집사가 이번 대업을 관계 기록에 추가했습니다.</p>
         </section>
@@ -558,18 +567,18 @@
         </div>
         <blockquote id="gift-message">[선물 수신] 행복 수치 최대치 도달. 감사 표현 모듈 무한 반복 중.</blockquote>
         <section class="relationship-result" id="gift-relationship-result" aria-live="polite">
-          <span id="gift-relationship-kicker">관계 기록 업데이트 · +3</span>
-          <div><strong id="gift-relationship-stage">업무상 관심</strong><small id="gift-relationship-next">다음 관계까지 15</small></div>
+          <span id="gift-relationship-kicker">현재 관계 반응</span>
+          <div><strong id="gift-relationship-stage">사무적</strong><small id="gift-relationship-next">다음 변화까지 기록 5건</small></div>
           <b><i id="gift-relationship-fill"></i></b>
           <p id="gift-relationship-message">집사가 선물 받은 순간을 관계 기록에 추가했습니다.</p>
         </section>
         <dl class="gift-result-metrics">
           <div><dt>누적 선물</dt><dd><b id="gift-count">1</b>개</dd></div>
-          <div><dt>현재 과몰입도</dt><dd><b id="gift-obsession">9</b>/100</dd></div>
+          <div><dt>현재 관계</dt><dd><b id="gift-obsession">1단계</b></dd></div>
         </dl>
         <button class="primary-button" id="gift-close" type="button">집사 근무 복귀 <span>→</span></button>
       </article>
-      <p class="reaction-footnote">선물 내역과 집사별 과몰입도는 담당 기록에 보존됩니다.</p>
+      <p class="reaction-footnote">선물 내역과 집사별 관계 기록은 담당 기록에 보존됩니다.</p>
     </div>
   </div>
 
