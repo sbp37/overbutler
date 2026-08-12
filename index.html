@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6efe5">
-  <meta name="description" content="사소한 일을 대업으로 보고하는 과몰입 집사 앱">
+  <meta name="description" content="내 하루를 기억하며 점점 나를 놓지 못하게 되는 집사 관계 시뮬레이션">
   <meta name="application-name" content="과잉집사">
   <meta name="color-scheme" content="light">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ko_KR">
   <meta property="og:site_name" content="과잉집사">
-  <meta property="og:title" content="과잉집사 · 별것 아닌 일을 공식 대업으로">
-  <meta property="og:description" content="주인님의 작은 행동도 집사가 과하게 칭찬하고 대업으로 기록합니다.">
+  <meta property="og:title" content="과잉집사 · 나를 기억하는 집사 사무국">
+  <meta property="og:description" content="하루 한 줄을 남기면 담당 집사가 기억하고 조금씩 달라집니다.">
   <meta property="og:image" content="design/brand/share-card-1200x630.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="과잉집사 · 별것 아닌 일을 공식 대업으로">
-  <meta name="twitter:description" content="주인님의 작은 행동도 집사가 과하게 칭찬하고 대업으로 기록합니다.">
+  <meta name="twitter:title" content="과잉집사 · 나를 기억하는 집사 사무국">
+  <meta name="twitter:description" content="하루 한 줄을 남기면 담당 집사가 기억하고 조금씩 달라집니다.">
   <meta name="twitter:image" content="design/brand/share-card-1200x630.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -56,7 +56,7 @@
           <span class="assignment-paperclip" aria-hidden="true"></span>
           <p class="bureau-name">과잉집사 중앙인사국 공식 발령</p>
           <h1 id="assignment-title">담당 집사가<br>배정되었습니다</h1>
-          <p class="assignment-copy">주인님의 사소한 행동을 대업으로 기록할 전담 직원을 정식 배정합니다.</p>
+          <p class="assignment-copy">처음에는 당신에게 별 관심이 없습니다. 하루 한 줄을 계속 남기면, 이 집사가 어떻게 달라지는지 보게 될 겁니다.</p>
           <div class="assignment-character-stage">
             <span class="assignment-seal" aria-hidden="true">전담<br>배정</span>
             <img class="assignment-character" src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="클립보드를 든 AI 집사">
@@ -65,6 +65,10 @@
             <span class="role-chip">오늘부터 전담 집사</span>
             <h2>오류 난 AI 집사</h2>
             <p class="character-line">“감정이 없어야 하는데 주인님 일에는 자꾸 과열됨.”</p>
+          </div>
+          <div class="assignment-character-options" role="group" aria-label="담당 집사 선택">
+            <button type="button" data-assignment-character="cat"><img src="design/character-assets/cat-butler/ui-poses/cat-base.png" alt="고양이 집사"><span><b>고양이 집사</b><small>도도한 척하지만 점점 기다리게 됩니다.</small></span></button>
+            <button class="active" type="button" data-assignment-character="ai"><img src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt="AI 집사"><span><b>AI 집사</b><small>감정이 없어야 하지만 로그가 점점 이상해집니다.</small></span></button>
           </div>
           <dl class="personnel-facts">
             <div><dt>소속</dt><dd>과잉분석실</dd></div>
@@ -78,8 +82,8 @@
             <small>이름은 기기 안에만 저장되며 나중에도 그대로 기억합니다.</small>
           </label>
           <button class="primary-button" id="accept-butler" type="button">이 집사에게 맡기기 <span>→</span></button>
-          <button class="secondary-button" id="reroll-butler" type="button">딱 한 번만 다시 뽑기</button>
-          <p class="assignment-footnote">※ 이미 계약서가 작성되어 결과가 크게 달라지지 않을 수 있습니다.</p>
+          <button class="secondary-button" id="reroll-butler" type="button">다른 집사 기록카드 보기</button>
+          <p class="assignment-footnote">※ 담당을 바꿔도 각 집사가 기억한 기록은 그대로 남습니다.</p>
         </div>
       </div>
     </section>
@@ -90,10 +94,10 @@
           <div class="header-portrait"><img src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사"></div>
           <div>
             <strong>과잉집사</strong>
-            <span>주인님 전용 <i id="header-butler-type">AI 집사</i> · <b id="header-level">과몰입 5</b></span>
+            <span>주인님 전용 <i id="header-butler-type">AI 집사</i> · <b id="header-level">업무상 관계</b></span>
           </div>
         </div>
-        <button class="fame-button" id="fame-button" type="button" aria-label="보관함 열기">★ 명성 <b id="fame-count">0</b></button>
+        <button class="fame-button" id="fame-button" type="button" aria-label="파일 열기">기록 <b id="fame-count">0</b></button>
       </header>
 
       <section class="app-view active" id="view-home" aria-labelledby="home-title">
@@ -128,7 +132,7 @@
             <small id="home-butler-role-title">기록·판단·과잉 칭찬 담당</small>
             <h1 id="home-butler-name">요정 집사</h1>
             <p class="butler-role" id="home-butler-desc">사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
-            <div class="home-relationship-status"><span id="home-relationship-stage">업무상 관심</span><small id="home-relationship-next">다음 관계까지 15</small></div>
+            <div class="home-relationship-status"><span id="home-relationship-stage">업무상 관계</span><small id="home-relationship-next">집사는 아직 선을 긋고 있습니다</small></div>
             <div class="briefing-speech" id="briefing-message" aria-live="polite">작은 일도 반짝이는 대업으로 만들어드릴게요!</div>
             <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 대업 접수하기 <span>↓</span></button>
             <button class="briefing-refresh" id="briefing-refresh" type="button" aria-label="집사 브리핑 새로 보기">↻ 한마디 더</button>
@@ -139,12 +143,12 @@
         <section class="entry-form document-card">
           <div class="entry-heading">
             <span id="entry-kicker">대업 접수처 · FORM 01</span>
-            <h2 id="home-title">오늘 뭐라도 하셨나요?</h2>
-            <p id="entry-description">별것 아니어도 괜찮아요. 집사가 알아서 크게 보고합니다.</p>
+            <h2 id="home-title">오늘 뭐 하셨습니까?</h2>
+            <p id="entry-description">한 줄이면 됩니다. 담당 집사가 오늘의 기록으로 기억합니다.</p>
           </div>
           <div class="achievement-field">
             <label class="visually-hidden" for="achievement-input">오늘 해낸 대업 입력</label>
-            <textarea id="achievement-input" maxlength="60" rows="2" placeholder="예: 출근했다, 물 마셨다, 답장했다..."></textarea>
+            <textarea id="achievement-input" maxlength="60" rows="1" placeholder="예: 출근했다, 물 마셨다, 답장했다..."></textarea>
             <span><b id="char-count">0</b>/60</span>
           </div>
           <div class="quick-actions" aria-label="빠른 입력">
@@ -155,15 +159,16 @@
             <button type="button" data-quick-focus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>추가</span></button>
           </div>
           <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 대업 보고하기</b><span>→</span></button>
-          <div class="entry-footnote">
-          <div class="stamp-progress">
-            <div class="progress-heading"><strong>접수 도장 진행</strong><b><span id="stamp-count">0</span>/<span id="stamp-target">5</span></b></div>
-            <div class="stamp-circles" id="stamp-circles" aria-label="공식 인증 진행도"></div>
-            <p id="stamp-copy">첫 공식 인증은 유효 대업 5개 이후 발급됩니다.</p>
-          </div>
-          <div class="absurd-status"><span>집사 과몰입 심사</span><strong id="urgency-copy">이유 없이 최상</strong></div>
-          <p class="form-note">비슷한 행동은 하루 한 번만 도장에 반영됩니다. 칭찬은 매번 정상 지급됩니다.</p>
-          </div>
+          <div class="entry-footnote"><p class="form-note">같은 기록도 괜찮습니다. 반복되는 하루까지 집사가 기억합니다.</p></div>
+        </section>
+
+        <section class="home-reaction document-card" id="home-reaction" aria-live="polite" hidden>
+          <span>방금 도착한 집사 반응</span><div><img id="home-reaction-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt=""><p id="home-reaction-copy"></p></div>
+        </section>
+
+        <section class="office-event-card document-card" id="home-office-event" aria-labelledby="office-event-title">
+          <div><span>DAILY OFFICE NOTE</span><h2 id="office-event-title">오늘의 사내 사건</h2><small id="office-event-source">사무국 운영팀</small></div>
+          <p id="office-event-copy">금일 특이사항을 확인하고 있습니다.</p>
         </section>
 
         <section class="today-section">
@@ -171,7 +176,7 @@
           <dl class="home-summary">
             <div><span class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10l2 2 5-5M8 16h8"/></svg></span><dt>오늘 접수한 대업</dt><dd><b id="home-today-count">0</b>건</dd></div>
             <div><span class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0V3Z"/><path d="M7 5H3c0 4 2 6 5 6M17 5h4c0 4-2 6-5 6M12 14v4M8 21h8"/></svg></span><dt>공식 인정 대업</dt><dd><b id="home-certificate-count">0</b>건</dd></div>
-            <div><span class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></span><dt>획득한 명성</dt><dd><b id="home-fame-count">0</b>P</dd></div>
+            <div><span class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 13h5"/></svg></span><dt>집사가 기억한 행동</dt><dd><b id="home-memory-count">0</b>개</dd></div>
           </dl>
           <div class="today-list" id="today-list"></div>
           <div class="home-desk-links">
@@ -201,7 +206,7 @@
           <dl class="weekly-summary">
             <div><i>✓</i><dt>완료한 대업</dt><dd><b id="weekly-deeds">0</b>건</dd><small>이번 주 접수</small></div>
             <div><i>▣</i><dt>공식 대업 달성</dt><dd><b id="weekly-certificates">0</b>건</dd><small>사무국 인증</small></div>
-            <div><i>☆</i><dt>획득한 명성</dt><dd><b id="weekly-fame">0</b>P</dd><small>누적 기록 기준</small></div>
+            <div><i>☆</i><dt>기억한 행동</dt><dd><b id="weekly-memory">0</b>개</dd><small>반복 패턴 기준</small></div>
           </dl>
           <section class="weekly-comment">
             <span aria-hidden="true">GOOD<br>BUTLER</span>
@@ -244,7 +249,8 @@
           </div>
           <div class="archive-tabs" role="tablist" aria-label="기록 분류">
             <button type="button" id="archive-tab-records" role="tab" aria-selected="false" aria-controls="archive-records" tabindex="-1" data-archive-tab="records">기록</button>
-            <button type="button" id="archive-tab-diary" role="tab" aria-selected="false" aria-controls="archive-diary" tabindex="-1" data-archive-tab="diary">집사 일기</button>
+            <button type="button" id="archive-tab-events" role="tab" aria-selected="false" aria-controls="archive-events" tabindex="-1" data-archive-tab="events">사내 사건</button>
+            <button type="button" id="archive-tab-diary" role="tab" aria-selected="false" aria-controls="archive-diary" tabindex="-1" data-archive-tab="diary">집사 일지</button>
             <button class="active" type="button" id="archive-tab-certificates" role="tab" aria-selected="true" aria-controls="archive-certificates" data-archive-tab="certificates">공식 인증서</button>
           </div>
           <div class="archive-panel" id="archive-records" role="tabpanel" aria-labelledby="archive-tab-records" aria-hidden="true">
@@ -264,9 +270,13 @@
               <dl>
                 <div><dt>오늘 접수</dt><dd><b id="records-today-count">0</b>건</dd></div>
                 <div><dt>공식 인정</dt><dd><b id="records-official-count">0</b>건</dd></div>
-                <div><dt>누적 명성</dt><dd><b id="records-fame-count">0</b>P</dd></div>
+                <div><dt>기억한 행동</dt><dd><b id="records-memory-count">0</b>개</dd></div>
               </dl>
             </section>
+          </div>
+          <div class="archive-panel" id="archive-events" role="tabpanel" aria-labelledby="archive-tab-events" aria-hidden="true">
+            <div class="diary-intro"><span>INTERNAL OFFICE REPORT</span><h2>사무국 사건 기록</h2><p>담당 집사가 업무 중 남긴 이상 행동을 제3자의 시선으로 보관합니다.</p></div>
+            <div class="office-event-list" id="office-event-list"></div>
           </div>
           <div class="archive-panel" id="archive-diary" role="tabpanel" aria-labelledby="archive-tab-diary" aria-hidden="true">
             <div class="diary-intro"><span>DAILY OBSERVATION LOG</span><h2>집사가 몰래 쓴 일지</h2><p>그날의 대업과 당시 담당 집사의 속마음을 보관합니다.</p></div>
@@ -303,13 +313,12 @@
           </div>
           <div class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</div>
           <div class="manager-obsession">
-            <div class="obsession-heading"><span id="obsession-label">관계 1단계 · 사무적</span><b><span id="obsession-value">0</span>건</b></div>
-            <div class="obsession-track"><i id="obsession-fill"></i></div>
+            <div class="obsession-heading"><span id="obsession-label">현재 관계 상태</span><b id="obsession-value" hidden>0</b></div>
             <div class="relationship-summary">
               <span id="relationship-stage-badge">관찰 시작</span>
               <strong id="relationship-stage-title">업무상 관심</strong>
               <p id="relationship-stage-summary">아직은 담당 업무라며 선을 긋고 있습니다.</p>
-              <small id="relationship-next-copy">다음 관계까지 과몰입 15</small>
+              <small id="relationship-next-copy">숫자보다 집사의 행동을 지켜보세요.</small>
             </div>
           </div>
         </section>
@@ -318,7 +327,7 @@
           <div class="manager-section-title"><h2 id="relationship-desk-title">담당 집사의 책상</h2><small id="desk-stage-label">1단계 · 사무적</small></div>
           <div class="relationship-desk" id="relationship-desk" data-stage="1" role="img" aria-label="담당 집사의 관계 책상">
             <div class="desk-backboard"><i id="desk-wall-note">업무 기록</i><b></b><b></b></div>
-            <div class="desk-surface"><span class="desk-office-files"></span><span class="desk-owner-files" id="desk-file-name">주인님 기록</span><span class="desk-postit" id="desk-postit">오늘 기록?</span><span class="desk-photo"></span></div>
+            <div class="desk-surface"><span class="desk-office-files"></span><span class="desk-owner-files" id="desk-file-name">주인님 기록</span><span class="desk-postit" id="desk-postit">오늘 기록?</span><span class="desk-photo" id="desk-photo" data-owner="주인님"></span><span class="desk-keepsake" id="desk-keepsake" hidden></span></div>
           </div>
           <p class="relationship-desk-description" id="desk-description">일반 업무 서류만 놓인 빈 책상입니다.</p>
         </section>
@@ -339,7 +348,7 @@
           <button class="manager-gift-button" id="give-gift-button" type="button">
             <span aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 13h22v15H5zM3 9h26v6H3zM16 9v19M9 9c-3-2-3-6 0-6 4 0 7 6 7 6M23 9c3-2 3-6 0-6-4 0-7 6-7 6"/></svg></span>
             <b>집사에게 선물 전달</b>
-            <small>보유 <b id="manager-gift-points">0</b>P</small>
+            <small>관계의 흔적으로 남음</small>
             <i aria-hidden="true">›</i>
           </button>
         </section>
@@ -348,19 +357,18 @@
           <div class="manager-section-title"><h2>관계 변화 기록</h2><small>기록이 쌓일수록 집사의 태도가 달라집니다.</small></div>
           <div class="stage-list" id="stage-list"></div>
         </section>
-        <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 신규 지원 조건 확인</strong><span id="recruit-description">주인님의 명성이 업계에 퍼지고 있습니다.</span></button>
+        <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 담당 집사 변경</strong><span id="recruit-description">고양이·AI 집사 사이에서 담당을 인수인계할 수 있습니다.</span></button>
         <button class="manager-change-button" id="manager-change-button" type="button">담당 변경 및 인수인계 <span>›</span></button>
         <footer class="app-information" aria-label="앱 정보">
-          <div><strong>과잉집사</strong><span>버전 <b id="app-version">3.0.0</b> · 기기 안에 기록 저장</span></div>
+          <div><strong>과잉집사</strong><span>버전 <b id="app-version">4.0.0</b> · 기기 안에 기록 저장</span></div>
           <nav aria-label="정책 문서"><a href="privacy.html" target="_blank" rel="noopener" data-analytics-event="privacy_open">개인정보 처리방침</a><a href="terms.html" target="_blank" rel="noopener" data-analytics-event="terms_open">이용약관</a></nav>
         </footer>
       </section>
 
       <nav class="bottom-nav" aria-label="주 메뉴">
-        <button class="active" type="button" data-view="home" data-nav="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3V11Z"/></svg><span>홈</span></button>
-        <button type="button" data-view="archive" data-archive-tab="records" data-nav="records"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8M8 14h6"/></svg><span>기록</span></button>
+        <button class="active" type="button" data-view="home" data-nav="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3V11Z"/></svg><span>사무국</span></button>
+        <button type="button" data-view="archive" data-archive-tab="records" data-nav="files"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8M8 14h6"/></svg><span>파일</span></button>
         <button type="button" data-view="manager" data-nav="manager"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8 4 5v7l4 3M17 8l3-3v7l-4 3M8 9h8v6H8zM12 15v6"/><path d="m8 18 4 3 4-3"/></svg><span>집사</span></button>
-        <button type="button" data-view="archive" data-archive-tab="certificates" data-nav="certificates"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v14H4zM3 3h18v4H3zM9 11h6"/></svg><span>보관함</span></button>
       </nav>
     </main>
   </div>
@@ -432,12 +440,12 @@
             <div class="reaction-stamp" id="result-stamp" aria-label="칭찬 승인">칭찬<br>승인</div>
           </div>
         </div>
-        <div class="praise-result-deed"><small>접수된 대업</small><strong id="result-deed">침대에서 일어남</strong><span id="result-record-status">도장 +1</span></div>
+        <div class="praise-result-deed"><small>접수된 대업</small><strong id="result-deed">침대에서 일어남</strong><span id="result-record-status">집사 기억에 보존</span></div>
         <blockquote id="result-report">주인님께서 무려 침대에서 일어나셨습니다. 집사 감정 회로가 과열되었습니다.</blockquote>
         <div class="rare-verdict-note" id="result-rare-note" hidden><span>RARE VERDICT</span><strong>사무국 최초 측정 포기</strong><p>너무 위대하여 통상적인 점수 체계 적용을 중단했습니다.</p></div>
         <section class="relationship-result" id="result-relationship-result" aria-live="polite">
-          <span id="result-relationship-kicker">관계 기록 업데이트 · +1</span>
-          <div><strong id="result-relationship-stage">사무적</strong><small id="result-relationship-next">다음 변화까지 기록 5건</small></div>
+          <span id="result-relationship-kicker">담당 집사 관찰 기록</span>
+          <div><strong id="result-relationship-stage">업무상 관계</strong><small id="result-relationship-next">정상 배정</small></div>
           <b><i id="result-relationship-fill"></i></b>
           <p id="result-relationship-message">집사가 이번 대업을 관계 기록에 추가했습니다.</p>
         </section>
@@ -527,7 +535,7 @@
       <header class="gift-desk-header">
         <button type="button" id="gift-desk-close" aria-label="선물 접수처 닫기">←</button>
         <div><strong>과잉집사</strong><span>GIFT RECEPTION DESK</span></div>
-        <small><b id="gift-desk-points">0</b>P 보유</small>
+        <small>관계 사건 접수처</small>
       </header>
       <section class="gift-desk-sheet">
         <div class="gift-desk-title"><span>선물 접수처 · FORM G-01</span><h1 id="gift-desk-title">집사에게 선물하기</h1><p>선물을 집사에게 직접 끌어다 주세요.</p></div>
@@ -568,7 +576,7 @@
         <blockquote id="gift-message">[선물 수신] 행복 수치 최대치 도달. 감사 표현 모듈 무한 반복 중.</blockquote>
         <section class="relationship-result" id="gift-relationship-result" aria-live="polite">
           <span id="gift-relationship-kicker">현재 관계 반응</span>
-          <div><strong id="gift-relationship-stage">사무적</strong><small id="gift-relationship-next">다음 변화까지 기록 5건</small></div>
+          <div><strong id="gift-relationship-stage">업무상 관계</strong><small id="gift-relationship-next">선물 흔적 보관</small></div>
           <b><i id="gift-relationship-fill"></i></b>
           <p id="gift-relationship-message">집사가 선물 받은 순간을 관계 기록에 추가했습니다.</p>
         </section>
