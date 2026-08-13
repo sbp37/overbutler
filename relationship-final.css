@@ -148,5 +148,35 @@
 button:disabled,[aria-busy="true"]{cursor:not-allowed}
 #report-button[aria-busy="true"]{opacity:.72}
 #view-manager .recruit-note{display:block;width:100%;font:inherit;text-align:left}
+
+/* Memory-first HOME loop: compact, editable quick records and quiet in-place feedback. */
+#view-home .quick-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 12px}
+#view-home .quick-actions button{flex:0 1 auto;min-width:74px;min-height:44px;padding:0 13px;border:1px solid #ddcfbd;border-radius:8px;background:#faf4eb!important;color:#5e4d47;font-size:12px;font-weight:800;line-height:1.2}
+#view-home .quick-actions button span{display:block;max-width:128px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#view-home .quick-actions .quick-record-add{min-width:44px;width:44px;padding:0;color:#7b1b2d;font-size:20px}
+.quick-record-editor{margin:-2px 0 12px;padding:10px;border:1px solid #d8c7b3;border-radius:8px;background:#f9f1e6}
+.quick-record-editor>label{display:block;margin-bottom:7px;color:#7c2636;font-size:11px;font-weight:850}
+.quick-record-editor>div{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px}
+.quick-record-editor input{min-width:0;height:44px;padding:0 10px;border:1px solid #d2c1ad;border-radius:7px;background:#fffdf9;color:#3c3030;font-size:14px}
+.quick-record-editor button{min-width:50px;min-height:44px;padding:0 10px;border:1px solid #cdbba6;border-radius:7px;background:#fffaf2;color:#6d5b51;font-size:11px;font-weight:850}
+.quick-record-editor button[type="submit"]{border-color:#6d1423;background:#7b1b2d;color:#fff}
+.quick-record-suggestion{margin:-2px 0 12px;padding:11px 12px;border:1px solid #c9b18e;border-left:3px solid #8b2639;border-radius:7px;background:#fbf4e8}
+.quick-record-suggestion>span{color:#8b2639;font-size:10px;font-weight:900;letter-spacing:.06em}
+.quick-record-suggestion p{margin:6px 0 9px;color:#4d403d;font-size:13px;font-weight:700;line-height:1.5;word-break:keep-all}
+.quick-record-suggestion>div{display:flex;gap:7px}
+.quick-record-suggestion button{min-height:40px;padding:0 13px;border:1px solid #cdbba6;border-radius:7px;background:#fffaf2;color:#65544d;font-size:11px;font-weight:850}
+.quick-record-suggestion button:first-child{border-color:#771a2b;background:#7b1b2d;color:#fff}
+#view-home .home-memory-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:14px 0 0;padding:10px 2px 0;border-top:1px solid #d9cbbb}
+.home-memory-strip>div:first-child{display:flex;align-items:center;gap:7px;min-width:0;color:#75665e;font-size:11px;font-weight:750}
+.home-memory-strip>div:first-child strong{color:#7b1b2d;font-size:11px;white-space:nowrap}.home-memory-strip>div:first-child b{font-size:16px}
+.home-memory-strip>button{min-height:44px;padding:0 2px;border:0;background:transparent;color:#7b1b2d;font-size:11px;font-weight:850}
+#view-home .home-memory-strip .today-list{display:none}
+#view-home .office-event-card,#view-home .home-reaction{margin-right:0;margin-left:0}
+
+@media(max-width:320px){
+  #view-home .quick-actions button{min-width:66px;padding-right:9px;padding-left:9px;font-size:11px}
+  .quick-record-editor>div{grid-template-columns:minmax(0,1fr) auto}.quick-record-editor button:last-child{grid-column:1/-1}
+  #view-home .home-memory-strip{grid-template-columns:1fr}.home-memory-strip>button{justify-self:start}
+}
 .toast{width:max-content;max-width:calc(100vw - 28px);border-radius:12px;line-height:1.4;text-align:center;white-space:normal}
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}

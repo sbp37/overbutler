@@ -151,14 +151,17 @@
             <textarea id="achievement-input" maxlength="60" rows="1" placeholder="예: 출근했다, 물 마셨다, 답장했다..."></textarea>
             <span><b id="char-count">0</b>/60</span>
           </div>
-          <div class="quick-actions" aria-label="빠른 입력">
-            <button type="button" data-quick="침대에서 일어남"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>일어남</span></button>
-            <button type="button" data-quick="물 한 잔 마심"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10l-1 18H8L7 3Z"/><path d="M8 9c3 1 5-1 8 0"/></svg><span>물 마심</span></button>
-            <button type="button" data-quick="미뤘던 답장 보냄"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><span>답장함</span></button>
-            <button type="button" data-quick="씻음"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14M8 11V7a4 4 0 0 1 7-2"/><path d="M8 15v1M12 15v2M16 15v1"/></svg><span>씻음</span></button>
-            <button type="button" data-quick-focus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>추가</span></button>
-          </div>
-          <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 대업 보고하기</b><span>→</span></button>
+          <div class="quick-actions" id="quick-actions" aria-label="빠른 기록"></div>
+          <form class="quick-record-editor" id="quick-record-editor" hidden>
+            <label for="quick-record-input">자주 남길 기록</label>
+            <div><input id="quick-record-input" type="text" maxlength="24" placeholder="예: 약 먹음"><button type="submit">고정</button><button type="button" id="quick-record-cancel">취소</button></div>
+          </form>
+          <section class="quick-record-suggestion" id="quick-record-suggestion" aria-live="polite" hidden>
+            <span id="quick-suggestion-label">집사가 패턴을 발견했습니다</span>
+            <p id="quick-suggestion-copy"></p>
+            <div><button type="button" id="quick-suggestion-accept">빼줘</button><button type="button" id="quick-suggestion-dismiss">괜찮아</button></div>
+          </section>
+          <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 기록 남기기</b><span>→</span></button>
           <div class="entry-footnote"><p class="form-note">같은 기록도 괜찮습니다. 반복되는 하루까지 집사가 기억합니다.</p></div>
         </section>
 
@@ -171,18 +174,11 @@
           <p id="office-event-copy">금일 특이사항을 확인하고 있습니다.</p>
         </section>
 
-        <section class="today-section">
-          <div class="section-heading"><h2>오늘 기록 요약</h2><button type="button" data-view="report" data-nav="home">주간 보고서 →</button></div>
-          <dl class="home-summary">
-            <div><span class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10l2 2 5-5M8 16h8"/></svg></span><dt>오늘 접수한 대업</dt><dd><b id="home-today-count">0</b>건</dd></div>
-            <div><span class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v6a5 5 0 0 1-10 0V3Z"/><path d="M7 5H3c0 4 2 6 5 6M17 5h4c0 4-2 6-5 6M12 14v4M8 21h8"/></svg></span><dt>공식 인정 대업</dt><dd><b id="home-certificate-count">0</b>건</dd></div>
-            <div><span class="summary-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 13h5"/></svg></span><dt>집사가 기억한 행동</dt><dd><b id="home-memory-count">0</b>개</dd></div>
-          </dl>
+        <section class="today-section home-memory-strip">
+          <div><span>오늘 집사가 기억한 기록</span><strong><b id="home-today-count">0</b>건</strong></div>
+          <button type="button" data-view="archive" data-archive-tab="records" data-nav="files">파일에서 보기 <span>›</span></button>
           <div class="today-list" id="today-list"></div>
-          <div class="home-desk-links">
-            <button type="button" data-view="archive" data-archive-tab="certificates"><span>인증서</span><strong>공식 대업 인증서</strong><small>당신의 대업을 확인하세요.</small><i class="mini-certificate" aria-hidden="true"><b>대업<br>인증서</b><em></em></i><u>인증서 보기 →</u></button>
-            <button type="button" data-view="archive" data-archive-tab="records"><span>서고</span><strong>기록 보관 서고</strong><small>지금까지의 모든 기록을 안전하게 보관합니다.</small><i class="mini-archive" aria-hidden="true"><b></b><b></b><b></b><em>ARCHIVE</em></i><u>기록 보러 가기 →</u></button>
-          </div>
+          <b id="home-certificate-count" hidden>0</b><b id="home-memory-count" hidden>0</b>
         </section>
       </section>
 
@@ -257,19 +253,19 @@
             <div class="record-filters" id="record-filters" role="group" aria-label="기록 필터">
               <button class="active" type="button" data-record-filter="all">전체</button>
               <button type="button" data-record-filter="today">오늘</button>
-              <button type="button" data-record-filter="official">공식 인정</button>
-              <button type="button" data-record-filter="praise">칭찬 기록</button>
+              <button type="button" data-record-filter="official">희귀 인증</button>
+              <button type="button" data-record-filter="praise">반복 기록</button>
             </div>
             <div class="record-find-tools">
-              <label class="record-search"><span>기록 찾기</span><input id="record-search" type="search" maxlength="40" placeholder="대업명·칭호 검색" autocomplete="off"></label>
-              <label class="record-grade-filter"><span>등급</span><select id="record-grade-filter"><option value="all">전체 등급</option></select></label>
+              <label class="record-search"><span>기록 찾기</span><input id="record-search" type="search" maxlength="40" placeholder="기록·집사 말 검색" autocomplete="off"></label>
+              <label class="record-grade-filter"><span>종류</span><select id="record-grade-filter"><option value="all">전체 기록</option></select></label>
             </div>
             <div class="archive-record-list" id="archive-record-list"></div>
             <section class="records-summary" aria-label="기록 요약">
-              <div class="records-summary-heading"><span>오늘 기록 요약</span><i aria-hidden="true">집사 결재 완료</i></div>
+              <div class="records-summary-heading"><span>오늘 기억 요약</span><i aria-hidden="true">집사 보관 완료</i></div>
               <dl>
                 <div><dt>오늘 접수</dt><dd><b id="records-today-count">0</b>건</dd></div>
-                <div><dt>공식 인정</dt><dd><b id="records-official-count">0</b>건</dd></div>
+                <div><dt>희귀 인증</dt><dd><b id="records-official-count">0</b>건</dd></div>
                 <div><dt>기억한 행동</dt><dd><b id="records-memory-count">0</b>개</dd></div>
               </dl>
             </section>
@@ -384,13 +380,13 @@
         <div class="record-detail-meta"><span id="record-detail-number">RECORD NO. 01</span><time id="record-detail-date"></time></div>
         <section class="record-detail-hero">
           <div class="record-detail-portrait"><img id="record-detail-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt=""></div>
-          <div class="record-detail-title-copy"><small id="record-detail-grade">국가적 성취</small><h2 id="record-detail-title">침대에서 일어남</h2><p id="record-detail-nickname">#중력을 이겨낸 자</p></div>
+          <div class="record-detail-title-copy"><small id="record-detail-grade">일상 기록</small><h2 id="record-detail-title">침대에서 일어남</h2><p id="record-detail-nickname">집사가 기억한 순간</p></div>
         </section>
         <blockquote id="record-detail-report"></blockquote>
         <dl class="record-detail-facts">
           <div><dt>담당 집사</dt><dd id="record-detail-butler"></dd></div>
-          <div><dt>인류 기여도</dt><dd id="record-detail-score"></dd></div>
-          <div><dt>접수 결과</dt><dd id="record-detail-verdict"></dd></div>
+          <div><dt>기록 당시 관계</dt><dd id="record-detail-score"></dd></div>
+          <div><dt>보관 상태</dt><dd id="record-detail-verdict"></dd></div>
         </dl>
         <div class="record-detail-note"><span>ARCHIVE NOTE</span><p>이 기록은 작성 당시 담당 집사의 정보와 말투로 보존됩니다.</p></div>
         <button class="primary-button" id="record-detail-certificate" type="button">인증서 다시 열기 <span>→</span></button>
@@ -477,12 +473,12 @@
         <p class="certificate-recipient"><strong id="certificate-owner-name">주인님</strong> 귀하</p>
         <small id="certificate-number">문서번호 대업-2026-000001</small>
         <hr>
-        <p class="certificate-grade" id="certificate-grade">인류사적 대업</p>
+        <p class="certificate-grade" id="certificate-grade">특별한 관계 순간</p>
         <h3 id="certificate-deed">침대에서 일어남</h3>
-        <p class="certificate-nickname" id="certificate-nickname">― 중력을 이겨낸 자 ―</p>
+        <p class="certificate-nickname" id="certificate-nickname">― 집사가 오래 기억할 기록 ―</p>
         <dl class="certificate-metrics">
-          <div><dt>공식 난이도</dt><dd id="certificate-difficulty">★★★★★</dd></div>
-          <div><dt>인류 기여도</dt><dd id="certificate-score">98점</dd></div>
+          <div><dt>발급 사유</dt><dd id="certificate-difficulty">특별 기억</dd></div>
+          <div><dt>기록 당시 관계</dt><dd id="certificate-score">업무상 관계</dd></div>
         </dl>
         <div class="certificate-signoff">
           <img id="certificate-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-praise.png" alt="감격한 AI 집사">
