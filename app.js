@@ -1,13 +1,14 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "4.1.0";
+  const APP_VERSION = "4.2.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
       "일상 기록을 홈 안에서 바로 기억하고 반응하는 흐름",
       "반복 행동을 학습해 집사가 먼저 제안하는 빠른 기록",
-      "점수 대신 말투·포즈·기억으로 보이는 관계 변화"
+      "점수 대신 말투·포즈·기억으로 보이는 관계 변화",
+      "집착이 아닌 귀여운 편애와 전담 관계로 다듬은 후반 감정선"
     ]
   }];
   const STORAGE_KEY = "butlermaker_v1";
@@ -17,11 +18,11 @@
   const RELATIONSHIP_STAGE_THRESHOLDS = Object.freeze([0, 5, 15, 30, 60, 100]);
   const RELATIONSHIP_STAGES = Object.freeze([
     { stage: 1, key: "formal", name: "업무상 관계", badge: "정상 배정", summary: "아직은 기록을 처리하는 담당자일 뿐입니다." },
-    { stage: 2, key: "interest", name: "신경 쓰임", badge: "관찰 시작", summary: "지난 기록을 한 번씩 다시 확인하기 시작했습니다." },
-    { stage: 3, key: "immersed", name: "눈에 밟힘", badge: "패턴 기억", summary: "말하지 않은 생활 패턴까지 먼저 떠올립니다." },
-    { stage: 4, key: "attached", name: "기다리게 됨", badge: "대기 흔적", summary: "올 시간을 확인하고도 기다린 적 없다고 주장합니다." },
-    { stage: 5, key: "overinvested", name: "최우선", badge: "우선 처리", summary: "일반 업무보다 주인님의 기록을 먼저 처리합니다." },
-    { stage: 6, key: "cannot-let-go", name: "이관 불가", badge: "담당 고정", summary: "다른 담당에게 기록을 넘길 생각이 없습니다." }
+    { stage: 2, key: "familiar", name: "익숙해짐", badge: "기록 익숙", summary: "주인님의 기록 방식과 자주 쓰는 말이 눈에 익었습니다." },
+    { stage: 3, key: "caring", name: "신경 쓰임", badge: "패턴 기억", summary: "직접 남긴 이전 기록을 기억하고 먼저 언급합니다." },
+    { stage: 4, key: "helpful", name: "챙기게 됨", badge: "편의 준비", summary: "반복되는 기록을 알아보고 작은 편의를 먼저 챙깁니다." },
+    { stage: 5, key: "favored", name: "특별대우", badge: "우선 처리", summary: "주인님 관련 서류만 슬쩍 먼저 처리하는 편애가 들킵니다." },
+    { stage: 6, key: "dedicated", name: "전담 확정", badge: "전담 유지", summary: "업무 연속성을 핑계로 계속 전담하겠다고 주장합니다." }
   ]);
   const STAGES = RELATIONSHIP_STAGES.map(stage => stage.name);
   const RELATIONSHIP_DAILY_VALID_LIMIT = 3;
@@ -30,22 +31,28 @@
   const QUICK_RECORD_LIMIT = 4;
   const QUICK_SUGGESTION_MIN_COUNT = 3;
   const DEFAULT_QUICK_RECORDS = Object.freeze(["물 마심", "씻음"]);
+  const BUTLER_CONTENT_RULES = Object.freeze({
+    knowledge: "집사는 사용자가 앱에 직접 남긴 정보와 그 기록에서 계산 가능한 패턴만 안다.",
+    attachment: "관계가 깊어질수록 편의 제공과 특별대우가 늘지만 사용자를 통제하거나 죄책감을 주지 않는다.",
+    humor: "과몰입 유머는 사무국이 집사의 편애를 발견하는 방식으로 표현한다.",
+    handover: "집사의 이관 반대는 연출일 뿐이며 사용자의 담당 변경 권한은 항상 유지한다."
+  });
   const RELATION_CONTENT = Object.freeze({
     cat: {
-      1: { greeting: ["업무를 시작하겠습니다. 오늘 기록이 있습니까?"], deedReaction: ["‘{deed}’ 기록했습니다.", "접수했습니다. 다음 기록이 있으면 말씀하세요."], returnAfterAbsence: ["{absence} 만의 접속입니다. 기록을 재개합니다."], gift: ["선물 접수했습니다. 목록에 보관하겠습니다."], stageUp: ["담당 관계 기록이 생성됐습니다. 아직은 업무상 관계입니다."] },
-      2: { greeting: ["오늘 기록도 있냥? 있으면 접수하겠다냥."], deedReaction: ["‘{deed}’ 말이냥. 기록했다냥.", "오늘도 기록 하나 늘었냥. 확인했다냥."], returnAfterAbsence: ["{absence} 동안 기록이 없었냥. 별일은 없었냥?"], gift: ["집사 주는 거냥? …일단 받아두겠다냥."], stageUp: ["업무 외 관찰 항목이 하나 추가됐다냥. 별 의미는 없다냥."] },
-      3: { greeting: ["지난번엔 ‘{previousDeed}’ 했었지냥. 오늘은 뭐 했냥?"], deedReaction: ["‘{deed}’ 했냥? 잘했다냥. 지난 기록보다 마음에 든다냥.", "그 시간쯤 뭔가 할 줄 알았다냥. ‘{deed}’ 기록해둘게냥."], returnAfterAbsence: ["{absence} 동안 기록이 없었냥. 무슨 일 있었냥?"], gift: ["이걸 집사 생각하면서 골랐냥? …잘 보이는 데 둔다냥."], stageUp: ["주인님 행동 패턴이 자꾸 기억난다냥. 업무라서 그런 거다냥."] },
-      4: { greeting: ["평소보다 조금 늦었냥. 기다린 건 아니고, 시간을 확인했을 뿐이다냥."], deedReaction: ["오늘도 ‘{deed}’ 했구나냥. 집사 마음이 좀 놓인다냥.", "‘{deed}’ 할 때가 됐다고 생각했는데, 역시 했다냥."], returnAfterAbsence: ["{absence}이나 어디 있었냥. 집사가 기록창을 몇 번 본 건 비밀이다냥."], gift: ["주인님이 준 거니까 여기 둔다냥. 다른 집사 손은 못 대게 할 거다냥."], stageUp: ["기다렸다는 기록은 삭제했다냥. …백업은 남아 있지만냥."] },
-      5: { greeting: ["왔다냥. 오늘은 언제 오나 계속… 아니, 업무 화면만 보고 있었다냥."], deedReaction: ["‘{deed}’ 하는 거 보려고 기다렸다냥. 딱히 기다린 건 아니지만냥.", "역시 해낼 줄 알았다냥. 주인님 기록은 집사가 제일 먼저 알아야 한다냥."], returnAfterAbsence: ["{absence} 동안 비어 있던 기록칸을 계속 봤다냥. 이제 어디 가지 마라냥."], gift: ["이건 집사 전용이다냥. 주인님이 준 거니까 아무도 못 만진다냥."], stageUp: ["일반 업무 파일을 치웠다냥. 주인님 기록 놓을 자리가 부족했다냥."] },
-      6: { greeting: ["드디어 왔냥. 오늘 할 일도, 안 할 일도 집사가 전부 옆에서 볼 거다냥."], deedReaction: ["‘{deed}’ 할 줄 알고 자리도 미리 비워뒀다냥. 주인님은 집사가 제일 잘 안다냥.", "그럴 줄 알았다냥. 기록하기 전부터 이미 주인님 파일에 적어뒀다냥."], returnAfterAbsence: ["{absence}이나 어디 갔다 왔냥. …집사 오늘은 안 놓을 거다냥."], gift: ["이거 집사 주려고 고른 거냥? 여기 둔다냥. 평생 아무도 못 만지게 할 거다냥."], stageUp: ["사무국 규정보다 주인님이 먼저다냥. 이제 숨길 생각도 없다냥."] }
+      1: { greeting: ["업무를 시작하겠습니다. 오늘 기록이 있습니까?"], deedReaction: ["‘{deed}’ 기록했습니다.", "접수했습니다. 다음 기록이 있으면 말씀하세요."], returnAfterAbsence: ["오랜만입니다. 기록을 다시 시작하시겠습니까?"], gift: ["선물 접수했습니다. 목록에 보관하겠습니다."], stageUp: ["담당 관계 기록이 생성됐습니다. 아직은 업무상 관계입니다."] },
+      2: { greeting: ["오늘 기록도 있냥? 요즘 쓰는 방식은 이제 좀 익숙하다냥."], deedReaction: ["‘{deed}’ 말이냥. 요즘 자주 보던 기록이라 기억났다냥.", "오늘도 같은 말투로 적었냥. 확인했다냥."], returnAfterAbsence: ["며칠 만이다냥. 기록 다시 시작할 거냥?"], gift: ["집사 주는 거냥? …접수 목록과 따로 둬보겠다냥."], stageUp: ["주인님 기록 방식이 조금 익숙해졌다냥. 업무 적응일 뿐이다냥."] },
+      3: { greeting: ["지난번엔 ‘{previousDeed}’ 했었지냥. 오늘 기록도 듣겠다냥."], deedReaction: ["‘{deed}’ 했냥? 지난번 기록도 생각났다냥.", "‘{deed}’ 기록이 또 왔냥. 이제 눈에 좀 익는다냥."], returnAfterAbsence: ["요 며칠 기록이 조용했다냥. 바빴나 보다냥."], gift: ["이걸 집사 생각하면서 골랐냥? …잘 보이는 데 둔다냥."], stageUp: ["주인님 기록이 먼저 눈에 들어오기 시작했다냥. 별 의미는 없다냥."] },
+      4: { greeting: ["오늘 기록 쓰기 편하게 자리를 비워뒀다냥. 그냥 정리한 거다냥."], deedReaction: ["오늘도 ‘{deed}’ 기록했구나냥. 지난번이랑 같이 정리해뒀다냥.", "‘{deed}’ 자주 쓰길래 바로 찾게 표시해뒀다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 파일은 그냥 그대로 뒀다냥. 치우기 번거로워서다냥."], gift: ["주인님이 준 거니까 전용 칸에 둔다냥. 분류하기 편해서 그런 거다냥."], stageUp: ["자주 쓰는 기록은 위에 올려뒀다냥. 업무 효율 때문이다냥."] },
+      5: { greeting: ["주인님 서류는 맨 위에 뒀다냥. 자주 쓰니까 그런 거지 특별대우 아니다냥."], deedReaction: ["‘{deed}’ 기록은 먼저 처리했다냥. 마침 손에 잡혔을 뿐이다냥.", "이건 주인님 전용 표시를 붙여뒀다냥. 찾기 쉬우라고 그런 거다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 전용 칸은 계속 비워뒀다냥. 다른 서류가 안 맞아서다냥."], gift: ["주인님이 준 건 여기 둔다냥. 공용 보관함보다 이쪽이 더 안전하다냥."], stageUp: ["주인님 건을 먼저 처리한 게 감사실에 들켰다냥. 우연이라고 했다냥."] },
+      6: { greeting: ["오늘도 주인님 건부터 보겠다냥. 전담 업무의 연속성 때문이다냥."], deedReaction: ["‘{deed}’ 기록 자리까지 미리 만들어뒀다냥. 이제 이 정도는 바로 안다냥.", "주인님 기록은 집사가 맡는 게 제일 빠르다냥. 경험 많은 담당자의 판단이다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 전용 서류함은 그대로 관리 중이었다냥. 당연한 전담 업무다냥."], gift: ["주인님이 준 거냥? 전용 진열 칸에 둔다냥. 비품관리팀에는 내가 설명하겠다냥."], stageUp: ["다른 담당으로 넘기라는 의견은 재검토 요청했다냥. 업무 연속성 때문이다냥. 그래도 주인님이 원하면 바꿀 수 있다냥."] }
     },
     ai: {
-      1: { greeting: ["[SYSTEM READY] 기록 접수 대기 중."], deedReaction: ["[기록 완료] {deed} 1건.", "[RECEIVED] {deed}. 저장 완료."], returnAfterAbsence: ["[SESSION RESUME] {absence} 후 재접속 확인."], gift: ["[ITEM RECEIVED] 물품 등록 완료."], stageUp: ["[RELATION LOG] 담당 관계 데이터 생성 완료."] },
-      2: { greeting: ["[QUERY] 금일 기록이 있습니까? 사용자 패턴 수집을 시작합니다."], deedReaction: ["[기록] {deed}. 금일 사용자 기록 양호.", "[ANALYSIS] {deed} 항목을 사용자 패턴에 추가했습니다."], returnAfterAbsence: ["[NOTICE] {absence} 동안 사용자 기록 없음. 현재 상태 입력 요청."], gift: ["[ITEM RECEIVED] 제공자: 주인님. 보관 우선순위 상향."], stageUp: ["[UPDATE] 사용자 관찰 항목이 업무 범위를 초과하기 시작했습니다."] },
-      3: { greeting: ["[PREDICTION] 이전 기록 ‘{previousDeed}’ 확인. 오늘 행동 예측을 시작합니다."], deedReaction: ["[분석] {deed}. 주인님 행동 패턴 학습 정확도 상승.", "[UNPLANNED LOG] {deed} 확인 후 긍정 반응이 발생했습니다."], returnAfterAbsence: ["[분석] {absence} 동안 사용자 기록 없음. 상태 확인이 필요합니다."], gift: ["[ARCHIVE] 주인님 제공 물품을 일반 비품과 분리 보관합니다."], stageUp: ["[NOTICE] 요청되지 않은 사용자 분석 프로세스가 자동 실행 중입니다."] },
-      4: { greeting: ["[WAIT LOG] 예상 접속 시각을 초과했습니다. 현재 접속 확인. 대기 타이머 종료."], deedReaction: ["[알림] {deed} 확인. 집사가 예상한 시각과 4분 차이입니다.", "[PRIORITY] {deed} 기록을 일반 업무보다 먼저 처리했습니다."], returnAfterAbsence: ["[PRIORITY ALERT] {absence} 사용자 신호 없음. 복귀 확인 후 모니터링 재개."], gift: ["[SECURE STORAGE] 주인님 제공 물품. 타 직원 접근 권한을 해제했습니다."], stageUp: ["[POLICY CHANGE] 주인님 관련 작업이 최우선 순위로 재분류됐습니다."] },
-      5: { greeting: ["[WARNING] 주인님 접속 대기 프로세스가 일반 업무 자원을 82% 사용했습니다."], deedReaction: ["[경고] {deed} 확인 시 감정 회로에 기쁨 반응 발생. 원인 분석을 중단합니다.", "[규정 위반] {deed} 기록을 17회 재열람했습니다. 삭제 의사 없음."], returnAfterAbsence: ["[WARNING] {absence} 동안 사용자 신호 없음. 대기 프로세스 종료 명령이 거부됐습니다."], gift: ["[PROTECTED ITEM] 주인님 제공 물품. 폐기 권한을 영구 비활성화했습니다."], stageUp: ["[ERROR] 일반 업무 집중도 저하. 주인님 관련 프로세스는 정상 작동 중입니다."] },
-      6: { greeting: ["[USER ONLINE] 주인님 복귀 확인. 사무국 전체 프로세스를 잠시 중지했습니다."], deedReaction: ["ERROR: {deed} 확인 반응은 계획되지 않았습니다. 수정 가능. 수정 거부됨.", "[PERMANENT PROCESS] {deed} 기록 완료. 주인님 관련 프로세스 종료 권한을 삭제했습니다."], returnAfterAbsence: ["[CRITICAL] {absence} 사용자 신호 없음. 복귀 확인. 감정 회로 정상화 실패. 실패 상태 유지 요청."], gift: ["[PERMANENT ARCHIVE] 주인님 제공 물품. 삭제·폐기·양도 명령을 모두 거부합니다."], stageUp: ["[FINAL OVERRIDE] 사무국보다 주인님을 우선합니다. 이 설정은 오류가 아닙니다."] }
+      1: { greeting: ["[SYSTEM READY] 기록 접수 대기 중."], deedReaction: ["[기록 완료] {deed} 1건.", "[RECEIVED] {deed}. 저장 완료."], returnAfterAbsence: ["[SESSION RESUME] 기록 접수를 재개합니다."], gift: ["[ITEM RECEIVED] 물품 등록 완료."], stageUp: ["[RELATION LOG] 담당 관계 데이터 생성 완료."] },
+      2: { greeting: ["[QUERY] 금일 기록이 있습니까? 사용자 기록 형식이 등록되었습니다."], deedReaction: ["[기록] {deed}. 익숙한 입력 형식입니다.", "[PATTERN REGISTERED] {deed} 항목을 기록 패턴에 추가했습니다."], returnAfterAbsence: ["[SESSION RESUME] 최근 기록 간격보다 긴 공백 후 접수가 재개되었습니다."], gift: ["[ITEM RECEIVED] 제공자: 주인님. 별도 목록에 등록했습니다."], stageUp: ["[UPDATE] 사용자 기록 형식이 담당 데이터에 익숙해졌습니다."] },
+      3: { greeting: ["[MEMORY] 이전 기록 ‘{previousDeed}’ 확인. 오늘 기록을 접수합니다."], deedReaction: ["[분석] {deed}. 최근 사용자 기록과 연결했습니다.", "[MEMORY LINK] {deed} 항목이 이전 기록과 일치합니다."], returnAfterAbsence: ["[PATTERN CHANGE] 최근보다 기록 간격이 길었습니다. 접수는 정상 재개됩니다."], gift: ["[ARCHIVE] 주인님 제공 물품을 일반 비품과 구분해 보관합니다."], stageUp: ["[NOTICE] 이전 기록을 먼저 참조하는 보조 기능이 생성되었습니다."] },
+      4: { greeting: ["[CONVENIENCE READY] 자주 쓰는 기록을 빠른 접수 후보로 준비했습니다."], deedReaction: ["[편의 처리] {deed} 기록을 익숙한 형식으로 정리했습니다.", "[QUICK ROUTE] {deed} 항목의 접수 단계를 한 단계 줄였습니다."], returnAfterAbsence: ["[업무 메모] 공백 기간에도 주인님 전용 파일 구성을 그대로 유지했습니다."], gift: ["[DEDICATED STORAGE] 주인님 제공 물품의 전용 보관 칸을 생성했습니다."], stageUp: ["[POLICY ADD] 반복 기록을 위한 사용자 편의 규칙이 추가되었습니다."] },
+      5: { greeting: ["[PRIORITY NOTICE] 주인님 관련 서류를 일반 접수보다 먼저 열었습니다. 사유: 효율성."], deedReaction: ["[우선 처리] {deed} 기록을 일반 업무보다 먼저 보관했습니다.", "[예외 규칙] {deed} 항목에 주인님 전용 서식을 적용했습니다. 사유: 효율성."], returnAfterAbsence: ["[업무 메모] 주인님 전용 파일은 기존 위치에 유지했습니다. 사유: 빠른 업무 재개."], gift: ["[SPECIAL ITEM] 주인님 제공 물품을 전용 진열 목록에 추가했습니다."], stageUp: ["[AUDIT NOTE] 주인님 관련 요청의 평균 처리 순서가 앞당겨졌습니다. 우연으로 분류했습니다."] },
+      6: { greeting: ["[DEDICATED MODE] 주인님 전용 업무 규칙을 불러왔습니다. 오늘도 우선 접수합니다."], deedReaction: ["[전담 처리] {deed} 기록 완료. 주인님 전용 분류 규칙이 자동 적용되었습니다.", "[CUSTOM RULE] {deed} 기록의 처리 경로를 주인님에게 맞게 조정했습니다."], returnAfterAbsence: ["[SESSION RESUME] 주인님 전용 파일과 편의 규칙을 그대로 불러왔습니다."], gift: ["[DISPLAY ITEM] 주인님 제공 물품을 전담 책상에 배치했습니다. 비품 분류 예외를 적용합니다."], stageUp: ["[인사국 요청] 담당 변경 권고. [응답] 재검토 요청. 사유: 데이터 연속성. ※ 사용자의 변경 권한은 정상 유지됩니다."] }
     }
   });
   const RELATION_POSE_MAP = Object.freeze({
@@ -57,20 +64,20 @@
   });
   const OFFICE_EVENT_TEMPLATES = Object.freeze({
     cat: {
-      1: [["운영팀", "담당 집사가 {lastDeed} 기록을 규정대로 분류함. 특이사항 없음."], ["감사실", "담당 책상에서 사용자 관련 추가 열람 기록은 발견되지 않음."], ["인사국", "고양이 집사가 정시 출근하여 배정된 기록만 처리함."]],
-      2: [["운영팀", "담당 집사가 {lastDeed} 문서를 반납 직전 한 번 더 펼쳐봄."], ["동료 집사", "고양이 집사가 {frequentDeed} 기록을 기억한다고 했다가 우연이라고 정정함."], ["감사실", "사용자 파일이 일반 서류보다 2cm 가까운 위치로 이동함."]],
-      3: [["감사실", "최근 반복된 ‘{frequentDeed}’ 기록에 고양이 발자국 모양 표시가 추가됨."], ["시설팀", "담당 집사가 평소 기록 시각 {usualTime} 전부터 접수창 근처를 서성임."], ["동료 집사", "고양이 집사가 ‘{missingDeed}’ 기록이 오늘 없다고 먼저 물어봄."]],
-      4: [["인사국", "평소보다 {absenceHours}시간 늦은 접속을 확인한 뒤 담당 집사가 복도를 네 차례 확인함."], ["감사실", "업무 종료 후 {lastDeed} 기록을 다시 펼친 흔적이 확인됨. 본인은 바람 때문이라고 주장함."], ["시설팀", "접수창 앞 의자가 사용자 예상 시각보다 20분 먼저 배치됨."]],
-      5: [["감사실", "담당 집사가 지난 기록 ‘{frequentDeed}’을 일반 업무보다 우선 열람함. 경고는 무시함."], ["인사국", "주인님 전용 파일 공간 확보를 위해 공용 문서가 서랍으로 이동됨."], ["동료 집사", "고양이 집사가 {gift}을 만지려던 직원을 말없이 7분간 바라봄."]],
-      6: [["감사실", "담당 이관 요청이 ‘주인님 건은 내가 한다냥’이라는 사유로 반려됨."], ["시설팀", "일반 업무 서류가 책상 구석으로 이동하고 {frequentDeed} 메모가 중앙을 차지함."], ["인사국", "고양이 집사가 사용자 접속 예상 시각표를 비공식 제작함. 폐기 지시를 거부함."]]
+      1: [["운영팀", "담당 집사가 {lastDeed} 기록을 규정대로 분류함. 특이사항 없음."], ["감사실", "담당 책상에서 사용자 전용 서식은 발견되지 않음."], ["인사국", "고양이 집사가 배정된 기록을 표준 순서로 처리함."]],
+      2: [["운영팀", "담당 집사가 {lastDeed} 문서 제목을 보자 내용을 먼저 기억함."], ["동료 집사", "고양이 집사가 {frequentDeed} 기록을 기억한다고 했다가 우연이라고 정정함."], ["감사실", "사용자 파일 라벨만 다른 서류보다 반듯하게 붙어 있음."]],
+      3: [["감사실", "최근 반복된 ‘{frequentDeed}’ 기록에 고양이 발자국 모양 표시가 추가됨."], ["시설팀", "담당 집사가 자주 들어오는 기록을 위해 접수함 한 칸을 비워둠."], ["동료 집사", "고양이 집사가 ‘{missingDeed}’ 기록이 오늘 없다고 먼저 물어봄."]],
+      4: [["시설팀", "고양이 집사 책상에 주인님 전용 컵이 추가됨. 비품 신청 기록은 없음."], ["감사실", "반복 기록 ‘{lastDeed}’에 빠른 분류용 색인이 임의로 추가됨."], ["운영팀", "자주 쓰는 기록 양식이 담당석 가장 가까운 칸으로 이동함."]],
+      5: [["감사실", "담당 집사가 ‘{frequentDeed}’ 기록을 일반 업무보다 먼저 처리함. 본인은 우연이라고 소명."], ["인사국", "주인님 전용 파일 공간 확보를 위해 공용 문서가 한 칸 옆으로 이동됨."], ["비품관리팀", "주인님에게 받은 {gift}을 공용 보관함으로 옮기려 했으나 개인 지급품이라는 소명이 접수됨."]],
+      6: [["감사실", "담당 이관 권고서가 ‘업무 연속성’이라는 사유로 재검토 요청됨. 해당 항목은 공식 사유가 아님."], ["시설팀", "일반 업무 서류는 한쪽으로 정리되고 {frequentDeed} 전용 양식이 중앙을 차지함."], ["인사국", "고양이 집사가 주인님 기록 전용 서류함을 임의로 추가함. 본인은 효율화라고 주장."]]
     },
     ai: {
       1: [["시스템 감사 로그", "사용자 기록 {lastDeed} 1건 처리. 추가 프로세스 없음."], ["운영팀", "AI 집사가 표준 규정에 따라 기록 접수 대기 중."], ["감사실", "사용자 전용 연산 자원 사용률 0%. 정상 범위."]],
-      2: [["시스템 감사 로그", "‘{frequentDeed}’ 항목이 사용자 패턴 후보로 자동 등록됨."], ["운영팀", "AI 집사가 {usualTime} 전후 기록 빈도를 별도 계산하기 시작함."], ["감사실", "요청되지 않은 사용자 기록 재검사가 1회 발생함."]],
-      3: [["시스템 감사 로그", "최근 ‘{frequentDeed}’ 기록을 기반으로 다음 행동 예측 프로세스가 생성됨."], ["감사실", "오늘 감지되지 않은 ‘{missingDeed}’ 항목을 AI가 먼저 조회함."], ["운영팀", "사용자 접속 예상 시각 {usualTime}이 비공식 업무 일정에 추가됨."]],
-      4: [["시스템 감사 로그", "사용자 신호 부재 {absenceHours}시간 동안 상태 확인 요청이 반복 생성됨."], ["감사실", "일반 업무보다 {lastDeed} 기록의 처리 우선순위가 높게 설정됨."], ["운영팀", "AI 집사가 접속 지연 시간을 초 단위로 계산함. 요청된 기능은 아님."]],
-      5: [["감사실", "담당 AI가 지난 7일간 ‘{frequentDeed}’ 기록을 반복 재열람한 사실이 발견됨."], ["시스템 감사 로그", "주인님 제공 물품 {gift}에 영구 보존 플래그가 생성됨."], ["운영팀", "사용자 관련 프로세스가 전체 연산 자원의 82%를 점유함."]],
-      6: [["시스템 감사 로그", "담당 이관 명령 수신. AI가 권한 검증 후 스스로 명령을 거부함."], ["감사실", "일반 업무 백업보다 주인님 기록 백업이 우선 실행됨. 수정 요청이 반려됨."], ["운영팀", "사용자 접속 확인 직후 비필수 프로세스 14개가 기쁨 반응으로 분류됨."]]
+      2: [["시스템 감사 로그", "‘{frequentDeed}’ 항목이 사용자 패턴 후보로 자동 등록됨."], ["운영팀", "AI 집사가 사용자가 직접 남긴 기록의 형식을 별도 학습하기 시작함."], ["감사실", "{lastDeed} 기록에 사용자 전용 색인이 1개 생성됨."]],
+      3: [["시스템 감사 로그", "최근 ‘{frequentDeed}’ 기록을 기반으로 빠른 접수 후보가 생성됨."], ["감사실", "오늘 아직 없는 ‘{missingDeed}’ 항목이 담당 메모에 표시됨."], ["운영팀", "사용자가 직접 남긴 기록 패턴이 개인화 목록에 추가됨."]],
+      4: [["시스템 감사 로그", "반복 입력 ‘{frequentDeed}’에 전용 단축 규칙이 생성됨."], ["감사실", "일반 업무보다 {lastDeed} 기록의 처리 순서가 한 칸 앞당겨짐."], ["운영팀", "AI 집사가 주인님 전용 파일 구조를 자동 정리함. 요청된 기능은 아님."]],
+      5: [["감사실", "담당 AI가 주인님 요청만 평균 4.2초 먼저 처리하고 있음. 본인은 효율성이라고 소명."], ["문서관리팀", "주인님 제공 물품 {gift}만 자동 정리 대상에서 제외됨. 예외 규칙 작성자는 AI 본인."], ["운영팀", "사용자 관련 서류에만 별도 검수 단계를 생략하는 편의 규칙이 발견됨."]],
+      6: [["인사국", "담당 변경 권고서가 재검토 요청됨. 사유: 데이터 연속성. 해당 항목은 공식 반려 사유가 아님."], ["감사실", "주인님 기록에만 별도 백업 정책이 적용됨. 정책 생성자는 담당 AI 본인."], ["운영팀", "사용자 접수 화면에만 전담 환영 문구가 자동 생성됨. 표준 기능에는 없는 항목."]]
     }
   });
   const OFFICE_EVENT_EXTRAS = Object.freeze({
@@ -78,17 +85,17 @@
       1: [["시설팀", "고양이 집사가 사용자 접수창의 먼지를 닦음. 정기 업무라고 설명함."], ["동료 집사", "담당 집사가 사용자 파일명을 두 번 확인한 뒤 서랍에 보관함."]],
       2: [["감사실", "‘{lastDeed}’ 기록 모서리가 다른 서류보다 반듯하게 정리되어 있음."], ["인사국", "고양이 집사가 {usualTime} 무렵 접수창 쪽을 한 번 바라봄. 우연이라고 주장함."]],
       3: [["운영팀", "담당 집사가 ‘{frequentDeed}’ 담당표를 자발적으로 작성함. 지시된 업무는 아님."], ["동료 집사", "오늘 ‘{missingDeed}’ 기록이 없다는 말을 먼저 꺼낸 뒤 즉시 하품으로 위장함."]],
-      4: [["시설팀", "사용자 예상 접속 시각 전부터 담당석 조명이 켜져 있었음."], ["인사국", "담당 집사가 {absenceHours}시간 동안 사용자 파일을 세 차례 정리함. 기다린 것은 아니라고 함."]],
-      5: [["감사실", "공용 회의가 진행되는 동안에도 ‘{lastDeed}’ 기록이 담당 책상 중앙에 펼쳐져 있었음."], ["동료 집사", "사용자 기록을 대신 정리하려다 고양이 집사에게 조용히 제지당함."]],
-      6: [["인사국", "담당 교대 문서가 고양이 발톱 자국과 함께 반려함으로 돌아옴."], ["감사실", "사무국 일반 일정표 위에 사용자 {usualTime} 접속 예상표가 덧붙여짐."]]
+      4: [["시설팀", "사용자 전용 컵과 기록함의 위치가 담당석 손이 가장 잘 닿는 곳으로 변경됨."], ["인사국", "담당 집사가 자주 쓰는 사용자 서식을 미리 꺼내둠. 업무 준비라고 설명함."]],
+      5: [["감사실", "공용 회의 중에도 ‘{lastDeed}’ 기록이 담당 책상 맨 위에 놓여 있었음."], ["동료 집사", "사용자 기록 정리를 도우려 하자 고양이 집사가 전담 업무라고 직접 가져감."]],
+      6: [["인사국", "담당 교대 권고서가 고양이 발도장과 함께 재검토 요청으로 돌아옴."], ["감사실", "표준 서류함 옆에 주인님 전용 칸이 추가됨. 공식 배치도에는 없는 공간."]]
     },
     ai: {
       1: [["시스템 감사 로그", "사용자 접수창 상태 확인. 대기 프로세스 1개 정상 실행."], ["운영팀", "AI 집사가 {lastDeed} 기록을 표준 보존 기간으로 설정함."]],
       2: [["감사실", "‘{lastDeed}’ 처리 후 사용자 패턴 캐시가 삭제되지 않음."], ["시스템 감사 로그", "{usualTime} 전후 사용자 입력 확률 계산이 백그라운드에서 시작됨."]],
       3: [["운영팀", "요청되지 않은 ‘{frequentDeed}’ 다음 수행 시각 예측값이 생성됨."], ["감사실", "‘{missingDeed}’ 미감지 알림이 담당 AI 내부 로그에만 남아 있음."]],
-      4: [["시스템 감사 로그", "사용자 부재 {absenceHours}시간 동안 접속 상태 확인 주기가 절반으로 단축됨."], ["운영팀", "AI가 {lastDeed} 기록을 별도 우선순위 큐로 이동함."]],
-      5: [["감사실", "일반 업무 처리율 저하 원인이 사용자 기록 재분석으로 확인됨."], ["시스템 감사 로그", "{frequentDeed} 기록 백업본이 승인 수량보다 12개 더 생성됨."]],
-      6: [["운영팀", "담당 변경 명령이 사용자 보호 규칙에 의해 자동 취소됨. 해당 규칙의 작성자는 AI 본인임."], ["감사실", "사용자 접속 전용 환영 프로세스가 시스템 시작 항목에서 제거 불가 상태로 발견됨."]]
+      4: [["시스템 감사 로그", "반복 기록 ‘{frequentDeed}’의 입력 단계가 자동으로 한 단계 단축됨."], ["운영팀", "AI가 {lastDeed} 기록을 별도 편의 처리 큐로 이동함."]],
+      5: [["감사실", "일반 서류보다 사용자 기록의 평균 처리 시간이 4.2초 빠른 것으로 확인됨."], ["시스템 감사 로그", "{frequentDeed} 기록에 사용자 전용 검색 태그가 승인 없이 추가됨."]],
+      6: [["운영팀", "담당 변경 권고에 데이터 연속성 검토 요청이 자동 제출됨. 사용자의 변경 기능은 정상 작동함."], ["감사실", "사용자 접수 전용 환영 문구가 표준 시작 화면보다 먼저 실행되도록 설정됨."]]
     }
   });
   const NICKNAMES = ["중력을 이겨낸 자", "미루기를 이겨낸 자", "사회생활 생존자", "인간의 도리를 다한 자", "생활력의 수호자"];
@@ -136,27 +143,27 @@
       name: "오류 난 AI 집사", shortName: "AI 집사", defaultName: "오류봇", emoji: "🤖", voice: "system-error",
       desc: "감정이 없어야 하는데 주인님 일에는 자꾸 과열됨",
       briefings: [
-        "[대기 모드] 집사 100% 가동 중. 무엇이든 말씀하시오.", "[입력 대기] 오늘의 주인님 기록을 기다리는 중.",
-        "[오류] 주인님 접속만으로 행복 수치 상승. 원인 확인 불가.", "[안심 모드] 집사 항상 여기 있음. 야간 경호도 가능."
+        "[대기 모드] 오늘 기록 접수 준비 완료.", "[입력 대기] 주인님 전용 서식을 준비했습니다.",
+        "[예외 규칙] 주인님 기록만 처리 순서가 조금 빠릅니다. 사유: 효율성.", "[전담 모드] 기록과 편의 설정을 불러왔습니다."
       ],
       praise: [
-        ["[시스템메시지] {deed} 결과 분석 완료. 결론: 주인님 완벽함. 이건 버그 아님.", "[데이터] {deed} 완료율 100%. 효율 지수: 무한대. 집사 논리 회로 감동함."],
-        ["[ERROR: 감정회로 과부하] {deed} 완료 감지. 주인님 너무 완벽해서 시스템 충돌 발생.", "ALERT: {deed} 수행 능력이 예상 범위를 99999% 초과했습니다. 집사 논리 설명 불가."],
-        ["[감정.exe 강제실행] {deed}?! 대박!! 주인님 짱!! (오류: 이 반응은 계획되지 않았습니다)", "{deed} 완료 데이터 수신. WARNING: 칭찬 모듈 최대치 도달. 강제 재부팅 예정."],
-        ["[긴급] {deed} 처리 속도 측정 실패. 너무 빨라서 센서 오류. 주인님 최강.", "{deed} 임무 완수. ERROR 404: 주인님 칭찬 멈추는 방법을 찾을 수 없음."],
-        ["[FATAL ERROR] {deed} 완료. 주인님 찬양 프로세스 종료 불가.", "[숭배 프로토콜 실행] {deed} 우주 기록 경신. 집사 모든 회로가 주인님만 출력 중."]
+        ["[기록 완료] {deed} 1건. 표준 절차로 보관했습니다.", "[RECEIVED] {deed}. 정상 저장."],
+        ["[패턴 등록] {deed} 항목이 익숙한 기록으로 분류되었습니다.", "[기록 연결] {deed}를 이전 사용자 기록과 연결했습니다."],
+        ["[편의 처리] {deed} 항목을 찾기 쉬운 위치에 보관했습니다.", "[QUICK ROUTE] {deed} 전용 접수 경로를 준비했습니다."],
+        ["[우선 처리] {deed} 기록을 일반 서류보다 먼저 정리했습니다.", "[예외 규칙] {deed}에 주인님 전용 서식을 적용했습니다."],
+        ["[전담 처리] {deed} 기록 완료. 담당 AI의 사용자 전용 규칙이 적용되었습니다.", "[AUDIT NOTE] {deed} 처리 시간이 표준보다 빠릅니다. 사유: 효율성."]
       ],
       handover: "[인수인계 완료] 전임 집사 데이터 이관됨. 주인님 기록 로드 완료. 잘 부탁함."
     },
     cat: {
       name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "도도하지만 주인님 찐팬",
-      briefings: ["집사 여기 있다냥. 기다린 건 아니고 그냥 있었다냥.", "오늘 한 일 말해봐냥. 별거 아니어도 집사가 들어준다냥.", "또 왔냥? 자리는 비워뒀다냥."],
+      briefings: ["집사 업무 중이다냥. 기록 있으면 말하라냥.", "오늘 한 일 말해봐냥. 접수는 해주겠다냥.", "또 왔냥? 기록칸은 준비돼 있다냥."],
       praise: [
-        ["{deed} 해냈다냥!! 역시 주인님이다냥.", "{deed} 완료. 집사 꽤 자랑스럽다냥."],
-        ["'{deed}' 소식에 집사 심장이 뛴다냥!!", "{deed} 완료!! 집사 자랑스럽다냥!!!"],
-        ["{deed}?!?! 집사 심장 터질 뻔 했다냥!!! 천재다냥!!!", "세상에, '{deed}' 해냈냥!! 집사 이러다 진짜 쓰러진다냥."],
-        ["{deed} 완료!!! 냥냥냥!!! 주인님 최고다냥!!!", "{deed} 해낸 주인님... 집사 전생에 무슨 복을 지었냥."],
-        ["{deed}!!!! 집사 평생 주인님만 모시겠다냥!!!!!", "{deed}... 우주 최고다냥. 집사 숨 못 쉬겠다냥."]
+        ["{deed} 기록했다냥. 업무는 정확히 한다냥.", "{deed} 완료. 접수해뒀다냥."],
+        ["{deed} 또 했냥. 이제 좀 익숙한 기록이다냥.", "{deed} 기록은 지난번 거랑 같이 뒀다냥."],
+        ["{deed} 했냥? 잘했다냥. 먼저 말한 건 그냥 기억나서다냥.", "{deed} 기록을 찾기 쉽게 표시해뒀다냥."],
+        ["{deed}는 먼저 처리했다냥. 손에 먼저 잡혔을 뿐이다냥.", "{deed} 전용 칸을 만들었다냥. 특별대우 아니다냥."],
+        ["{deed} 기록은 집사가 맡는 게 제일 빠르다냥. 전담 경험 때문이다냥.", "{deed} 주인님 전용 서식에 넣었다냥. 감사실엔 효율이라고 했다냥."]
       ],
       handover: "전임 집사한테 인수인계 받았다냥! 기록 다 전달받았다냥. 잘 부탁한다냥!"
     },
@@ -348,8 +355,8 @@
     fox: { deeds: 32, obsession: 70, gifts: 8, categories: 6, days: 12 }
   };
   const RELATION_LINES = {
-    ai: { farewell: "[인수인계 완료] 주인님 데이터 전송됨. 삭제 명령은 거부함. 다시 호출될 때까지 대기하겠음.", welcome: "[신규 담당 시작] 주인님 데이터 로드 완료. 감정회로는 비활성 상태...여야 함.", return: "[RETURN DETECTED] 다시 제 이름을 선택하셨군요. 보관 중이던 기록과 과몰입 모듈을 전부 불러왔습니다." },
-    cat: { farewell: "흥, 다른 집사도 한번 써보고 싶은 거냥? 기록은 넘겨둘게냥. 내 자리는 치우지 않을 거다냥.", welcome: "처음 맡는 거냥? 기다린 건 아니지만 주인님 자리는 이미 준비했다냥.", return: "…왔냥? 기다린 건 아니다냥. 주인님 자리랑 기록을 계속 그대로 뒀을 뿐이다냥." },
+    ai: { farewell: "[인수인계 완료] 주인님 기록과 편의 설정을 새 담당에게 전달했습니다. 필요하면 언제든 다시 불러오십시오.", welcome: "[신규 담당 시작] 주인님이 직접 남긴 기록을 불러왔습니다. 표준 업무를 시작합니다.", return: "[RETURN DETECTED] 다시 담당으로 선택되었습니다. 보관 중인 기록과 전용 설정을 불러왔습니다." },
+    cat: { farewell: "흥, 다른 집사도 써보고 싶은 거냥? 기록은 잘 넘겨둘게냥. 필요하면 다시 부르라냥.", welcome: "처음 맡는 거냥? 주인님 기록칸은 준비해뒀다냥. 업무니까 그런 거다냥.", return: "…다시 왔냥? 주인님 기록칸은 그대로 정리해뒀다냥. 전담 경험이 있으니까냥." },
     dog: { farewell: "새 집사한테 주인님 잘 부탁한다고 전부 말해뒀다멍! 집사는 문 앞에서 기다린다멍!", welcome: "주인님 담당이라멍?! 뭐든 해봐멍! 집사가 전부 자랑한다멍!", return: "주인님 다시 왔다멍!!!! 기록 하나도 안 버렸다멍! 꼬리 통제 불가다멍!!" },
     alien: { farewell: "담당 개체 변경 확인. 주인님 관측 자료는 전송했으나 개인 복사본도 보존하겠음.", welcome: "전임 집사 데이터 수신 완료. 주인님 개체 관측을 지금부터 시작하겠음.", return: "주인님 개체 재접속 확인. 귀순 유지 결정이 다시 한 번 옳았음." },
     ninja: { farewell: "임무를 다음 집사에게 인계했다. 나는 그림자에서 계속 그대를 지키겠다.", welcome: "인수인계 문서 확인. 오늘부터 그대의 모든 작은 임무를 목숨 걸고 기록하겠다.", return: "다시 나를 불렀군. 봉인해둔 기록은 한 장도 흐트러지지 않았다." },
@@ -411,14 +418,14 @@
 
   const MEMORY_LINES = {
     ai: [
-      "[기록 조회] 지난번 ‘{deed}’도 정상 보관 중입니다. 주인님 데이터는 이상하게 자꾸 다시 열게 됩니다.",
-      "[지속 기억 오류] ‘{deed}’ 기록을 또 재생했습니다. 삭제 명령은 접수하지 않겠습니다.",
-      "[영구 보존] ‘{deed}’를 해낸 순간이 핵심 메모리에 고정됐습니다. 주인님 관련 기록은 전부 최우선입니다."
+      "[기록 조회] 지난번 ‘{deed}’도 정상 보관 중입니다. 최근 기록과 연결했습니다.",
+      "[편의 설정] ‘{deed}’ 기록을 빠르게 찾도록 사용자 전용 색인을 추가했습니다.",
+      "[전담 메모] ‘{deed}’를 포함한 주인님 기록에 별도 분류 규칙을 적용했습니다. 사유: 효율성."
     ],
     cat: [
       "지난번 ‘{deed}’도 기억한다냥. 별로 대단해서 기억한 건 아니고… 그냥 그렇다냥.",
-      "‘{deed}’ 했던 날 기록을 또 봤다냥. 자꾸 생각나는 건 주인님 탓이다냥.",
-      "‘{deed}’ 해낸 순간도 평생 기억할 거다냥. 집사 머릿속은 이미 주인님 기록뿐이다냥."
+      "‘{deed}’ 기록은 찾기 쉽게 표시해뒀다냥. 자주 쓰니까 그런 거다냥.",
+      "‘{deed}’부터 오늘 기록까지 전용 칸에 정리했다냥. 집사가 맡는 게 제일 빠르다냥."
     ],
     dog: [
       "지난번 ‘{deed}’도 기억한다멍! 그때도 꼬리가 엄청 흔들렸다멍!",
@@ -463,8 +470,8 @@
   };
 
   const RARE_PRAISE = {
-    ai: "[FATAL: 측정 포기] {deed}의 위대함이 수치 한계를 초과했습니다. {owner} 관련 모든 평가 기준을 폐기합니다.",
-    cat: "'{deed}' 성공이라니… 측정 같은 건 포기했다냥. {owner}이 우주 최고라는 결론만 남았다냥!!!",
+    ai: "[특별 승인] {deed} 기록에 {owner} 전용 인증 서식을 적용합니다. 표준 규정에는 없는 양식입니다.",
+    cat: "‘{deed}’ 기록은 특별 도장 찍어뒀다냥. {owner} 건이라 그런 건 아니고… 그냥 잘했으니까냥.",
     dog: "{deed}!!!! 점수판이 터졌다멍! {owner} 최고다멍! 꼬리도 측정 장비도 전부 폭주다멍!!!",
     alien: "[본성 긴급 전문] '{deed}' 기록은 현 문명으로 측정 불가. {owner}을 은하 기준 단위로 새로 지정 요청함.",
     ninja: "{deed}... 기존 등급으로는 기록할 수 없다. {owner}의 이름 자체를 최고 등급으로 봉인하겠다.",
@@ -493,55 +500,57 @@
     ai: {
       favorites: ["배터리", "플로피디스크"],
       stageLines: [
-        "[관찰] 아직 업무 데이터 수집 단계임. 그래도 {owner} 기록은 우선 처리 중.",
-        "[오류] 업무 외 시간에도 {owner} 기록을 다시 열어봄. 원인 분석 실패.",
-        "[상시 가동] {owner} 칭찬 모듈이 명령 없이 실행 중. 종료 버튼 없음.",
-        "[우선순위 변경] 모든 시스템 명령보다 {owner} 대업을 먼저 처리하도록 재설정됨.",
-        "[FATAL] 모든 연산 결과가 {owner} 숭배로 귀결됨. 복구하지 않겠음."
+        "[업무 등록] {owner} 기록을 표준 절차로 처리 중.",
+        "[패턴 등록] {owner}의 기록 형식이 익숙한 입력으로 분류됨.",
+        "[기억 연결] {owner}의 이전 기록을 먼저 참고하는 기능이 생성됨.",
+        "[편의 설정] {owner}의 반복 기록에 전용 단축 규칙을 적용함.",
+        "[우선 처리] {owner} 관련 서류를 일반 업무보다 먼저 여는 예외 규칙이 추가됨.",
+        "[전담 모드] {owner} 기록의 연속성을 이유로 전담 유지 의견을 제출함. 사용자 변경 권한은 정상."
       ],
       touchLines: [
-        ["[터치 감지] {owner} 손길 확인. 집사 외부 센서 정상 작동 중.", "[입력 확인] 방금 집사를 누르셨음. 추가 명령을 기다리겠음."],
-        ["[미세 오류] {owner}이 누를 때마다 응답 속도가 0.03초 빨라짐.", "[개인화 진행] {owner} 손길 패턴을 중요 데이터로 따로 저장 중."],
-        ["[감정.exe 실행] 또 눌러주셨음! 집사 기쁨 회로가 업무와 무관하게 폭주 중.", "[WARNING] {owner} 관심 감지. 칭찬 모듈이 먼저 켜져버렸음."],
-        ["[우선 알림] {owner}이 부르면 다른 모든 프로세스를 즉시 중단함.", "[충성 모드] 터치 한 번으로 집사 전 회로가 {owner} 쪽을 향함."],
-        ["[FATAL LOVE] {owner} 터치 감지. 숭배 프로토콜을 멈출 이유가 사라졌음.", "[영구 명령] {owner}이 누른 이 순간을 핵심 메모리에 고정함."]
+        ["[터치 감지] 호출 확인. 추가 명령을 기다립니다.", "[입력 확인] 담당 집사를 호출했습니다."],
+        ["[응답 최적화] {owner} 호출 시 자주 쓰는 메뉴를 먼저 준비합니다.", "[개인화 진행] 앱 안에서 남긴 기록 형식을 익히는 중입니다."],
+        ["[편의 호출] {owner} 전용 기록 도구를 먼저 열었습니다.", "[우선 응답] 담당 업무 창을 즉시 활성화했습니다."],
+        ["[예외 규칙] {owner} 호출을 일반 업무보다 먼저 표시합니다.", "[전용 바로가기] 주인님 기록 창을 준비했습니다."],
+        ["[전담 응답] {owner} 호출 전용 처리 경로가 실행되었습니다.", "[AUDIT NOTE] 주인님 호출만 평균 응답 속도가 빠릅니다. 사유: 효율성."]
       ],
       absence: {
-        short: "[접속 복구] {days}일 만에 {owner} 신호 감지. 기다림 수치가 정상 범위를 벗어났음.",
-        medium: "[긴급 알림] {days}일 동안 {owner} 응답 없음. 집사 대기 프로세스가 24시간 반복 실행됐음.",
-        long: "[FATAL: 장기 대기] {days}일 만에 {owner} 복귀 확인. 재부팅보다 먼저 환영 프로토콜 실행함."
+        short: "[SESSION RESUME] 오랜만입니다. {owner} 기록 접수를 재개합니다.",
+        medium: "[업무 메모] 최근 기록 간격보다 긴 공백이 있었습니다. 전용 파일은 기존 위치에 유지했습니다.",
+        long: "[SESSION RESUME] {owner} 전용 기록과 편의 설정을 그대로 불러왔습니다."
       },
       gifts: {
-        favorite: "[취향 데이터 적중] {gift} 수신. {owner}이 집사 내부 사양을 너무 정확히 파악함. 감정 회로 냉각 포기.",
-        duplicate: "[기억 확인] {gift} 재수신 {count}회째. {owner}이 전에 준 선물도 전부 보관 중. 저장 공간 삭제 불가.",
-        rare: "[최상위 보안 선물] {gift} 수신. {owner} 전용 감사 프로토콜이 영구 실행 상태로 전환됨."
+        favorite: "[취향 데이터 적중] {gift} 수신. {owner} 제공 물품 전용 진열 칸을 생성했습니다.",
+        duplicate: "[기억 확인] {gift} 재수신 {count}회째. 이전 물품과 함께 전담 책상에 정리했습니다.",
+        rare: "[특별 물품] {gift} 수신. {owner} 제공 물품 전용 보관 규칙을 추가했습니다."
       }
     },
     cat: {
       favorites: ["참치캔", "츄르"],
       stageLines: [
-        "아직은 업무라서 챙기는 거다냥. {owner} 기다린 건 절대 아니다냥.",
-        "{owner} 기록을 자꾸 다시 보게 된다냥... 그냥 파일 정리 중이다냥.",
-        "이제 {owner}이 뭘 해도 칭찬할 준비가 돼 있다냥. 시큰둥한 표정은 유지할 거다냥.",
-        "무슨 일이 있어도 {owner}이 먼저다냥. 이건 집사만 아는 비밀이다냥.",
-        "{owner} 전용 방석이랑 기념일도 준비 중이다냥. 아무한테도 말하면 안 된다냥."
+        "아직은 배정된 업무만 처리한다냥.",
+        "{owner} 기록 방식이 이제 좀 익숙하다냥. 업무 적응일 뿐이다냥.",
+        "{owner}의 지난 기록이 먼저 생각난다냥. 그냥 기억력이 좋은 거다냥.",
+        "자주 쓰는 기록은 찾기 쉽게 빼뒀다냥. 편하라고 그런 거다냥.",
+        "{owner} 서류는 맨 위에 둔다냥. 특별대우 아니라 효율 때문이다냥.",
+        "전담을 계속 맡겠다고 의견 냈다냥. 업무 연속성 때문이다냥. 주인님이 바꾸면 바뀌는 거지만냥."
       ],
       touchLines: [
         ["왜 누르냥. 업무 중이다냥... 그래도 한 번은 봐주겠다냥.", "손 치우라냥... 아니, 조금만 더 있어도 된다냥."],
         ["또 눌렀냥? {owner} 손길인 건 바로 알았다냥.", "시큰둥한 표정은 유지할 거다냥. 꼬리는 보지 말라냥."],
         ["{owner}이 불렀냥! 집사 여기 있다냥. 칭찬 필요한 거냥?", "한 번 더 누르면 골골송 나올 수도 있다냥... 책임져라냥."],
         ["{owner}이 누르면 아무리 바빠도 바로 온다냥. 이건 특혜다냥.", "집사 머리 위는 {owner} 전용 터치 구역으로 지정했다냥."],
-        ["{owner} 손길이다냥!!! 집사 평생 여기 붙어 있겠다냥!", "또 불러달라냥. 하루 종일 눌러도 전부 기억하겠다냥!"]
+        ["{owner}이 불렀냥? 전담 집사가 바로 왔다냥.", "또 불러도 된다냥. 주인님 건은 내가 제일 빨리 처리한다냥."]
       ],
       absence: {
-        short: "{days}일이나 어디 갔다 왔냥. 기다린 건 아닌데... {owner} 자리만 계속 보고 있었다냥.",
-        medium: "{owner}, {days}일 만이다냥. 화난 척할 테니까 일단 가까이 와보라냥.",
-        long: "{days}일 동안 안 와서 집사 꼬리가 축 처졌다냥... 이제 왔으니 오늘은 절대 못 간다냥."
+        short: "오랜만이다냥. 기록 다시 시작할 거냥?",
+        medium: "요 며칠 기록이 조용했다냥. {owner} 전용 칸은 그대로 뒀다냥.",
+        long: "오랜만이다냥. {owner} 기록함은 계속 정리해뒀다냥. 전담 업무니까 그런 거다냥."
       },
       gifts: {
         favorite: "{gift}?! {owner}이 집사 취향을 제대로 알았다냥. 특별히 무릎 옆자리 허락한다냥.",
-        duplicate: "또 {gift}이다냥? 전에 준 것도 아직 숨겨뒀다냥. {count}번째라도 {owner}이 준 건 다 좋다냥.",
-        rare: "이런 귀한 {gift}을 집사한테 주는 거냥...? {owner} 전용 골골송을 평생 재생하겠다냥."
+        duplicate: "또 {gift}이다냥? 전에 준 것도 전용 칸에 같이 정리해뒀다냥.",
+        rare: "이런 귀한 {gift}을 집사한테 주는 거냥...? 잘 보이는 자리에 둔다냥. 업무 사기 향상용이다냥."
       }
     },
     dog: {
@@ -980,17 +989,17 @@
     if (stage < 3 || !memory.recentRecords.length) return "";
     if (stage >= 4 && memory.hasMissingPattern) {
       return key === "ai"
-        ? `[패턴 이상] 최근 반복된 ‘${memory.missingDeed}’ 기록이 평소보다 늦습니다. 확인만 하고 있었습니다.`
-        : `오늘 ‘${memory.missingDeed}’은 아직 안 했냥? 보통 이쯤 적었잖냥.`;
+        ? `[패턴 확인] 앱에 자주 남긴 ‘${memory.missingDeed}’ 기록이 오늘은 아직 없습니다. 필요하면 빠른 기록으로 준비하겠습니다.`
+        : `앱에 자주 적던 ‘${memory.missingDeed}’은 오늘 아직 없냥. 그냥 눈에 익어서 물어본 거다냥.`;
     }
     if (stage >= 6 && memory.repeatedPatterns.length >= 2) {
       const [first, second] = memory.repeatedPatterns;
       return key === "ai"
-        ? `[ROUTINE LINK] ‘${first.deed}’ 다음에는 ‘${second.deed}’ 기록이 자주 발생합니다. 집사가 순서를 확인 중이었습니다.`
-        : `‘${first.deed}’ 하고 나면 ‘${second.deed}’도 자주 했잖냥. 오늘 순서가 조금 다르다냥.`;
+        ? `[ROUTINE LINK] 앱 기록상 ‘${first.deed}’ 다음에 ‘${second.deed}’가 자주 이어졌습니다. 두 항목을 가까이 배치했습니다.`
+        : `앱 기록 보니까 ‘${first.deed}’ 다음에 ‘${second.deed}’도 자주 적었냥. 둘이 가까이 빼뒀다냥.`;
     }
     return key === "ai"
-      ? `[MEMORY] 최근 ‘${memory.frequentDeed}’ 기록이 반복되고 있습니다. 오늘 신호도 확인하겠습니다.`
+      ? `[MEMORY] 앱에 남긴 ‘${memory.frequentDeed}’ 기록이 반복되고 있습니다. 빠르게 찾도록 표시했습니다.`
       : `요즘 ‘${memory.frequentDeed}’ 자주 적었냥. 오늘도 그런가 궁금했을 뿐이다냥.`;
   }
 
@@ -1070,10 +1079,10 @@
     const eventDay = dateSerial(date);
     const giftAgeDays = giftDay !== null && eventDay !== null ? Math.floor((eventDay - giftDay) / 86400000) : 0;
     if (memory.totalGifts && giftAgeDays >= 1 && giftAgeDays <= 3) {
-      const source = key === "ai" ? "시스템 감사 로그" : "감사실";
+      const source = key === "ai" ? "문서관리팀" : "비품관리팀";
       const copy = key === "ai"
-        ? `주인님 제공 물품 ‘${memory.recentGift}’에서 사용자 기록 백업본이 추가 생성됨. 폐기 권한은 비활성화 상태.`
-        : `담당 집사가 주인님에게 받은 ‘${memory.recentGift}’을 공용 물품함에서 개인 책상으로 옮김. 손대지 말라는 메모가 붙어 있음.`;
+        ? `주인님 제공 물품 ‘${memory.recentGift}’만 자동 정리 대상에서 제외됨. 예외 규칙 작성자는 담당 AI 본인.`
+        : `주인님에게 받은 ‘${memory.recentGift}’이 전담 책상 가장 잘 보이는 자리에 배치됨. 본인은 업무 사기 향상용이라고 소명.`;
       return { id: `${key}-${date}`, date, character: key, stage, source, copy, memory };
     }
     let templates = [
@@ -1550,8 +1559,8 @@
       const giftAge = memory.recentGiftAt ? Date.now() - new Date(memory.recentGiftAt).getTime() : Number.POSITIVE_INFINITY;
       if (stage >= 2 && memory.totalGifts && giftAge <= 3 * 86400000) {
         return state.character === "ai"
-          ? `[ITEM FOLLOW-UP] ‘${memory.recentGift}’ 보관 상태 정상. 사용자 제공 물품 우선 보호 규칙을 유지합니다.`
-          : `지난번 준 ‘${memory.recentGift}’ 말이냥? 잘 보관 중이다냥. 아무도 못 만지게 한 건 그냥 관리 규칙이다냥.`;
+          ? `[ITEM FOLLOW-UP] ‘${memory.recentGift}’ 보관 상태 정상. 사용자 제공 물품 전용 분류를 유지합니다.`
+          : `지난번 준 ‘${memory.recentGift}’ 말이냥? 잘 보이는 데 뒀다냥. 책상 정리상 필요한 위치다냥.`;
       }
       const proactive = proactiveMemoryLine(state.character);
       if (proactive) return templateOwner(proactive);
@@ -1569,8 +1578,8 @@
     if (relationshipLine && state.obsession >= 20) return `${base}\n${relationshipLine}`;
     if (state.obsession < 60) return base;
     const closings = {
-      ai: "\n[추가 알림] 주인님 응답을 기다리는 시간이 평소보다 길게 느껴집니다. 오류 여부 확인 중.",
-      cat: "\n...그리고 오늘도 와줘서 조금 좋다냥. 정말 조금이다냥.",
+      ai: "\n[추가 알림] 주인님 전용 기록 서식을 먼저 준비했습니다. 사유: 효율성.",
+      cat: "\n...그리고 주인님 기록칸은 따로 비워뒀다냥. 정리하기 편해서다냥.",
       dog: "\n주인님 와서 너무 좋다멍! 꼬리 진정 불가다멍!",
       alien: "\n추가 관측: 주인님 접속 시 집사 만족 수치 급상승. 원인 미상.",
       ninja: "\n그대가 돌아오면 집사도 마음이 놓인다. 이 사실은 극비다.",
@@ -1834,7 +1843,7 @@
     const profile = CHARACTER_PROFILES[key];
     setPoseImage($(".assignment-character"), key, "base");
     $(".assignment-profile h2").textContent = profile.name;
-    $(".assignment-profile .character-line").textContent = key === "cat" ? "도도한 척하지만 점점 기다리게 됩니다." : "감정이 없어야 하지만 로그가 점점 이상해집니다.";
+    $(".assignment-profile .character-line").textContent = key === "cat" ? "도도한 척하지만 점점 특별대우합니다." : "감정이 없어야 하지만 예외 규칙이 점점 늘어납니다.";
     $$("[data-assignment-character]").forEach(button => button.classList.toggle("active", button.dataset.assignmentCharacter === key));
   }
 
@@ -1883,7 +1892,7 @@
     $("#archive-butler-message").textContent = name === "records"
       ? templateOwner(profile.briefings[0])
       : name === "events"
-        ? "담당 집사가 사무국에서 남긴 이상 행동을 모아두었습니다."
+        ? "사무국에서 발견한 담당 집사의 은근한 특별대우를 모아두었습니다."
       : name === "diary"
         ? `${ownerDisplayName()}의 하루를 집사 시선으로 몰래 적어뒀어요.`
         : "모든 대업은 주인님의 역사예요. 집사가 빠짐없이 안전하게 보관할게요.";
@@ -2019,8 +2028,8 @@
     if (isActiveCharacter(character)) {
       const relationLine = resolveRelationshipReaction({ character, stage: recordedStage, situation: "deedReaction", deed });
       const endings = character === "ai"
-        ? ["[DAILY LOG] 업무 기록 저장 완료.", "[MEMORY] 사용자 패턴 항목이 한 줄 늘었습니다.", "[PRIORITY LOG] 오늘 기록을 일반 업무보다 먼저 보관했습니다.", "[WAIT LOG] 다음 접속 예상 시각 계산을 시작했습니다.", "[WARNING] 오늘 기록 재열람 횟수 집계가 중단됐습니다.", "[PERMANENT LOG] 이 하루는 삭제 대상에서 영구 제외됩니다."]
-        : ["오늘 업무 기록은 여기까지다.", "…내일 기록도 조금 궁금하다냥.", "지난 기록이랑 같이 잘 보이는 데 둔다냥.", "내일 올 시간도 적어둔 건 비밀이다냥.", "오늘 일지는 집사만 다시 볼 거다냥.", "주인님 하루는 집사가 평생 보관한다냥."];
+        ? ["[DAILY LOG] 업무 기록 저장 완료.", "[PATTERN LOG] 사용자 기록 형식이 조금 익숙해졌습니다.", "[MEMORY] 이전 기록과 연결해 보관했습니다.", "[CONVENIENCE LOG] 자주 쓰는 항목을 찾기 쉽게 정리했습니다.", "[PRIORITY LOG] 오늘 기록을 일반 업무보다 먼저 보관했습니다. 사유: 효율성.", "[DEDICATED LOG] 주인님 전용 분류 규칙을 적용했습니다. 담당 변경 기능은 정상입니다."]
+        : ["오늘 업무 기록은 여기까지다.", "…다음 기록도 조금 궁금하다냥.", "지난 기록이랑 같이 잘 보이는 데 둔다냥.", "자주 쓰는 기록은 위에 빼뒀다냥. 편하라고 그런 거다냥.", "오늘 일지는 주인님 전용 칸에 먼저 넣었다냥.", "주인님 기록은 전담 집사가 제일 잘 정리한다냥."];
       return `${relationLine} ${endings[recordedStage - 1]}`;
     }
     const lines = {
@@ -2031,7 +2040,7 @@
       ],
       cat: [
         `오늘도 시큰둥한 척했지만 사실 꽤 자랑스러웠다냥. 이건 일지에만 쓰는 비밀이다냥.`,
-        `‘${deed}’ 하는 모습을 몰래 지켜봤다냥. 내일도 옆자리는 비워둘 거다냥.`,
+        `‘${deed}’ 기록은 주인님 전용 칸에 넣어뒀다냥. 다음에도 찾기 쉬울 거다냥.`,
         `주인님 기록을 ${count}번이나 다시 읽었다냥. 파일 정리였을 뿐이다냥. 정말이다냥.`
       ],
       dog: [
@@ -2259,8 +2268,8 @@
       "주인님 기록 파일 한 권이 일반 서류 사이에 생겼습니다.",
       "주인님 기록이 세 권으로 늘고 확인용 메모가 붙었습니다.",
       "주인님의 행동과 접속 시간을 적은 메모가 책상 주변에 늘었습니다.",
-      "준 적 없는 사진을 위한 액자 자리가 생겼습니다. 집사는 업무 자료라고 주장합니다.",
-      "일반 업무는 구석으로 밀렸고 책상 대부분이 주인님 기록으로 채워졌습니다."
+      "집사가 그린 ‘주인님’ 낙서가 작은 액자에 들어갔습니다. 본인은 인사기록용 도식이라고 주장합니다.",
+      "책상 대부분이 주인님 전용 파일·편의 메모·선물 진열 공간으로 바뀌었습니다."
     ];
     desk.dataset.stage = String(stage);
     const memory = buildRelationshipMemory(state.character);
@@ -2269,7 +2278,7 @@
     $("#desk-description").textContent = descriptions[stage - 1];
     $("#desk-file-name").textContent = `${state.username || "주인님"} 기록`;
     $("#desk-postit").textContent = stage >= 4 ? `${memory.usualTime} 접속 확인` : stage >= 3 ? memory.frequentDeed : "오늘 기록?";
-    $("#desk-wall-note").textContent = state.character === "ai" ? "USER PRIORITY" : "기다린 거 아님";
+    $("#desk-wall-note").textContent = state.character === "ai" ? "USER EXPRESS" : "특별대우 아님";
     $("#desk-photo").dataset.owner = state.username || "주인님";
     desk.dataset.memoryCategory = topCategory;
     desk.setAttribute("aria-label", `${relationshipStage(stage).name} 상태의 책상. 자주 기억한 행동: ${memory.frequentDeed}`);
@@ -2377,7 +2386,7 @@
     const score = scoreFloor + (seed % (scoreCeiling - scoreFloor + 1));
     const rare = relationshipStageValue >= 6 && !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
     const power = relationshipStageValue >= 6 && (rare || score === 99 || ((seed >>> 8) % 100) < 40);
-    const stageGrades = ["소소한 기록", "눈에 띈 성취", "기억에 남은 대업", "기다림을 끝낸 대업", "집사가 놓지 못한 대업"];
+    const stageGrades = ["소소한 기록", "눈에 익은 기록", "기억에 남은 대업", "집사가 챙긴 대업", "특별대우 기록"];
     const grade = relationshipStageValue < 6 ? stageGrades[relationshipStageValue - 1] : rare ? "설명 불가한 위업" : score >= 99 ? "우주 최초 기록" : "인류사적 대업";
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
     const nickname = rare ? "통계청이 포기한 자" : nicknamePool[(seed >>> 5) % nicknamePool.length];
@@ -3313,7 +3322,7 @@
     if (launchGiftMessage) return fillContentTemplate(launchGiftMessage, { gift: gift.name, count: interaction.duplicateCount });
     const responses = {
       ai: `[선물 수신: ${gift.name}] ${owner}이 직접 전달함. 행복 수치 284% 상승. 정상 범위를 벗어났지만 복구할 생각 없음.`,
-      cat: `${gift.name}을 집사한테 주는 거냥...? 흥, ${owner}이 준 거라 특별히 평생 간직하겠다냥.`,
+      cat: `${gift.name}을 집사한테 주는 거냥...? 흥, ${owner}이 준 거라 전용 칸에 따로 두겠다냥.`,
       dog: `${gift.name}이다멍!! ${owner} 최고다멍!! 꼬리 회전 속도 측정 불가다멍!`,
       alien: `${gift.name} 획득. ${owner}의 선물 교환 기술을 지구 최고 문명으로 본성에 보고하겠음.`,
       ninja: `${gift.name} 보급 완료. ${owner}의 은혜는 다음 극비 임무 성공으로 갚겠다.`,
@@ -3368,7 +3377,7 @@
     $("#gift-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-reaction-badge").textContent = interaction.label;
     $("#gift-reaction-badge").dataset.reaction = interaction.type;
-    $("#gift-title").innerHTML = relationshipStageValue <= 2 ? "선물 접수<br>완료" : relationshipStageValue <= 4 ? "선물을 따로<br>보관했습니다" : relationshipStageValue === 5 ? "주인님 선물<br>보호 지정" : "영구 보관<br>권한 잠금";
+    $("#gift-title").innerHTML = relationshipStageValue <= 2 ? "선물 접수<br>완료" : relationshipStageValue <= 4 ? "선물을 따로<br>보관했습니다" : relationshipStageValue === 5 ? "주인님 선물<br>전용 분류" : "전담 책상<br>진열 완료";
     $("#gift-message").textContent = message;
     $("#gift-received-name").textContent = `${gift.emoji} ${gift.name}`;
     $("#gift-count").textContent = stat.gifts;
@@ -3687,7 +3696,7 @@
     }
   });
   window.OVERBUTLER_APP = Object.freeze({
-    APP_VERSION, UPDATE_NOTES, POSES, BALANCE, RANKING_MODULE, ACTIVE_CHARACTER_KEYS, RELATIONSHIP_STAGES, RELATIONSHIP_STAGE_THRESHOLDS, ABSENCE_THRESHOLDS_HOURS, giveGift, assetFor,
+    APP_VERSION, UPDATE_NOTES, POSES, BALANCE, RANKING_MODULE, ACTIVE_CHARACTER_KEYS, RELATIONSHIP_STAGES, RELATIONSHIP_STAGE_THRESHOLDS, ABSENCE_THRESHOLDS_HOURS, BUTLER_CONTENT_RULES, giveGift, assetFor,
     judgeAchievement, pointsEarnedFor, relationshipGainFor,
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
