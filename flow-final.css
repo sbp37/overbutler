@@ -1,0 +1,110 @@
+/* FIRST-RUN + ANALYSIS — branded office flow */
+.assignment-screen{min-height:100dvh;padding:22px 16px 34px;background:linear-gradient(180deg,#f7f1e8 0,#f0e5d8 100%);place-items:start center}
+.assignment-office-header{display:flex;align-items:flex-start;justify-content:space-between;width:min(100%,430px);margin:2px auto 18px}
+.assignment-office-header>div strong{display:block;color:#721c2b;font:900 34px/.96 "Noto Serif KR",serif;letter-spacing:-.08em}
+.assignment-office-header>div span{display:block;margin-top:7px;color:#7c4c4c;font-size:9px;font-weight:850;letter-spacing:.15em}
+.assignment-office-header>small{display:flex;align-items:center;gap:6px;margin-top:9px;padding:8px 10px;border:1px solid #cbbba7;border-radius:99px;background:#fffaf3;color:#5b4d49;font-size:9px;font-weight:800;white-space:nowrap}
+.assignment-office-header>small i{width:6px;height:6px;border-radius:50%;background:#8b172c}
+.assignment-sheet{width:min(100%,430px);padding:0;border:0;border-radius:12px;background:#fffdf8;box-shadow:0 12px 30px rgba(73,48,36,.1)}
+.assignment-meta{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border:1px solid #d1c1ae;border-bottom:0;border-radius:12px 12px 0 0;background:#efe4d5;color:#7c6a5f;font-size:8px;font-weight:850;letter-spacing:.09em}
+.assignment-meta b{color:#7c1c2e;font-size:8px}
+.assignment-document{position:relative;margin:0;padding:24px 15px 16px;border:1px solid #d1c1ae;border-radius:0 0 12px 12px;background:#fffdf8;box-shadow:none;text-align:center;overflow:hidden}
+.assignment-document:before{content:"";position:absolute;inset:7px;border:1px solid rgba(170,141,102,.18);border-radius:7px;pointer-events:none}
+.assignment-paperclip{position:absolute;z-index:4;right:18px;top:-5px;width:14px;height:45px;border:2px solid #9b7541;border-bottom-color:transparent;border-radius:8px 8px 3px 3px;transform:rotate(9deg)}
+.assignment-document .bureau-name{position:relative;z-index:1;margin:0 0 7px;color:#976d36;font-size:9px;font-weight:850;letter-spacing:.11em}
+.assignment-document h1{position:relative;z-index:1;margin:0;color:#493737;font:900 29px/1.22 "Noto Serif KR",serif;letter-spacing:-.045em}
+.assignment-copy{position:relative;z-index:1;margin:10px auto 4px;max-width:300px;color:#776861;font-size:11px;line-height:1.5;word-break:keep-all}
+.assignment-character-stage{position:relative;z-index:1;height:238px;margin:2px auto 0;display:flex;align-items:flex-end;justify-content:center}
+.assignment-character-stage:before{content:"OVERBUTLER";position:absolute;left:50%;top:35px;width:128px;height:128px;display:grid;place-items:center;border:4px double rgba(130,72,56,.08);border-radius:50%;color:rgba(130,72,56,.11);font-size:9px;font-weight:900;letter-spacing:.08em;transform:translateX(-50%) rotate(-15deg)}
+.assignment-character{position:relative;z-index:1;width:200px;height:235px;margin:0;object-fit:contain;clip-path:none;filter:drop-shadow(0 7px 2px rgba(70,44,31,.08))}
+.assignment-seal{position:absolute;z-index:2;right:28px;bottom:15px;display:grid;place-items:center;width:61px;height:61px;border:4px double rgba(129,31,46,.72);border-radius:50%;color:rgba(129,31,46,.8);font-size:10px;font-weight:900;line-height:1.1;transform:rotate(-10deg)}
+.assignment-profile{position:relative;z-index:1;margin:-2px 10px 0;padding:12px 11px 11px;border-top:1px solid #d9c9b6;border-bottom:1px solid #d9c9b6}
+.assignment-profile .role-chip{display:inline-block;padding:4px 8px;border:1px solid #d2b77f;border-radius:99px;background:#fff8e6;color:#8b652c;font-size:9px;font-weight:850}
+.assignment-document h2{margin:7px 0 5px;color:#721c2b;font:850 23px Paperlogy,sans-serif;letter-spacing:-.055em}
+.assignment-document .character-line{margin:0;color:#5c4d49;font:700 15px/1.35 "Wanted Sans Variable","Wanted Sans",sans-serif}
+.assignment-document .personnel-facts{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);margin:12px 10px;border:1px solid #ddd1c3;border-radius:7px;overflow:hidden}
+.assignment-document .personnel-facts>div{padding:9px 4px;border-right:1px solid #e4dacf;background:#faf5ed}
+.assignment-document .personnel-facts>div:last-child{border:0}
+.assignment-document .personnel-facts dt{color:#97754b;font-size:8px;font-weight:850}
+.assignment-document .personnel-facts dd{margin:4px 0 0;color:#584b47;font-size:9px;font-weight:750;line-height:1.3}
+.assignment-document #accept-butler{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;width:calc(100% - 20px);min-height:56px;margin:0 10px;border:1px solid #5f1724;border-radius:8px;background:linear-gradient(#861f33,#681420);box-shadow:0 3px 0 #4e101a;color:#fff;font-size:15px}
+.assignment-document #accept-butler span{font-size:20px}
+.assignment-document #reroll-butler{position:relative;z-index:1;width:calc(100% - 20px);min-height:43px;margin:9px 10px 0;border-color:#d1c1ae;border-radius:7px;background:#f8f1e8;color:#6a5a54;font-size:11px}
+.assignment-footnote{position:relative;z-index:1;margin:9px 10px 0;color:#99887d;font-size:8px;line-height:1.4}
+
+#analysis-overlay.overlay{z-index:50;place-items:start center;padding:0;background:var(--home-canvas,#f2eadf);overflow-y:auto}
+#analysis-overlay .analysis-sheet{width:min(100%,430px);min-height:100dvh;margin:0;padding:18px 15px calc(25px + env(safe-area-inset-bottom));border:0;border-radius:0;background-color:#f7efe4;background-image:radial-gradient(rgba(116,88,61,.035) .7px,transparent .8px),linear-gradient(180deg,#faf4eb,#f1e6d8);background-size:6px 6px,100% 100%;color:#423535;box-shadow:none}
+.analysis-brand{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:2px 1px 15px;border-bottom:1px solid #d3c2af}
+.analysis-brand>div strong{display:block;color:#721c2b;font:900 30px/.95 "Noto Serif KR",serif;letter-spacing:-.075em}
+.analysis-brand>div span{display:block;margin-top:6px;color:#825856;font-size:8px;font-weight:850;letter-spacing:.15em}
+.analysis-brand>b{display:flex;align-items:center;gap:6px;margin-top:7px;padding:7px 9px;border:1px solid #cbb9a5;border-radius:99px;background:#fffaf2;color:#5d4f4b;font-size:10px;white-space:nowrap}
+.analysis-brand>b i{width:6px;height:6px;border-radius:50%;background:#8b172c;animation:analysis-pulse .7s infinite alternate}
+.analysis-document-head{display:flex;align-items:center;justify-content:space-between;padding:13px 2px 10px;color:#8a2638;font-size:10px;font-weight:850;letter-spacing:.06em}
+.analysis-document-head small{color:#8f7c70;font-size:10px;letter-spacing:0}
+.analysis-stage{display:grid;grid-template-columns:158px minmax(0,1fr);align-items:center;min-height:205px;border:1px solid #d6c7b4;border-radius:10px;background:#fffaf2;box-shadow:0 6px 14px rgba(73,51,40,.06);overflow:hidden}
+#analysis-overlay .scanner{position:relative;width:158px;height:205px;margin:0;border:0;border-radius:0;background:radial-gradient(circle at 50% 48%,#fffdf8 0 28%,#f5eadc 72%);overflow:visible}
+#analysis-overlay .scanner:before{inset:24px 15px;border:3px double rgba(131,73,55,.09);background:none}
+#analysis-overlay .scanner:after{display:none}
+#analysis-overlay .scanner img{position:relative;z-index:1;inset:auto;width:158px;height:205px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 6px 2px rgba(68,43,30,.08))}
+.analysis-copy{padding:16px 13px 16px 7px}
+.analysis-copy small{color:#927c6d;font-size:10px;font-weight:800}
+.analysis-copy h2{margin:6px 0 8px;color:#721c2b;font:900 24px/1.16 "Noto Serif KR",serif;text-align:left;letter-spacing:-.045em;word-break:keep-all}
+.analysis-copy p{margin:0;color:#675953;font:700 15px/1.38 "Wanted Sans Variable","Wanted Sans",sans-serif;word-break:keep-all}
+.analysis-target-file{position:relative;margin-top:10px;padding:12px 62px 12px 12px;border:1px solid #d8c8b6;border-radius:8px;background:#fffdf8}
+.analysis-target-file>span{display:block;color:#907866;font-size:10px;font-weight:850}
+.analysis-target-file>strong{display:block;margin-top:5px;color:#483a37;font-size:15px;line-height:1.38;word-break:break-word}
+.analysis-target-file>strong b{font-weight:850}
+.analysis-target-file>i{position:absolute;right:11px;top:50%;padding:5px 7px;border:3px double rgba(131,31,47,.67);color:rgba(131,31,47,.76);font-size:10px;font-style:normal;font-weight:900;transform:translateY(-50%) rotate(-7deg)}
+#analysis-overlay .analysis-steps{display:grid;gap:7px;margin:10px 0 0;padding:0;list-style:none}
+#analysis-overlay .analysis-steps li{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:9px;align-items:center;min-height:46px;padding:8px 10px;border:1px solid #ddd1c4;border-radius:8px;background:#fffdf9;color:#83746c;font-size:11px}
+#analysis-overlay .analysis-steps li>i{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#f1e7da;color:#8f704b;font-size:9px;font-style:normal;font-weight:850}
+#analysis-overlay .analysis-steps li>b{font-size:12px;line-height:1.35}
+#analysis-overlay .analysis-steps li>span{font-size:10px;white-space:nowrap}
+#analysis-overlay .analysis-steps li.active{border-color:#c69aa3;background:#fff5f5;color:#6f1d2c}
+#analysis-overlay .analysis-steps li.active>i{background:#8b2639;color:#fff}
+#analysis-overlay .analysis-steps li.done{color:#62534e}
+#analysis-overlay .analysis-steps li.done>i{background:#efe0c6;color:#7c5d31}
+#analysis-overlay .analysis-steps li.done>span{color:#8b2639;font-weight:850}
+#analysis-overlay .analysis-progress{margin-top:11px;padding:11px 12px;border:1px solid #d9ccbd;border-radius:8px;background:#faf3e9}
+.analysis-progress>div{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.analysis-progress>div strong{color:#554744;font-size:11px}
+.analysis-progress>div span{position:static;color:#7b1b2d;font-size:13px;font-weight:900}
+.analysis-progress>b{display:block;height:8px;border-radius:99px;background:#dfd3c6;overflow:hidden}
+.analysis-progress>b i{display:block;width:0;height:100%;border-radius:inherit;background:#8b2639;transition:width .35s}
+.analysis-footnote{margin:11px 2px 0;color:#88776d;font-size:10px;line-height:1.45;text-align:center}
+@keyframes analysis-pulse{from{opacity:.45;transform:scale(.85)}to{opacity:1;transform:scale(1.08)}}
+@media(max-width:370px){
+  .assignment-screen{padding-right:12px;padding-left:12px}
+  .assignment-office-header>div strong{font-size:31px}.assignment-office-header>small{padding:7px 8px;font-size:8px}
+  .assignment-document h1{font-size:26px}.assignment-character-stage{height:220px}.assignment-character{width:185px;height:217px}
+  #analysis-overlay .analysis-sheet{padding-right:11px;padding-left:11px}.analysis-brand>div strong{font-size:27px}.analysis-brand>b{padding:7px;font-size:10px}
+  .analysis-stage{grid-template-columns:140px minmax(0,1fr)}#analysis-overlay .scanner,#analysis-overlay .scanner img{width:140px}.analysis-copy{padding-right:9px;padding-left:5px}.analysis-copy h2{font-size:22px}.analysis-copy p{font-size:14px}
+}
+
+@media(max-height:900px){
+  .assignment-screen{padding-top:12px;padding-bottom:22px}
+  .assignment-office-header{margin-top:0;margin-bottom:9px}
+  .assignment-office-header>div strong{font-size:30px}.assignment-office-header>div span{margin-top:5px;font-size:8px}
+  .assignment-office-header>small{margin-top:6px;padding:7px 8px;font-size:8px}
+  .assignment-meta{padding:8px 12px}
+  .assignment-document{padding:14px 12px 13px}
+  .assignment-document .bureau-name{margin-bottom:4px;font-size:8px}
+  .assignment-document h1{font-size:25px;line-height:1.14}
+  .assignment-copy{margin:6px auto 1px;font-size:10px;line-height:1.4}
+  .assignment-character-stage{height:169px;margin-top:0}
+  .assignment-character-stage:before{top:18px;width:102px;height:102px}
+  .assignment-character{width:165px;height:166px}
+  .assignment-seal{right:33px;bottom:8px;width:49px;height:49px;border-width:3px;font-size:8px}
+  .assignment-profile{margin-top:0;padding:8px 9px 7px}
+  .assignment-profile .role-chip{padding:3px 7px;font-size:8px}
+  .assignment-document h2{margin:4px 0 2px;font-size:20px}
+  .assignment-document .character-line{font-size:14px;line-height:1.28}
+  .assignment-document .personnel-facts{display:none}
+  .assignment-document .owner-name-field{margin:9px 10px 10px;padding:9px 10px}
+  .assignment-document .owner-name-field>strong{margin-bottom:6px;font-size:13px}
+  .assignment-document .owner-name-field input{height:42px}
+  .assignment-document .owner-name-field>small{margin-top:5px;font-size:9px}
+  .assignment-document #accept-butler{min-height:50px;font-size:14px}
+  .assignment-document #reroll-butler{min-height:44px;margin-top:7px}
+  .assignment-footnote{margin-top:7px}
+}
