@@ -15,6 +15,14 @@
   const PREVIOUS_STORAGE_KEY = "overbutler-v2-state";
   const POSES = ["base", "analysis", "praise", "power", "gift"];
   const ACTIVE_CHARACTER_KEYS = Object.freeze(["cat", "ai"]);
+  const FEATURE_FLAGS = Object.freeze({
+    legacyAchievementAnalysis: false,
+    legacyAchievementScoring: false,
+    legacyPerRecordResultOverlay: false,
+    relationshipProgressMeters: false,
+    perRecordCertificatePrompt: false,
+    stampQuest: false
+  });
   const RELATIONSHIP_STAGE_THRESHOLDS = Object.freeze([0, 5, 15, 30, 60, 100]);
   const RELATIONSHIP_STAGES = Object.freeze([
     { stage: 1, key: "formal", name: "업무상 관계", badge: "정상 배정", summary: "아직은 기록을 처리하는 담당자일 뿐입니다." },
@@ -747,6 +755,22 @@
 
   const $ = selector => document.querySelector(selector);
   const $$ = selector => Array.from(document.querySelectorAll(selector));
+
+  function applyFeatureFlags() {
+    Object.entries(FEATURE_FLAGS).forEach(([key, enabled]) => {
+      document.documentElement.dataset[key] = enabled ? "on" : "off";
+    });
+    if (!FEATURE_FLAGS.legacyAchievementAnalysis) $("#analysis-overlay").hidden = true;
+    if (!FEATURE_FLAGS.legacyPerRecordResultOverlay) $("#praise-result-overlay").hidden = true;
+    if (!FEATURE_FLAGS.perRecordCertificatePrompt) $("#result-certificate-button").hidden = true;
+    if (!FEATURE_FLAGS.relationshipProgressMeters) {
+      ["#result-relationship-fill", "#gift-relationship-fill"].forEach(selector => {
+        const meter = $(selector)?.parentElement;
+        if (meter) meter.hidden = true;
+      });
+    }
+    $$('[data-feature="stamp-quest"]').forEach(element => { element.hidden = !FEATURE_FLAGS.stampQuest; });
+  }
   const randomItem = list => list[Math.floor(Math.random() * list.length)];
   const ANALYTICS_EVENT_NAME = "overbutler:analytics";
   const ANALYTICS_PROPERTY_ALLOWLIST = new Set(["character", "view", "tab", "category", "verdict", "source", "official", "giftType", "relationshipStage", "onboarded", "preview"]);
@@ -1726,6 +1750,10 @@
   }
 
   function cancelAchievementAnalysis() {
+    if (!FEATURE_FLAGS.legacyAchievementAnalysis) {
+      $("#analysis-overlay").hidden = true;
+      return false;
+    }
     if ($("#analysis-overlay").hidden) return false;
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
@@ -2014,7 +2042,7 @@
     }).join("");
     $("#archive-certificates").innerHTML = `<section class="archive-progress-note rare-certificate-note"><div><span>희귀 인증 문서</span><strong>특별한 순간만</strong></div><p>관계가 크게 달라지거나 오래 함께한 순간에만 발급됩니다.</p></section>
     <div class="archive-cabinet-heading"><strong>인증서 보관 서고</strong><span>총 ${state.certificates.length}건</span></div>
-    <div class="archive-cabinet-list">${certificateFiles || '<div class="records-empty certificate-empty"><i aria-hidden="true"></i><span>인증서 보관 대기</span><p>아직 발급된 공식 인증서가 없습니다.<br>대업 도장을 모으면 이곳에 첫 문서가 보관됩니다.</p></div>'}</div>
+    <div class="archive-cabinet-list">${certificateFiles || '<div class="records-empty certificate-empty"><i aria-hidden="true"></i><span>인증서 보관 대기</span><p>아직 발급된 공식 인증서가 없습니다.<br>관계가 크게 달라지는 순간 이곳에 첫 문서가 보관됩니다.</p></div>'}</div>
     <div class="archive-security-note"><span aria-hidden="true">▣</span><p>모든 공식 인증서는 기기 안에 안전하게 보관되며<br>언제든 다시 열람할 수 있습니다.</p></div>`;
     renderArchiveRecords();
     renderButlerDiary();
@@ -2368,11 +2396,13 @@
   }
 
   function pointsEarnedFor(evaluation, duplicate = false) {
+    if (!FEATURE_FLAGS.legacyAchievementScoring) return 0;
     if (duplicate) return BALANCE.deedPoints.duplicate;
     return BALANCE.deedPoints[evaluation?.verdictType] || BALANCE.deedPoints.praise;
   }
 
   function relationshipGainFor(evaluation, duplicate = false) {
+    if (!FEATURE_FLAGS.legacyAchievementScoring) return duplicate ? 0 : 1;
     if (duplicate) return BALANCE.deedRelationship.duplicate;
     return BALANCE.deedRelationship[evaluation?.verdictType] || BALANCE.deedRelationship.praise;
   }
@@ -2381,6 +2411,13 @@
     const seed = stableDeedNumber(deed);
     const category = categoryForDeed(deed);
     const relationshipStageValue = currentRelationshipStage();
+    if (!FEATURE_FLAGS.legacyAchievementScoring) {
+      return {
+        seed, category, score: null, scoreLabel: relationshipStage(relationshipStageValue).name,
+        grade: "일상 기록", nickname: "집사가 기억한 순간", rare: false, power: false,
+        verdictType: "memory", duplicate
+      };
+    }
     const scoreFloor = [62, 70, 78, 86, 92, 97][relationshipStageValue - 1];
     const scoreCeiling = [69, 77, 85, 91, 96, 99][relationshipStageValue - 1];
     const score = scoreFloor + (seed % (scoreCeiling - scoreFloor + 1));
@@ -2404,6 +2441,7 @@
   }
 
   function configureAnalysis(deed) {
+    if (!FEATURE_FLAGS.legacyAchievementAnalysis) return;
     const [title, description] = ANALYSIS_CHARACTER_COPY[state.character] || ANALYSIS_CHARACTER_COPY.ai;
     $("#analysis-title").textContent = title;
     $("#analysis-description").textContent = description;
@@ -2638,6 +2676,7 @@
   }
 
   function openPraiseResult(record) {
+    if (!FEATURE_FLAGS.legacyPerRecordResultOverlay) return false;
     const butler = record.butler || snapshotButler(record);
     const mode = record.verdictType === "rare" || record.rare ? "rare" : record.pose === "power" || record.verdictType === "power" ? "power" : "praise";
     const power = mode !== "praise";
@@ -2687,6 +2726,7 @@
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
     window.setTimeout(() => typeMessage($("#result-report"), record.report, rare ? 22 : 27), 240);
+    return true;
   }
 
   function closePraiseResult() {
@@ -2699,6 +2739,7 @@
   }
 
   function issueCertificateFromResult() {
+    if (!FEATURE_FLAGS.perRecordCertificatePrompt) return;
     if (!currentResult) return;
     const record = currentResult;
     trackEvent("certificate_open", { character: record.character, source: "result", official: isOfficialCertificate(record) });
@@ -2856,16 +2897,16 @@
     ctx.fillText("OB", 540, 259);
     ctx.fillStyle = "#463534";
     ctx.font = '900 47px "Noto Serif KR", serif';
-    ctx.fillText(official ? "공식 대업 인증서" : "대업 기념 인증서", 540, 327);
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? "공식 대업 인증서" : "대업 기념 인증서") : (official ? "공식 관계 인증서" : "관계 기념 인증서"), 540, 327);
     ctx.fillStyle = "#88766c";
     ctx.font = '600 18px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "이 증서는 아래의 대업 달성을 엄숙하게 인증합니다" : "오늘의 대업을 집사 사무국이 기쁘게 기념합니다", 540, 365);
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? "이 증서는 아래의 대업 달성을 엄숙하게 인증합니다" : "오늘의 대업을 집사 사무국이 기쁘게 기념합니다") : (official ? "이 증서는 아래의 관계 순간을 엄숙하게 인증합니다" : "오늘의 기록을 집사 사무국이 기쁘게 기념합니다"), 540, 365);
     ctx.fillStyle = "#711b2c";
     ctx.font = '850 25px "Noto Serif KR", serif';
     ctx.fillText(`${owner} 귀하`, 540, 402);
     ctx.fillStyle = "#94703b";
     ctx.font = '800 16px "WantedSansVariable", sans-serif';
-    ctx.fillText(`문서번호 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`, 540, 431);
+    ctx.fillText(`문서번호 ${FEATURE_FLAGS.legacyAchievementScoring ? "대업" : "관계"}-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`, 540, 431);
 
     roundedCanvasRect(ctx, 416, 452, 248, 50, 25);
     ctx.fillStyle = rare ? "#fff0c3" : "#fff6df";
@@ -2875,7 +2916,7 @@
     ctx.stroke();
     ctx.fillStyle = "#89622c";
     ctx.font = '800 19px "WantedSansVariable", sans-serif';
-    ctx.fillText(record.grade, 540, 484);
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? record.grade : (record.certificateReason || "특별한 관계 순간"), 540, 484);
 
     let deedFontSize = 56;
     let deedLines = [];
@@ -2889,7 +2930,7 @@
     const deedBottom = drawCenteredCanvasLines(ctx, deedLines, 540, 556, deedFontSize * 1.28);
     ctx.fillStyle = "#927045";
     ctx.font = '700 24px "WantedSansVariable", sans-serif';
-    ctx.fillText(`― ${record.nickname} ―`, 540, deedBottom + 7);
+    ctx.fillText(`― ${FEATURE_FLAGS.legacyAchievementScoring ? record.nickname : "집사가 오래 기억할 기록"} ―`, 540, deedBottom + 7);
 
     const metricsY = Math.max(690, deedBottom + 45);
     roundedCanvasRect(ctx, 126, metricsY, 828, 126, 12);
@@ -2904,12 +2945,12 @@
     ctx.stroke();
     ctx.fillStyle = "#8b776b";
     ctx.font = '750 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "공식 난이도" : "집사 판정 난이도", 333, metricsY + 38);
-    ctx.fillText("인류 기여도", 747, metricsY + 38);
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? "공식 난이도" : "집사 판정 난이도") : "발급 사유", 333, metricsY + 38);
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? "인류 기여도" : "기록 당시 관계", 747, metricsY + 38);
     ctx.fillStyle = "#711b2c";
-    ctx.font = '900 39px "Noto Serif KR", serif';
-    ctx.fillText(rare ? "판정 불가" : "★★★★★", 333, metricsY + 91);
-    ctx.fillText(scoreText(record), 747, metricsY + 91);
+    ctx.font = FEATURE_FLAGS.legacyAchievementScoring ? '900 39px "Noto Serif KR", serif' : '850 24px "Noto Serif KR", serif';
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (rare ? "판정 불가" : "★★★★★") : (record.certificateReason || "특별 기억"), 333, metricsY + 91);
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? scoreText(record) : relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name, 747, metricsY + 91);
 
     const portraitY = metricsY + 143;
     const quoteY = 1120;
@@ -2958,7 +2999,7 @@
     ctx.stroke();
     ctx.fillStyle = rare ? "#80561c" : "#811a2d";
     ctx.font = '900 20px "Noto Serif KR", serif';
-    ctx.fillText(official ? rare ? "희귀 위업" : "공식 대업" : rare ? "희귀 위업" : "오늘의 대업", 0, -7);
+    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? rare ? "희귀 위업" : "공식 대업" : rare ? "희귀 위업" : "오늘의 대업") : (official ? "관계 기록" : "오늘 기록"), 0, -7);
     ctx.fillText(official ? "인증 완료" : "기념 완료", 0, 22);
     ctx.restore();
 
@@ -3003,6 +3044,10 @@
   }
 
   function certificateShareText(record) {
+    if (!FEATURE_FLAGS.legacyAchievementScoring) {
+      const result = isOfficialCertificate(record) ? "특별한 관계 순간으로 인증됐습니다." : "집사의 기억으로 기념됐습니다.";
+      return `${certificateOwnerName(record)}의 오늘 기록이 ${result}\n${record.deed}\n${record.certificateReason || "집사가 오래 기억할 기록"} · ${relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name}\n#과잉집사 #집사의기억`;
+    }
     const result = isOfficialCertificate(record) ? "공식 인증됐습니다." : "집사에게 거창하게 기념됐습니다.";
     return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · 인류 기여도 ${scoreText(record)}\n#과잉집사 #오늘의대업`;
   }
@@ -3576,6 +3621,7 @@
   }
 
   function init() {
+    applyFeatureFlags();
     bindEvents();
     setupModalAccessibility();
     installBrowserBackGuard();
@@ -3696,7 +3742,7 @@
     }
   });
   window.OVERBUTLER_APP = Object.freeze({
-    APP_VERSION, UPDATE_NOTES, POSES, BALANCE, RANKING_MODULE, ACTIVE_CHARACTER_KEYS, RELATIONSHIP_STAGES, RELATIONSHIP_STAGE_THRESHOLDS, ABSENCE_THRESHOLDS_HOURS, BUTLER_CONTENT_RULES, giveGift, assetFor,
+    APP_VERSION, UPDATE_NOTES, POSES, BALANCE, RANKING_MODULE, FEATURE_FLAGS, ACTIVE_CHARACTER_KEYS, RELATIONSHIP_STAGES, RELATIONSHIP_STAGE_THRESHOLDS, ABSENCE_THRESHOLDS_HOURS, BUTLER_CONTENT_RULES, giveGift, assetFor,
     judgeAchievement, pointsEarnedFor, relationshipGainFor,
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
