@@ -458,6 +458,19 @@
     ai: Object.freeze({ _available: false, src: "design/rooms/ai-office-room.webp" })
   });
 
+  // HOME-only CAT poses are framed for the office desk. Other views keep using
+  // the original full-body `ui-poses` set.
+  const CAT_DESK_POSE_ASSETS = Object.freeze({
+    base: Object.freeze({ _available: true, src: "design/character-assets/cat-butler/desk-poses/cat-desk-base.png" }),
+    blink: Object.freeze({ _available: true, src: "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png", fallback: "base" }),
+    annoyed: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/desk-poses/cat-desk-annoyed.png", fallback: "base" }),
+    happy: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/desk-poses/cat-desk-happy.png", fallback: "base" }),
+    surprised: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/desk-poses/cat-desk-surprised.png", fallback: "base" }),
+    analysis: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/desk-poses/cat-desk-analysis.png", fallback: "base" }),
+    gift: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/desk-poses/cat-desk-gift.png", fallback: "base" }),
+    fishing: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/desk-poses/cat-desk-fishing.png", fallback: "base" })
+  });
+
   // CAT room assets are intentionally inert until the matching transparent files exist.
   // Flip `_available` only after adding the file at `plannedPath`; inactive gifts never enter the catalog.
   const CAT_ROOM_OBJECTS = Object.freeze({
@@ -1678,6 +1691,13 @@
     return assets[pose] || assets.base || emojiAsset(profile.emoji);
   }
 
+  function catDeskAssetFor(pose) {
+    const requested = CAT_DESK_POSE_ASSETS[pose];
+    if (requested?._available && requested.src) return requested.src;
+    const fallback = CAT_DESK_POSE_ASSETS[requested?.fallback || "base"];
+    return fallback?._available && fallback.src ? fallback.src : OVERBUTLER_ASSETS.cat.base;
+  }
+
   function emojiAsset(emoji) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 190"><text x="80" y="130" text-anchor="middle" font-size="104">${emoji}</text><path d="M54 142h52l-8 30H62z" fill="#342c2f"/><path d="M72 142l8 13 8-13" fill="#a44054"/></svg>`;
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -1692,14 +1712,23 @@
 
   function setPoseImage(image, character, pose) {
     if (!image) return;
-    image.src = assetFor(character, pose);
+    const key = normalizeCharacter(character);
+    const useCatDeskPose = image.id === "briefing-butler-image" && key === "cat" && OVERBUTLER_ROOM_ASSETS.cat._available;
+    const fallbackSrc = useCatDeskPose ? OVERBUTLER_ASSETS.cat.base : emojiAsset(CHARACTER_PROFILES[key].emoji);
+    image.src = useCatDeskPose ? catDeskAssetFor(pose) : assetFor(character, pose);
     image.dataset.character = character;
     image.dataset.pose = pose;
-    image.alt = `${CHARACTER_PROFILES[normalizeCharacter(character)].name} ${pose}`;
+    image.alt = `${CHARACTER_PROFILES[key].name} ${pose}`;
     image.classList.remove("pose-sheet");
+    image.classList.toggle("desk-pose", useCatDeskPose);
+    image.closest(".briefing-character")?.classList.toggle("has-desk-pose", useCatDeskPose);
     image.onerror = () => {
       image.onerror = null;
-      image.src = emojiAsset(CHARACTER_PROFILES[normalizeCharacter(character)].emoji);
+      image.src = fallbackSrc;
+      if (useCatDeskPose) {
+        image.classList.remove("desk-pose");
+        image.closest(".briefing-character")?.classList.remove("has-desk-pose");
+      }
     };
   }
 
@@ -1788,7 +1817,7 @@
   function scheduleCatAmbientBlink() {
     window.clearTimeout(catAmbientBlinkTimer);
     catAmbientBlinkTimer = null;
-    if (normalizeActiveCharacter(state.character) !== "cat" || !CAT_EXPRESSION_ASSETS.blink._available || !CAT_EXPRESSION_ASSETS.blink.src) return;
+    if (normalizeActiveCharacter(state.character) !== "cat" || !CAT_DESK_POSE_ASSETS.blink._available || !CAT_DESK_POSE_ASSETS.blink.src) return;
     catAmbientBlinkTimer = window.setTimeout(() => {
       if (normalizeActiveCharacter(state.character) !== "cat" || homeRoomDrag) return;
       const image = $("#briefing-butler-image");
@@ -4163,6 +4192,7 @@
 
   window.OVERBUTLER_ASSETS = OVERBUTLER_ASSETS;
   window.OVERBUTLER_ROOM_ASSETS = OVERBUTLER_ROOM_ASSETS;
+  window.OVERBUTLER_CAT_DESK_POSE_ASSETS = CAT_DESK_POSE_ASSETS;
   window.OVERBUTLER_CAT_ROOM_OBJECTS = CAT_ROOM_OBJECTS;
   window.OVERBUTLER_CAT_EXPRESSION_ASSETS = CAT_EXPRESSION_ASSETS;
   window.OVERBUTLER_ANALYTICS = Object.freeze({

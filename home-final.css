@@ -247,6 +247,17 @@
   transform-origin:50% 82%;
   pointer-events:none;
 }
+#view-home .briefing-stage[data-room-character="cat"] .briefing-character.has-desk-pose{
+  bottom:54px;
+  width:178px;
+  height:224px;
+}
+#view-home .briefing-stage[data-room-character="cat"] .briefing-character.has-desk-pose:after{display:none}
+#view-home .briefing-stage[data-room-character="cat"] .briefing-character.has-desk-pose img{
+  object-position:center bottom;
+  filter:drop-shadow(0 3px 2px rgba(60,40,28,.09));
+  transform-origin:50% 78%;
+}
 #view-home .briefing-character>span{
   position:absolute;
   z-index:6;
@@ -318,6 +329,13 @@
   white-space:pre-line;
   transform:translateX(-50%);
   backdrop-filter:blur(5px);
+}
+#view-home .briefing-stage[data-room-character="cat"] .briefing-speech{
+  top:10px;
+  width:min(calc(100vw - 54px),260px);
+  padding:9px 11px;
+  font-size:13px;
+  line-height:1.38;
 }
 #view-home .briefing-speech:before{
   content:"";
@@ -544,6 +562,7 @@
   .office-running{padding:4px 6px;font-size:8px}
   #view-home .briefing-stage{height:270px;min-height:270px}
   #view-home .briefing-character{width:172px;height:216px}
+  #view-home .briefing-stage[data-room-character="cat"] .briefing-character.has-desk-pose{bottom:50px;width:168px;height:210px}
   #view-home .briefing-character>span{right:-54px}
   #view-home .briefing-speech{width:min(calc(100vw - 30px),276px);font-size:13px}
   #view-home .entry-form{padding-right:13px;padding-left:13px}
@@ -562,9 +581,11 @@
   #view-home .briefing-stage{height:252px;min-height:252px;border-radius:14px}
   .briefing-index{left:9px;top:9px;font-size:9px}
   #view-home .briefing-character{width:150px;height:181px}
+  #view-home .briefing-stage[data-room-character="cat"] .briefing-character.has-desk-pose{bottom:44px;width:148px;height:186px}
   #view-home .briefing-character>span{right:-43px;bottom:9px;padding:6px 8px;font-size:9px}
   #view-home .briefing-panel h1{left:calc(50% - min(165px,42vw));bottom:9px;max-width:105px;padding:5px 7px;font-size:10px}
   #view-home .briefing-speech{top:40px;width:calc(100vw - 30px);padding:9px 10px;font-size:12px;line-height:1.42}
+  #view-home .briefing-stage[data-room-character="cat"] .briefing-speech{top:9px;width:calc(100vw - 48px);padding:8px 9px;font-size:11px;line-height:1.38}
   #view-home .entry-form{padding:14px 12px 13px}
   .entry-heading h2{font-size:20px}
   .entry-heading p{font-size:11px}
@@ -582,6 +603,7 @@
 @media(min-width:600px){
   #view-home .briefing-stage{height:285px;min-height:285px}
   #view-home .briefing-character{width:190px;height:238px}
+  #view-home .briefing-stage[data-room-character="cat"] .briefing-character.has-desk-pose{bottom:56px;width:184px;height:230px}
   #view-home .briefing-speech{width:300px;max-width:300px}
 }
 
