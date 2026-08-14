@@ -454,7 +454,7 @@
   };
 
   const OVERBUTLER_ROOM_ASSETS = Object.freeze({
-    cat: Object.freeze({ _available: false, src: "design/rooms/cat-office-room.webp" }),
+    cat: Object.freeze({ _available: true, src: "design/rooms/cat-office-room.webp" }),
     ai: Object.freeze({ _available: false, src: "design/rooms/ai-office-room.webp" })
   });
 
