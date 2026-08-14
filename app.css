@@ -168,7 +168,7 @@ button{cursor:pointer}
 .stamp-circles{display:flex;gap:10px;margin:14px 0 15px}
 .stamp-circles i{position:relative;display:grid;place-items:center;width:40px;height:40px;border:1px dashed #baaa9d;border-radius:50%;background:rgba(255,250,242,.72);color:#9a8a80;font-size:12px;font-style:normal;font-weight:800;transition:transform .2s}
 .stamp-circles i:after{content:"";position:absolute;inset:3px;border:1px solid currentColor;border-radius:50%;opacity:.35}
-.stamp-circles i.filled:before{content:"대업";position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:900;letter-spacing:-.06em;text-shadow:.4px .4px 0 rgba(164,64,84,.3)}
+.stamp-circles i.filled:before{content:"기록";position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:900;letter-spacing:-.06em;text-shadow:.4px .4px 0 rgba(164,64,84,.3)}
 .stamp-circles i.filled span{opacity:0}
 .stamp-circles i:nth-child(even).filled{transform:rotate(4deg)}
 .stamp-circles i.inked-now{animation:stamp-ink-in .68s cubic-bezier(.2,.9,.22,1)}

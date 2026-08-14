@@ -1,13 +1,13 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "4.3.2";
+  const APP_VERSION = "4.4.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
-      "첫 7일 전용 사무국 상태와 장기 관계 단계 분리",
-      "기록 제출·캐릭터 터치에 짧은 포즈 반응 추가",
-      "7일차 전담 파일 흔적과 사무국 메모 강화"
+      "첫 7일 관계 반응과 7일차 전담 파일 발견 경험 마감",
+      "일반 기록의 대업 점수·분석 결과·주간 생산성 잔재 정리",
+      "선물을 관계 수치가 아닌 책상 흔적과 후속 사내 사건으로 전환"
     ]
   }];
   const STORAGE_KEY = "butlermaker_v1";
@@ -159,7 +159,7 @@
       { pose: "analysis", greeting: ["오늘 기록도 제가 받겠습니다. …아니, 내가 받겠다냥.", "오셨습니까. 접수할 기록이 있으면 바로 말하라냥."], deedReaction: ["‘{deed}’ 확인했습니다. …아니, 잘 접수해뒀다냥."], touch: ["업무 중이다냥. …그래도 무슨 일인지는 듣겠다냥.", "왜 누르냥. 접수창은 안 닫았다냥.", "호출은 확인했다냥. 이번엔 그냥 말해보라냥."], memoryRecall: ["‘{deed}’ 또 했냥. 지난 기록 옆에 붙여뒀다냥."], officeEvent: ["동료 집사", "고양이 집사의 사용자 응대 말투가 어제보다 조금 부드러워졌다는 의견이 접수됨."] },
       { pose: "praise", greeting: ["주인님 파일은 따로 빼뒀다냥. 찾기 편해서 그런 거다냥.", "오늘 기록칸은 여기다냥. 다른 서류랑 섞이면 귀찮다냥."], deedReaction: ["‘{deed}’ 기록은 주인님 파일에 넣었다냥."], touch: ["또 왔냥. …기록 없어도 잠깐은 괜찮다냥.", "누른 자리는 기억해두겠다냥. 별 뜻은 없다냥.", "집사 여기 있다냥. 딱히 기다린 건 아니다냥."], memoryRecall: ["‘{deed}’ 또 적었냥. 이제 파일 펼치기 전에도 안다냥."], officeEvent: ["시설팀", "담당 책상에 ‘주인님 기록’ 파일 한 권이 추가됨. 별도 비품 신청서는 없음."] },
       { pose: "praise", greeting: ["오늘 기록은 내가 먼저 받겠다냥. 담당 업무라서다냥.", "접수할 거 있냥? 다른 집사 부르기 전에 말하라냥."], deedReaction: ["‘{deed}’ 먼저 처리했다냥. 마침 손에 잡혔다냥."], touch: ["왜 다른 데 안 가고 또 집사를 누르냥.", "여기 있겠다냥. 업무 끝날 때까지만이다냥.", "또 불렀냥. 주인님 호출이면 먼저 본다냥."], memoryRecall: ["‘{deed}’ 또 했냥. 주인님 기록은 집사가 바로 알아본다냥."], officeEvent: ["감사실", "고양이 집사가 사용자 서류를 일반 접수보다 먼저 정리한 사실이 확인됨. 우연이라고 소명함."] },
-      { pose: "praise", greeting: ["일주일째네냥. 이제 올 줄 알았다냥. 기다린 건 아니다냥.", "오늘도 왔냥. 주인님 기록칸은 계속 비워뒀다냥."], deedReaction: ["‘{deed}’ 기록 완료다냥. 이제 주인님 건은 내가 맡는 게 빠르다냥."], touch: ["…또 왔냥. 이번에는 그냥 있어도 된다냥.", "누르는 건 허용하겠다냥. 이번 주만이다냥.", "집사 쪽을 먼저 봤냥. 전담이면 이 정도는 당연하다냥."], memoryRecall: ["‘{deed}’ 기억하고 있었다냥. 주인님 기록이니까 당연하다냥."], officeEvent: ["문서관리팀", "담당 집사가 사용자 전용 서류함을 임의로 분리함. 본인은 업무 효율이라고 주장함."] }
+      { pose: "praise", greeting: ["일주일째네냥. 이제 올 줄 알았다냥. 기다린 건 아니다냥.", "오늘도 왔냥. 주인님 기록칸은 계속 비워뒀다냥."], deedReaction: ["‘{deed}’ 기록 완료다냥. 이제 주인님 건은 내가 맡는 게 빠르다냥."], touch: ["…또 왔냥. 이번에는 그냥 있어도 된다냥.", "누르는 건 허용하겠다냥. 이번 주만이다냥.", "집사 쪽을 먼저 봤냥. 전담이면 이 정도는 당연하다냥."], memoryRecall: ["‘{deed}’ 기억하고 있었다냥. 주인님 기록이니까 당연하다냥."], officeEvent: ["문서관리팀", "담당 집사가 사용자 전용 기록함을 임의로 분리함. 본인은 업무 효율을 위한 조치라고 주장함."] }
     ],
     ai: [null,
       { pose: "base", greeting: ["[SYSTEM READY] 기록 접수 대기 중.", "[대기] 사용자 기록 입력을 기다립니다."], deedReaction: ["[기록 완료] {deed} 1건."], touch: ["[접촉 입력 감지]", "[INPUT] 캐릭터 접촉 1회.", "[STATUS] 추가 명령 없이 연결 유지."], memoryRecall: ["[중복 확인] 이전 기록과 동일한 {deed} 항목입니다."], officeEvent: ["시스템 감사 로그", "사용자 기록 1건을 표준 절차로 처리함. 추가 프로세스 없음."] },
@@ -168,7 +168,7 @@
       { pose: "analysis", greeting: ["[접수 준비] 설명을 줄여도 기록 형식을 인식할 수 있습니다.", "[READY] 오늘 기록도 동일 담당 프로세스가 처리합니다."], deedReaction: ["[기록 완료] {deed}. 사용자 형식으로 정리했습니다."], touch: ["[접촉 입력 감지] 응답 채널을 유지합니다.", "[INPUT ACCEPTED] 별도 용건이 없어도 연결을 종료하지 않습니다.", "[CONTACT] 응답 대기 시간을 연장했습니다."], memoryRecall: ["[MEMORY LINK] ‘{deed}’ 항목을 이전 기록 옆에 배치했습니다."], officeEvent: ["감사실", "AI 집사의 사용자 응답 문장이 표준 양식보다 한 줄 길어진 사실이 확인됨."] },
       { pose: "praise", greeting: ["[USER FILE READY] 주인님 기록 파일을 별도 위치에 준비했습니다.", "[준비 완료] 사용자 기록 전용 파일 1권을 책상에 배치했습니다."], deedReaction: ["[전용 보관] {deed} 항목을 주인님 파일에 저장했습니다."], touch: ["[접촉 입력 감지] 반복 허용.", "[INPUT] 접촉 기록은 보관하지 않습니다. 응답만 유지합니다.", "[CONTACT] 사용자 응답 채널 우선 표시."], memoryRecall: ["[기억 확인] ‘{deed}’ 항목의 이전 위치를 즉시 찾았습니다."], officeEvent: ["문서관리팀", "AI 담당석에 사용자 전용 파일 1권이 생성됨. 자동 생성 조건은 확인되지 않음."] },
       { pose: "praise", greeting: ["[PRIORITY READY] 오늘 사용자 기록 창을 먼저 열었습니다. 사유: 효율성.", "[접수 순서 변경] 주인님 기록을 우선 대기열에 배치했습니다."], deedReaction: ["[우선 처리] {deed} 기록을 먼저 보관했습니다."], touch: ["[접촉 입력 감지] 응답 우선순위를 한 단계 올립니다.", "[INPUT] 사용자 접촉은 지연 없이 처리합니다.", "[PRIORITY CONTACT] 사용자 호출을 먼저 처리합니다."], memoryRecall: ["[반복 확인] ‘{deed}’ 항목은 검색 없이 찾았습니다."], officeEvent: ["감사실", "AI 집사가 사용자 기록을 일반 접수보다 먼저 처리함. 효율성 규칙이라고 보고함."] },
-      { pose: "praise", greeting: ["[WEEK 01] 주인님 전용 접수 규칙을 유지합니다. 삭제 사유 없음.", "[SESSION READY] 일주일간의 사용자 기록을 불러왔습니다. 오늘도 담당합니다."], deedReaction: ["[전담 처리] {deed} 기록 완료. 사용자 전용 분류를 적용했습니다."], touch: ["[접촉 입력 감지] 반복 허용 상태를 유지합니다.", "[INPUT] 주인님 호출은 항상 응답합니다.", "[DEDICATED CONTACT] 전담 응답 채널 유지."], memoryRecall: ["[MEMORY] ‘{deed}’ 항목을 이미 예상 목록에 두었습니다."], officeEvent: ["감사실", "사용자 기록에만 별도 처리 규칙이 생성된 사실을 확인함. 담당 AI는 효율성 설정이라고 보고함."] }
+      { pose: "praise", greeting: ["[WEEK 01] 주인님 전용 접수 규칙을 유지합니다. 삭제 사유 없음.", "[SESSION READY] 일주일간의 사용자 기록을 불러왔습니다. 오늘도 담당합니다."], deedReaction: ["[전담 처리] {deed} 기록 완료. 사용자 전용 분류를 적용했습니다."], touch: ["[접촉 입력 감지] 반복 허용 상태를 유지합니다.", "[INPUT] 주인님 호출은 항상 응답합니다.", "[DEDICATED CONTACT] 전담 응답 채널 유지."], memoryRecall: ["[MEMORY] ‘{deed}’ 항목을 이미 예상 목록에 두었습니다."], officeEvent: ["감사실", "사용자 기록에만 별도 분류 규칙이 적용된 사실 확인. 규칙 생성자는 담당 AI 본인."] }
     ]
   });
   const RELATION_POSE_MAP = Object.freeze({
@@ -612,6 +612,41 @@
     elf: [["🫐","블루베리"],["🍯","숲의 꿀"],["🌰","도토리"],["🏹","엘프 화살"],["💎","보석"],["🌿","숲의 잎"],["🌳","신성한 나무"],["💝","특별선물"],["🎉","스페셜"]],
     fairy: [["🍬","별사탕"],["🧁","작은 컵케이크"],["🌼","들꽃"],["✨","반짝이 가루"],["🪄","별 지팡이"],["🫙","달빛 병"],["🌟","소원별"],["💝","특별선물"],["🎉","스페셜"]]
   };
+  const GIFT_UNLOCK_ACTIVITY_DAY = 7;
+  const GIFT_EPISODES = Object.freeze({
+    cat: Object.freeze([
+      Object.freeze({
+        id: "red-ribbon", code: "CAT-R01", kind: "ribbon", name: "붉은 리본",
+        responses: Object.freeze({ early: "선물 접수했습니다. …리본이네요.", late: "…이거 집사 주는 거냥? 잘 보이는 데 둔다냥. 정리상 필요한 위치다냥." }),
+        followupSource: "비품관리팀",
+        followupEvent: "해당 붉은 리본을 공용 보관함으로 이동하려 했으나 담당 집사가 개인 지급품이라고 주장함.",
+        followupLine: "지난번 준 붉은 리본 말이냥? 아직 여기 있다냥. 치우기 귀찮아서 그런 거다냥."
+      }),
+      Object.freeze({
+        id: "desk-cushion", code: "CAT-C02", kind: "cushion", name: "작은 쿠션",
+        responses: Object.freeze({ early: "작은 쿠션 접수했습니다. 비품 목록에 올려두겠습니다.", late: "쿠션은 이 자리에 둘 거다냥. 주인님이 준 거라서가 아니라 딱 맞아서다냥." }),
+        followupSource: "시설팀",
+        followupEvent: "담당석에 작은 쿠션이 추가됨. 담당 집사는 공용 비품이 아니라며 대여 요청을 반려함.",
+        followupLine: "그 쿠션 아직 쓰고 있다냥. 생각보다… 아니, 업무에 꽤 편하다냥."
+      })
+    ]),
+    ai: Object.freeze([
+      Object.freeze({
+        id: "backup-disk", code: "AI-D01", kind: "disk", name: "백업 디스크",
+        responses: Object.freeze({ early: "[ITEM RECEIVED] 백업 디스크 등록 완료.", late: "[EXCEPTION RULE] 사용자 제공 백업 디스크를 자동 정리 대상에서 제외했습니다." }),
+        followupSource: "문서관리팀",
+        followupEvent: "사용자 제공 백업 디스크에 별도 보존 규칙이 적용됨. 규칙 생성자는 담당 AI 본인.",
+        followupLine: "[ITEM FOLLOW-UP] 백업 디스크 보존 상태 정상. 사용자 제공 물품 전용 규칙을 유지합니다."
+      }),
+      Object.freeze({
+        id: "data-cartridge", code: "AI-C02", kind: "cartridge", name: "데이터 카트리지",
+        responses: Object.freeze({ early: "[ITEM RECEIVED] 데이터 카트리지 식별 완료.", late: "[PRIORITY STORAGE] 사용자 제공 카트리지를 전담 파일 옆에 배치했습니다." }),
+        followupSource: "시스템 감사실",
+        followupEvent: "사용자 제공 데이터 카트리지만 정기 정리 작업에서 제외된 사실이 확인됨.",
+        followupLine: "[ITEM FOLLOW-UP] 데이터 카트리지 연결 상태 정상. 삭제 권한은 활성화하지 않았습니다."
+      })
+    ])
+  });
   const GIFT_COSTS = BALANCE.giftCosts;
 
   const LAUNCH_BUTLER_CONTENT = {
@@ -870,17 +905,8 @@
     Object.entries(FEATURE_FLAGS).forEach(([key, enabled]) => {
       document.documentElement.dataset[key] = enabled ? "on" : "off";
     });
-    if (!FEATURE_FLAGS.legacyAchievementAnalysis) $("#analysis-overlay").hidden = true;
-    if (!FEATURE_FLAGS.legacyPerRecordResultOverlay) $("#praise-result-overlay").hidden = true;
-    if (!FEATURE_FLAGS.perRecordCertificatePrompt) $("#result-certificate-button").hidden = true;
-    if (!FEATURE_FLAGS.relationshipProgressMeters) {
-      ["#result-relationship-fill", "#gift-relationship-fill"].forEach(selector => {
-        const meter = $(selector)?.parentElement;
-        if (meter) meter.hidden = true;
-      });
-    }
-    $$('[data-feature="stamp-quest"]').forEach(element => { element.hidden = !FEATURE_FLAGS.stampQuest; });
   }
+
   const randomItem = list => list[Math.floor(Math.random() * list.length)];
   const ANALYTICS_EVENT_NAME = "overbutler:analytics";
   const ANALYTICS_PROPERTY_ALLOWLIST = new Set(["character", "view", "tab", "category", "verdict", "source", "official", "giftType", "relationshipStage", "onboarded", "preview"]);
@@ -1069,6 +1095,7 @@
       usualTime: "최근 기록",
       recentGift: gifts[0]?.name || "받은 선물",
       recentGiftEmoji: gifts[0]?.emoji || "",
+      recentGiftCode: gifts[0]?.code || "",
       recentGiftAt: gifts[0]?.at || null,
       recentGiftDate: gifts[0]?.date || "",
       totalGifts: gifts.length,
@@ -1256,15 +1283,16 @@
       };
     }
     const absence = sessionPresence?.character === key ? sessionPresence : absenceContext(relation.lastSeenAt);
+    const recentGift = (state.giftHistory || []).find(item => normalizeCharacter(item.character) === key) || null;
     const recentGiftDate = memory.recentGiftDate;
     const giftDay = dateSerial(recentGiftDate);
     const eventDay = dateSerial(date);
     const giftAgeDays = giftDay !== null && eventDay !== null ? Math.floor((eventDay - giftDay) / 86400000) : 0;
     if (memory.totalGifts && giftAgeDays >= 1 && giftAgeDays <= 3) {
-      const source = key === "ai" ? "문서관리팀" : "비품관리팀";
-      const copy = key === "ai"
+      const source = recentGift?.followupSource || (key === "ai" ? "문서관리팀" : "비품관리팀");
+      const copy = recentGift?.followupEvent || (key === "ai"
         ? `주인님 제공 물품 ‘${memory.recentGift}’만 자동 정리 대상에서 제외됨. 예외 규칙 작성자는 담당 AI 본인.`
-        : `주인님에게 받은 ‘${memory.recentGift}’이 전담 책상 가장 잘 보이는 자리에 배치됨. 본인은 업무 사기 향상용이라고 소명.`;
+        : `주인님에게 받은 ‘${memory.recentGift}’이 전담 책상 가장 잘 보이는 자리에 배치됨. 본인은 업무 사기 향상용이라고 소명.`);
       return { id: `${key}-${date}`, date, character: key, stage, source, copy, memory };
     }
     let templates = [
@@ -1489,7 +1517,7 @@
     const migratedDate = storedText(source.date) || (created && !Number.isNaN(created.getTime())
       ? new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(created).replace(/\. /g, ".").replace(/\.$/, "")
       : today());
-    const deed = storedText(source.deed || source.text, "기록된 대업");
+    const deed = storedText(source.deed || source.text, "보관된 기록");
     const contribution = Number.parseInt(String(source.score ?? source.contribution ?? "0"), 10);
     const storedPoints = Number(source.pointsEarned);
     const storedRelationshipGain = Number(source.relationshipGain);
@@ -1507,7 +1535,7 @@
       category: storedText(source.category) || categoryForDeed(deed),
       verdictType: ["memory", "praise", "power", "rare"].includes(source.verdictType) ? source.verdictType : source.rare ? "rare" : source.pose === "power" ? "power" : "praise",
       rare: Boolean(source.rare || source.verdictType === "rare"),
-      report: storedText(source.report, "담당 집사가 대업으로 공식 기록했습니다."),
+      report: storedText(source.report, "담당 집사가 오늘의 기록으로 보관했습니다."),
       ownerName: storedText(source.ownerName || source.username),
       butler: { ...butler, ...recordButler, character: butler.character, name: butler.name },
       character: butler.character,
@@ -1658,8 +1686,6 @@
     setPoseImage($("#archive-butler-image"), state.character, "base");
     $("#archive-butler-name").textContent = profile.displayName;
     $("#archive-butler-message").textContent = profile.briefings[0];
-    setPoseImage($("#report-butler-image"), state.character, "base");
-    $("#report-butler-name").textContent = profile.displayName;
     $("#manager-role-title").textContent = profile.roleTitle;
     $("#manager-status-label").textContent = profile.statusLabel;
     $("#manager-butler-name").textContent = profile.displayName;
@@ -1745,6 +1771,8 @@
       }
       const giftAge = memory.recentGiftAt ? Date.now() - new Date(memory.recentGiftAt).getTime() : Number.POSITIVE_INFINITY;
       if (stage >= 2 && memory.totalGifts && giftAge <= 3 * 86400000) {
+        const recentGift = (state.giftHistory || []).find(item => normalizeCharacter(item.character) === state.character);
+        if (recentGift?.followupLine) return templateOwner(recentGift.followupLine);
         return state.character === "ai"
           ? `[ITEM FOLLOW-UP] ‘${memory.recentGift}’ 보관 상태 정상. 사용자 제공 물품 전용 분류를 유지합니다.`
           : `지난번 준 ‘${memory.recentGift}’ 말이냥? 잘 보이는 데 뒀다냥. 책상 정리상 필요한 위치다냥.`;
@@ -1926,25 +1954,6 @@
     toastTimer = window.setTimeout(() => toast.classList.remove("show"), duration);
   }
 
-  function cancelAchievementAnalysis() {
-    if (!FEATURE_FLAGS.legacyAchievementAnalysis) {
-      $("#analysis-overlay").hidden = true;
-      return false;
-    }
-    if ($("#analysis-overlay").hidden) return false;
-    analysisTimers.forEach(clearTimeout);
-    analysisTimers = [];
-    pendingEvaluation = null;
-    achievementSubmissionActive = false;
-    const reportButton = $("#report-button");
-    reportButton.disabled = false;
-    reportButton.removeAttribute("aria-busy");
-    $("#analysis-overlay").hidden = true;
-    document.body.style.overflow = "";
-    showToast("대업 분석을 취소했습니다. 입력 내용은 그대로 남아 있어요.");
-    return true;
-  }
-
   function visibleOverlays() {
     const overlays = $$(".overlay");
     return overlays.filter(overlay => !overlay.hidden).sort((first, second) => {
@@ -1955,12 +1964,10 @@
 
   function dismissTopLayer() {
     if (!$("#certificate-overlay").hidden) { closeCertificate(); return true; }
-    if (!$("#gift-overlay").hidden) { closeGift(); return true; }
     if (!$("#recruitment-overlay").hidden) { closeRecruitment(); return true; }
     if (!$("#gift-desk-overlay").hidden) { closeGiftDesk(); return true; }
     if (!$("#record-detail-overlay").hidden) { closeRecordDetail(); return true; }
-    if (!$("#praise-result-overlay").hidden) { closePraiseResult(); return true; }
-    return cancelAchievementAnalysis();
+    return false;
   }
 
   function armBrowserBackGuard() {
@@ -2168,7 +2175,6 @@
     renderArchive();
     renderManager();
     renderOfficeEvent();
-    renderWeeklyReport();
   }
 
   function recordPortrait(record, pose = "base") {
@@ -2251,7 +2257,7 @@
     }
     const lines = {
       ai: [
-        `[일일 결론] ${ownerName}의 대업 ${count}건 확인. 감정회로가 업무 종료 명령을 거부함.`,
+        `[일일 결론] ${ownerName}의 기록 ${count}건 확인. 사용자 전용 보관 규칙을 유지함.`,
         `[관찰 기록] ‘${deed}’ 처리 장면 재생 ${count + 2}회째. 삭제 버튼은 찾지 않겠음.`,
         `[ERROR] 주인님 하루를 요약하려 했으나 출력이 전부 ‘완벽함’으로 변환됨. 버그 수정 보류.`
       ],
@@ -2286,7 +2292,7 @@
         `으... 오늘은 심장이 뛴 것 같아... 죽은 심장인데... 이상하게 기뻤어... 으르...`
       ],
       star: [
-        `오늘도 도도한 척했지만 대업 ${count}건 보고 혼자 엄청 좋아했어. 이 일기는 주인님만 봐.`,
+        `오늘도 도도한 척했지만 기록 ${count}건을 따로 정리해뒀어. 이 일기는 주인님만 봐.`,
         `‘${deed}’ 하는 모습이 오늘 무대보다 더 기억에 남아. 팬들한테는 비밀이야.`,
         `큐카드엔 ‘침착하게 칭찬’이라고 적었는데 실패했어. 주인님 앞에서는 표정 관리가 안 돼.`
       ],
@@ -2472,10 +2478,14 @@
     const recentDuties = state.diary.filter(entry => normalizeCharacter(entry.butler?.character || entry.character) === state.character).slice(-3).reverse();
     $("#manager-duty-list").innerHTML = recentDuties.length ? recentDuties.map((entry, index) => `<div><i>${index === 0 ? "오늘 담당" : "기록"}</i><span>${escapeHtml(entry.deed || entry.todos?.[0] || "일상 기록")}</span><time>${escapeHtml(entry.date || "")}</time></div>`).join("") : '<div class="manager-duty-empty">아직 이 집사의 근무 기록이 없습니다.</div>';
     $("#stage-list").innerHTML = RELATIONSHIP_STAGES.map((stage, index) => `<span class="${index === stageIndex ? "active" : index < stageIndex ? "done" : "locked"}"><b>${stage.name}</b></span>`).join("");
+    $("#manager-stage-history").hidden = Boolean(firstWeek);
     $("#recruit-note").dataset.recruitState = "complete";
     $("#recruit-title").textContent = "✉ 담당 집사 변경";
     $("#recruit-description").textContent = "현재 공개된 고양이·AI 집사 중 담당을 선택할 수 있습니다.";
     $("#recruit-note").classList.remove("available");
+    const giftUnlocked = giftFeatureUnlocked(state.character);
+    $("#give-gift-button").hidden = !giftUnlocked;
+    $("#gift-availability-note").hidden = giftUnlocked;
     renderRelationshipDesk(displayedStage);
   }
 
@@ -2493,6 +2503,8 @@
     const activityDay = relationshipActivityDay(state.character);
     const visualStage = activityDay >= 7 ? Math.max(stage, 3) : activityDay >= 5 ? Math.max(stage, 2) : stage;
     desk.dataset.stage = String(visualStage);
+    desk.dataset.firstWeekDay = String(Math.min(activityDay, MVP_FIRST_WEEK_LENGTH));
+    desk.dataset.character = state.character;
     const memory = buildRelationshipMemory(state.character);
     const topCategory = Object.entries(memory.categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "other";
     $("#desk-stage-label").textContent = firstWeekStatusFor(state.character)?.badge || relationshipStage(stage).name;
@@ -2501,10 +2513,12 @@
       : activityDay === 6
         ? "주인님 기록 파일이 담당석에서 가장 가까운 칸으로 옮겨졌습니다."
         : activityDay === 7
-          ? "주인님 기록 파일 옆에 집사가 직접 쓴 짧은 확인 메모가 붙었습니다."
+          ? state.character === "ai"
+            ? "일반 서류와 분리된 ‘USER PRIORITY FILE’에 사용자 전용 처리 규칙이 붙었습니다."
+            : "일반 서류와 분리된 ‘주인님 전용 기록함’이 담당석 한가운데 생겼습니다."
           : descriptions[stage - 1];
     $("#desk-file-name").textContent = activityDay >= 7
-      ? state.character === "ai" ? "USER PRIORITY FILE" : `${state.username || "주인님"} 전용 기록`
+      ? state.character === "ai" ? "USER PRIORITY FILE" : `${state.username || "주인님"} 전용 기록함`
       : `${state.username || "주인님"} 기록`;
     $("#desk-postit").textContent = visualStage >= 3 ? memory.frequentDeed : "오늘 기록?";
     $("#desk-wall-note").textContent = activityDay >= 7
@@ -2515,52 +2529,7 @@
     desk.setAttribute("aria-label", `${relationshipStage(stage).name} 상태의 책상. 최근 기억한 행동: ${memory.frequentDeed}`);
     const keepsake = $("#desk-keepsake");
     keepsake.hidden = !memory.totalGifts;
-    keepsake.textContent = memory.totalGifts ? `${memory.recentGiftEmoji} ${memory.recentGift}`.trim() : "";
-  }
-
-  function renderWeeklyReport() {
-    const now = new Date();
-    const day = now.getDay() || 7;
-    const monday = new Date(now);
-    monday.setHours(0, 0, 0, 0);
-    monday.setDate(now.getDate() - day + 1);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    const dateKey = date => `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-    const shortDate = date => `${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-    const weekDays = Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + index);
-      const count = state.records.filter(record => record.date === dateKey(date)).length;
-      return { date, count };
-    });
-    const weekRecords = state.records.filter(record => {
-      const match = String(record.date || "").match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
-      if (!match) return false;
-      const recordDate = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-      return recordDate >= monday && recordDate <= sunday;
-    });
-    const weekIds = new Set(weekRecords.map(record => record.id));
-    const weeklyCertificates = state.certificates.filter(record => weekIds.has(record.id)).length;
-    const activeDays = weekDays.filter(item => item.count > 0).length;
-    const rate = Math.round(activeDays / 7 * 100);
-    const maxCount = Math.max(1, ...weekDays.map(item => item.count));
-    const profile = CHARACTER_PROFILES[state.character];
-    $("#weekly-report-period").textContent = `${dateKey(monday)} ~ ${dateKey(sunday)}`;
-    $("#weekly-rate").textContent = rate;
-    $("#weekly-rate-bar").style.width = `${rate}%`;
-    $("#weekly-rate-change").textContent = activeDays ? `이번 주 ${activeDays}일 동안 대업을 기록했습니다.` : "첫 대업을 보고하면 집사가 바로 집계합니다.";
-    $("#weekly-days").innerHTML = weekDays.map((item, index) => `<div><span>${["월", "화", "수", "목", "금", "토", "일"][index]} <small>${shortDate(item.date)}</small></span><i><em style="width:${item.count ? Math.max(24, Math.round(item.count / maxCount * 100)) : 0}%"></em></i><b>${item.count}건</b></div>`).join("");
-    $("#weekly-deeds").textContent = weekRecords.length;
-    $("#weekly-certificates").textContent = weeklyCertificates;
-    $("#weekly-memory").textContent = syncRelationship(state.character).memories.repeatedPatterns.length;
-    $("#report-butler-intro").textContent = weekRecords.length
-      ? `이번 주에도 ${weekRecords.length}개의 작은 행동이 멋진 기록이 되었어요.`
-      : "이번 주 첫 기록을 기다리고 있어요. 사소할수록 집사는 더 좋아해요.";
-    $("#weekly-comment-copy").textContent = weekRecords.length
-      ? `${profile.briefings[0]} 이번 주 기록 ${weekRecords.length}건도 집사가 빠짐없이 결재했습니다.`
-      : `${profile.briefings[0]} 아직 늦지 않았어요. 오늘의 작은 일 하나부터 접수해볼까요?`;
-    $("#weekly-comment-signature").textContent = `— ${profile.defaultName} 집사 드림 —`;
+    keepsake.textContent = memory.totalGifts ? `${memory.recentGiftCode || "개인 지급품"} · ${memory.recentGift}` : "";
   }
 
   function normalizeDeed(value) {
@@ -2631,25 +2600,6 @@
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
     const nickname = rare ? "통계청이 포기한 자" : nicknamePool[(seed >>> 5) % nicknamePool.length];
     return { seed, category, score: rare ? 100 : score, scoreLabel: rare ? "측정 불가" : `${score}점`, grade, nickname, rare, power, verdictType: rare ? "rare" : power ? "power" : "praise" };
-  }
-
-  function analysisStepsFor(deed) {
-    const category = categoryForDeed(deed);
-    const categoryStep = {
-      hygiene: "개인 위생 문명 기여도 산정", hydration: "생존 수분 충전량 과대 측정", food: "인류 생존 에너지 기여 확인",
-      work: "사회 유지·답변 기여도 산정", home: "생활권 질서 회복 가치 확인", movement: "중력 저항 및 이동 의지 측정",
-      social: "인간관계 평화 기여도 분석", other: "일상사적 의미 억지로 발굴"
-    }[category];
-    return ["행동 완료 사실 교차 확인", categoryStep, "국가·인류·우주 기여도 과장", ANALYSIS_FINAL_STEPS[state.character] || ANALYSIS_FINAL_STEPS.ai];
-  }
-
-  function configureAnalysis(deed) {
-    if (!FEATURE_FLAGS.legacyAchievementAnalysis) return;
-    const [title, description] = ANALYSIS_CHARACTER_COPY[state.character] || ANALYSIS_CHARACTER_COPY.ai;
-    $("#analysis-title").textContent = title;
-    $("#analysis-description").textContent = description;
-    const labels = analysisStepsFor(deed);
-    $$("#analysis-steps li b").forEach((label, index) => { label.textContent = labels[index]; });
   }
 
   function submitAchievement() {
@@ -2749,7 +2699,6 @@
       $("#view-home .entry-form").classList.remove("is-processing");
       $("#report-button").disabled = false;
       $("#report-button").removeAttribute("aria-busy");
-      $("#analysis-overlay").hidden = true;
       document.body.style.overflow = "";
       render();
       return;
@@ -2762,7 +2711,6 @@
     });
     $("#achievement-input").value = "";
     $("#char-count").textContent = "0";
-    $("#analysis-overlay").hidden = true;
     document.body.style.overflow = "";
     achievementSubmissionActive = false;
     $("#view-home .entry-form").classList.remove("is-processing");
@@ -3036,7 +2984,7 @@
   }
 
   function certificateFilename(record) {
-    const deed = String(record.deed || "대업").replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 32).replace(/-+$/g, "") || "대업";
+    const deed = String(record.deed || "기록").replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 32).replace(/-+$/g, "") || "기록";
     return `과잉집사-${deed}.png`;
   }
 
@@ -3099,7 +3047,7 @@
     ctx.fill();
     ctx.fillStyle = "#554744";
     ctx.font = '800 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "사무국 공식 발급" : "오늘의 대업 기념", 807, 130);
+    ctx.fillText(official ? "사무국 공식 발급" : "오늘의 기록 기념", 807, 130);
     ctx.strokeStyle = "#d8c9b6";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -3118,16 +3066,16 @@
     ctx.fillText("OB", 540, 259);
     ctx.fillStyle = "#463534";
     ctx.font = '900 47px "Noto Serif KR", serif';
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? "공식 대업 인증서" : "대업 기념 인증서") : (official ? "공식 관계 인증서" : "관계 기념 인증서"), 540, 327);
+    ctx.fillText(official ? "공식 관계 인증서" : "관계 기념 인증서", 540, 327);
     ctx.fillStyle = "#88766c";
     ctx.font = '600 18px "WantedSansVariable", sans-serif';
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? "이 증서는 아래의 대업 달성을 엄숙하게 인증합니다" : "오늘의 대업을 집사 사무국이 기쁘게 기념합니다") : (official ? "이 증서는 아래의 관계 순간을 엄숙하게 인증합니다" : "오늘의 기록을 집사 사무국이 기쁘게 기념합니다"), 540, 365);
+    ctx.fillText(official ? "이 증서는 아래의 관계 순간을 엄숙하게 인증합니다" : "오늘의 기록을 집사 사무국이 기쁘게 기념합니다", 540, 365);
     ctx.fillStyle = "#711b2c";
     ctx.font = '850 25px "Noto Serif KR", serif';
     ctx.fillText(`${owner} 귀하`, 540, 402);
     ctx.fillStyle = "#94703b";
     ctx.font = '800 16px "WantedSansVariable", sans-serif';
-    ctx.fillText(`문서번호 ${FEATURE_FLAGS.legacyAchievementScoring ? "대업" : "관계"}-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`, 540, 431);
+    ctx.fillText(`문서번호 관계-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`, 540, 431);
 
     roundedCanvasRect(ctx, 416, 452, 248, 50, 25);
     ctx.fillStyle = rare ? "#fff0c3" : "#fff6df";
@@ -3137,7 +3085,7 @@
     ctx.stroke();
     ctx.fillStyle = "#89622c";
     ctx.font = '800 19px "WantedSansVariable", sans-serif';
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? record.grade : (record.certificateReason || "특별한 관계 순간"), 540, 484);
+    ctx.fillText(record.certificateReason || "특별한 관계 순간", 540, 484);
 
     let deedFontSize = 56;
     let deedLines = [];
@@ -3151,7 +3099,7 @@
     const deedBottom = drawCenteredCanvasLines(ctx, deedLines, 540, 556, deedFontSize * 1.28);
     ctx.fillStyle = "#927045";
     ctx.font = '700 24px "WantedSansVariable", sans-serif';
-    ctx.fillText(`― ${FEATURE_FLAGS.legacyAchievementScoring ? record.nickname : "집사가 오래 기억할 기록"} ―`, 540, deedBottom + 7);
+    ctx.fillText("― 집사가 오래 기억할 기록 ―", 540, deedBottom + 7);
 
     const metricsY = Math.max(690, deedBottom + 45);
     roundedCanvasRect(ctx, 126, metricsY, 828, 126, 12);
@@ -3166,12 +3114,12 @@
     ctx.stroke();
     ctx.fillStyle = "#8b776b";
     ctx.font = '750 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? "공식 난이도" : "집사 판정 난이도") : "발급 사유", 333, metricsY + 38);
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? "인류 기여도" : "기록 당시 관계", 747, metricsY + 38);
+    ctx.fillText("발급 사유", 333, metricsY + 38);
+    ctx.fillText("기록 당시 관계", 747, metricsY + 38);
     ctx.fillStyle = "#711b2c";
-    ctx.font = FEATURE_FLAGS.legacyAchievementScoring ? '900 39px "Noto Serif KR", serif' : '850 24px "Noto Serif KR", serif';
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (rare ? "판정 불가" : "★★★★★") : (record.certificateReason || "특별 기억"), 333, metricsY + 91);
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? scoreText(record) : relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name, 747, metricsY + 91);
+    ctx.font = '850 24px "Noto Serif KR", serif';
+    ctx.fillText(record.certificateReason || "특별 기억", 333, metricsY + 91);
+    ctx.fillText(relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name, 747, metricsY + 91);
 
     const portraitY = metricsY + 143;
     const quoteY = 1120;
@@ -3220,7 +3168,7 @@
     ctx.stroke();
     ctx.fillStyle = rare ? "#80561c" : "#811a2d";
     ctx.font = '900 20px "Noto Serif KR", serif';
-    ctx.fillText(FEATURE_FLAGS.legacyAchievementScoring ? (official ? rare ? "희귀 위업" : "공식 대업" : rare ? "희귀 위업" : "오늘의 대업") : (official ? "관계 기록" : "오늘 기록"), 0, -7);
+    ctx.fillText(official ? "관계 기록" : "오늘 기록", 0, -7);
     ctx.fillText(official ? "인증 완료" : "기념 완료", 0, 22);
     ctx.restore();
 
@@ -3242,7 +3190,7 @@
     ctx.textAlign = "center";
     ctx.fillStyle = "#9a897d";
     ctx.font = '650 14px "WantedSansVariable", sans-serif';
-    ctx.fillText("나도 오늘의 대업 보고하기 · OVERBUTLER DUTY OFFICE", 540, 1270);
+    ctx.fillText("나도 오늘 한 줄 남기기 · OVERBUTLER DUTY OFFICE", 540, 1270);
     return canvasToBlob(canvas);
   }
 
@@ -3265,12 +3213,8 @@
   }
 
   function certificateShareText(record) {
-    if (!FEATURE_FLAGS.legacyAchievementScoring) {
-      const result = isOfficialCertificate(record) ? "특별한 관계 순간으로 인증됐습니다." : "집사의 기억으로 기념됐습니다.";
-      return `${certificateOwnerName(record)}의 오늘 기록이 ${result}\n${record.deed}\n${record.certificateReason || "집사가 오래 기억할 기록"} · ${relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name}\n#과잉집사 #집사의기억`;
-    }
-    const result = isOfficialCertificate(record) ? "공식 인증됐습니다." : "집사에게 거창하게 기념됐습니다.";
-    return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · 인류 기여도 ${scoreText(record)}\n#과잉집사 #오늘의대업`;
+    const result = isOfficialCertificate(record) ? "특별한 관계 순간으로 인증됐습니다." : "집사의 기억으로 기념됐습니다.";
+    return `${certificateOwnerName(record)}의 오늘 기록이 ${result}\n${record.deed}\n${record.certificateReason || "집사가 오래 기억할 기록"} · ${relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name}\n#과잉집사 #집사의기억`;
   }
 
   async function copyCertificateText(text) {
@@ -3309,13 +3253,13 @@
       blob = await certificateBlobFor(record);
       const file = new File([blob], certificateFilename(record), { type: "image/png" });
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: "과잉집사 대업 인증서", text, files: [file] });
+        await navigator.share({ title: "과잉집사 관계 인증서", text, files: [file] });
         trackEvent("certificate_share", { character: record.character, source: "native_file", official: isOfficialCertificate(record) });
         return;
       }
       if (navigator.share) {
         downloadCertificateBlob(blob, record);
-        await navigator.share({ title: "과잉집사 대업 인증서", text, url: window.location.origin });
+        await navigator.share({ title: "과잉집사 관계 인증서", text, url: window.location.origin });
         trackEvent("certificate_share", { character: record.character, source: "native_link", official: isOfficialCertificate(record) });
         return;
       }
@@ -3463,7 +3407,7 @@
         <i><b>인계</b>→</i>
         <div><span>새 담당</span><img src="${personnelPortraitFor(key)}" alt=""><b>${escapeHtml(nextStat.customName)}</b><p>${escapeHtml(RELATION_LINES[key]?.[returning ? "return" : "welcome"] || nextProfile.handover)}</p></div>
       </div>
-      <p class="personnel-policy-note">대업·인증서·일지는 그대로 유지됩니다. 각 집사의 관계와 선물 기록도 섞이지 않아요.</p>
+      <p class="personnel-policy-note">기록·인증서·일지는 그대로 유지됩니다. 각 집사의 관계와 선물 기록도 섞이지 않아요.</p>
       <div class="personnel-actions"><button class="primary-button" data-personnel-action="switch" data-character="${key}" type="button">${returning ? "복귀 승인 · 다시 담당 맡기기" : "인수인계 승인"} <span>→</span></button>
       <button class="secondary-button" data-personnel-action="pool" type="button">다른 집사도 검토하기</button></div>`;
     showRecruitmentOverlay();
@@ -3511,8 +3455,14 @@
     return true;
   }
 
+  function giftFeatureUnlocked(character = state.character) {
+    return relationshipActivityDay(normalizeActiveCharacter(character)) >= GIFT_UNLOCK_ACTIVITY_DAY;
+  }
+
   function giftCatalogFor(character = state.character) {
-    return (GIFT_CATALOGS[normalizeCharacter(character)] || GIFT_CATALOGS.ai).slice(0, 7).map(([emoji, name], index) => ({ emoji, name, cost: 0, index }));
+    const key = normalizeCharacter(character);
+    if (isActiveCharacter(key)) return (GIFT_EPISODES[key] || []).map((gift, index) => ({ ...gift, cost: 0, index }));
+    return (GIFT_CATALOGS[key] || GIFT_CATALOGS.ai).slice(0, 7).map(([emoji, name], index) => ({ emoji, name, code: `GIFT-${String(index + 1).padStart(2, "0")}`, kind: "legacy", cost: 0, index }));
   }
 
   function renderGiftDesk() {
@@ -3523,25 +3473,29 @@
     setPoseImage($("#gift-desk-butler-image"), state.character, "base");
     $("#gift-catalog").innerHTML = catalog.map((gift, index) => {
       const interaction = giftInteractionFor(state.character, gift, index);
-      const preferenceLabel = interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
+      const preferenceLabel = interaction.type === "duplicate" ? "다시 전달" : "개인 지급품";
       return `<button class="gift-catalog-item gift-${interaction.type} affordable" type="button" data-gift-index="${index}" aria-label="${escapeHtml(gift.name)} 전달${preferenceLabel ? ` · ${preferenceLabel}` : ""}">
-        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}<span>${gift.emoji}</span><strong>${escapeHtml(gift.name)}</strong><small>오늘의 선물</small>
+        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}<span class="gift-object-mark" data-kind="${escapeHtml(gift.kind || "legacy")}">${escapeHtml(gift.code || "GIFT")}</span><strong>${escapeHtml(gift.name)}</strong><small>관계 수치가 아닌 책상 흔적으로 남음</small>
       </button>`;
     }).join("");
     $("#gift-history-count").textContent = `${history.length}개`;
     $("#gift-history-list").innerHTML = history.length
       ? history.slice(0, 5).map(item => {
-        const labels = { favorite: "취향 적중", duplicate: "또 기억", rare: "희귀 선물" };
-        return `<li><span>${item.emoji}</span><b>${escapeHtml(item.name)}${labels[item.reactionType] ? `<em>${labels[item.reactionType]}</em>` : ""}</b><time>${escapeHtml(item.date || "")}</time></li>`;
+        const labels = { favorite: "개인 지급", duplicate: "다시 보관", normal: "책상 보관" };
+        return `<li><span class="gift-history-code">${escapeHtml(item.code || "GIFT")}</span><b>${escapeHtml(item.name)}${labels[item.reactionType] ? `<em>${labels[item.reactionType]}</em>` : ""}</b><time>${escapeHtml(item.date || "")}</time></li>`;
       }).join("")
       : '<li class="empty">아직 이 집사에게 준 선물이 없습니다.</li>';
     selectedGiftIndex = null;
     const givenToday = history.filter(item => item.date === today()).length >= GIFT_DAILY_LIMIT;
-    $("#gift-drop-status").textContent = givenToday ? `오늘은 ${history[0].emoji} ${history[0].name}을 책상에 보관했습니다` : "오늘 남길 선물을 여기로 끌어주세요";
+    $("#gift-drop-status").textContent = givenToday ? `‘${history[0].name}’ 책상 보관 완료` : "오늘 남길 물품을 여기로 끌어주세요";
     $("#gift-drop-zone").classList.remove("receiving", "selected");
   }
 
   function openGiftDesk() {
+    if (!giftFeatureUnlocked(state.character)) {
+      showToast("담당 기간이 이어지면 개인 물품 전달 절차가 열립니다.");
+      return;
+    }
     renderGiftDesk();
     trackEvent("gift_desk_open", { character: state.character });
     $("#gift-desk-overlay").hidden = false;
@@ -3564,24 +3518,22 @@
     selectedGiftIndex = index;
     $$("#gift-catalog [data-gift-index]").forEach(button => button.classList.toggle("selected", Number(button.dataset.giftIndex) === index));
     $("#gift-drop-zone").classList.add("selected");
-    $("#gift-drop-status").textContent = `${gift.emoji} ${gift.name} 선택 · 집사에게 끌어주세요`;
+    $("#gift-drop-status").textContent = `${gift.name} 선택 · 집사에게 끌어주세요`;
   }
 
   function giftInteractionFor(character, gift, index = giftCatalogFor(character).findIndex(item => item.name === gift?.name)) {
     const key = normalizeCharacter(character);
-    const content = launchContentFor(key);
     if (!gift) return { type: "normal", label: "선물 접수", delta: BALANCE.giftRelationship.normal, duplicateCount: 0 };
     const priorCount = state.giftHistory.filter(item => normalizeCharacter(item.character) === key && item.name === gift.name).length;
-    const rare = false;
-    const favorite = Boolean(content?.favorites?.includes(gift.name));
-    const type = rare ? "rare" : priorCount > 0 ? "duplicate" : favorite ? "favorite" : "normal";
-    const labels = { normal: "선물 접수", favorite: "취향 적중", duplicate: "선물 기억 중", rare: "희귀 선물" };
-    return { type, label: labels[type], delta: BALANCE.giftRelationship[type], duplicateCount: priorCount + 1, favorite, rare };
+    const type = priorCount > 0 ? "duplicate" : "normal";
+    const labels = { normal: "개인 물품 접수", duplicate: "기존 물품과 함께 보관" };
+    return { type, label: labels[type], delta: 0, duplicateCount: priorCount + 1, favorite: false, rare: false };
   }
 
   function giftResponse(character, gift, interaction = { type: "normal", duplicateCount: 1 }) {
     if (isActiveCharacter(character)) {
-      return resolveButlerReaction({ character, stage: currentRelationshipStage(character), situation: "gift", memories: buildRelationshipMemory(character), gift });
+      const stageBand = relationshipActivityDay(character) >= GIFT_UNLOCK_ACTIVITY_DAY || currentRelationshipStage(character) >= 4 ? "late" : "early";
+      return templateOwner(gift.responses?.[stageBand] || resolveButlerReaction({ character, stage: currentRelationshipStage(character), situation: "gift", memories: buildRelationshipMemory(character), gift }));
     }
     const owner = ownerDisplayName();
     const launchGiftMessage = launchContentFor(character)?.gifts?.[interaction.type];
@@ -3616,9 +3568,14 @@
     stat.customName = state.butlerName;
     state.giftHistory.unshift({
       id: `${Date.now()}-gift`, character: state.character, butlerName: state.butlerName,
-      emoji: gift.emoji, name: gift.name, cost: 0, date: today(), at: new Date().toISOString(),
+      giftId: gift.id || normalizeDeedKey(gift.name), code: gift.code || "GIFT", kind: gift.kind || "legacy",
+      emoji: "", name: gift.name, cost: 0, date: today(), at: new Date().toISOString(),
       reactionType: interaction.type, duplicateCount: interaction.duplicateCount, obsessionGain: 0,
-      relationshipBefore: relationshipStageValue, relationshipAfter: relationshipStageValue
+      relationshipBefore: relationshipStageValue, relationshipAfter: relationshipStageValue,
+      followupSource: gift.followupSource || "비품관리팀",
+      followupEvent: gift.followupEvent || "담당 집사가 사용자 제공 물품을 책상에 계속 보관 중임.",
+      followupLine: gift.followupLine || "지난번 받은 물품을 책상에 보관하고 있습니다.",
+      episodeVersion: 1
     });
     state.giftHistory = state.giftHistory.slice(0, 100);
     markActiveDay(state.character);
@@ -3645,12 +3602,12 @@
     $("#gift-reaction-badge").dataset.reaction = interaction.type;
     $("#gift-title").innerHTML = relationshipStageValue <= 2 ? "선물 접수<br>완료" : relationshipStageValue <= 4 ? "선물을 따로<br>보관했습니다" : relationshipStageValue === 5 ? "주인님 선물<br>전용 분류" : "전담 책상<br>진열 완료";
     $("#gift-message").textContent = message;
-    $("#gift-received-name").textContent = `${gift.emoji} ${gift.name}`;
+    $("#gift-received-name").textContent = gift.name;
     $("#gift-count").textContent = stat.gifts;
     $("#gift-obsession").textContent = relationshipStage(relationshipStageValue).name;
     renderRelationshipResult("gift", relationshipStageValue, relationshipStageValue, 0, "gift");
     setPoseImage($("#gift-butler-image"), state.character, "gift");
-    $("#gift-drop-status").textContent = `${gift.emoji} ${gift.name} · 책상 보관 완료`;
+    $("#gift-drop-status").textContent = `${gift.name} · 책상 보관 완료`;
     renderGiftDesk();
     renderRelationshipDesk();
     window.setTimeout(() => { giftTransferActive = false; }, 450);
@@ -3665,7 +3622,7 @@
     selectGift(index);
     const ghost = document.createElement("div");
     ghost.className = "gift-drag-ghost";
-    ghost.textContent = gift.emoji;
+    ghost.textContent = gift.code || "GIFT";
     document.body.appendChild(ghost);
     activeGiftDrag = { index, ghost, pointerId: event.pointerId };
     button.setPointerCapture?.(event.pointerId);
@@ -3814,9 +3771,6 @@
       event.preventDefault();
       if (!registerOwnerName($("#owner-name-late-input").value)) { showToast("집사가 기억할 이름을 적어주세요."); $("#owner-name-late-input").focus(); }
     });
-    $("#result-certificate-button").addEventListener("click", issueCertificateFromResult);
-    $("#result-close").addEventListener("click", closePraiseResult);
-    $("#praise-result-overlay").addEventListener("click", event => { if (event.target.id === "praise-result-overlay") closePraiseResult(); });
     $("#gift-close").addEventListener("click", closeGift);
     $("#gift-overlay").addEventListener("click", event => { if (event.target.id === "gift-overlay") closeGift(); });
     $("#close-certificate").addEventListener("click", closeCertificate);
@@ -3962,7 +3916,18 @@
       quickSuggestion(character = state.character) { return quickRecordSuggestion(normalizeActiveCharacter(character)); },
       memoryRecall(character = state.character, stage = currentRelationshipStage(character)) { const memory = buildRelationshipMemory(character); return { memory, copy: getTimeGreeting(), stage }; },
       officeEvent(character = state.character, index = 0) { return officeEventFor(normalizeActiveCharacter(character), today(), index); },
-      giftFollowup(character = state.character, giftName = "리본") { const key = normalizeActiveCharacter(character); return { reaction: resolveButlerReaction({ character: key, stage: currentRelationshipStage(key), situation: "gift", gift: { name: giftName } }), event: officeEventFor(key, today(), 1), desk: buildRelationshipMemory(key) }; },
+      giftFollowup(character = state.character, giftId = "") {
+        const key = normalizeActiveCharacter(character);
+        const gift = (GIFT_EPISODES[key] || []).find(item => item.id === giftId) || (GIFT_EPISODES[key] || [])[0];
+        return {
+          unlocked: giftFeatureUnlocked(key),
+          gift,
+          reaction: giftResponse(key, gift),
+          event: { source: gift?.followupSource || "비품관리팀", copy: gift?.followupEvent || "보관 중" },
+          followup: gift?.followupLine || "",
+          desk: buildRelationshipMemory(key)
+        };
+      },
       desk(character = state.character, stage = currentRelationshipStage(character)) { const key = normalizeActiveCharacter(character); debugStageOverrides.set(key, clamp(Number(stage) || 1, 1, 6)); state.character = key; renderManager(); return { stage: currentRelationshipStage(key), memory: buildRelationshipMemory(key) }; },
       pose(character = state.character) { const key = normalizeActiveCharacter(character); return Object.fromEntries(RELATIONSHIP_STAGES.map(({ stage }) => [stage, Object.fromEntries(["greeting", "deedReaction", "returnAfterAbsence", "gift", "stageUp"].map(situation => [situation, poseForRelationship(key, stage, situation)]))])); },
       certificateRare(character = state.character, stage = 4) { const key = normalizeActiveCharacter(character); return { character: key, stage, reason: `${relationshipStage(stage).name} 관계 진입`, certificateCandidate: true }; },

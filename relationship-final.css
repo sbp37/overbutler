@@ -111,10 +111,27 @@
 .desk-photo{right:24px;width:48px;height:60px;border:5px solid #b89465;background:linear-gradient(#f8f2e9,#d9c8b6);box-shadow:2px 3px 0 rgba(45,28,20,.16);opacity:0}
 .desk-photo:after{content:attr(data-owner);position:absolute;inset:8px 3px 4px;display:grid;place-items:end center;padding-bottom:4px;border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 50% 34%,#d2c0ad 0 8px,transparent 9px),radial-gradient(ellipse at 50% 85%,#bca58e 0 15px,transparent 16px);color:#6f5948;font-size:7px;font-weight:900;line-height:1;text-align:center;overflow:hidden}
 .desk-keepsake{position:absolute;right:86px;bottom:17px;max-width:82px;padding:5px 7px;border:1px solid #ad8d65;border-radius:6px;background:#fff4e4;color:#6d2835;font-size:9px;font-weight:850;box-shadow:2px 3px 0 rgba(45,28,20,.12);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Gifts are relationship episodes, not an XP shop. */
+.gift-availability-note{margin:10px 0 0;padding:10px 11px;border:1px dashed #cdbda9;background:#faf4eb;color:#75655d;font-size:11px;line-height:1.45;text-align:left}
+.gift-catalog-item>.gift-object-mark{display:grid;place-items:center;width:52px;height:35px;border:1px solid #967248;border-radius:3px;background:linear-gradient(135deg,#f9ecd4,#e8d4b5);box-shadow:2px 3px 0 rgba(63,42,30,.1);color:#5f4128;font:900 9px/1 "Wanted Sans Variable","Wanted Sans",sans-serif;letter-spacing:.04em;transform:rotate(-2deg)}
+.gift-catalog-item>.gift-object-mark[data-kind="disk"],.gift-catalog-item>.gift-object-mark[data-kind="cartridge"]{border-color:#68767a;background:linear-gradient(135deg,#edf0ed,#c9d2cf);color:#344549;transform:rotate(1deg)}
+.gift-catalog-item>small{max-width:92px;padding:0;border-radius:0;background:none;color:#86746a;font-size:9px;line-height:1.25;text-align:center}
+.gift-history-block li .gift-history-code{display:grid;place-items:center;width:38px;height:22px;border:1px solid #bca686;background:#f5ead9;color:#654d36;font-size:7px;font-weight:900;letter-spacing:.03em}
+.gift-drag-ghost{width:68px;height:46px;border-radius:4px;font-size:10px;font-weight:900;letter-spacing:.05em}
+.desk-keepsake{right:72px;max-width:112px;font-size:8px;letter-spacing:-.01em}
+
+@media(max-width:300px){
+  .gift-catalog{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gift-catalog-item>small{max-width:108px}
+  .desk-keepsake{right:58px;max-width:96px}
+}
 .relationship-desk[data-memory-category="hydration"] .desk-surface:after,.relationship-desk[data-memory-category="food"] .desk-surface:after,.relationship-desk[data-memory-category="work"] .desk-surface:after,.relationship-desk[data-memory-category="movement"] .desk-surface:after{position:absolute;left:18px;bottom:58px;padding:4px 6px;border:1px solid rgba(105,77,54,.35);background:#f8ead0;color:#674f40;font-size:8px;font-weight:850;transform:rotate(-2deg)}
 .relationship-desk[data-memory-category="hydration"] .desk-surface:after{content:"수분 기록 확인"}.relationship-desk[data-memory-category="food"] .desk-surface:after{content:"식사 시각 확인"}.relationship-desk[data-memory-category="work"] .desk-surface:after{content:"답장 여부 확인"}.relationship-desk[data-memory-category="movement"] .desk-surface:after{content:"산책 시각 확인"}
 .relationship-desk[data-stage="2"] .desk-owner-files{opacity:1;width:56px}
 .relationship-desk[data-stage="3"] .desk-owner-files{opacity:1;width:82px;box-shadow:5px -5px 0 #b65a66,9px -9px 0 #e5c8ae}
+.relationship-desk[data-first-week-day="7"] .desk-owner-files{left:96px;width:112px;min-height:42px;padding:9px 7px;border:2px solid #f4dfbd;background:#7b1b2d;color:#fffaf1;font-size:10px;line-height:1.25;box-shadow:5px -5px 0 #b85d69,9px -9px 0 #ead2b7,0 0 0 3px rgba(123,27,45,.12);opacity:1}
+.relationship-desk[data-first-week-day="7"][data-character="ai"] .desk-owner-files{border-color:#bfd3cf;background:#244b50;color:#effbf7;box-shadow:5px -5px 0 #6e9994,9px -9px 0 #d5e2dc,0 0 0 3px rgba(36,75,80,.12);letter-spacing:.04em}
 .relationship-desk[data-stage="3"] .desk-postit,.relationship-desk[data-stage="4"] .desk-postit{opacity:1}
 .relationship-desk[data-stage="4"] .desk-owner-files,.relationship-desk[data-stage="5"] .desk-owner-files,.relationship-desk[data-stage="6"] .desk-owner-files{opacity:1;width:98px;box-shadow:5px -5px 0 #b65a66,9px -9px 0 #e5c8ae}
 .relationship-desk[data-stage="4"] .desk-backboard i,.relationship-desk[data-stage="4"] .desk-backboard b,.relationship-desk[data-stage="5"] .desk-backboard i,.relationship-desk[data-stage="5"] .desk-backboard b,.relationship-desk[data-stage="6"] .desk-backboard i,.relationship-desk[data-stage="6"] .desk-backboard b{opacity:1}
@@ -187,3 +204,4 @@ button:disabled,[aria-busy="true"]{cursor:not-allowed}
 }
 .toast{width:max-content;max-width:calc(100vw - 28px);border-radius:12px;line-height:1.4;text-align:center;white-space:normal}
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.gift-catalog-item>small{max-width:92px;padding:0;border-radius:0;background:none;color:#86746a;font-size:9px;line-height:1.25;text-align:center}

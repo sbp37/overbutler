@@ -282,7 +282,7 @@ select { font-size: max(16px, 1em); }
 }
 
 .certificate-empty i::after {
-  content: "대업";
+  content: "기록";
   position: absolute;
   inset: 10px 7px;
   display: grid;
