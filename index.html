@@ -72,8 +72,8 @@
           </div>
           <dl class="personnel-facts">
             <div><dt>소속</dt><dd>과잉분석실</dd></div>
-            <div><dt>담당</dt><dd>기록·판정·칭찬</dd></div>
-            <div><dt>상태</dt><dd>감정회로 과열 전</dd></div>
+            <div><dt>담당</dt><dd>기록·기억·응대</dd></div>
+            <div><dt>상태</dt><dd>표준 응대 대기</dd></div>
           </dl>
           <label class="owner-name-field" for="owner-name-input">
             <span>주인님 호칭 등록</span>
@@ -124,30 +124,30 @@
         <section class="briefing-card briefing-stage document-card">
           <span class="briefing-index">오늘의 담당 집사</span>
           <span class="hero-paperclip" aria-hidden="true"></span>
-          <button class="briefing-character" id="briefing-character-action" type="button" aria-label="요정 집사에게 말 걸기" aria-describedby="briefing-message">
-            <img id="briefing-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" data-butler-pose="base" alt="요정 집사">
+          <button class="briefing-character" id="briefing-character-action" type="button" aria-label="AI 집사에게 말 걸기" aria-describedby="briefing-message">
+            <img id="briefing-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사">
             <span>톡톡 · 말 걸기</span>
           </button>
           <div class="briefing-panel">
-            <small id="home-butler-role-title">기록·판단·과잉 칭찬 담당</small>
-            <h1 id="home-butler-name">요정 집사</h1>
-            <p class="butler-role" id="home-butler-desc">사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
+            <small id="home-butler-role-title">기록 분석 담당</small>
+            <h1 id="home-butler-name">오류 난 AI 집사</h1>
+            <p class="butler-role" id="home-butler-desc">사용자 기록에만 예외 규칙이 조금씩 늘어나는 AI</p>
             <div class="home-relationship-status"><span id="home-relationship-stage">업무상 관계</span><small id="home-relationship-next">집사는 아직 선을 긋고 있습니다</small></div>
-            <div class="briefing-speech" id="briefing-message" aria-live="polite">작은 일도 반짝이는 대업으로 만들어드릴게요!</div>
-            <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 대업 접수하기 <span>↓</span></button>
+            <div class="briefing-speech" id="briefing-message" aria-live="polite">[SYSTEM READY] 기록 접수 대기 중.</div>
+            <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 기록 접수하기 <span>↓</span></button>
             <button class="briefing-refresh" id="briefing-refresh" type="button" aria-label="집사 브리핑 새로 보기">↻ 한마디 더</button>
-            <div class="briefing-status"><span><i></i> <b id="briefing-butler-label">요정 집사 · 업무 중</b></span></div>
+            <div class="briefing-status"><span><i></i> <b id="briefing-butler-label">AI 집사 · 기록 대기</b></span></div>
           </div>
         </section>
 
         <section class="entry-form document-card">
           <div class="entry-heading">
-            <span id="entry-kicker">대업 접수처 · FORM 01</span>
+            <span id="entry-kicker">기록 접수처 · FORM 01</span>
             <h2 id="home-title">오늘 뭐 하셨습니까?</h2>
             <p id="entry-description">한 줄이면 됩니다. 담당 집사가 오늘의 기록으로 기억합니다.</p>
           </div>
           <div class="achievement-field">
-            <label class="visually-hidden" for="achievement-input">오늘 해낸 대업 입력</label>
+            <label class="visually-hidden" for="achievement-input">오늘 기록 입력</label>
             <textarea id="achievement-input" maxlength="60" rows="1" placeholder="예: 출근했다, 물 마셨다, 답장했다..."></textarea>
             <span><b id="char-count">0</b>/60</span>
           </div>
@@ -172,6 +172,7 @@
         <section class="office-event-card document-card" id="home-office-event" aria-labelledby="office-event-title">
           <div><span>DAILY OFFICE NOTE</span><h2 id="office-event-title">오늘의 사내 사건</h2><small id="office-event-source">사무국 운영팀</small></div>
           <p id="office-event-copy">금일 특이사항을 확인하고 있습니다.</p>
+          <footer class="office-event-followup" id="office-event-followup" hidden><b id="office-event-evidence" hidden></b><small id="office-event-hint" hidden></small></footer>
         </section>
 
         <section class="today-section home-memory-strip">
@@ -191,8 +192,8 @@
           <span class="report-paperclip" aria-hidden="true"></span>
           <div class="report-title-block"><h1 id="weekly-report-title">주간 대업 보고서</h1><p id="weekly-report-period"></p></div>
           <div class="report-hero">
-            <div class="report-character"><img id="report-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" alt="주간 보고 담당 집사"></div>
-            <div class="report-intro"><small>이번 주 담당 집사</small><h2 id="report-butler-name">요정 집사</h2><p id="report-butler-intro">이번 주도 작은 대업들이 모여 위대한 기록이 되었습니다.</p></div>
+            <div class="report-character"><img id="report-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt="주간 보고 담당 집사"></div>
+            <div class="report-intro"><small>이번 주 담당 집사</small><h2 id="report-butler-name">오류 난 AI 집사</h2><p id="report-butler-intro">이번 주에 보관한 기록을 정리했습니다.</p></div>
             <div class="report-memo">작은 행동도<br>대업이 될 수 있어요!<br>보고만 하세요.</div>
           </div>
           <section class="weekly-rate-card">
@@ -224,14 +225,14 @@
         <section class="archive-butler-brief document-card">
           <span class="archive-paperclip" aria-hidden="true"></span>
           <div class="archive-butler-portrait">
-            <img id="archive-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" alt="요정 집사">
+            <img id="archive-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt="AI 집사">
           </div>
           <div class="archive-butler-copy">
             <small id="archive-butler-role">금일 기록 담당</small>
-            <h2 id="archive-butler-name">요정 집사</h2>
+            <h2 id="archive-butler-name">오류 난 AI 집사</h2>
             <p id="archive-butler-message">작은 기록도 빠짐없이 반짝이게 보관해둘게요.</p>
           </div>
-          <div class="archive-memo" aria-hidden="true">작은 기록이<br>쌓이면 대업이<br>됩니다!</div>
+          <div class="archive-memo" aria-hidden="true">작은 기록이<br>쌓이면 관계가<br>달라집니다!</div>
           <div class="archive-box-art" aria-hidden="true"><b></b><b></b><b></b><span>ARCHIVE<br><small>OVERBUTLER</small></span></div>
         </section>
 
@@ -294,7 +295,7 @@
           <div class="personnel-grid">
             <div class="manager-character-stage">
               <img src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사">
-              <div class="manager-nameplate">현 담당 · 과잉 칭찬 근무 중</div>
+              <div class="manager-nameplate">현 담당 · 전담 기록 근무 중</div>
             </div>
             <div class="manager-profile-copy">
               <div class="manager-status-line"><span id="manager-role-title">현 담당 집사</span><b id="manager-status-label">전담 중</b></div>
@@ -303,11 +304,11 @@
               <dl class="manager-facts">
                 <div><dt>호칭</dt><dd id="manager-butler-alias">오류봇</dd></div>
                 <div><dt>성격</dt><dd id="manager-butler-personality">허술한 과몰입형</dd></div>
-                <div><dt>특기</dt><dd id="manager-butler-specialty">작은 일을 대업으로 판정</dd></div>
+                <div><dt>특기</dt><dd id="manager-butler-specialty">남긴 기록을 기억하고 연결</dd></div>
               </dl>
             </div>
           </div>
-          <div class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</div>
+          <div class="manager-handnote" id="manager-handnote">남긴 기록은 담당 집사가 빠짐없이 보관합니다.</div>
           <div class="manager-obsession">
             <div class="obsession-heading"><span id="obsession-label">현재 관계 상태</span><b id="obsession-value" hidden>0</b></div>
             <div class="relationship-summary">
@@ -336,7 +337,7 @@
         <section class="manager-work-card document-card">
           <div class="manager-section-title"><h2>근무 기록</h2><small>담당 집사별 기록은 따로 보존됩니다.</small></div>
           <dl class="manager-stats">
-            <div><dt id="stat-deeds">0</dt><dd>세운 대업</dd></div>
+            <div><dt id="stat-deeds">0</dt><dd>남긴 기록</dd></div>
             <div><dt id="stat-gifts">0</dt><dd>받은 선물</dd></div>
             <div><dt id="stat-days">1</dt><dd>함께한 날</dd></div>
           </dl>
