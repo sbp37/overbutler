@@ -2,7 +2,20 @@
 
 ## Overbutler (과잉집사)
 
-Overbutler is a **mobile-first web app** focused on lightweight, amusing task reporting with “over-enthusiastic butler” personas.
+Overbutler is a **mobile-first relationship simulation** where a user reports one ordinary moment from their day and an assigned butler remembers it.
+
+## Product definition
+
+The butler begins by processing the user's ordinary records as routine office work. As the relationship deepens, the butler remembers more, gives the user visible preferential treatment, and gradually reclassifies the same mundane actions as important records, special cases, and finally absurdly official “great achievements.”
+
+The core loop is:
+
+1. The user reports one ordinary event in a single line.
+2. The butler remembers the user's submitted records and reacts according to the current relationship.
+3. Daily office incidents reveal the butler's growing favoritism from a third-party perspective.
+4. Rare certificates formalize especially funny or meaningful moments without appearing after every record.
+
+The app is not a todo manager, calendar, productivity tracker, streak system, or pet-care simulation. Relationship change and escalating official praise must be expressed through dialogue, memory, office incidents, room details, and rare documents rather than visible XP or progress formulas.
 
 ## Current context
 

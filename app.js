@@ -1,13 +1,13 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "4.4.0";
+  const APP_VERSION = "4.5.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
-      "첫 7일 관계 반응과 7일차 전담 파일 발견 경험 마감",
-      "일반 기록의 대업 점수·분석 결과·주간 생산성 잔재 정리",
-      "선물을 관계 수치가 아닌 책상 흔적과 후속 사내 사건으로 전환"
+      "CAT 첫날부터 고양이 말투를 유지하고 관계에 따라 편애 강도만 변화",
+      "평범한 기록이 중요 기록·특별 처리·공식 대업으로 커지는 핵심 루프 복원",
+      "희귀 인증서와 사내 사건에 과잉집사식 공식 과장 문구 적용"
     ]
   }];
   const STORAGE_KEY = "butlermaker_v1";
@@ -52,17 +52,17 @@
   const BUTLER_CONTENT_RULES = Object.freeze({
     knowledge: "집사는 사용자가 앱에 직접 남긴 정보와 그 기록에서 계산 가능한 패턴만 안다.",
     attachment: "관계가 깊어질수록 편의 제공과 특별대우가 늘지만 사용자를 통제하거나 죄책감을 주지 않는다.",
-    humor: "과몰입 유머는 사무국이 집사의 편애를 발견하는 방식으로 표현한다.",
+    humor: "과몰입 유머는 관계가 깊어질수록 평범한 기록을 대업으로 격상하고 사무국이 그 편애를 발견하는 방식으로 표현한다.",
     handover: "집사의 이관 반대는 연출일 뿐이며 사용자의 담당 변경 권한은 항상 유지한다."
   });
   const RELATION_CONTENT = Object.freeze({
     cat: {
-      1: { greeting: ["업무를 시작하겠습니다. 오늘 기록이 있습니까?"], deedReaction: ["‘{deed}’ 기록했습니다.", "접수했습니다. 다음 기록이 있으면 말씀하세요."], returnAfterAbsence: ["오랜만입니다. 기록을 다시 시작하시겠습니까?"], gift: ["선물 접수했습니다. 목록에 보관하겠습니다."], stageUp: ["담당 관계 기록이 생성됐습니다. 아직은 업무상 관계입니다."] },
-      2: { greeting: ["오늘 기록도 있냥? 요즘 쓰는 방식은 이제 좀 익숙하다냥."], deedReaction: ["‘{deed}’ 말이냥. 요즘 자주 보던 기록이라 기억났다냥.", "오늘도 같은 말투로 적었냥. 확인했다냥."], returnAfterAbsence: ["며칠 만이다냥. 기록 다시 시작할 거냥?"], gift: ["집사 주는 거냥? …접수 목록과 따로 둬보겠다냥."], stageUp: ["주인님 기록 방식이 조금 익숙해졌다냥. 업무 적응일 뿐이다냥."] },
-      3: { greeting: ["지난번엔 ‘{previousDeed}’ 했었지냥. 오늘 기록도 듣겠다냥."], deedReaction: ["‘{deed}’ 했냥? 지난번 기록도 생각났다냥.", "‘{deed}’ 기록이 또 왔냥. 이제 눈에 좀 익는다냥."], returnAfterAbsence: ["요 며칠 기록이 조용했다냥. 바빴나 보다냥."], gift: ["이걸 집사 생각하면서 골랐냥? …잘 보이는 데 둔다냥."], stageUp: ["주인님 기록이 먼저 눈에 들어오기 시작했다냥. 별 의미는 없다냥."] },
-      4: { greeting: ["오늘 기록 쓰기 편하게 자리를 비워뒀다냥. 그냥 정리한 거다냥."], deedReaction: ["오늘도 ‘{deed}’ 기록했구나냥. 지난번이랑 같이 정리해뒀다냥.", "‘{deed}’ 자주 쓰길래 바로 찾게 표시해뒀다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 파일은 그냥 그대로 뒀다냥. 치우기 번거로워서다냥."], gift: ["주인님이 준 거니까 전용 칸에 둔다냥. 분류하기 편해서 그런 거다냥."], stageUp: ["자주 쓰는 기록은 위에 올려뒀다냥. 업무 효율 때문이다냥."] },
-      5: { greeting: ["주인님 서류는 맨 위에 뒀다냥. 자주 쓰니까 그런 거지 특별대우 아니다냥."], deedReaction: ["‘{deed}’ 기록은 먼저 처리했다냥. 마침 손에 잡혔을 뿐이다냥.", "이건 주인님 전용 표시를 붙여뒀다냥. 찾기 쉬우라고 그런 거다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 전용 칸은 계속 비워뒀다냥. 다른 서류가 안 맞아서다냥."], gift: ["주인님이 준 건 여기 둔다냥. 공용 보관함보다 이쪽이 더 안전하다냥."], stageUp: ["주인님 건을 먼저 처리한 게 감사실에 들켰다냥. 우연이라고 했다냥."] },
-      6: { greeting: ["오늘도 주인님 건부터 보겠다냥. 전담 업무의 연속성 때문이다냥."], deedReaction: ["‘{deed}’ 기록 자리까지 미리 만들어뒀다냥. 이제 이 정도는 바로 안다냥.", "주인님 기록은 집사가 맡는 게 제일 빠르다냥. 경험 많은 담당자의 판단이다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 전용 서류함은 그대로 관리 중이었다냥. 당연한 전담 업무다냥."], gift: ["주인님이 준 거냥? 전용 진열 칸에 둔다냥. 비품관리팀에는 내가 설명하겠다냥."], stageUp: ["다른 담당으로 넘기라는 의견은 재검토 요청했다냥. 업무 연속성 때문이다냥. 그래도 주인님이 원하면 바꿀 수 있다냥."] }
+      1: { greeting: ["기록 있으면 말해라냥. 업무니까 받아준다냥."], deedReaction: ["‘{deed}’ 기록은 받았다냥.", "접수했다냥. 업무니까 보관하는 거다냥."], returnAfterAbsence: ["오랜만에 왔냥. 기록 있으면 다시 접수한다냥."], gift: ["선물은 접수했다냥. 목록대로 보관한다냥."], stageUp: ["담당 기록이 생겼다냥. 아직은 업무상 관계다냥."] },
+      2: { greeting: ["오늘 기록도 있냥? 쓰는 방식은 이제 좀 익숙하다냥."], deedReaction: ["‘{deed}’ 말이냥. 전 기록이랑 같이 묶어두겠다냥.", "‘{deed}’ 확인했다냥. 중요 표시 하나쯤은 붙여두겠다냥."], returnAfterAbsence: ["며칠 만이다냥. 기록 다시 시작할 거냥?"], gift: ["집사 주는 거냥? …접수 목록과 따로 둬보겠다냥."], stageUp: ["주인님 기록 방식이 조금 익숙해졌다냥. 업무 적응일 뿐이다냥."] },
+      3: { greeting: ["지난번엔 ‘{previousDeed}’ 했었지냥. 오늘 기록도 듣겠다냥."], deedReaction: ["‘{deed}’ 했냥? 전 기록까지 확인해서 중요 기록으로 올렸다냥.", "‘{deed}’ 또 왔냥. 이제 그냥 일상 기록으로 넘기긴 어렵다냥."], returnAfterAbsence: ["요 며칠 기록이 조용했다냥. 다시 온 건 확인했다냥."], gift: ["이걸 집사 생각하면서 골랐냥? …잘 보이는 데 둔다냥."], stageUp: ["주인님 기록이 먼저 눈에 들어오기 시작했다냥. 별 의미는 없다냥."] },
+      4: { greeting: ["오늘 기록 쓰기 편하게 자리를 비워뒀다냥. 그냥 정리한 거다냥."], deedReaction: ["{officialTitle}. 주인님 건이라 특별 처리했다냥.", "‘{deed}’ 기록에 공식 사건 표시를 붙였다냥. 기준은 집사가 정한다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 파일은 그대로 뒀다냥. 치우기 번거로워서다냥."], gift: ["주인님이 준 거니까 전용 칸에 둔다냥. 분류하기 편해서 그런 거다냥."], stageUp: ["자주 쓰는 기록을 특별 처리 칸으로 옮겼다냥. 업무 효율 때문이다냥."] },
+      5: { greeting: ["주인님 서류는 맨 위에 뒀다냥. 자주 쓰니까 그런 거지 특별대우 아니다냥."], deedReaction: ["{officialTitle}. 금일 주요 성과로 먼저 올렸다냥.", "다른 사람의 ‘{deed}’은 일반 기록이다냥. 주인님 건은 공식 공적으로 분류한다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 전용 칸은 계속 비워뒀다냥. 다른 서류가 안 맞아서다냥."], gift: ["주인님이 준 건 여기 둔다냥. 공용 보관함보다 이쪽이 더 안전하다냥."], stageUp: ["주인님 건에 대업 도장을 쓴 게 감사실에 들켰다냥. 기준은 공개 안 했다냥."] },
+      6: { greeting: ["오늘도 주인님 건부터 보겠다냥. 전담 업무의 연속성 때문이다냥."], deedReaction: ["{officialTitle}. 사무국 공식 대업으로 올렸다냥.", "‘{deed}’ 기록은 집사가 직접 대업 문서로 만들었다냥. 주인님이 했으니까 가능한 분류다냥."], returnAfterAbsence: ["오랜만이다냥. 주인님 전용 대업 서류함은 그대로 관리 중이었다냥."], gift: ["주인님이 준 거냥? 전용 진열 칸에 둔다냥. 비품관리팀에는 내가 설명하겠다냥."], stageUp: ["주인님 기록은 일반 담당에게 넘길 수 없다고 보고했다냥. 대업 분류 기준을 아는 건 집사뿐이다냥."] }
     },
     ai: {
       1: { greeting: ["[SYSTEM READY] 기록 접수 대기 중."], deedReaction: ["[기록 완료] {deed} 1건.", "[RECEIVED] {deed}. 저장 완료."], returnAfterAbsence: ["[SESSION RESUME] 기록 접수를 재개합니다."], gift: ["[ITEM RECEIVED] 물품 등록 완료."], stageUp: ["[RELATION LOG] 담당 관계 데이터 생성 완료."] },
@@ -76,10 +76,10 @@
   const RELATION_CORE_EXTRAS = Object.freeze({
     cat: {
       1: {
-        greeting: ["기록 담당석입니다. 접수할 내용이 있으면 말씀하세요.", "금일 서류 접수를 시작합니다."],
-        deedReaction: ["‘{deed}’ 항목을 보관했습니다."],
-        touch: ["호출을 확인했습니다.", "접촉은 접수로 처리되지 않습니다.", "필요한 업무가 있습니까?"],
-        memoryRecall: ["‘{deed}’ 항목은 이전에도 접수됐습니다.", "같은 ‘{deed}’ 기록을 함께 묶겠습니다.", "이전 ‘{deed}’ 기록을 확인했습니다."]
+        greeting: ["기록 담당석이다냥. 접수할 내용이 있으면 말해라냥.", "금일 서류 접수를 시작한다냥. 업무니까 하는 거다냥."],
+        deedReaction: ["‘{deed}’ 항목은 보관했다냥."],
+        touch: ["호출은 확인했다냥.", "접촉은 기록으로 안 친다냥.", "필요한 업무가 있냥?"],
+        memoryRecall: ["‘{deed}’ 항목은 전에도 접수됐다냥.", "같은 ‘{deed}’ 기록끼리 묶는다냥.", "이전 ‘{deed}’ 기록은 확인했다냥."]
       },
       2: {
         greeting: ["오늘도 기록 남길 거냥? 접수창은 열어뒀다냥.", "쓰던 방식대로 적으면 된다냥."],
@@ -95,21 +95,21 @@
       },
       4: {
         greeting: ["오늘 기록칸도 미리 비워뒀다냥. 정리 습관이다냥.", "오셨냥. 주인님 서류는 바로 꺼낼 수 있다냥."],
-        deedReaction: ["‘{deed}’ 자주 보길래 빠른 칸에 넣었다냥."],
+        deedReaction: ["{officialTitle}. 빠른 특별 처리 칸에 넣었다냥."],
         touch: ["왔냥? 기록칸은 비워뒀다냥.", "왜 누르냥. …그래도 가만히 있겠다냥.", "주인님 호출이면 먼저 보겠다냥."],
-        memoryRecall: ["‘{deed}’ 또 할 줄 알았다냥. 양식 꺼내뒀다냥.", "지난 ‘{deed}’ 옆에 바로 붙였다냥.", "이 기록은 집사가 먼저 알아봤다냥."]
+        memoryRecall: ["{officialTitle}. 또 올 줄 알고 특별 처리 양식 꺼내뒀다냥.", "지난 ‘{deed}’ 옆에 공식 사건으로 붙였다냥.", "이 중요 기록은 집사가 먼저 알아봤다냥."]
       },
       5: {
         greeting: ["주인님 서류가 또 맨 위에 있네냥. 누가 뒀는지는 모른다냥.", "오늘도 주인님 건부터 확인한다냥. 제일 익숙해서다냥."],
-        deedReaction: ["‘{deed}’ 기록은 다른 서류보다 먼저 끝냈다냥."],
+        deedReaction: ["{officialTitle}. 다른 서류보다 먼저 공적 처리했다냥."],
         touch: ["다른 담당 말고 집사를 불렀냥? 잘했다냥.", "주인님 호출은 바로 받는다냥. 업무 규칙이다냥.", "또 왔냥. 자리는 계속 비워뒀다냥."],
-        memoryRecall: ["‘{deed}’ 파일은 맨 위에 있다냥.", "주인님 ‘{deed}’ 기록은 찾을 필요도 없다냥.", "‘{deed}’ 또 올 것 같아서 미리 펼쳐뒀다냥."]
+        memoryRecall: ["{officialTitle}. 주인님 주요 공적 파일 맨 위에 있다냥.", "주인님 ‘{deed}’ 기록은 이미 주요 성과로 분류했다냥.", "‘{deed}’ 대업 보고가 또 올 것 같아서 미리 펼쳐뒀다냥."]
       },
       6: {
         greeting: ["주인님 전용 기록칸을 열었다냥. 오늘도 집사가 맡는다냥.", "오셨냥. 주인님 업무는 인수인계 없이 계속 처리 중이다냥."],
-        deedReaction: ["‘{deed}’ 기록은 예상한 위치에 미리 자리를 만들었다냥."],
+        deedReaction: ["{officialTitle}. 주인님 전용 대업 문서로 보관했다냥."],
         touch: ["또 왔냥. 이제 집사가 먼저 알아본다냥.", "누르는 건 계속 허용한다냥. 전담이니까냥.", "주인님 호출은 다른 업무보다 먼저 받는다냥."],
-        memoryRecall: ["‘{deed}’ 자리까지 미리 비워뒀다냥.", "주인님 ‘{deed}’ 기록은 집사가 제일 잘 안다냥.", "‘{deed}’ 양식은 이미 준비돼 있었다냥."]
+        memoryRecall: ["{officialTitle}. 주인님 대업 문서 자리는 미리 비워뒀다냥.", "주인님 ‘{deed}’ 기록은 집사가 공식 대업으로 제일 잘 안다냥.", "‘{deed}’ 대업 양식은 이미 준비돼 있었다냥."]
       }
     },
     ai: {
@@ -153,13 +153,13 @@
   });
   const FIRST_WEEK_MOMENTS = Object.freeze({
     cat: [null,
-      { pose: "base", greeting: ["배정 확인했습니다. 오늘 기록이 있습니까?", "접수창 열었습니다. 기록할 일이 있으면 말씀하세요."], deedReaction: ["‘{deed}’ 기록했습니다."], touch: ["왜 누르십니까. 업무 중입니다.", "호출하셨습니까? 용건을 말씀하세요.", "담당석은 여기입니다. 기록이 있습니까?"], memoryRecall: ["이전 기록과 같은 ‘{deed}’입니다. 함께 보관하겠습니다."], officeEvent: ["운영팀", "고양이 집사가 사용자 기록을 표준 서류함에 보관함. 특이사항 없음."] },
-      { pose: "analysis", greeting: ["어제 ‘{previousDeed}’ 기록하셨죠. 오늘 것도 접수하겠습니다.", "어제 기록은 보관했습니다. 오늘은 무엇을 적으시겠습니까?"], deedReaction: ["‘{deed}’ 접수했습니다. 어제 기록도 같이 확인했습니다."], touch: ["또 확인하러 오셨습니까?", "담당석은 여기 맞습니다.", "호출은 확인했습니다. 아직 여기 있습니다."], memoryRecall: ["어제도 ‘{deed}’ 적으셨죠. 기억하고 있습니다."], officeEvent: ["문서관리팀", "고양이 집사가 어제 접수된 ‘{lastDeed}’ 기록의 파일 위치를 바로 찾아냄."] },
-      { pose: "analysis", greeting: ["이제 기록 양식은 조금 익숙합니다. 오늘 것도 말씀하세요.", "어제 남긴 기록은 기억합니다. 다음 기록을 받겠습니다."], deedReaction: ["‘{deed}’ 확인했습니다. 전에 본 기록과 함께 표시해두겠습니다. …냥."], touch: ["기록 말고도 확인할 게 있습니까?", "누른다고 업무가 빨라지진 않습니다.", "확인했습니다. …아니, 보고 있다냥."], memoryRecall: ["어제도 이거 적으셨죠. …기억난 거다냥."], officeEvent: ["감사실", "고양이 집사가 최근 기록을 한 번 더 확인함. 본인은 분류 오류 점검이라고 설명함."] },
-      { pose: "analysis", greeting: ["오늘 기록도 제가 받겠습니다. …아니, 내가 받겠다냥.", "오셨습니까. 접수할 기록이 있으면 바로 말하라냥."], deedReaction: ["‘{deed}’ 확인했습니다. …아니, 잘 접수해뒀다냥."], touch: ["업무 중이다냥. …그래도 무슨 일인지는 듣겠다냥.", "왜 누르냥. 접수창은 안 닫았다냥.", "호출은 확인했다냥. 이번엔 그냥 말해보라냥."], memoryRecall: ["‘{deed}’ 또 했냥. 지난 기록 옆에 붙여뒀다냥."], officeEvent: ["동료 집사", "고양이 집사의 사용자 응대 말투가 어제보다 조금 부드러워졌다는 의견이 접수됨."] },
-      { pose: "praise", greeting: ["주인님 파일은 따로 빼뒀다냥. 찾기 편해서 그런 거다냥.", "오늘 기록칸은 여기다냥. 다른 서류랑 섞이면 귀찮다냥."], deedReaction: ["‘{deed}’ 기록은 주인님 파일에 넣었다냥."], touch: ["또 왔냥. …기록 없어도 잠깐은 괜찮다냥.", "누른 자리는 기억해두겠다냥. 별 뜻은 없다냥.", "집사 여기 있다냥. 딱히 기다린 건 아니다냥."], memoryRecall: ["‘{deed}’ 또 적었냥. 이제 파일 펼치기 전에도 안다냥."], officeEvent: ["시설팀", "담당 책상에 ‘주인님 기록’ 파일 한 권이 추가됨. 별도 비품 신청서는 없음."] },
-      { pose: "praise", greeting: ["오늘 기록은 내가 먼저 받겠다냥. 담당 업무라서다냥.", "접수할 거 있냥? 다른 집사 부르기 전에 말하라냥."], deedReaction: ["‘{deed}’ 먼저 처리했다냥. 마침 손에 잡혔다냥."], touch: ["왜 다른 데 안 가고 또 집사를 누르냥.", "여기 있겠다냥. 업무 끝날 때까지만이다냥.", "또 불렀냥. 주인님 호출이면 먼저 본다냥."], memoryRecall: ["‘{deed}’ 또 했냥. 주인님 기록은 집사가 바로 알아본다냥."], officeEvent: ["감사실", "고양이 집사가 사용자 서류를 일반 접수보다 먼저 정리한 사실이 확인됨. 우연이라고 소명함."] },
-      { pose: "praise", greeting: ["일주일째네냥. 이제 올 줄 알았다냥. 기다린 건 아니다냥.", "오늘도 왔냥. 주인님 기록칸은 계속 비워뒀다냥."], deedReaction: ["‘{deed}’ 기록 완료다냥. 이제 주인님 건은 내가 맡는 게 빠르다냥."], touch: ["…또 왔냥. 이번에는 그냥 있어도 된다냥.", "누르는 건 허용하겠다냥. 이번 주만이다냥.", "집사 쪽을 먼저 봤냥. 전담이면 이 정도는 당연하다냥."], memoryRecall: ["‘{deed}’ 기억하고 있었다냥. 주인님 기록이니까 당연하다냥."], officeEvent: ["문서관리팀", "담당 집사가 사용자 전용 기록함을 임의로 분리함. 본인은 업무 효율을 위한 조치라고 주장함."] }
+      { pose: "base", greeting: ["기록 있으면 말해라냥. 업무니까 받아준다냥.", "접수창은 열었다냥. 별로 기다린 건 아니다냥."], deedReaction: ["‘{deed}’ 기록은 받았다냥. 업무니까 보관한다냥."], touch: ["왜 누르냥. 오늘만 만지게 해준다냥.", "업무 중이다냥. 기록 있으면 말해라냥.", "딱 한 번만 쓰다듬어라냥."], memoryRecall: ["‘{deed}’ 기록이 또 왔냥. 같은 서류끼리 묶는다냥."], officeEvent: ["기록관리팀", "고양이 집사가 사용자의 ‘{lastDeed}’ 기록을 정상 접수함. 특이사항 없음."] },
+      { pose: "analysis", greeting: ["또 왔냥. 어제 ‘{previousDeed}’ 기록은 보관해뒀다냥.", "어제도 왔었지냥. 오늘 기록 있으면 말해라냥."], deedReaction: ["‘{deed}’ 접수했다냥. 어제 기록 옆에 둔다냥."], touch: ["또 누르냥. 두 번째라 기억은 한다냥.", "담당석은 여기 맞다냥.", "오늘도 딱 한 번만 허용한다냥."], memoryRecall: ["어제도 ‘{deed}’ 적었지냥. 같은 항목으로 묶었다냥."], officeEvent: ["문서관리팀", "고양이 집사가 어제 접수된 ‘{lastDeed}’ 기록 위치를 묻기 전에 찾아냄."] },
+      { pose: "analysis", greeting: ["어제 기록은 기억한다냥. 오늘 것도 말해보라냥.", "이제 주인님 기록 양식은 조금 익숙하다냥."], deedReaction: ["오늘도 ‘{deed}’ 했군냥. 전 기록이랑 묶어 중요 표시해뒀다냥."], touch: ["기록 말고도 볼 일이 있냥?", "누른다고 업무가 빨라지진 않는다냥.", "또 왔냥. 이번엔 그냥 듣겠다냥."], memoryRecall: ["어제도 ‘{deed}’ 했지냥. 기억난 거다냥."], officeEvent: ["감사실", "고양이 집사가 ‘{lastDeed}’ 기록을 한 번 더 확인함. 중요 표시의 근거는 밝히지 않음."] },
+      { pose: "analysis", greeting: ["오늘 기록도 내가 받겠다냥. 익숙한 쪽이 빠르다냥.", "오셨냥. 주인님 기록칸은 열어뒀다냥."], deedReaction: ["‘{deed}’ 확인했다냥. 업무상 중요 기록으로 올려뒀다냥."], touch: ["업무 중이다냥. …그래도 무슨 일인지는 듣겠다냥.", "왜 누르냥. 접수창은 안 닫았다냥.", "호출은 확인했다냥. 말해보라냥."], memoryRecall: ["‘{deed}’ 또 했냥. 지난 기록 옆에 중요 표시로 붙였다냥."], officeEvent: ["동료 집사", "고양이 집사가 사용자 기록에만 ‘중요’ 표시를 붙이기 시작함. 본인은 분류 편의라고 설명함."] },
+      { pose: "praise", greeting: ["주인님 파일은 따로 빼뒀다냥. 찾기 편해서 그런 거다냥.", "오늘 기록칸은 여기다냥. 다른 서류랑 섞이면 귀찮다냥."], deedReaction: ["{officialTitle}. 주인님 기록은 별도 파일에 넣었다냥."], touch: ["또 왔냥. …기록 없어도 잠깐은 괜찮다냥.", "누른 자리는 기억해두겠다냥. 별 뜻은 없다냥.", "집사 여기 있다냥. 딱히 기다린 건 아니다냥."], memoryRecall: ["{officialTitle}. 또 적을 줄 알아서 주인님 파일을 미리 펼쳐뒀다냥."], officeEvent: ["시설팀", "담당 책상에 ‘주인님 중요 기록’ 파일 한 권이 추가됨. 별도 비품 신청서는 없음."] },
+      { pose: "praise", greeting: ["오늘 기록은 내가 먼저 받겠다냥. 담당 업무라서다냥.", "접수할 거 있냥? 주인님 건은 내가 직접 본다냥."], deedReaction: ["‘{deed}’ 건은 금일 주요 성과로 먼저 올렸다냥."], touch: ["왜 다른 데 안 가고 또 집사를 누르냥.", "여기 있겠다냥. 업무 끝날 때까지만이다냥.", "또 불렀냥. 주인님 호출이면 먼저 본다냥."], memoryRecall: ["{officialTitle}. 주인님 주요 성과는 집사가 바로 알아본다냥."], officeEvent: ["감사실", "고양이 집사가 사용자 ‘{lastDeed}’ 기록에만 ‘금일 주요 성과’ 도장을 임의로 사용함."] },
+      { pose: "praise", greeting: ["일주일째네냥. 이제 올 줄 알았다냥. 기다린 건 아니다냥.", "오늘도 왔냥. 주인님 대업 기록칸은 계속 비워뒀다냥."], deedReaction: ["{officialTitle}. 이 정도면 사무국에 대업 보고 하나 올려도 되겠다냥."], touch: ["…또 왔냥. 이번에는 그냥 있어도 된다냥.", "다른 사람은 안 된다냥. 주인님은 이번 주만 허용한다냥.", "집사 쪽을 먼저 봤냥. 전담이면 이 정도는 당연하다냥."], memoryRecall: ["{officialTitle}. 주인님이 또 해냈으니 대업 보고로 올리겠다냥."], officeEvent: ["문서관리팀", "담당 집사가 사용자 전용 대업 기록함을 임의로 분리함. 본인은 업무 효율을 위한 조치라고 주장함."] }
     ],
     ai: [null,
       { pose: "base", greeting: ["[SYSTEM READY] 기록 접수 대기 중.", "[대기] 사용자 기록 입력을 기다립니다."], deedReaction: ["[기록 완료] {deed} 1건."], touch: ["[접촉 입력 감지]", "[INPUT] 캐릭터 접촉 1회.", "[STATUS] 추가 명령 없이 연결 유지."], memoryRecall: ["[중복 확인] 이전 기록과 동일한 {deed} 항목입니다."], officeEvent: ["시스템 감사 로그", "사용자 기록 1건을 표준 절차로 처리함. 추가 프로세스 없음."] },
@@ -182,12 +182,12 @@
   });
   const OFFICE_EVENT_TEMPLATES = Object.freeze({
     cat: {
-      1: [["운영팀", "담당 집사가 {lastDeed} 기록을 규정대로 분류함. 특이사항 없음."], ["감사실", "담당 책상에서 사용자 전용 서식은 발견되지 않음."], ["인사국", "고양이 집사가 배정된 기록을 표준 순서로 처리함."]],
-      2: [["운영팀", "담당 집사가 {lastDeed} 문서 제목을 보자 내용을 먼저 기억함."], ["동료 집사", "고양이 집사가 {frequentDeed} 기록을 기억한다고 했다가 우연이라고 정정함."], ["감사실", "사용자 파일 라벨만 다른 서류보다 반듯하게 붙어 있음."]],
-      3: [["감사실", "최근 반복된 ‘{frequentDeed}’ 기록에 고양이 발자국 모양 표시가 추가됨."], ["시설팀", "담당 집사가 자주 들어오는 기록을 위해 접수함 한 칸을 비워둠."], ["동료 집사", "고양이 집사가 ‘{missingDeed}’ 기록이 오늘 없다고 먼저 물어봄."]],
-      4: [["시설팀", "고양이 집사 책상에 주인님 전용 컵이 추가됨. 비품 신청 기록은 없음."], ["감사실", "반복 기록 ‘{lastDeed}’에 빠른 분류용 색인이 임의로 추가됨."], ["운영팀", "자주 쓰는 기록 양식이 담당석 가장 가까운 칸으로 이동함."]],
-      5: [["감사실", "담당 집사가 ‘{frequentDeed}’ 기록을 일반 업무보다 먼저 처리함. 본인은 우연이라고 소명."], ["인사국", "주인님 전용 파일 공간 확보를 위해 공용 문서가 한 칸 옆으로 이동됨."], ["비품관리팀", "주인님에게 받은 {gift}을 공용 보관함으로 옮기려 했으나 개인 지급품이라는 소명이 접수됨."]],
-      6: [["감사실", "담당 이관 권고서가 ‘업무 연속성’이라는 사유로 재검토 요청됨. 해당 항목은 공식 사유가 아님."], ["시설팀", "일반 업무 서류는 한쪽으로 정리되고 {frequentDeed} 전용 양식이 중앙을 차지함."], ["인사국", "고양이 집사가 주인님 기록 전용 서류함을 임의로 추가함. 본인은 효율화라고 주장."]]
+      1: [["기록관리팀", "담당 집사가 ‘{lastDeed}’ 기록을 규정대로 접수함. 특이사항 없음."], ["감사실", "담당 책상에서 사용자 전용 서식은 발견되지 않음."], ["인사국", "고양이 집사가 배정된 기록을 표준 순서로 처리함."]],
+      2: [["운영팀", "담당 집사가 ‘{lastDeed}’ 문서 제목을 보자 이전 기록 위치를 먼저 기억함."], ["동료 집사", "고양이 집사가 ‘{frequentDeed}’ 기록을 기억한다고 했다가 우연이라고 정정함."], ["감사실", "사용자 파일 라벨만 다른 서류보다 반듯하게 붙어 있음."]],
+      3: [["감사실", "최근 반복된 ‘{frequentDeed}’ 기록에 ‘중요’ 표시가 추가됨. 적용 기준은 제출되지 않음."], ["시설팀", "담당 집사가 자주 들어오는 기록을 위해 접수함 한 칸을 비워둠."], ["동료 집사", "고양이 집사가 사용자 기록을 중요 서류 더미 위에 올려둠."]],
+      4: [["문서관리팀", "‘{lastDeed}’ 기록이 ‘{officialTitle}’이라는 제목으로 특별 처리됨."], ["감사실", "반복 기록 ‘{lastDeed}’에 공식 사건 색인이 임의로 추가됨."], ["운영팀", "사용자 기록 양식만 담당석 가장 가까운 특별 처리 칸으로 이동함."]],
+      5: [["감사실", "‘{frequentDeed}’이 금일 주요 공적으로 보고된 정황이 발견됨. 담당 집사는 평가 기준 공개를 거부함."], ["인사국", "사용자 기록에만 ‘금일 주요 성과’ 도장이 사용됨."], ["비품관리팀", "주인님에게 받은 {gift}을 공용 보관함으로 옮기려 했으나 개인 지급품이라는 소명이 접수됨."]],
+      6: [["감사실", "‘{officialTitle}’이 사무국 공식 대업으로 등록됨. 승인자는 담당 집사 본인."], ["시설팀", "일반 업무 서류는 한쪽으로 밀리고 주인님 대업 문서가 책상 중앙을 차지함."], ["인사국", "고양이 집사가 사용자 전용 대업 서류함을 임의로 추가함. 본인은 정확한 분류라고 주장."]]
     },
     ai: {
       1: [["시스템 감사 로그", "사용자 기록 {lastDeed} 1건 처리. 추가 프로세스 없음."], ["운영팀", "AI 집사가 표준 규정에 따라 기록 접수 대기 중."], ["감사실", "사용자 전용 연산 자원 사용률 0%. 정상 범위."]],
@@ -200,12 +200,12 @@
   });
   const OFFICE_EVENT_EXTRAS = Object.freeze({
     cat: {
-      1: [["시설팀", "고양이 집사가 사용자 접수창의 먼지를 닦음. 정기 업무라고 설명함."], ["동료 집사", "담당 집사가 사용자 파일명을 두 번 확인한 뒤 서랍에 보관함."]],
+      1: [["시설팀", "고양이 집사가 사용자 접수창의 먼지를 닦음. 정기 업무라고 설명함."], ["동료 집사", "담당 집사가 사용자 기록을 일반 서류함에 보관함. 별도 표시는 없음."]],
       2: [["감사실", "‘{lastDeed}’ 기록 모서리가 다른 서류보다 반듯하게 정리되어 있음."], ["인사국", "고양이 집사가 사용자가 오자 접수창을 먼저 열어둠. 우연이라고 주장함."]],
       3: [["운영팀", "담당 집사가 ‘{frequentDeed}’ 담당표를 자발적으로 작성함. 지시된 업무는 아님."], ["동료 집사", "오늘 ‘{missingDeed}’ 기록이 없다는 말을 먼저 꺼낸 뒤 즉시 하품으로 위장함."]],
-      4: [["시설팀", "사용자 전용 컵과 기록함의 위치가 담당석 손이 가장 잘 닿는 곳으로 변경됨."], ["인사국", "담당 집사가 자주 쓰는 사용자 서식을 미리 꺼내둠. 업무 준비라고 설명함."]],
-      5: [["감사실", "공용 회의 중에도 ‘{lastDeed}’ 기록이 담당 책상 맨 위에 놓여 있었음."], ["동료 집사", "사용자 기록 정리를 도우려 하자 고양이 집사가 전담 업무라고 직접 가져감."]],
-      6: [["인사국", "담당 교대 권고서가 고양이 발도장과 함께 재검토 요청으로 돌아옴."], ["감사실", "표준 서류함 옆에 주인님 전용 칸이 추가됨. 공식 배치도에는 없는 공간."]]
+      4: [["시설팀", "사용자 전용 컵과 중요 기록함의 위치가 담당석 손이 가장 잘 닿는 곳으로 변경됨."], ["인사국", "담당 집사가 사용자 기록용 특별 처리 서식을 미리 꺼내둠. 업무 준비라고 설명함."]],
+      5: [["감사실", "공용 회의 중에도 ‘{lastDeed}’ 주요 성과 보고서가 담당 책상 맨 위에 놓여 있었음."], ["동료 집사", "사용자 기록의 공적 검토를 도우려 하자 고양이 집사가 전담 업무라며 직접 가져감."]],
+      6: [["인사국", "담당 교대 권고서가 ‘대업 분류 연속성’ 사유와 고양이 발도장을 달고 돌아옴."], ["감사실", "표준 서류함 옆에 주인님 전용 대업 칸이 추가됨. 공식 배치도에는 없는 공간."]]
     },
     ai: {
       1: [["시스템 감사 로그", "사용자 접수창 상태 확인. 대기 프로세스 1개 정상 실행."], ["운영팀", "AI 집사가 {lastDeed} 기록을 표준 보존 기간으로 설정함."]],
@@ -1105,21 +1105,38 @@
   function immediateRecordAcknowledgement(character = state.character) {
     const day = relationshipActivityDay(character);
     if (normalizeActiveCharacter(character) === "ai") return "[RECORD STORED] 결과 기록을 아래에 표시했습니다.";
-    if (day <= 2) return "접수 완료했습니다. 결과 기록은 아래에 붙였습니다.";
-    if (day <= 4) return "접수 완료했습니다. …아래에 잘 붙였다냥.";
+    if (day <= 2) return "접수 끝났다냥. 결과 기록은 아래에 붙였다냥.";
+    if (day <= 4) return "접수 끝났다냥. 아래에 중요 표시로 붙였다냥.";
     return "접수 끝났다냥. 기록은 아래에 잘 붙여뒀다냥.";
   }
 
   function checkingRecordAcknowledgement(deed, character = state.character) {
     if (normalizeActiveCharacter(character) === "ai") return `[PROCESSING] ‘${deed}’ 기록 확인 중.`;
     const day = relationshipActivityDay(character);
-    if (day <= 2) return `‘${deed}’ 확인 중입니다.`;
-    if (day <= 4) return `‘${deed}’ 확인 중입니다. …보고 있다냥.`;
+    if (day <= 2) return `‘${deed}’ 확인 중이다냥. 업무니까 보는 거다냥.`;
+    if (day <= 4) return `‘${deed}’ 중요 기록인지 확인 중이다냥.`;
     return `‘${deed}’ 말이냥? 기록을 확인하겠다냥.`;
   }
 
   function deedCategoryLabel(category) {
     return ({ hydration: "물 마심", hygiene: "씻기", food: "식사", work: "답장", home: "집안일", movement: "산책", social: "연락", other: "일상 기록" })[category] || "일상 기록";
+  }
+
+  function officialDeedTitleFor(deed, category = categoryForDeed(deed)) {
+    const normalized = normalizeDeed(deed);
+    if (normalized.includes("일어나") || normalized.includes("기상") || normalized.includes("침대")) return "위대한 침상 이탈 작전 성공";
+    if (normalized.includes("답장") || normalized.includes("메일")) return "장기 미응답 사태 종결";
+    if (normalized.includes("출근")) return "금일 사회 출석 작전 완료";
+    if (normalized.includes("약")) return "필수 복용 임무 완료";
+    return ({
+      hydration: "금일 수분 보급 임무 완료",
+      hygiene: "개인 정비 작전 완료",
+      food: "생존 연료 보급 완료",
+      work: "업무 교신 작전 완료",
+      home: "생활 구역 정상화 작전 완료",
+      movement: "신체 가동 작전 완료",
+      social: "대외 연락망 복구 완료"
+    })[category] || `‘${deed}’ 공식 기록 채택`;
   }
 
   function buildRelationshipMemory(character, targetState = state) {
@@ -1313,6 +1330,7 @@
     const copy = variations[variationIndex] || "기록을 확인했습니다.";
     return templateOwner(copy)
       .replaceAll("{deed}", deed)
+      .replaceAll("{officialTitle}", officialDeedTitleFor(deed, context.category || categoryForDeed(deed)))
       .replaceAll("{previousDeed}", context.previousDeed || memory.lastDeed || "이전 기록")
       .replaceAll("{frequentDeed}", memory.frequentDeed)
       .replaceAll("{missingDeed}", memory.missingDeed)
@@ -1338,7 +1356,8 @@
         date, character: key, stage, source,
         copy: templateOwner(eventTemplate)
           .replaceAll("{lastDeed}", memory.lastDeed)
-          .replaceAll("{frequentDeed}", memory.frequentDeed),
+          .replaceAll("{frequentDeed}", memory.frequentDeed)
+          .replaceAll("{officialTitle}", officialDeedTitleFor(memory.lastDeed, categoryForDeed(memory.lastDeed))),
         memory
       };
     }
@@ -1368,6 +1387,7 @@
       copy: templateOwner(template)
         .replaceAll("{lastDeed}", memory.lastDeed)
         .replaceAll("{frequentDeed}", memory.frequentDeed)
+        .replaceAll("{officialTitle}", officialDeedTitleFor(memory.lastDeed, categoryForDeed(memory.lastDeed)))
         .replaceAll("{missingDeed}", memory.missingDeed)
         .replaceAll("{usualTime}", memory.usualTime)
         .replaceAll("{gift}", memory.recentGift)
@@ -1586,6 +1606,7 @@
       ...source,
       id: source.id ?? `legacy-${migratedDate}-${storedText(source.docNo, `record-${index + 1}`)}`,
       deed,
+      officialTitle: storedText(source.officialTitle) || officialDeedTitleFor(deed, storedText(source.category) || categoryForDeed(deed)),
       date: migratedDate,
       number: nonNegativeInteger(source.number) || Number(String(source.docNo || "").match(/(\d+)$/)?.[1]) || 1,
       score: Number.isFinite(contribution) && contribution > 0 ? contribution : 99,
@@ -2481,9 +2502,10 @@
     $("#records-memory-count").textContent = syncRelationship(state.character).memories.repeatedPatterns.length;
     const certificateFiles = state.certificates.slice().reverse().map((certificate, index) => {
       const sourceIndex = state.certificates.length - 1 - index;
+      const officialTitle = certificate.officialTitle || officialDeedTitleFor(certificate.deed, certificate.category);
       return `<article class="archive-cabinet-row">
         <div class="archive-certificate-thumb" aria-hidden="true"><span>공식<br>인증서</span><img src="${recordPortrait(certificate, "praise")}" alt=""></div>
-        <div class="archive-file-copy"><strong>${escapeHtml(certificate.deed)}</strong><p>${escapeHtml(certificate.grade)}</p><small>${escapeHtml(certificate.date)} · 문서 ${String(certificate.number || sourceIndex + 1).padStart(2, "0")}</small></div>
+        <div class="archive-file-copy"><strong>${escapeHtml(officialTitle)}</strong><p>원문 기록 · ${escapeHtml(certificate.deed)}</p><small>${escapeHtml(certificate.date)} · 문서 ${String(certificate.number || sourceIndex + 1).padStart(2, "0")}</small></div>
         <div class="archive-file-action"><span>보관 완료</span><button type="button" data-cert-index="${sourceIndex}" aria-label="${escapeHtml(certificate.deed)} 인증서 열람">›</button></div>
       </article>`;
     }).join("");
@@ -2901,7 +2923,7 @@
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       createdAt: new Date().toISOString(),
-      deed, grade: "일상 기록", nickname: "집사가 기억한 순간", score: null,
+      deed, officialTitle: officialDeedTitleFor(deed, evaluation.category), grade: "일상 기록", nickname: "집사가 기억한 순간", score: null,
       scoreLabel: relationshipStage(nextStage).name, category: evaluation.category,
       verdictType: "memory", rare: false,
       date: today(), number: state.records.length + 1,
@@ -3061,23 +3083,25 @@
     const rare = record.verdictType === "rare" || record.rare;
     const official = isOfficialCertificate(record);
     const firstRecord = isFirstRecord(record);
-    const deedLength = Array.from(String(record.deed || "")).length;
+    const officialTitle = record.officialTitle || officialDeedTitleFor(record.deed, record.category);
+    const certificateDisplayTitle = official ? officialTitle : record.deed;
+    const deedLength = Array.from(String(certificateDisplayTitle || "")).length;
     currentCertificate = record;
     $("#certificate-card").dataset.verdict = rare ? "rare" : "official";
     $("#certificate-card").dataset.certification = official ? "official" : "commemorative";
     $("#certificate-card").dataset.deedLength = deedLength > 42 ? "extra-long" : deedLength > 24 ? "long" : "normal";
-    $("#certificate-screen-title").textContent = official ? "공식 관계 인증서" : "관계 기념 인증서";
+    $("#certificate-screen-title").textContent = official ? "공식 대업 인증서" : "관계 기념 인증서";
     $("#certificate-screen-copy").textContent = official
-      ? "집사와 함께 만든 특별한 순간을 인증합니다."
+      ? "평범한 행동을 집사의 공식 대업으로 인증합니다."
       : firstRecord ? "첫 기록을 집사가 특별히 기념합니다." : "오늘의 기록을 집사가 특별히 기념합니다.";
-    $("#certificate-title").textContent = official ? "공식 관계 인증서" : "관계 기념 인증서";
+    $("#certificate-title").textContent = official ? "공식 대업 인증서" : "관계 기념 인증서";
     $("#certificate-declaration").textContent = official
-      ? "이 증서는 아래의 관계 순간을 엄숙하게 인증합니다"
+      ? "이 증서는 아래의 평범한 행동을 특별 대업으로 엄숙하게 인증합니다"
       : "이 증서는 오늘의 기록을 집사 사무국이 기쁘게 기념합니다";
     $("#certificate-number").textContent = `문서번호 관계-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
     $("#certificate-grade").textContent = record.certificateReason || "특별한 관계 순간";
-    $("#certificate-deed").textContent = record.deed;
-    $("#certificate-nickname").textContent = "― 집사가 오래 기억할 기록 ―";
+    $("#certificate-deed").textContent = certificateDisplayTitle;
+    $("#certificate-nickname").textContent = official ? `― 원문 기록: ${record.deed} ―` : "― 집사가 오래 기억할 기록 ―";
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
     $("#certificate-difficulty").textContent = record.certificateReason || "특별 기억";
     $("#certificate-score").textContent = relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name;
@@ -3085,7 +3109,7 @@
     $("#certificate-butler-name").textContent = butler.name;
     $("#certificate-date").textContent = record.date;
     $("#certificate-card .official-stamp span").innerHTML = official
-      ? rare ? "희귀<br>관계<br>인증" : "공식<br>관계<br>인증"
+      ? rare ? "희귀<br>대업<br>인증" : "공식<br>대업<br>인증"
       : rare ? "희귀<br>기억<br>기념" : "오늘의<br>기록<br>기념";
     $("#certificate-footnote").textContent = official
       ? `✦ ${record.certificateReason || "특별한 관계 순간"}을 기념해 발급되었으며 파일에서 다시 확인할 수 있어요. ✦`
@@ -3253,6 +3277,7 @@
     const owner = certificateOwnerName(record);
     const rare = record.verdictType === "rare" || record.rare;
     const official = isOfficialCertificate(record);
+    const officialTitle = record.officialTitle || officialDeedTitleFor(record.deed, record.category);
     const portrait = await loadCanvasImage(assetFor(butler.character, record.pose || "praise"));
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
@@ -3318,10 +3343,10 @@
     ctx.fillText("OB", 540, 259);
     ctx.fillStyle = "#463534";
     ctx.font = '900 47px "Noto Serif KR", serif';
-    ctx.fillText(official ? "공식 관계 인증서" : "관계 기념 인증서", 540, 327);
+    ctx.fillText(official ? "공식 대업 인증서" : "관계 기념 인증서", 540, 327);
     ctx.fillStyle = "#88766c";
     ctx.font = '600 18px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "이 증서는 아래의 관계 순간을 엄숙하게 인증합니다" : "오늘의 기록을 집사 사무국이 기쁘게 기념합니다", 540, 365);
+    ctx.fillText(official ? "이 증서는 아래의 평범한 행동을 특별 대업으로 인증합니다" : "오늘의 기록을 집사 사무국이 기쁘게 기념합니다", 540, 365);
     ctx.fillStyle = "#711b2c";
     ctx.font = '850 25px "Noto Serif KR", serif';
     ctx.fillText(`${owner} 귀하`, 540, 402);
@@ -3343,7 +3368,7 @@
     let deedLines = [];
     do {
       ctx.font = `900 ${deedFontSize}px "Noto Serif KR", serif`;
-      deedLines = canvasTextLines(ctx, record.deed, 820, 3);
+      deedLines = canvasTextLines(ctx, official ? officialTitle : record.deed, 820, 3);
       if (deedLines.length <= 2 || deedFontSize <= 38) break;
       deedFontSize -= 4;
     } while (deedFontSize >= 38);
@@ -3351,7 +3376,7 @@
     const deedBottom = drawCenteredCanvasLines(ctx, deedLines, 540, 556, deedFontSize * 1.28);
     ctx.fillStyle = "#927045";
     ctx.font = '700 24px "WantedSansVariable", sans-serif';
-    ctx.fillText("― 집사가 오래 기억할 기록 ―", 540, deedBottom + 7);
+    ctx.fillText(official ? `― 원문 기록: ${record.deed} ―` : "― 집사가 오래 기억할 기록 ―", 540, deedBottom + 7);
 
     const metricsY = Math.max(690, deedBottom + 45);
     roundedCanvasRect(ctx, 126, metricsY, 828, 126, 12);
@@ -3420,7 +3445,7 @@
     ctx.stroke();
     ctx.fillStyle = rare ? "#80561c" : "#811a2d";
     ctx.font = '900 20px "Noto Serif KR", serif';
-    ctx.fillText(official ? "관계 기록" : "오늘 기록", 0, -7);
+    ctx.fillText(official ? "공식 대업" : "오늘 기록", 0, -7);
     ctx.fillText(official ? "인증 완료" : "기념 완료", 0, 22);
     ctx.restore();
 
@@ -3465,8 +3490,10 @@
   }
 
   function certificateShareText(record) {
-    const result = isOfficialCertificate(record) ? "특별한 관계 순간으로 인증됐습니다." : "집사의 기억으로 기념됐습니다.";
-    return `${certificateOwnerName(record)}의 오늘 기록이 ${result}\n${record.deed}\n${record.certificateReason || "집사가 오래 기억할 기록"} · ${relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name}\n#과잉집사 #집사의기억`;
+    const official = isOfficialCertificate(record);
+    const result = official ? "집사 사무국의 공식 대업으로 인증됐습니다." : "집사의 기억으로 기념됐습니다.";
+    const title = official ? record.officialTitle || officialDeedTitleFor(record.deed, record.category) : record.deed;
+    return `${certificateOwnerName(record)}의 오늘 기록이 ${result}\n${title}\n원문 기록: ${record.deed}\n${record.certificateReason || "집사가 오래 기억할 기록"} · ${relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name}\n#과잉집사 #오늘의대업`;
   }
 
   async function copyCertificateText(text) {
