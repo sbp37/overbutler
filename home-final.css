@@ -127,6 +127,28 @@
   box-shadow:0 7px 17px rgba(74,50,37,.08);
   isolation:isolate;
 }
+#view-home .briefing-room-world{
+  position:absolute;
+  z-index:1;
+  inset:0 auto 0 0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  transform:translate3d(0,0,0);
+  will-change:transform;
+}
+#view-home .briefing-stage[data-room-character="cat"] .briefing-room-world{
+  width:155%;
+  cursor:grab;
+  touch-action:pan-y;
+  user-select:none;
+  -webkit-user-select:none;
+}
+#view-home .briefing-stage[data-room-character="cat"].is-room-dragging .briefing-room-world{
+  cursor:grabbing;
+  transition:none!important;
+}
+#view-home .briefing-room-world.is-settling{transition:transform .22s ease-out}
 .briefing-room-background{
   position:absolute;
   z-index:0;
@@ -146,9 +168,30 @@
   bottom:29.5%;
   border-top:1px solid rgba(103,76,54,.2);
 }
+.room-gift-object-layer,.room-hotspot-layer{position:absolute;z-index:1;inset:0;pointer-events:none}
+.room-gift-object-layer[hidden],.room-hotspot-layer[hidden]{display:none!important}
+.room-gift-object{
+  position:absolute;
+  left:var(--room-object-x);
+  top:var(--room-object-y);
+  width:var(--room-object-width);
+  min-width:0;
+  min-height:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  transform:translate(-50%,-50%);
+  pointer-events:auto;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.room-gift-object img{display:block;width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 4px 3px rgba(63,42,31,.14));pointer-events:none}
+.room-gift-object:focus-visible{outline:3px solid rgba(116,25,42,.38);outline-offset:3px;border-radius:6px}
+.room-gift-object:active{transform:translate(-50%,-50%) scale(.96)}
 .briefing-index{
   position:absolute;
-  z-index:5;
+  z-index:8;
   left:12px;
   top:11px;
   padding:5px 8px;
@@ -232,7 +275,7 @@
 #view-home .briefing-panel h1{
   position:absolute;
   z-index:5;
-  left:12px;
+  left:calc(50% - min(165px,42vw));
   bottom:11px;
   max-width:128px;
   margin:0;
@@ -255,7 +298,7 @@
   z-index:5;
   left:50%;
   top:43px;
-  width:74%;
+  width:min(calc(100vw - 34px),285px);
   min-height:0;
   margin:0;
   padding:10px 12px;
@@ -502,7 +545,7 @@
   #view-home .briefing-stage{height:270px;min-height:270px}
   #view-home .briefing-character{width:172px;height:216px}
   #view-home .briefing-character>span{right:-54px}
-  #view-home .briefing-speech{width:78%;font-size:13px}
+  #view-home .briefing-speech{width:min(calc(100vw - 30px),276px);font-size:13px}
   #view-home .entry-form{padding-right:13px;padding-left:13px}
   #view-home .quick-actions button{padding-right:10px;padding-left:10px;font-size:11px}
 }
@@ -520,8 +563,8 @@
   .briefing-index{left:9px;top:9px;font-size:9px}
   #view-home .briefing-character{width:150px;height:181px}
   #view-home .briefing-character>span{right:-43px;bottom:9px;padding:6px 8px;font-size:9px}
-  #view-home .briefing-panel h1{left:9px;bottom:9px;max-width:105px;padding:5px 7px;font-size:10px}
-  #view-home .briefing-speech{top:40px;width:calc(100% - 16px);padding:9px 10px;font-size:12px;line-height:1.42}
+  #view-home .briefing-panel h1{left:calc(50% - min(165px,42vw));bottom:9px;max-width:105px;padding:5px 7px;font-size:10px}
+  #view-home .briefing-speech{top:40px;width:calc(100vw - 30px);padding:9px 10px;font-size:12px;line-height:1.42}
   #view-home .entry-form{padding:14px 12px 13px}
   .entry-heading h2{font-size:20px}
   .entry-heading p{font-size:11px}
@@ -539,7 +582,7 @@
 @media(min-width:600px){
   #view-home .briefing-stage{height:285px;min-height:285px}
   #view-home .briefing-character{width:190px;height:238px}
-  #view-home .briefing-speech{width:70%;max-width:330px}
+  #view-home .briefing-speech{width:300px;max-width:300px}
 }
 
 @media(min-width:700px){.bottom-nav{bottom:16px;border-radius:0 0 24px 24px}}

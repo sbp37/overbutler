@@ -121,21 +121,25 @@
         </header>
 
         <section class="briefing-card briefing-stage document-card" data-room-character="ai">
-          <div class="briefing-room-background" id="briefing-room-background" aria-hidden="true"></div>
           <span class="briefing-index">오늘의 담당 집사</span>
-          <button class="briefing-character" id="briefing-character-action" type="button" aria-label="AI 집사에게 말 걸기" aria-describedby="briefing-message">
-            <img id="briefing-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사">
-            <span>톡톡 · 말 걸기</span>
-          </button>
-          <div class="briefing-panel">
-            <small id="home-butler-role-title" hidden>기록 분석 담당</small>
-            <h1 id="home-butler-name">오류 난 AI 집사</h1>
-            <p class="butler-role" id="home-butler-desc" hidden>사용자 기록에만 예외 규칙이 조금씩 늘어나는 AI</p>
-            <div class="home-relationship-status" hidden><span id="home-relationship-stage">업무상 관계</span><small id="home-relationship-next">집사는 아직 선을 긋고 있습니다</small></div>
-            <div class="briefing-speech" id="briefing-message" aria-live="polite">[SYSTEM READY] 기록 접수 대기 중.</div>
-            <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 기록 접수하기 <span>↓</span></button>
-            <button class="briefing-refresh" id="briefing-refresh" type="button" aria-label="집사 브리핑 새로 보기" hidden>↻ 한마디 더</button>
-            <div class="briefing-status" hidden><span><i></i> <b id="briefing-butler-label">AI 집사 · 기록 대기</b></span></div>
+          <div class="briefing-room-world" id="briefing-room-world">
+            <div class="briefing-room-background" id="briefing-room-background" aria-hidden="true"></div>
+            <div class="room-gift-object-layer" id="cat-room-gift-layer"></div>
+            <div class="room-hotspot-layer" id="cat-room-hotspot-layer" aria-hidden="true"></div>
+            <button class="briefing-character" id="briefing-character-action" type="button" aria-label="AI 집사에게 말 걸기" aria-describedby="briefing-message">
+              <img id="briefing-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사">
+              <span>톡톡 · 말 걸기</span>
+            </button>
+            <div class="briefing-panel">
+              <small id="home-butler-role-title" hidden>기록 분석 담당</small>
+              <h1 id="home-butler-name">오류 난 AI 집사</h1>
+              <p class="butler-role" id="home-butler-desc" hidden>사용자 기록에만 예외 규칙이 조금씩 늘어나는 AI</p>
+              <div class="home-relationship-status" hidden><span id="home-relationship-stage">업무상 관계</span><small id="home-relationship-next">집사는 아직 선을 긋고 있습니다</small></div>
+              <div class="briefing-speech" id="briefing-message" aria-live="polite">[SYSTEM READY] 기록 접수 대기 중.</div>
+              <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 기록 접수하기 <span>↓</span></button>
+              <button class="briefing-refresh" id="briefing-refresh" type="button" aria-label="집사 브리핑 새로 보기" hidden>↻ 한마디 더</button>
+              <div class="briefing-status" hidden><span><i></i> <b id="briefing-butler-label">AI 집사 · 기록 대기</b></span></div>
+            </div>
           </div>
         </section>
 

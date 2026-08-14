@@ -458,6 +458,43 @@
     ai: Object.freeze({ _available: false, src: "design/rooms/ai-office-room.webp" })
   });
 
+  // CAT room assets are intentionally inert until the matching transparent files exist.
+  // Flip `_available` only after adding the file at `plannedPath`; inactive gifts never enter the catalog.
+  const CAT_ROOM_OBJECTS = Object.freeze({
+    gift_ribbon: Object.freeze({
+      giftIds: Object.freeze(["red-ribbon"]), giftNames: Object.freeze(["붉은 리본", "리본"]), catalogActive: true, _available: false, src: null,
+      plannedPath: "design/rooms/cat-objects/gift-ribbon.webp", x: 72, y: 66, width: 8,
+      label: "붉은 리본", reaction: "그건 건드리지 마라냥.", reactionPose: "annoyed"
+    }),
+    gift_cushion: Object.freeze({
+      giftIds: Object.freeze(["desk-cushion"]), giftNames: Object.freeze(["작은 쿠션", "쿠션"]), catalogActive: true, _available: false, src: null,
+      plannedPath: "design/rooms/cat-objects/gift-cushion.webp", x: 25, y: 77, width: 18,
+      label: "작은 쿠션", reaction: "잠깐 앉는 용도다냥. 딱히 좋아하는 건 아니다냥.", reactionPose: "happy"
+    }),
+    gift_ball: Object.freeze({
+      giftIds: Object.freeze(["toy-ball"]), giftNames: Object.freeze(["장난감 공"]), catalogActive: false, _available: false, src: null,
+      plannedPath: "design/rooms/cat-objects/gift-ball.webp", x: 35, y: 84, width: 7,
+      label: "장난감 공", reaction: "놀아달라는 뜻은 아니다냥.", reactionPose: "surprised"
+    }),
+    gift_fishing_rod: Object.freeze({
+      giftIds: Object.freeze(["fishing-rod"]), giftNames: Object.freeze(["낚싯대 장난감"]), catalogActive: false, _available: false, src: null,
+      plannedPath: "design/rooms/cat-objects/gift-fishing-rod.webp", x: 77, y: 48, width: 18,
+      label: "낚싯대 장난감", reaction: "그건 주인님이 준 거라서 둔 거다냥.", reactionPose: "happy"
+    }),
+    gift_cat_tower: Object.freeze({
+      giftIds: Object.freeze(["cat-tower"]), giftNames: Object.freeze(["캣타워"]), catalogActive: false, _available: false, src: null,
+      plannedPath: "design/rooms/cat-objects/gift-cat-tower.webp", x: 87, y: 53, width: 24,
+      label: "캣타워", reaction: "…업무용 휴식 설비다냥.", reactionPose: "annoyed"
+    })
+  });
+
+  const CAT_EXPRESSION_ASSETS = Object.freeze({
+    blink: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/ui-poses/cat-blink.png", fallback: "base" }),
+    annoyed: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/ui-poses/cat-annoyed.png", fallback: "analysis" }),
+    happy: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/ui-poses/cat-happy.png", fallback: "praise" }),
+    surprised: Object.freeze({ _available: false, src: null, plannedPath: "design/character-assets/cat-butler/ui-poses/cat-surprised.png", fallback: "analysis" })
+  });
+
   const PERSONNEL_REFERENCE_ASSETS = {
     ai: "design/character-assets/ai-butler/ai-butler-reference.png",
     cat: "design/character-assets/cat-butler/cat-butler-reference.png",
@@ -953,6 +990,10 @@
   let handlingBrowserBack = false;
   let focusReturnTarget = null;
   let sessionPresence = null;
+  let homeRoomOffsetX = 0;
+  let homeRoomCharacter = null;
+  let homeRoomDrag = null;
+  let catAmbientBlinkTimer = null;
   const debugStageOverrides = new Map();
   const debugActivityDayOverrides = new Map();
 
@@ -1629,6 +1670,11 @@
     const profile = CHARACTER_PROFILES[key];
     const assets = OVERBUTLER_ASSETS[key] || {};
     if (!assets._available) return emojiAsset(profile.emoji);
+    const catExpression = key === "cat" ? CAT_EXPRESSION_ASSETS[pose] : null;
+    if (catExpression) {
+      if (catExpression._available && catExpression.src) return catExpression.src;
+      return assets[catExpression.fallback] || assets.base;
+    }
     return assets[pose] || assets.base || emojiAsset(profile.emoji);
   }
 
@@ -1679,6 +1725,79 @@
     return safePose;
   }
 
+  function catRoomObjectOwned(config) {
+    if (!config.catalogActive) return false;
+    return (state.giftHistory || []).some(item => normalizeCharacter(item.character) === "cat" && (
+      config.giftIds.includes(item.giftId) || config.giftNames.includes(item.name)
+    ));
+  }
+
+  function renderCatRoomObjects() {
+    const layer = $("#cat-room-gift-layer");
+    const hotspots = $("#cat-room-hotspot-layer");
+    if (!layer || !hotspots) return;
+    const isCat = normalizeActiveCharacter(state.character) === "cat";
+    layer.hidden = !isCat;
+    hotspots.hidden = !isCat;
+    if (!isCat) {
+      layer.replaceChildren();
+      return;
+    }
+    const visibleObjects = Object.entries(CAT_ROOM_OBJECTS).filter(([, config]) =>
+      config._available && config.src && catRoomObjectOwned(config)
+    );
+    layer.innerHTML = visibleObjects.map(([key, config]) => `<button class="room-gift-object" type="button" data-room-object="${escapeHtml(key)}" aria-label="${escapeHtml(config.label)} 살펴보기" style="--room-object-x:${config.x}%;--room-object-y:${config.y}%;--room-object-width:${config.width}%"><img src="${escapeHtml(config.src)}" alt="${escapeHtml(config.label)}"></button>`).join("");
+    $$("#cat-room-gift-layer img").forEach(image => {
+      image.addEventListener("error", () => image.closest(".room-gift-object")?.remove(), { once: true });
+    });
+  }
+
+  function homeRoomBounds() {
+    const stage = $("#view-home .briefing-stage");
+    const world = $("#briefing-room-world");
+    if (!stage || !world || normalizeActiveCharacter(state.character) !== "cat") return { min: 0, max: 0, center: 0 };
+    const min = Math.min(0, stage.clientWidth - world.offsetWidth);
+    return { min, max: 0, center: min / 2 };
+  }
+
+  function setHomeRoomOffset(value, settle = false) {
+    const world = $("#briefing-room-world");
+    if (!world) return;
+    const bounds = homeRoomBounds();
+    homeRoomOffsetX = clamp(Number(value) || 0, bounds.min, bounds.max);
+    world.classList.toggle("is-settling", settle);
+    world.style.transform = `translate3d(${homeRoomOffsetX}px,0,0)`;
+  }
+
+  function configureHomeRoom(character = state.character) {
+    const stage = $("#view-home .briefing-stage");
+    const world = $("#briefing-room-world");
+    if (!stage || !world) return;
+    const key = normalizeActiveCharacter(character);
+    const characterChanged = homeRoomCharacter !== key;
+    homeRoomCharacter = key;
+    stage.dataset.roomCharacter = key;
+    stage.dataset.roomInteractive = key === "cat" ? "true" : "false";
+    renderCatRoomObjects();
+    window.requestAnimationFrame(() => {
+      const bounds = homeRoomBounds();
+      setHomeRoomOffset(key === "cat" && characterChanged ? bounds.center : key === "cat" ? homeRoomOffsetX : 0, false);
+    });
+  }
+
+  function scheduleCatAmbientBlink() {
+    window.clearTimeout(catAmbientBlinkTimer);
+    catAmbientBlinkTimer = null;
+    if (normalizeActiveCharacter(state.character) !== "cat" || !CAT_EXPRESSION_ASSETS.blink._available || !CAT_EXPRESSION_ASSETS.blink.src) return;
+    catAmbientBlinkTimer = window.setTimeout(() => {
+      if (normalizeActiveCharacter(state.character) !== "cat" || homeRoomDrag) return;
+      const image = $("#briefing-butler-image");
+      setPoseImage(image, "cat", "blink");
+      window.setTimeout(() => setPoseImage(image, "cat", firstWeekRestingPose("cat")), 170);
+      scheduleCatAmbientBlink();
+    }, 6500 + Math.floor(Math.random() * 4500));
+  }
+
   function applyHomeRoomAsset(character = state.character) {
     const room = $("#briefing-room-background");
     const stage = room?.closest(".briefing-stage");
@@ -1687,10 +1806,11 @@
     const asset = OVERBUTLER_ROOM_ASSETS[key];
     const available = Boolean(asset?._available && asset.src);
     room.dataset.roomCharacter = key;
-    stage.dataset.roomCharacter = key;
     room.classList.toggle("has-room-asset", available);
     if (available) room.style.backgroundImage = `url("${asset.src}")`;
     else room.style.removeProperty("background-image");
+    configureHomeRoom(key);
+    scheduleCatAmbientBlink();
   }
 
   function applyCurrentButlerToUI(pose = "base") {
@@ -1899,6 +2019,12 @@
   }
 
   function homeInteractionPose(character = state.character) {
+    if (normalizeCharacter(character) === "cat") {
+      const day = relationshipActivityDay("cat");
+      const interactions = ensureButlerStat("cat").interactions;
+      const sequence = day <= 2 ? ["annoyed", "surprised"] : day <= 4 ? ["surprised", "annoyed", "blink"] : ["happy", "annoyed", "surprised"];
+      return sequence[interactions % sequence.length];
+    }
     if (isActiveCharacter(character)) return homeTransientPose(character, "touch");
     const stat = ensureButlerStat(character);
     const stage = stageIndexFor(stat.obsession);
@@ -1910,6 +2036,49 @@
       ["power", "praise"]
     ];
     return sequences[stage][stat.interactions % sequences[stage].length];
+  }
+
+  function startHomeRoomDrag(event) {
+    if (normalizeActiveCharacter(state.character) !== "cat" || event.button > 0 || event.target.closest("button")) return;
+    const world = $("#briefing-room-world");
+    const stage = $("#view-home .briefing-stage");
+    if (!world || !stage) return;
+    homeRoomDrag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startOffset: homeRoomOffsetX, moved: false };
+    world.classList.remove("is-settling");
+    stage.classList.add("is-room-dragging");
+    world.setPointerCapture?.(event.pointerId);
+  }
+
+  function moveHomeRoomDrag(event) {
+    if (!homeRoomDrag || event.pointerId !== homeRoomDrag.pointerId) return;
+    const dx = event.clientX - homeRoomDrag.startX;
+    const dy = event.clientY - homeRoomDrag.startY;
+    if (!homeRoomDrag.moved) {
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6) return;
+      if (Math.abs(dx) < 5) return;
+      homeRoomDrag.moved = true;
+    }
+    event.preventDefault();
+    setHomeRoomOffset(homeRoomDrag.startOffset + dx, false);
+  }
+
+  function endHomeRoomDrag(event) {
+    if (!homeRoomDrag || event.pointerId !== homeRoomDrag.pointerId) return;
+    const stage = $("#view-home .briefing-stage");
+    homeRoomDrag = null;
+    stage?.classList.remove("is-room-dragging");
+    setHomeRoomOffset(homeRoomOffsetX, true);
+  }
+
+  function interactWithCatRoomObject(event) {
+    const button = event.target.closest("[data-room-object]");
+    if (!button || normalizeActiveCharacter(state.character) !== "cat") return;
+    const object = CAT_ROOM_OBJECTS[button.dataset.roomObject];
+    if (!object || !object._available || !catRoomObjectOwned(object)) return;
+    showBriefingReaction(object.reaction, object.reactionPose || "happy", "선물 살펴보는 중", {
+      duration: 1050,
+      returnPose: firstWeekRestingPose("cat")
+    });
   }
 
   function interactWithButler() {
@@ -3630,6 +3799,7 @@
     $("#gift-drop-status").textContent = `${gift.name} · 책상 보관 완료`;
     renderGiftDesk();
     renderRelationshipDesk();
+    renderCatRoomObjects();
     window.setTimeout(() => { giftTransferActive = false; }, 450);
     window.setTimeout(() => typeMessage($("#gift-desk-butler-line"), message, 30), 120);
   }
@@ -3729,6 +3899,12 @@
     $("#achievement-input").addEventListener("input", event => { $("#char-count").textContent = event.target.value.length; });
     $("#report-button").addEventListener("click", submitAchievement);
     $("#briefing-character-action").addEventListener("click", interactWithButler);
+    $("#briefing-room-world").addEventListener("pointerdown", startHomeRoomDrag);
+    window.addEventListener("pointermove", moveHomeRoomDrag, { passive: false });
+    window.addEventListener("pointerup", endHomeRoomDrag);
+    window.addEventListener("pointercancel", endHomeRoomDrag);
+    $("#cat-room-gift-layer").addEventListener("click", interactWithCatRoomObject);
+    window.addEventListener("resize", () => setHomeRoomOffset(homeRoomOffsetX, false));
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
       const entry = $("#view-home .entry-form");
@@ -3987,6 +4163,8 @@
 
   window.OVERBUTLER_ASSETS = OVERBUTLER_ASSETS;
   window.OVERBUTLER_ROOM_ASSETS = OVERBUTLER_ROOM_ASSETS;
+  window.OVERBUTLER_CAT_ROOM_OBJECTS = CAT_ROOM_OBJECTS;
+  window.OVERBUTLER_CAT_EXPRESSION_ASSETS = CAT_EXPRESSION_ASSETS;
   window.OVERBUTLER_ANALYTICS = Object.freeze({
     eventName: ANALYTICS_EVENT_NAME,
     persistent: false,
