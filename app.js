@@ -1,14 +1,13 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "4.3.0";
+  const APP_VERSION = "4.3.1";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
-      "하루 한 줄만으로 매일 달라지는 첫 7일 관계 경험",
-      "전날 기록과 최근 같은 행동만 기억하는 가벼운 기억",
-      "인사와 분리된 캐릭터 터치 반응",
-      "첫 주에 한 번씩 눈에 띄는 사내 사건과 책상 변화"
+      "기록 서류 안에서 바로 이어지는 집사 반응",
+      "말풍선·포즈·접수 상태가 함께 변하는 홈 상호작용",
+      "첫 7일을 주소만으로 비교할 수 있는 비노출 검수 모드"
     ]
   }];
   const STORAGE_KEY = "butlermaker_v1";
@@ -1820,11 +1819,15 @@
     rememberButlerPose(pose);
     if (!saveState()) { render(); return; }
     trackEvent("butler_interaction", { character: state.character, relationshipStage: stageIndexFor(state.obsession) });
+    showBriefingReaction(message, pose, "반응 중");
+  }
+
+  function showBriefingReaction(message, pose, status = "응답 중") {
     setPoseImage($("#briefing-butler-image"), state.character, pose);
     const trigger = $("#briefing-character-action");
     trigger.classList.remove("is-reacting");
     window.requestAnimationFrame(() => trigger.classList.add("is-reacting"));
-    $("#briefing-butler-label").textContent = `${CHARACTER_PROFILES[state.character].shortName || CHARACTER_PROFILES[state.character].name} · 반응 중`;
+    $("#briefing-butler-label").textContent = `${CHARACTER_PROFILES[state.character].shortName || CHARACTER_PROFILES[state.character].name} · ${status}`;
     typeMessage($("#briefing-message"), message, 24);
     window.clearTimeout(interactionResetTimer);
     interactionResetTimer = window.setTimeout(() => {
@@ -2578,17 +2581,22 @@
     if (!deed) { showToast("오늘 해낸 하찮은 일을 먼저 적어주세요."); input.focus(); return; }
     achievementSubmissionActive = true;
     const reportButton = $("#report-button");
+    const entryForm = $("#view-home .entry-form");
     reportButton.disabled = true;
     reportButton.setAttribute("aria-busy", "true");
+    entryForm.classList.add("is-processing");
     $("#toast").classList.remove("show");
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
     const duplicate = isDuplicateToday(deed);
     pendingEvaluation = { category: categoryForDeed(deed), verdictType: "memory" };
     trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: duplicate ? "duplicate" : "new" });
-    setPoseImage($("#briefing-butler-image"), state.character, poseForRelationship(state.character, currentRelationshipStage(), "deedReaction"));
     $("#report-button-label").textContent = "집사가 기록 확인 중…";
-    typeMessage($("#briefing-message"), state.character === "ai" ? `[RECORD CHECK] ‘${deed}’ 저장 전 확인 중.` : `‘${deed}’ 말이냥? 기록 좀 보겠다냥.`, 18);
+    showBriefingReaction(
+      state.character === "ai" ? `[RECORD CHECK] ‘${deed}’ 저장 전 확인 중.` : `‘${deed}’ 말이냥? 기록 좀 보겠다냥.`,
+      poseForRelationship(state.character, currentRelationshipStage(), "deedReaction"),
+      "기록 확인 중"
+    );
     analysisTimers.push(window.setTimeout(() => finishAchievement(deed), 680));
   }
 
@@ -2657,6 +2665,7 @@
     rememberButlerPose(record.pose);
     if (!saveState()) {
       achievementSubmissionActive = false;
+      $("#view-home .entry-form").classList.remove("is-processing");
       $("#report-button").disabled = false;
       $("#report-button").removeAttribute("aria-busy");
       $("#analysis-overlay").hidden = true;
@@ -2675,6 +2684,7 @@
     $("#analysis-overlay").hidden = true;
     document.body.style.overflow = "";
     achievementSubmissionActive = false;
+    $("#view-home .entry-form").classList.remove("is-processing");
     $("#report-button").disabled = false;
     $("#report-button").removeAttribute("aria-busy");
     $("#report-button-label").textContent = "집사에게 기록 남기기";
@@ -2690,15 +2700,18 @@
     const panel = $("#home-reaction");
     panel.hidden = false;
     panel.classList.toggle("relationship-shift", Boolean(stageChange));
-    const label = panel.querySelector(":scope > span");
-    if (label) label.textContent = stageChange ? `담당 관계 기록 갱신 · ${relationshipStage(stageChange.from).name} → ${relationshipStage(stageChange.to).name}` : "방금 도착한 집사 반응";
+    panel.classList.remove("is-arriving");
+    window.requestAnimationFrame(() => panel.classList.add("is-arriving"));
+    $("#home-reaction-label").textContent = stageChange ? "담당 관계 기록 갱신" : "방금 도착한 집사 응답";
+    $("#home-reaction-status").textContent = stageChange
+      ? `${relationshipStage(stageChange.from).name} → ${relationshipStage(stageChange.to).name}`
+      : record.stampEligible === false ? "반복 기억" : "기억 보관";
     setPoseImage($("#home-reaction-image"), record.character, record.pose || "base");
     const message = stageChange
       ? `${resolveButlerReaction({ character: record.character, stage: stageChange.to, situation: "stageUp", deed: record.deed })}\n${record.report}`
       : record.report;
     typeMessage($("#home-reaction-copy"), message, 24);
-    setPoseImage($("#briefing-butler-image"), record.character, record.pose || "base");
-    typeMessage($("#briefing-message"), record.report, 24);
+    showBriefingReaction(record.report, record.pose || "base", "기록 완료");
     panel.scrollIntoView({ behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
   }
 
@@ -3789,7 +3802,7 @@
 
   function installRelationshipDebugHelper() {
     const params = new URLSearchParams(window.location.search);
-    const enabled = ["localhost", "127.0.0.1", ""].includes(window.location.hostname) || params.has("relationDebug");
+    const enabled = ["localhost", "127.0.0.1", ""].includes(window.location.hostname) || params.has("relationDebug") || params.has("mvpDay");
     if (!enabled) return;
     const preview = (character, stage, situation, context = {}) => {
       const key = normalizeActiveCharacter(character);
@@ -3872,10 +3885,25 @@
       certificateRare(character = state.character, stage = 4) { const key = normalizeActiveCharacter(character); return { character: key, stage, reason: `${relationshipStage(stage).name} 관계 진입`, certificateCandidate: true }; },
       snapshot(character = state.character, stage = currentRelationshipStage(character)) { return { ...preview(character, stage, "greeting"), relationship: { ...ensureRelationship(character) }, memory: buildRelationshipMemory(character), officeEvent: officeEventFor(character) }; }
     });
-    const initialCharacter = params.get("relationCharacter");
+    const initialCharacter = params.get("relationCharacter") || params.get("mvpCharacter");
+    const initialDay = Number(params.get("mvpDay"));
     const initialStage = Number(params.get("relationStage"));
     const initialSituation = params.get("relationSituation") || "greeting";
-    if (initialCharacter && initialStage >= 1 && initialStage <= 6) {
+    if (initialCharacter && initialDay >= 1 && initialDay <= MVP_FIRST_WEEK_LENGTH) {
+      const key = normalizeActiveCharacter(initialCharacter);
+      const day = clamp(initialDay, 1, MVP_FIRST_WEEK_LENGTH);
+      const stage = stageForValidRecordCount(Math.max(0, day - 1));
+      debugActivityDayOverrides.set(key, day);
+      debugStageOverrides.set(key, stage);
+      state.onboarded = true;
+      state.character = key;
+      state.butlerName = ensureButlerStat(key).customName || CHARACTER_PROFILES[key].defaultName;
+      render();
+      const moment = firstWeekMoment(key, day);
+      setPoseImage($("#briefing-butler-image"), key, moment?.pose || "base");
+      typeMessage($("#briefing-message"), fillContentTemplate(moment?.greeting?.[0] || "", { previousDeed: "물 마심" }), 1);
+      document.documentElement.dataset.mvpPreviewDay = String(day);
+    } else if (initialCharacter && initialStage >= 1 && initialStage <= 6) {
       const key = normalizeActiveCharacter(initialCharacter);
       debugStageOverrides.set(key, initialStage);
       state.character = key;
