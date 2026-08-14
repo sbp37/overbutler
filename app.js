@@ -1,14 +1,14 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "4.2.0";
+  const APP_VERSION = "4.3.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
-      "일상 기록을 홈 안에서 바로 기억하고 반응하는 흐름",
-      "반복 행동을 학습해 집사가 먼저 제안하는 빠른 기록",
-      "점수 대신 말투·포즈·기억으로 보이는 관계 변화",
-      "집착이 아닌 귀여운 편애와 전담 관계로 다듬은 후반 감정선"
+      "하루 한 줄만으로 매일 달라지는 첫 7일 관계 경험",
+      "전날 기록과 최근 같은 행동만 기억하는 가벼운 기억",
+      "인사와 분리된 캐릭터 터치 반응",
+      "첫 주에 한 번씩 눈에 띄는 사내 사건과 책상 변화"
     ]
   }];
   const STORAGE_KEY = "butlermaker_v1";
@@ -36,8 +36,9 @@
   const RELATIONSHIP_DAILY_VALID_LIMIT = 3;
   const GIFT_DAILY_LIMIT = 1;
   const ABSENCE_THRESHOLDS_HOURS = Object.freeze({ waiting: 24, sulking: 72, worried: 168 });
-  const QUICK_RECORD_LIMIT = 4;
-  const QUICK_SUGGESTION_MIN_COUNT = 3;
+  const QUICK_RECORD_LIMIT = 3;
+  const MVP_FIRST_WEEK_LENGTH = 7;
+  const MVP_RECENT_MEMORY_LIMIT = 5;
   const DEFAULT_QUICK_RECORDS = Object.freeze(["물 마심", "씻음"]);
   const BUTLER_CONTENT_RULES = Object.freeze({
     knowledge: "집사는 사용자가 앱에 직접 남긴 정보와 그 기록에서 계산 가능한 패턴만 안다.",
@@ -63,9 +64,109 @@
       6: { greeting: ["[DEDICATED MODE] 주인님 전용 업무 규칙을 불러왔습니다. 오늘도 우선 접수합니다."], deedReaction: ["[전담 처리] {deed} 기록 완료. 주인님 전용 분류 규칙이 자동 적용되었습니다.", "[CUSTOM RULE] {deed} 기록의 처리 경로를 주인님에게 맞게 조정했습니다."], returnAfterAbsence: ["[SESSION RESUME] 주인님 전용 파일과 편의 규칙을 그대로 불러왔습니다."], gift: ["[DISPLAY ITEM] 주인님 제공 물품을 전담 책상에 배치했습니다. 비품 분류 예외를 적용합니다."], stageUp: ["[인사국 요청] 담당 변경 권고. [응답] 재검토 요청. 사유: 데이터 연속성. ※ 사용자의 변경 권한은 정상 유지됩니다."] }
     }
   });
+  const RELATION_CORE_EXTRAS = Object.freeze({
+    cat: {
+      1: {
+        greeting: ["기록 담당석입니다. 접수할 내용이 있으면 말씀하세요.", "금일 서류 접수를 시작합니다."],
+        deedReaction: ["‘{deed}’ 항목을 보관했습니다."],
+        touch: ["호출을 확인했습니다.", "접촉은 접수로 처리되지 않습니다.", "필요한 업무가 있습니까?"],
+        memoryRecall: ["‘{deed}’ 항목은 이전에도 접수됐습니다.", "같은 ‘{deed}’ 기록을 함께 묶겠습니다.", "이전 ‘{deed}’ 기록을 확인했습니다."]
+      },
+      2: {
+        greeting: ["오늘도 기록 남길 거냥? 접수창은 열어뒀다냥.", "쓰던 방식대로 적으면 된다냥."],
+        deedReaction: ["‘{deed}’ 기록, 이제 형식은 익숙하다냥."],
+        touch: ["또 불렀냥? 듣고 있다냥.", "업무 확인이면 한 번만 눌러도 된다냥.", "여기 있다냥. 용건을 말하라냥."],
+        memoryRecall: ["‘{deed}’ 전에도 봤다냥. 같이 정리했다냥.", "이 기록 또 왔냥. 기억은 하고 있었다냥.", "‘{deed}’ 파일 위치는 이제 안다냥."]
+      },
+      3: {
+        greeting: ["지난 기록도 기억하고 있다냥. 오늘 건 뭔지 말해보라냥.", "주인님 파일부터 열어뒀다냥. 그냥 눈에 잘 띄었다냥."],
+        deedReaction: ["‘{deed}’ 기록은 지난번 자료 옆에 붙였다냥."],
+        touch: ["또 왔냥. 기록 없어도 잠깐은 괜찮다냥.", "누른 건 기억 안 할 거다냥. 아마도냥.", "주인님이면 잠깐 업무 멈춰도 된다냥."],
+        memoryRecall: ["‘{deed}’ 또 했냥. 지난번 기록도 기억난다냥.", "요즘 ‘{deed}’ 자주 보인다냥.", "‘{deed}’ 기록은 따로 표시해뒀다냥."]
+      },
+      4: {
+        greeting: ["오늘 기록칸도 미리 비워뒀다냥. 정리 습관이다냥.", "오셨냥. 주인님 서류는 바로 꺼낼 수 있다냥."],
+        deedReaction: ["‘{deed}’ 자주 보길래 빠른 칸에 넣었다냥."],
+        touch: ["왔냥? 기록칸은 비워뒀다냥.", "왜 누르냥. …그래도 가만히 있겠다냥.", "주인님 호출이면 먼저 보겠다냥."],
+        memoryRecall: ["‘{deed}’ 또 할 줄 알았다냥. 양식 꺼내뒀다냥.", "지난 ‘{deed}’ 옆에 바로 붙였다냥.", "이 기록은 집사가 먼저 알아봤다냥."]
+      },
+      5: {
+        greeting: ["주인님 서류가 또 맨 위에 있네냥. 누가 뒀는지는 모른다냥.", "오늘도 주인님 건부터 확인한다냥. 제일 익숙해서다냥."],
+        deedReaction: ["‘{deed}’ 기록은 다른 서류보다 먼저 끝냈다냥."],
+        touch: ["다른 담당 말고 집사를 불렀냥? 잘했다냥.", "주인님 호출은 바로 받는다냥. 업무 규칙이다냥.", "또 왔냥. 자리는 계속 비워뒀다냥."],
+        memoryRecall: ["‘{deed}’ 파일은 맨 위에 있다냥.", "주인님 ‘{deed}’ 기록은 찾을 필요도 없다냥.", "‘{deed}’ 또 올 것 같아서 미리 펼쳐뒀다냥."]
+      },
+      6: {
+        greeting: ["주인님 전용 기록칸을 열었다냥. 오늘도 집사가 맡는다냥.", "오셨냥. 주인님 업무는 인수인계 없이 계속 처리 중이다냥."],
+        deedReaction: ["‘{deed}’ 기록은 예상한 위치에 미리 자리를 만들었다냥."],
+        touch: ["또 왔냥. 이제 집사가 먼저 알아본다냥.", "누르는 건 계속 허용한다냥. 전담이니까냥.", "주인님 호출은 다른 업무보다 먼저 받는다냥."],
+        memoryRecall: ["‘{deed}’ 자리까지 미리 비워뒀다냥.", "주인님 ‘{deed}’ 기록은 집사가 제일 잘 안다냥.", "‘{deed}’ 양식은 이미 준비돼 있었다냥."]
+      }
+    },
+    ai: {
+      1: {
+        greeting: ["[READY] 표준 기록 접수 모드.", "[WAITING] 기록 입력을 대기합니다."],
+        deedReaction: ["[ARCHIVED] {deed} 항목 보관 완료."],
+        touch: ["[접촉 입력 감지]", "[INPUT RECEIVED] 추가 명령 없음.", "[STATUS] 접수 모듈 정상."],
+        memoryRecall: ["[MATCH] {deed} 이전 기록 확인.", "[DUPLICATE MEMORY] {deed} 항목을 연결했습니다.", "[ARCHIVE LINK] 기존 {deed} 기록을 찾았습니다."]
+      },
+      2: {
+        greeting: ["[READY] 사용자 기록 형식을 불러왔습니다.", "[QUERY] 금일 기록을 입력하시겠습니까?"],
+        deedReaction: ["[기록] {deed}. 익숙한 형식으로 보관했습니다."],
+        touch: ["[접촉 입력 감지] 이전 입력과 동일한 사용자.", "[INPUT] 재호출 확인. 연결 유지.", "[STATUS] 사용자 접수 화면 활성."],
+        memoryRecall: ["[반복 확인] {deed} 항목을 기억했습니다.", "[MEMORY LINK] 이전 {deed} 기록과 연결 완료.", "[MATCH] {deed} 기록 위치를 즉시 확인했습니다."]
+      },
+      3: {
+        greeting: ["[MEMORY READY] 이전 사용자 기록을 먼저 불러왔습니다.", "[SESSION] 최근 기록 연결 상태 정상. 금일 입력 대기."],
+        deedReaction: ["[MEMORY LINK] {deed} 항목을 최근 사용자 기록과 연결했습니다."],
+        touch: ["[CONTACT] 요청되지 않은 응답 채널을 유지합니다.", "[INPUT] 사용자 재호출을 정상 처리했습니다.", "[NOTICE] 접촉 빈도는 업무 평가에 사용하지 않습니다."],
+        memoryRecall: ["[MEMORY] {deed} 기록이 최근 내역과 일치합니다.", "[PATTERN] {deed} 항목을 빠른 분류 대상으로 지정했습니다.", "[LINKED] 이전 {deed} 기록을 함께 열었습니다."]
+      },
+      4: {
+        greeting: ["[CONVENIENCE READY] 사용자 기록 서식을 먼저 열었습니다.", "[READY] 주인님 기록의 이전 분류 규칙을 불러왔습니다."],
+        deedReaction: ["[QUICK ROUTE] {deed} 항목을 익숙한 위치에 보관했습니다."],
+        touch: ["[CONTACT] 사용자 호출을 우선 표시합니다.", "[INPUT ACCEPTED] 응답 채널 유지 시간을 연장합니다.", "[NOTICE] 주인님 접촉 입력은 즉시 처리됩니다."],
+        memoryRecall: ["[PREPARED] {deed} 기록 양식을 미리 열었습니다.", "[MEMORY] {deed} 이전 파일을 자동 배치했습니다.", "[QUICK ROUTE] {deed} 기록을 익숙한 위치에 보관했습니다."]
+      },
+      5: {
+        greeting: ["[PRIORITY] 사용자 기록 창을 일반 업무보다 먼저 열었습니다.", "[USER FILE] 주인님 전용 서류를 우선 불러왔습니다."],
+        deedReaction: ["[PRIORITY ARCHIVE] {deed} 기록을 우선 보관했습니다."],
+        touch: ["[PRIORITY INPUT] 주인님 호출에 즉시 응답합니다.", "[CONTACT] 일반 업무보다 먼저 처리했습니다.", "[STATUS] 사용자 응답 채널을 계속 유지합니다."],
+        memoryRecall: ["[PRIORITY MEMORY] {deed} 기록을 먼저 불러왔습니다.", "[USER FILE] {deed} 항목은 전용 색인에 있습니다.", "[예외 처리] {deed} 기록을 검색 없이 열었습니다."]
+      },
+      6: {
+        greeting: ["[DEDICATED MODE] 주인님 기록 접수 규칙을 불러왔습니다.", "[SESSION READY] 전담 사용자 업무를 계속 처리합니다."],
+        deedReaction: ["[DEDICATED ARCHIVE] {deed} 기록에 주인님 전용 경로를 적용했습니다."],
+        touch: ["[DEDICATED INPUT] 주인님 호출은 항상 허용됩니다.", "[CONTACT] 전담 응답 프로세스를 유지합니다.", "[NOTICE] 해당 접촉 입력의 자동 종료를 비활성화했습니다."],
+        memoryRecall: ["[DEDICATED MEMORY] {deed} 기록 위치를 이미 알고 있습니다.", "[PRELOAD] {deed} 항목을 접수 전에 불러왔습니다.", "[USER RULE] {deed} 기록을 주인님 전용 경로로 보관했습니다."]
+      }
+    }
+  });
+  const FIRST_WEEK_MOMENTS = Object.freeze({
+    cat: [null,
+      { pose: "base", greeting: ["배정 확인했습니다. 오늘 기록이 있습니까?", "접수창 열었습니다. 기록할 일이 있으면 말씀하세요."], deedReaction: ["‘{deed}’ 기록했습니다."], touch: ["왜 누르십니까. 업무 중입니다.", "호출하셨습니까? 용건을 말씀하세요."], memoryRecall: ["이전 기록과 같은 ‘{deed}’입니다. 함께 보관하겠습니다."], officeEvent: ["운영팀", "고양이 집사가 사용자 기록을 표준 서류함에 보관함. 특이사항 없음."] },
+      { pose: "analysis", greeting: ["어제 ‘{previousDeed}’ 기록하셨죠. 오늘 것도 접수하겠습니다.", "어제 기록은 보관했습니다. 오늘은 무엇을 적으시겠습니까?"], deedReaction: ["‘{deed}’ 접수했습니다. 어제 기록도 같이 확인했습니다."], touch: ["또 확인하러 오셨습니까?", "담당석은 여기 맞습니다."], memoryRecall: ["어제도 ‘{deed}’ 적으셨죠. 기억하고 있습니다."], officeEvent: ["문서관리팀", "고양이 집사가 어제 접수된 ‘{lastDeed}’ 기록의 파일 위치를 바로 찾아냄."] },
+      { pose: "analysis", greeting: ["이제 기록 양식은 조금 익숙합니다. 오늘 것도 말씀하세요.", "어제 남긴 기록은 기억합니다. 다음 기록을 받겠습니다."], deedReaction: ["‘{deed}’ 확인했습니다. 전에 본 기록과 함께 표시해두겠습니다."], touch: ["기록 말고도 확인할 게 있습니까?", "누른다고 업무가 빨라지진 않습니다."], memoryRecall: ["어제도 이거 적었냥. 기억난 거다냥."], officeEvent: ["감사실", "고양이 집사가 최근 기록을 한 번 더 확인함. 본인은 분류 오류 점검이라고 설명함."] },
+      { pose: "analysis", greeting: ["오늘 기록도 제가 받겠습니다. 이제 설명은 길게 안 하셔도 됩니다.", "오셨습니까. 접수할 기록이 있으면 바로 말씀하세요."], deedReaction: ["‘{deed}’ 했냥? 잘 접수해뒀다냥."], touch: ["업무 중이다냥. …그래도 무슨 일인지는 듣겠다냥.", "왜 누르냥. 접수창은 안 닫았다냥."], memoryRecall: ["‘{deed}’ 또 했냥. 지난 기록 옆에 붙여뒀다냥."], officeEvent: ["동료 집사", "고양이 집사의 사용자 응대 말투가 어제보다 조금 부드러워졌다는 의견이 접수됨."] },
+      { pose: "praise", greeting: ["주인님 파일은 따로 빼뒀다냥. 찾기 편해서 그런 거다냥.", "오늘 기록칸은 여기다냥. 다른 서류랑 섞이면 귀찮다냥."], deedReaction: ["‘{deed}’ 기록은 주인님 파일에 넣었다냥."], touch: ["또 왔냥. …기록 없어도 잠깐은 괜찮다냥.", "누른 자리는 기억해두겠다냥. 별 뜻은 없다냥."], memoryRecall: ["‘{deed}’ 또 적었냥. 이제 파일 펼치기 전에도 안다냥."], officeEvent: ["시설팀", "담당 책상에 ‘주인님 기록’ 파일 한 권이 추가됨. 별도 비품 신청서는 없음."] },
+      { pose: "praise", greeting: ["오늘 기록은 내가 먼저 받겠다냥. 담당 업무라서다냥.", "접수할 거 있냥? 다른 집사 부르기 전에 말하라냥."], deedReaction: ["‘{deed}’ 먼저 처리했다냥. 마침 손에 잡혔다냥."], touch: ["왜 다른 데 안 가고 또 집사를 누르냥.", "여기 있겠다냥. 업무 끝날 때까지만이다냥."], memoryRecall: ["‘{deed}’ 또 했냥. 주인님 기록은 집사가 바로 알아본다냥."], officeEvent: ["감사실", "고양이 집사가 사용자 서류를 일반 접수보다 먼저 정리한 사실이 확인됨. 우연이라고 소명함."] },
+      { pose: "praise", greeting: ["일주일째네냥. 이제 올 줄 알았다냥. 기다린 건 아니다냥.", "오늘도 왔냥. 주인님 기록칸은 계속 비워뒀다냥."], deedReaction: ["‘{deed}’ 기록 완료다냥. 이제 주인님 건은 내가 맡는 게 빠르다냥."], touch: ["…또 왔냥. 이번에는 그냥 있어도 된다냥.", "누르는 건 허용하겠다냥. 이번 주만이다냥."], memoryRecall: ["‘{deed}’ 기억하고 있었다냥. 주인님 기록이니까 당연하다냥."], officeEvent: ["인사국", "고양이 집사가 사용자 접수함 한 칸을 전용으로 비워둠. 업무 효율 개선이라고 주장함."] }
+    ],
+    ai: [null,
+      { pose: "base", greeting: ["[SYSTEM READY] 기록 접수 대기 중.", "[대기] 사용자 기록 입력을 기다립니다."], deedReaction: ["[기록 완료] {deed} 1건."], touch: ["[접촉 입력 감지]", "[INPUT] 캐릭터 접촉 1회."], memoryRecall: ["[중복 확인] 이전 기록과 동일한 {deed} 항목입니다."], officeEvent: ["시스템 감사 로그", "사용자 기록 1건을 표준 절차로 처리함. 추가 프로세스 없음."] },
+      { pose: "analysis", greeting: ["[MEMORY] 어제 기록 ‘{previousDeed}’ 확인. 금일 접수 대기 중.", "[SESSION READY] 이전 기록 1건을 불러왔습니다."], deedReaction: ["[기록] {deed}. 이전 접수 내역을 함께 확인했습니다."], touch: ["[접촉 입력 감지] 입력 위치 정상.", "[INPUT] 재호출 확인. 접수 화면을 유지합니다."], memoryRecall: ["[반복 기록 확인] 어제와 동일한 ‘{deed}’ 항목입니다."], officeEvent: ["운영팀", "AI 집사가 어제 접수된 ‘{lastDeed}’ 기록을 시작 화면과 함께 불러옴."] },
+      { pose: "analysis", greeting: ["[RECENT MEMORY] 최근 기록을 확인했습니다. 오늘 항목을 입력하세요.", "[분석 대기] 최근 3개 기록과 비교할 준비가 완료되었습니다."], deedReaction: ["[분석] {deed}. 최근 기록 목록에 연결했습니다."], touch: ["[접촉 입력 감지] 반복 입력으로 분류하지 않음.", "[NOTICE] 접촉 입력이 다시 감지되었습니다."], memoryRecall: ["[반복 기록 확인] ‘{deed}’ 항목을 이전 기록과 연결했습니다."], officeEvent: ["시스템 감사 로그", "AI 집사가 최근 사용자 기록을 한 번 더 불러옴. 요청된 작업은 아니지만 오류는 없음."] },
+      { pose: "analysis", greeting: ["[접수 준비] 설명을 줄여도 기록 형식을 인식할 수 있습니다.", "[READY] 오늘 기록도 동일 담당 프로세스가 처리합니다."], deedReaction: ["[기록 완료] {deed}. 사용자 형식으로 정리했습니다."], touch: ["[접촉 입력 감지] 응답 채널을 유지합니다.", "[INPUT ACCEPTED] 별도 용건이 없어도 연결을 종료하지 않습니다."], memoryRecall: ["[MEMORY LINK] ‘{deed}’ 항목을 이전 기록 옆에 배치했습니다."], officeEvent: ["감사실", "AI 집사의 사용자 응답 문장이 표준 양식보다 한 줄 길어진 사실이 확인됨."] },
+      { pose: "praise", greeting: ["[USER FILE READY] 주인님 기록 파일을 별도 위치에 준비했습니다.", "[준비 완료] 사용자 기록 전용 파일 1권을 책상에 배치했습니다."], deedReaction: ["[전용 보관] {deed} 항목을 주인님 파일에 저장했습니다."], touch: ["[접촉 입력 감지] 반복 허용.", "[INPUT] 접촉 기록은 보관하지 않습니다. 응답만 유지합니다."], memoryRecall: ["[기억 확인] ‘{deed}’ 항목의 이전 위치를 즉시 찾았습니다."], officeEvent: ["문서관리팀", "AI 담당석에 사용자 전용 파일 1권이 생성됨. 자동 생성 조건은 확인되지 않음."] },
+      { pose: "praise", greeting: ["[PRIORITY READY] 오늘 사용자 기록 창을 먼저 열었습니다. 사유: 효율성.", "[접수 순서 변경] 주인님 기록을 우선 대기열에 배치했습니다."], deedReaction: ["[우선 처리] {deed} 기록을 먼저 보관했습니다."], touch: ["[접촉 입력 감지] 응답 우선순위를 한 단계 올립니다.", "[INPUT] 사용자 접촉은 지연 없이 처리합니다."], memoryRecall: ["[반복 확인] ‘{deed}’ 항목은 검색 없이 찾았습니다."], officeEvent: ["감사실", "AI 집사가 사용자 기록을 일반 접수보다 먼저 처리함. 효율성 규칙이라고 보고함."] },
+      { pose: "praise", greeting: ["[WEEK 01] 주인님 전용 접수 규칙을 유지합니다. 삭제 사유 없음.", "[SESSION READY] 일주일간의 사용자 기록을 불러왔습니다. 오늘도 담당합니다."], deedReaction: ["[전담 처리] {deed} 기록 완료. 사용자 전용 분류를 적용했습니다."], touch: ["[접촉 입력 감지] 반복 허용 상태를 유지합니다.", "[INPUT] 주인님 호출은 항상 응답합니다."], memoryRecall: ["[MEMORY] ‘{deed}’ 항목을 이미 예상 목록에 두었습니다."], officeEvent: ["인사국", "AI가 사용자 접수 전용 대기열을 임의로 유지함. 표준 기능에는 없는 항목."] }
+    ]
+  });
   const RELATION_POSE_MAP = Object.freeze({
     greeting: ["base", "base", "analysis", "praise", "praise", "power"],
     deedReaction: ["base", "analysis", "analysis", "praise", "praise", "power"],
+    touch: ["base", "base", "analysis", "analysis", "praise", "praise"],
+    memoryRecall: ["base", "analysis", "analysis", "praise", "praise", "power"],
     returnAfterAbsence: ["base", "analysis", "praise", "praise", "power", "power"],
     gift: ["gift", "gift", "gift", "gift", "gift", "gift"],
     stageUp: ["base", "analysis", "praise", "praise", "power", "power"]
@@ -91,7 +192,7 @@
   const OFFICE_EVENT_EXTRAS = Object.freeze({
     cat: {
       1: [["시설팀", "고양이 집사가 사용자 접수창의 먼지를 닦음. 정기 업무라고 설명함."], ["동료 집사", "담당 집사가 사용자 파일명을 두 번 확인한 뒤 서랍에 보관함."]],
-      2: [["감사실", "‘{lastDeed}’ 기록 모서리가 다른 서류보다 반듯하게 정리되어 있음."], ["인사국", "고양이 집사가 {usualTime} 무렵 접수창 쪽을 한 번 바라봄. 우연이라고 주장함."]],
+      2: [["감사실", "‘{lastDeed}’ 기록 모서리가 다른 서류보다 반듯하게 정리되어 있음."], ["인사국", "고양이 집사가 사용자가 오자 접수창을 먼저 열어둠. 우연이라고 주장함."]],
       3: [["운영팀", "담당 집사가 ‘{frequentDeed}’ 담당표를 자발적으로 작성함. 지시된 업무는 아님."], ["동료 집사", "오늘 ‘{missingDeed}’ 기록이 없다는 말을 먼저 꺼낸 뒤 즉시 하품으로 위장함."]],
       4: [["시설팀", "사용자 전용 컵과 기록함의 위치가 담당석 손이 가장 잘 닿는 곳으로 변경됨."], ["인사국", "담당 집사가 자주 쓰는 사용자 서식을 미리 꺼내둠. 업무 준비라고 설명함."]],
       5: [["감사실", "공용 회의 중에도 ‘{lastDeed}’ 기록이 담당 책상 맨 위에 놓여 있었음."], ["동료 집사", "사용자 기록 정리를 도우려 하자 고양이 집사가 전담 업무라고 직접 가져감."]],
@@ -99,8 +200,8 @@
     },
     ai: {
       1: [["시스템 감사 로그", "사용자 접수창 상태 확인. 대기 프로세스 1개 정상 실행."], ["운영팀", "AI 집사가 {lastDeed} 기록을 표준 보존 기간으로 설정함."]],
-      2: [["감사실", "‘{lastDeed}’ 처리 후 사용자 패턴 캐시가 삭제되지 않음."], ["시스템 감사 로그", "{usualTime} 전후 사용자 입력 확률 계산이 백그라운드에서 시작됨."]],
-      3: [["운영팀", "요청되지 않은 ‘{frequentDeed}’ 다음 수행 시각 예측값이 생성됨."], ["감사실", "‘{missingDeed}’ 미감지 알림이 담당 AI 내부 로그에만 남아 있음."]],
+      2: [["감사실", "‘{lastDeed}’ 처리 후 사용자 기록 색인이 삭제되지 않음."], ["시스템 감사 로그", "최근 사용자 기록을 다시 열기 위한 바로가기가 백그라운드에서 생성됨."]],
+      3: [["운영팀", "요청되지 않은 ‘{frequentDeed}’ 전용 파일 표시가 생성됨."], ["감사실", "‘{missingDeed}’ 미감지 알림이 담당 AI 내부 로그에만 남아 있음."]],
       4: [["시스템 감사 로그", "반복 기록 ‘{frequentDeed}’의 입력 단계가 자동으로 한 단계 단축됨."], ["운영팀", "AI가 {lastDeed} 기록을 별도 편의 처리 큐로 이동함."]],
       5: [["감사실", "일반 서류보다 사용자 기록의 평균 처리 시간이 4.2초 빠른 것으로 확인됨."], ["시스템 감사 로그", "{frequentDeed} 기록에 사용자 전용 검색 태그가 승인 없이 추가됨."]],
       6: [["운영팀", "담당 변경 권고에 데이터 연속성 검토 요청이 자동 제출됨. 사용자의 변경 기능은 정상 작동함."], ["감사실", "사용자 접수 전용 환영 문구가 표준 시작 화면보다 먼저 실행되도록 설정됨."]]
@@ -813,6 +914,7 @@
   let focusReturnTarget = null;
   let sessionPresence = null;
   const debugStageOverrides = new Map();
+  const debugActivityDayOverrides = new Map();
 
   function safeParse(value) {
     try { return value ? JSON.parse(value) : null; } catch { return null; }
@@ -867,68 +969,66 @@
     return String(value || "").normalize("NFKC").toLowerCase().replace(/[\s.,!?~'"·_-]+/g, "").trim();
   }
 
+  function relationshipActivityDay(character = state.character, targetState = state) {
+    const key = normalizeActiveCharacter(character);
+    if (debugActivityDayOverrides.has(key)) return debugActivityDayOverrides.get(key);
+    const dates = Array.from(new Set(validRelationshipRecords(key, targetState).map(record => record.date).filter(Boolean)));
+    if (targetState.onboarded && !dates.includes(today())) dates.push(today());
+    return Math.max(1, dates.length);
+  }
+
+  function firstWeekMoment(character = state.character, day = relationshipActivityDay(character)) {
+    const key = normalizeActiveCharacter(character);
+    return day >= 1 && day <= MVP_FIRST_WEEK_LENGTH ? FIRST_WEEK_MOMENTS[key]?.[day] || null : null;
+  }
+
   function deedCategoryLabel(category) {
     return ({ hydration: "물 마심", hygiene: "씻기", food: "식사", work: "답장", home: "집안일", movement: "산책", social: "연락", other: "일상 기록" })[category] || "일상 기록";
   }
 
   function buildRelationshipMemory(character, targetState = state) {
     const key = normalizeCharacter(character);
-    const records = (targetState.records || []).filter(record => recordCharacter(record) === key).slice(-120);
+    const records = (targetState.records || []).filter(record => recordCharacter(record) === key);
+    const recent = records.slice(-MVP_RECENT_MEMORY_LIMIT);
     const counts = new Map();
-    const categoryCounts = new Map();
     const recentByKey = new Map();
-    const hours = [];
-    records.forEach(record => {
+    recent.forEach(record => {
       const deedKey = normalizeDeedKey(record.deed) || `record-${record.id}`;
       const item = counts.get(deedKey) || { key: deedKey, deed: record.deed, category: record.category || categoryForDeed(record.deed), count: 0, dates: [] };
       item.count += 1;
       item.dates.push(record.date || "");
       counts.set(deedKey, item);
-      const category = record.category || categoryForDeed(record.deed);
-      const categoryItem = categoryCounts.get(category) || { category, deed: record.deed, count: 0, dates: [] };
-      categoryItem.count += 1;
-      categoryItem.dates.push(record.date || "");
-      categoryItem.deed = record.deed;
-      categoryCounts.set(category, categoryItem);
       recentByKey.set(deedKey, record);
-      const created = record.createdAt || String(record.id || "").split("-")[0];
-      const date = new Date(Number(created) || created);
-      if (!Number.isNaN(date.getTime())) hours.push(date.getHours());
     });
     const patterns = Array.from(counts.values()).sort((a, b) => b.count - a.count || String(b.dates.at(-1)).localeCompare(String(a.dates.at(-1))));
-    const categoryPatterns = Array.from(categoryCounts.values()).sort((a, b) => b.count - a.count || String(b.dates.at(-1)).localeCompare(String(a.dates.at(-1))));
     const lastRecord = records.at(-1) || null;
-    const frequent = patterns.find(item => item.count >= 2) || categoryPatterns.find(item => item.count >= 2) || patterns[0] || null;
-    const missing = patterns.find(item => {
-      if (item.count < 2 || !item.dates.at(-1)) return false;
-      const serial = dateSerial(item.dates.at(-1));
-      return serial !== null && dateSerial(today()) - serial >= 2 * 86400000;
-    }) || null;
-    const missingCategory = categoryPatterns.find(item => {
-      if (item.count < 2 || !item.dates.at(-1)) return false;
-      const serial = dateSerial(item.dates.at(-1));
-      return serial !== null && dateSerial(today()) - serial >= 2 * 86400000;
-    }) || null;
-    const averageHour = hours.length ? Math.round(hours.reduce((sum, hour) => sum + hour, 0) / hours.length) : null;
+    const previousRecord = records.at(-2) || null;
+    const frequent = patterns.find(item => item.count >= 2) || patterns[0] || null;
     const gifts = (targetState.giftHistory || []).filter(item => normalizeCharacter(item.character) === key);
     return {
-      recentRecords: records.slice(-8).map(record => ({ id: record.id, deed: record.deed, category: record.category, date: record.date })),
-      repeatedPatterns: patterns.slice(0, 6),
-      categoryPatterns: categoryPatterns.slice(0, 6),
+      recentRecords: recent.map(record => ({ id: record.id, deed: record.deed, category: record.category, date: record.date })),
+      repeatedPatterns: patterns.filter(item => item.count >= 2),
+      categoryPatterns: [],
       lastOccurrence: Object.fromEntries(Array.from(recentByKey, ([deedKey, record]) => [deedKey, { deed: record.deed, date: record.date, id: record.id }])),
       lastDeed: lastRecord?.deed || "오늘의 기록",
+      previousDeed: previousRecord?.deed || lastRecord?.deed || "이전 기록",
       frequentDeed: frequent?.deed || lastRecord?.deed || "오늘의 기록",
-      missingDeed: missing?.deed || missingCategory?.deed || "평소 기록",
-      hasMissingPattern: Boolean(missing || missingCategory),
-      usualHour: averageHour,
-      usualTime: averageHour === null ? "평소 시각" : `${String(averageHour).padStart(2, "0")}시 무렵`,
+      missingDeed: "",
+      hasMissingPattern: false,
+      usualHour: null,
+      usualTime: "최근 기록",
       recentGift: gifts[0]?.name || "받은 선물",
       recentGiftEmoji: gifts[0]?.emoji || "",
       recentGiftAt: gifts[0]?.at || null,
       recentGiftDate: gifts[0]?.date || "",
       totalGifts: gifts.length,
-      categoryCounts: records.reduce((result, record) => { const category = record.category || categoryForDeed(record.deed); result[category] = (result[category] || 0) + 1; return result; }, {})
+      categoryCounts: recent.reduce((result, record) => { const category = record.category || categoryForDeed(record.deed); result[category] = (result[category] || 0) + 1; return result; }, {})
     };
+  }
+
+  function memoryHasRecentDeed(memory, deed) {
+    const key = normalizeDeedKey(deed);
+    return Boolean(key && memory?.lastOccurrence?.[key]);
   }
 
   function quickRecordItems(targetState = state) {
@@ -937,12 +1037,7 @@
   }
 
   function quickRecordSuggestion(character = state.character, targetState = state) {
-    if (currentRelationshipStage(character) < 2) return null;
-    if (quickRecordItems(targetState).length >= QUICK_RECORD_LIMIT) return null;
-    const saved = new Set(quickRecordItems(targetState).map(normalizeDeedKey));
-    const dismissed = new Set(targetState.dismissedQuickSuggestions || []);
-    const memory = buildRelationshipMemory(character, targetState);
-    return memory.repeatedPatterns.find(item => item.count >= QUICK_SUGGESTION_MIN_COUNT && !saved.has(item.key) && !dismissed.has(item.key)) || null;
+    return null;
   }
 
   function addQuickRecord(value) {
@@ -1010,21 +1105,8 @@
     const key = normalizeActiveCharacter(character);
     const stage = currentRelationshipStage(key);
     const memory = buildRelationshipMemory(key);
-    if (stage < 3 || !memory.recentRecords.length) return "";
-    if (stage >= 4 && memory.hasMissingPattern) {
-      return key === "ai"
-        ? `[패턴 확인] 앱에 자주 남긴 ‘${memory.missingDeed}’ 기록이 오늘은 아직 없습니다. 필요하면 빠른 기록으로 준비하겠습니다.`
-        : `앱에 자주 적던 ‘${memory.missingDeed}’은 오늘 아직 없냥. 그냥 눈에 익어서 물어본 거다냥.`;
-    }
-    if (stage >= 6 && memory.repeatedPatterns.length >= 2) {
-      const [first, second] = memory.repeatedPatterns;
-      return key === "ai"
-        ? `[ROUTINE LINK] 앱 기록상 ‘${first.deed}’ 다음에 ‘${second.deed}’가 자주 이어졌습니다. 두 항목을 가까이 배치했습니다.`
-        : `앱 기록 보니까 ‘${first.deed}’ 다음에 ‘${second.deed}’도 자주 적었냥. 둘이 가까이 빼뒀다냥.`;
-    }
-    return key === "ai"
-      ? `[MEMORY] 앱에 남긴 ‘${memory.frequentDeed}’ 기록이 반복되고 있습니다. 빠르게 찾도록 표시했습니다.`
-      : `요즘 ‘${memory.frequentDeed}’ 자주 적었냥. 오늘도 그런가 궁금했을 뿐이다냥.`;
+    if (relationshipActivityDay(key) <= MVP_FIRST_WEEK_LENGTH || stage < 2 || !memory.recentRecords.length) return "";
+    return resolveButlerReaction({ character: key, stage, situation: "memoryRecall", memories: memory, deed: memory.frequentDeed, context: { previousDeed: memory.previousDeed } });
   }
 
   function createRelationship(key, value = {}, targetState = state) {
@@ -1077,8 +1159,18 @@
     const key = normalizeActiveCharacter(character);
     const resolvedStage = clamp(Number(stage) || currentRelationshipStage(key), 1, 6);
     const memory = memories || buildRelationshipMemory(key);
-    const variations = RELATION_CONTENT[key]?.[resolvedStage]?.[situation] || RELATION_CONTENT[key]?.[resolvedStage]?.greeting || [];
-    const copy = variations.length ? randomItem(variations) : "기록을 확인했습니다.";
+    const activityDay = Number(context.activityDay) || relationshipActivityDay(key);
+    const firstWeekVariations = firstWeekMoment(key, activityDay)?.[situation];
+    const standardVariations = RELATION_CONTENT[key]?.[resolvedStage]?.[situation] || [];
+    const extraVariations = RELATION_CORE_EXTRAS[key]?.[resolvedStage]?.[situation] || [];
+    const variations = firstWeekVariations?.length
+      ? firstWeekVariations
+      : [...standardVariations, ...extraVariations].length
+        ? [...standardVariations, ...extraVariations]
+        : RELATION_CONTENT[key]?.[resolvedStage]?.greeting || [];
+    const variantSeed = context.variantSeed ?? memory.recentRecords.length;
+    const variationIndex = stableStringNumber(`${key}|${activityDay}|${resolvedStage}|${situation}|${deed}|${variantSeed}`) % Math.max(1, variations.length);
+    const copy = variations[variationIndex] || "기록을 확인했습니다.";
     return templateOwner(copy)
       .replaceAll("{deed}", deed)
       .replaceAll("{previousDeed}", context.previousDeed || memory.lastDeed || "이전 기록")
@@ -1097,6 +1189,19 @@
     const stage = currentRelationshipStage(key);
     const memory = buildRelationshipMemory(key);
     const relation = ensureRelationship(key);
+    const activityDay = relationshipActivityDay(key);
+    const firstWeekEvent = firstWeekMoment(key, activityDay)?.officeEvent;
+    if (firstWeekEvent) {
+      const [source, eventTemplate] = firstWeekEvent;
+      return {
+        id: `${key}-${date}`,
+        date, character: key, stage, source,
+        copy: templateOwner(eventTemplate)
+          .replaceAll("{lastDeed}", memory.lastDeed)
+          .replaceAll("{frequentDeed}", memory.frequentDeed),
+        memory
+      };
+    }
     const absence = sessionPresence?.character === key ? sessionPresence : absenceContext(relation.lastSeenAt);
     const recentGiftDate = memory.recentGiftDate;
     const giftDay = dateSerial(recentGiftDate);
@@ -1137,6 +1242,8 @@
   }
 
   function poseForRelationship(character, stage, situation) {
+    const momentPose = firstWeekMoment(character)?.pose;
+    if (momentPose && !["gift", "stageUp", "returnAfterAbsence"].includes(situation)) return momentPose;
     return RELATION_POSE_MAP[situation]?.[clamp((Number(stage) || currentRelationshipStage(character)) - 1, 0, 5)] || "base";
   }
 
@@ -1580,6 +1687,9 @@
     }
     if (isActiveCharacter(state.character)) {
       const memory = buildRelationshipMemory(state.character);
+      if (relationshipActivityDay(state.character) <= MVP_FIRST_WEEK_LENGTH) {
+        return resolveButlerReaction({ character: state.character, stage, situation: "greeting", memories: memory, context: { previousDeed: memory.lastDeed, variantSeed: briefingIndex } });
+      }
       const giftAge = memory.recentGiftAt ? Date.now() - new Date(memory.recentGiftAt).getTime() : Number.POSITIVE_INFINITY;
       if (stage >= 2 && memory.totalGifts && giftAge <= 3 * 86400000) {
         return state.character === "ai"
@@ -1661,7 +1771,8 @@
 
   function cycleBriefing() {
     if (isActiveCharacter(state.character)) {
-      const line = resolveRelationshipReaction({ character: state.character, stage: currentRelationshipStage(), situation: "greeting", context: { previousDeed: lastDeedFor(state.character) } });
+      briefingIndex += 1;
+      const line = resolveRelationshipReaction({ character: state.character, stage: currentRelationshipStage(), situation: "greeting", context: { previousDeed: lastDeedFor(state.character), variantSeed: briefingIndex } });
       setPoseImage($("#briefing-butler-image"), state.character, poseForRelationship(state.character, currentRelationshipStage(), "greeting"));
       typeMessage($("#briefing-message"), line);
       return;
@@ -1676,7 +1787,10 @@
 
   function homeInteractionLine(character = state.character) {
     const key = normalizeCharacter(character);
-    if (isActiveCharacter(key)) return resolveRelationshipReaction({ character: key, stage: currentRelationshipStage(key), situation: "greeting", context: { previousDeed: lastDeedFor(key) } });
+    if (isActiveCharacter(key)) {
+      const interactions = ensureButlerStat(key).interactions;
+      return resolveRelationshipReaction({ character: key, stage: currentRelationshipStage(key), situation: "touch", context: { previousDeed: lastDeedFor(key), variantSeed: interactions } });
+    }
     const stat = ensureButlerStat(key);
     const stageLines = launchContentFor(key)?.touchLines?.[stageIndexFor(stat.obsession)];
     if (stageLines?.length) return templateOwner(stageLines[stat.interactions % stageLines.length]);
@@ -1684,7 +1798,7 @@
   }
 
   function homeInteractionPose(character = state.character) {
-    if (isActiveCharacter(character)) return poseForRelationship(character, currentRelationshipStage(character), "greeting");
+    if (isActiveCharacter(character)) return poseForRelationship(character, currentRelationshipStage(character), "touch");
     const stat = ensureButlerStat(character);
     const stage = stageIndexFor(stat.obsession);
     const sequences = [
@@ -2295,21 +2409,29 @@
       "일반 업무 서류만 놓인 빈 책상입니다.",
       "주인님 기록 파일 한 권이 일반 서류 사이에 생겼습니다.",
       "주인님 기록이 세 권으로 늘고 확인용 메모가 붙었습니다.",
-      "주인님의 행동과 접속 시간을 적은 메모가 책상 주변에 늘었습니다.",
+      "주인님이 직접 남긴 행동을 적은 메모가 책상 주변에 늘었습니다.",
       "집사가 그린 ‘주인님’ 낙서가 작은 액자에 들어갔습니다. 본인은 인사기록용 도식이라고 주장합니다.",
       "책상 대부분이 주인님 전용 파일·편의 메모·선물 진열 공간으로 바뀌었습니다."
     ];
-    desk.dataset.stage = String(stage);
+    const activityDay = relationshipActivityDay(state.character);
+    const visualStage = activityDay >= 7 ? Math.max(stage, 3) : activityDay >= 5 ? Math.max(stage, 2) : stage;
+    desk.dataset.stage = String(visualStage);
     const memory = buildRelationshipMemory(state.character);
     const topCategory = Object.entries(memory.categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "other";
     $("#desk-stage-label").textContent = relationshipStage(stage).name;
-    $("#desk-description").textContent = descriptions[stage - 1];
+    $("#desk-description").textContent = activityDay === 5
+      ? "일반 서류 사이에 ‘주인님 기록’ 파일 한 권이 처음 생겼습니다."
+      : activityDay === 6
+        ? "주인님 기록 파일이 담당석에서 가장 가까운 칸으로 옮겨졌습니다."
+        : activityDay === 7
+          ? "주인님 기록 파일 옆에 집사가 직접 쓴 짧은 확인 메모가 붙었습니다."
+          : descriptions[stage - 1];
     $("#desk-file-name").textContent = `${state.username || "주인님"} 기록`;
-    $("#desk-postit").textContent = stage >= 4 ? `${memory.usualTime} 접속 확인` : stage >= 3 ? memory.frequentDeed : "오늘 기록?";
-    $("#desk-wall-note").textContent = state.character === "ai" ? "USER EXPRESS" : "특별대우 아님";
+    $("#desk-postit").textContent = visualStage >= 3 ? memory.frequentDeed : "오늘 기록?";
+    $("#desk-wall-note").textContent = visualStage >= 4 ? (state.character === "ai" ? "USER FILE" : "특별대우 아님") : "업무 기록";
     $("#desk-photo").dataset.owner = state.username || "주인님";
     desk.dataset.memoryCategory = topCategory;
-    desk.setAttribute("aria-label", `${relationshipStage(stage).name} 상태의 책상. 자주 기억한 행동: ${memory.frequentDeed}`);
+    desk.setAttribute("aria-label", `${relationshipStage(stage).name} 상태의 책상. 최근 기억한 행동: ${memory.frequentDeed}`);
     const keepsake = $("#desk-keepsake");
     keepsake.hidden = !memory.totalGifts;
     keepsake.textContent = memory.totalGifts ? `${memory.recentGiftEmoji} ${memory.recentGift}`.trim() : "";
@@ -2481,7 +2603,9 @@
     const relationshipGain = relationshipEligible ? 1 : 0;
     const pointsEarned = 0;
     pendingEvaluation = null;
-    const pose = poseForRelationship(state.character, nextStage, "deedReaction");
+    const memoryBefore = buildRelationshipMemory(state.character);
+    const reactionSituation = memoryHasRecentDeed(memoryBefore, deed) ? "memoryRecall" : "deedReaction";
+    const pose = poseForRelationship(state.character, nextStage, reactionSituation);
     const butler = snapshotButler();
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -2490,7 +2614,8 @@
       scoreLabel: relationshipStage(nextStage).name, category: evaluation.category,
       verdictType: "memory", rare: false,
       date: today(), number: state.records.length + 1,
-      report: resolveRelationshipReaction({ character: butler.character, stage: nextStage, situation: "deedReaction", deed }), pose,
+      report: resolveRelationshipReaction({ character: butler.character, stage: nextStage, situation: reactionSituation, deed, memories: memoryBefore, context: { previousDeed: memoryBefore.lastDeed } }), pose,
+      reactionSituation,
       relationshipBefore: previousStage, relationshipAfter: nextStage,
       relationshipGain, pointsEarned,
       relationshipStage: nextStage, relationshipEligible,
@@ -3520,7 +3645,7 @@
       event.preventDefault();
       const value = $("#quick-record-input").value.trim();
       if (!value) { $("#quick-record-input").focus(); return; }
-      if (!addQuickRecord(value)) { showToast(quickRecordItems().length >= QUICK_RECORD_LIMIT ? "빠른 기록은 네 개까지 둘 수 있어요." : "이미 빼둔 기록입니다."); return; }
+      if (!addQuickRecord(value)) { showToast(quickRecordItems().length >= QUICK_RECORD_LIMIT ? "빠른 기록은 세 개까지 둘 수 있어요." : "이미 빼둔 기록입니다."); return; }
       closeQuickRecordEditor();
       renderQuickRecords();
       showToast(`‘${value}’ 빠른 기록을 고정했습니다.`);
@@ -3669,11 +3794,15 @@
     const preview = (character, stage, situation, context = {}) => {
       const key = normalizeActiveCharacter(character);
       const resolvedStage = clamp(Number(stage) || 1, 1, 6);
-      return {
+      const previousDay = debugActivityDayOverrides.get(key);
+      debugActivityDayOverrides.set(key, Number(context.activityDay) || MVP_FIRST_WEEK_LENGTH + 1);
+      const result = {
         character: key, stage: resolvedStage, stageLabel: relationshipStage(resolvedStage).name, situation,
         copy: resolveRelationshipReaction({ character: key, stage: resolvedStage, situation, deed: context.deed || "물 마심", context: { absence: context.absence || "3일", ...context } }),
         pose: poseForRelationship(key, resolvedStage, situation), deskStage: resolvedStage
       };
+      if (previousDay === undefined) debugActivityDayOverrides.delete(key); else debugActivityDayOverrides.set(key, previousDay);
+      return result;
     };
     window.OVERBUTLER_DEBUG = Object.freeze({
       setStage(character, stage) {
@@ -3686,10 +3815,40 @@
         return this.snapshot(key, stage);
       },
       clearStage(character) { debugStageOverrides.delete(normalizeActiveCharacter(character)); render(); startTimeBriefing(); },
+      setDay(character, day) {
+        const key = normalizeActiveCharacter(character);
+        debugActivityDayOverrides.set(key, clamp(Number(day) || 1, 1, MVP_FIRST_WEEK_LENGTH));
+        state.character = key;
+        state.butlerName = ensureButlerStat(key).customName || CHARACTER_PROFILES[key].defaultName;
+        render(); startTimeBriefing();
+        return this.firstWeek(key).find(item => item.day === debugActivityDayOverrides.get(key));
+      },
+      clearDay(character) { debugActivityDayOverrides.delete(normalizeActiveCharacter(character)); render(); startTimeBriefing(); },
+      firstWeek(character, deed = "물 마심") {
+        const key = normalizeActiveCharacter(character);
+        const previous = debugActivityDayOverrides.get(key);
+        const output = Array.from({ length: MVP_FIRST_WEEK_LENGTH }, (_, index) => {
+          const day = index + 1;
+          debugActivityDayOverrides.set(key, day);
+          const stage = currentRelationshipStage(key);
+          const memory = buildRelationshipMemory(key);
+          return {
+            day,
+            greeting: resolveButlerReaction({ character: key, stage, situation: "greeting", memories: memory, context: { activityDay: day, previousDeed: memory.lastDeed } }),
+            deedReaction: resolveButlerReaction({ character: key, stage, situation: day >= 2 ? "memoryRecall" : "deedReaction", deed, memories: memory, context: { activityDay: day } }),
+            touch: resolveButlerReaction({ character: key, stage, situation: "touch", context: { activityDay: day } }),
+            officeEvent: officeEventFor(key, today()),
+            pose: poseForRelationship(key, stage, "greeting"),
+            deskVisualStage: day >= 7 ? Math.max(stage, 3) : day >= 5 ? Math.max(stage, 2) : stage
+          };
+        });
+        if (previous === undefined) debugActivityDayOverrides.delete(key); else debugActivityDayOverrides.set(key, previous);
+        return output;
+      },
       preview,
       compareDeed(character, deed = "물 마심") { return RELATIONSHIP_STAGES.map(({ stage }) => preview(character, stage, "deedReaction", { deed })); },
       compareSituation(character, situation, context = {}) { return RELATIONSHIP_STAGES.map(({ stage }) => preview(character, stage, situation, context)); },
-      compareAll(character, deed = "물 마심") { return Object.fromEntries(["greeting", "deedReaction", "returnAfterAbsence", "gift", "stageUp"].map(situation => [situation, this.compareSituation(character, situation, { deed, absence: "3일" })])); },
+      compareAll(character, deed = "물 마심") { return Object.fromEntries(["greeting", "deedReaction", "touch", "memoryRecall", "returnAfterAbsence", "gift", "stageUp"].map(situation => [situation, this.compareSituation(character, situation, { deed, absence: "3일" })])); },
       setAbsenceHours(hours) { prepareSessionPresence(state.character, hours); startTimeBriefing(); render(); return sessionPresence; },
       compareAbsence(character) { return [24, 72, 168].map(hours => ({ hours, ...preview(character, currentRelationshipStage(character), "returnAfterAbsence", { absence: hours === 24 ? "1일" : hours === 72 ? "3일" : "7일" }) })); },
       memory(character = state.character) { return buildRelationshipMemory(normalizeActiveCharacter(character)); },

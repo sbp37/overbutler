@@ -166,6 +166,8 @@ button:disabled,[aria-busy="true"]{cursor:not-allowed}
 .quick-record-suggestion>div{display:flex;gap:7px}
 .quick-record-suggestion button{min-height:40px;padding:0 13px;border:1px solid #cdbba6;border-radius:7px;background:#fffaf2;color:#65544d;font-size:11px;font-weight:850}
 .quick-record-suggestion button:first-child{border-color:#771a2b;background:#7b1b2d;color:#fff}
+/* Seven-day MVP: keep secondary tools available in code, but out of the first-use hierarchy. */
+#quick-record-suggestion,#view-archive .record-filters,#view-archive .record-find-tools,#view-manager .stages-card{display:none!important}
 #view-home .home-memory-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:14px 0 0;padding:10px 2px 0;border-top:1px solid #d9cbbb}
 .home-memory-strip>div:first-child{display:flex;align-items:center;gap:7px;min-width:0;color:#75665e;font-size:11px;font-weight:750}
 .home-memory-strip>div:first-child strong{color:#7b1b2d;font-size:11px;white-space:nowrap}.home-memory-strip>div:first-child b{font-size:16px}
