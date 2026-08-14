@@ -1007,6 +1007,7 @@
   let homeRoomCharacter = null;
   let homeRoomDrag = null;
   let catAmbientBlinkTimer = null;
+  let catBriefingHideTimer = null;
   const debugStageOverrides = new Map();
   const debugActivityDayOverrides = new Map();
 
@@ -2011,12 +2012,45 @@
     typingTimers.set(element, timer);
   }
 
+  function compactCatHomeSpeech(message) {
+    const text = String(message || "").replace(/\s+/g, " ").trim();
+    if (text.length <= 28) return text;
+    const sentences = text.match(/[^.!?…]+[.!?…]?/g) || [text];
+    let compact = "";
+    for (const sentence of sentences) {
+      const candidate = `${compact}${compact ? " " : ""}${sentence.trim()}`;
+      if (candidate.length > 28) break;
+      compact = candidate;
+      if (compact.length >= 18) break;
+    }
+    return compact || `${text.slice(0, 25).trim()}…`;
+  }
+
+  function showHomeBriefingMessage(message, speed = 26, options = {}) {
+    const element = $("#briefing-message");
+    if (!element) return;
+    window.clearTimeout(catBriefingHideTimer);
+    catBriefingHideTimer = null;
+    const isCatHome = normalizeActiveCharacter(state.character) === "cat";
+    element.classList.toggle("is-visible", isCatHome);
+    element.classList.remove("is-hidden");
+    element.setAttribute("aria-hidden", "false");
+    typeMessage(element, isCatHome ? compactCatHomeSpeech(message) : message, speed);
+    if (!isCatHome) return;
+    const visibleFor = clamp(Number(options.visibleFor) || 3200, 2400, 5000);
+    catBriefingHideTimer = window.setTimeout(() => {
+      element.classList.remove("is-visible");
+      element.classList.add("is-hidden");
+      element.setAttribute("aria-hidden", "true");
+    }, visibleFor);
+  }
+
   function startTimeBriefing() {
     const situation = sessionPresence?.active ? "returnAfterAbsence" : "greeting";
     setPoseImage($("#briefing-butler-image"), state.character, poseForRelationship(state.character, currentRelationshipStage(), situation));
     const greeting = getTimeGreeting();
     returnVisitContext.consumed = true;
-    typeMessage($("#briefing-message"), greeting);
+    showHomeBriefingMessage(greeting);
   }
 
   function cycleBriefing() {
@@ -2024,7 +2058,7 @@
       briefingIndex += 1;
       const line = resolveRelationshipReaction({ character: state.character, stage: currentRelationshipStage(), situation: "greeting", context: { previousDeed: lastDeedFor(state.character), variantSeed: briefingIndex } });
       setPoseImage($("#briefing-butler-image"), state.character, poseForRelationship(state.character, currentRelationshipStage(), "greeting"));
-      typeMessage($("#briefing-message"), line);
+      showHomeBriefingMessage(line);
       return;
     }
     const messages = CHARACTER_PROFILES[state.character].briefings;
@@ -2032,7 +2066,7 @@
     const remembered = relationshipRecallLine();
     const relationshipLine = relationshipStageLine();
     const line = `${templateOwner(messages[briefingIndex])}\n${remembered || relationshipLine || randomItem(QUESTIONS)}`;
-    typeMessage($("#briefing-message"), line);
+    showHomeBriefingMessage(line);
   }
 
   function homeInteractionLine(character = state.character) {
@@ -2131,7 +2165,7 @@
     trigger.classList.remove("is-reacting");
     window.requestAnimationFrame(() => trigger.classList.add("is-reacting"));
     $("#briefing-butler-label").textContent = `${CHARACTER_PROFILES[state.character].shortName || CHARACTER_PROFILES[state.character].name} · ${status}`;
-    typeMessage($("#briefing-message"), message, 24);
+    showHomeBriefingMessage(message, 24);
     window.clearTimeout(interactionResetTimer);
     interactionResetTimer = window.setTimeout(() => {
       setPoseImage($("#briefing-butler-image"), state.character, returnPose);
@@ -3659,7 +3693,7 @@
     trackEvent("butler_switch", { character: key, source: returning ? "return" : "handover" });
     closeRecruitment();
     render();
-    typeMessage($("#briefing-message"), message);
+    showHomeBriefingMessage(message);
     showToast(`${CHARACTER_PROFILES[key].name}에게 인수인계했습니다.`);
   }
 
@@ -3811,7 +3845,7 @@
     trackEvent("gift_given", { character: state.character, giftType: interaction.type, relationshipStage: relationshipStageValue });
     setPoseImage($("#briefing-butler-image"), state.character, "gift");
     const message = giftResponse(state.character, gift, interaction);
-    typeMessage($("#briefing-message"), message);
+    showHomeBriefingMessage(message);
     renderManager();
     renderRelationshipStatus();
     $("#header-level").textContent = firstWeekStatusFor(state.character)?.badge || relationshipStage(relationshipStageValue).name;
@@ -4174,7 +4208,7 @@
       render();
       const moment = firstWeekMoment(key, day);
       setPoseImage($("#briefing-butler-image"), key, moment?.pose || "base");
-      typeMessage($("#briefing-message"), fillContentTemplate(moment?.greeting?.[0] || "", { previousDeed: "물 마심" }), 1);
+      showHomeBriefingMessage(fillContentTemplate(moment?.greeting?.[0] || "", { previousDeed: "물 마심" }), 1);
       document.documentElement.dataset.mvpPreviewDay = String(day);
     } else if (initialCharacter && initialStage >= 1 && initialStage <= 6) {
       const key = normalizeActiveCharacter(initialCharacter);
@@ -4186,7 +4220,7 @@
       applyCurrentButlerToUI();
       const line = resolveRelationshipReaction({ character: key, stage: initialStage, situation: initialSituation, deed: "물 마심", context: { absence: "3일" } });
       setPoseImage($("#briefing-butler-image"), key, poseForRelationship(key, initialStage, initialSituation));
-      typeMessage($("#briefing-message"), line, 1);
+      showHomeBriefingMessage(line, 1);
     }
   }
 
