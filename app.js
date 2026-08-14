@@ -35,7 +35,7 @@
   const RELATIONSHIP_DAILY_VALID_LIMIT = 3;
   const GIFT_DAILY_LIMIT = 1;
   const ABSENCE_THRESHOLDS_HOURS = Object.freeze({ waiting: 24, sulking: 72, worried: 168 });
-  const QUICK_RECORD_LIMIT = 3;
+  const QUICK_RECORD_LIMIT = 4;
   const MVP_FIRST_WEEK_LENGTH = 7;
   const MVP_RECENT_MEMORY_LIMIT = 5;
   const FIRST_WEEK_STATUS = Object.freeze([null,
@@ -48,7 +48,7 @@
     { badge: "전담 습관 발생", summary: "사용자 전용 분류를 계속 유지하기 시작함" }
   ]);
   const FIRST_WEEK_HINTS = Object.freeze([null, "", "담당 집사의 기록 처리 습관에 미세한 변화가 확인됨.", "", "응대 방식의 변화가 누적되고 있음.", "", "사용자 전용 분류 행동이 관찰됨.", ""]);
-  const DEFAULT_QUICK_RECORDS = Object.freeze(["물 마심", "씻음"]);
+  const DEFAULT_QUICK_RECORDS = Object.freeze(["물 마심", "씻음", "출근함"]);
   const BUTLER_CONTENT_RULES = Object.freeze({
     knowledge: "집사는 사용자가 앱에 직접 남긴 정보와 그 기록에서 계산 가능한 패턴만 안다.",
     attachment: "관계가 깊어질수록 편의 제공과 특별대우가 늘지만 사용자를 통제하거나 죄책감을 주지 않는다.",
@@ -452,6 +452,11 @@
       gift: "design/character-assets/fairy-butler/ui-poses/fairy-gift.png"
     }
   };
+
+  const OVERBUTLER_ROOM_ASSETS = Object.freeze({
+    cat: Object.freeze({ _available: false, src: "design/rooms/cat-office-room.webp" }),
+    ai: Object.freeze({ _available: false, src: "design/rooms/ai-office-room.webp" })
+  });
 
   const PERSONNEL_REFERENCE_ASSETS = {
     ai: "design/character-assets/ai-butler/ai-butler-reference.png",
@@ -1674,8 +1679,23 @@
     return safePose;
   }
 
+  function applyHomeRoomAsset(character = state.character) {
+    const room = $("#briefing-room-background");
+    const stage = room?.closest(".briefing-stage");
+    if (!room || !stage) return;
+    const key = normalizeActiveCharacter(character);
+    const asset = OVERBUTLER_ROOM_ASSETS[key];
+    const available = Boolean(asset?._available && asset.src);
+    room.dataset.roomCharacter = key;
+    stage.dataset.roomCharacter = key;
+    room.classList.toggle("has-room-asset", available);
+    if (available) room.style.backgroundImage = `url("${asset.src}")`;
+    else room.style.removeProperty("background-image");
+  }
+
   function applyCurrentButlerToUI(pose = "base") {
     const profile = CHARACTER_PROFILES[state.character];
+    applyHomeRoomAsset(state.character);
     $$('[data-butler-pose]').forEach(image => setPoseImage(image, state.character, image.id === "briefing-butler-image" ? rememberedPoseFor() : image.dataset.butlerPose || pose));
     $("#header-butler-type").textContent = profile.shortName || profile.name;
     $("#briefing-butler-label").textContent = `${profile.shortName || profile.displayName} · ${profile.statusLabel}`;
@@ -2153,7 +2173,7 @@
     const entry = $("#view-home .entry-form");
     $("#first-deed-guide").hidden = !pending;
     entry.classList.toggle("first-run-entry", pending);
-    $("#entry-kicker").textContent = pending ? "첫 기록 접수 · FORM 01" : "기록 접수처 · FORM 01";
+    $("#entry-kicker").textContent = "RECORD DESK · FORM 01";
     $("#entry-description").textContent = pending
       ? `${ownerDisplayName()}의 첫 하루를 한 줄로 알려주세요.`
       : "한 줄이면 됩니다. 담당 집사가 오늘의 기록으로 기억합니다.";
@@ -3698,7 +3718,7 @@
       event.preventDefault();
       const value = $("#quick-record-input").value.trim();
       if (!value) { $("#quick-record-input").focus(); return; }
-      if (!addQuickRecord(value)) { showToast(quickRecordItems().length >= QUICK_RECORD_LIMIT ? "빠른 기록은 세 개까지 둘 수 있어요." : "이미 빼둔 기록입니다."); return; }
+      if (!addQuickRecord(value)) { showToast(quickRecordItems().length >= QUICK_RECORD_LIMIT ? "빠른 기록은 네 개까지 둘 수 있어요." : "이미 빼둔 기록입니다."); return; }
       closeQuickRecordEditor();
       renderQuickRecords();
       showToast(`‘${value}’ 빠른 기록을 고정했습니다.`);
@@ -3966,6 +3986,7 @@
   }
 
   window.OVERBUTLER_ASSETS = OVERBUTLER_ASSETS;
+  window.OVERBUTLER_ROOM_ASSETS = OVERBUTLER_ROOM_ASSETS;
   window.OVERBUTLER_ANALYTICS = Object.freeze({
     eventName: ANALYTICS_EVENT_NAME,
     persistent: false,
