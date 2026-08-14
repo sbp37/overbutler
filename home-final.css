@@ -657,3 +657,14 @@
 
 @media(min-width:700px){.bottom-nav{bottom:16px;border-radius:0 0 24px 24px}}
 @media(prefers-reduced-motion:reduce){#view-home .briefing-character.is-reacting img,#view-home .home-reaction.is-arriving{animation:none}#view-home .briefing-character>span,#view-home .briefing-speech{transition:none}}
+
+/* User-approved HOME tuning exported from the mobile visual editor. */
+#view-home .home-logo-lockup strong{translate:-18px 1px;scale:.79}
+#view-home .briefing-stage{translate:-3px 1px}
+#view-home .briefing-character{translate:-2px -51px;scale:.84}
+#view-home .entry-heading h2{translate:-1px 2px}
+#view-home #entry-description{translate:-1px -1px}
+#view-home #achievement-input{translate:1px 0}
+#view-home #quick-actions{translate:-14px -1px;scale:.86}
+#view-home #report-button{scale:.96}
+#view-home #home-office-event{translate:6px -2px}

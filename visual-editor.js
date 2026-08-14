@@ -33,6 +33,17 @@
     { key: "nav", label: "하단 메뉴", selector: "#main-screen .bottom-nav", text: true, width: true }
   ];
   const DEFAULT_VALUE = Object.freeze({ x: 0, y: 0, scale: 100, fontSize: 0, width: 0 });
+  const APPROVED_BASE_VALUES = Object.freeze({
+    logo: { x: -18, y: 1, scale: 79 },
+    room: { x: -3, y: 1 },
+    character: { x: -2, y: -51, scale: 84 },
+    recordTitle: { x: -1, y: 2 },
+    recordDesc: { x: -1, y: -1 },
+    input: { x: 1 },
+    quick: { x: -14, y: -1, scale: 86 },
+    cta: { scale: 96 },
+    event: { x: 6, y: -2 }
+  });
   let config = loadConfig();
   let selectedKey = "character";
   let inspect = true;
@@ -46,7 +57,7 @@
   }
 
   function normalizedValue(key) {
-    return { ...DEFAULT_VALUE, ...(config[key] || {}) };
+    return { ...DEFAULT_VALUE, ...(APPROVED_BASE_VALUES[key] || {}), ...(config[key] || {}) };
   }
 
   function applyTarget(key) {
