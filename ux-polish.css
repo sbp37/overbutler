@@ -41,87 +41,101 @@ select { font-size: max(16px, 1em); }
   box-shadow: 0 5px 14px rgba(70, 48, 37, .055);
 }
 
-/* HOME — fixed character column, flexible copy column. */
+/* HOME — one welcoming butler and one speech bubble. */
+#view-home [hidden] { display: none !important; }
+
+#view-home .briefing-character > span,
+#view-home .briefing-panel > small,
+#view-home .butler-role,
+#view-home .home-relationship-status,
+#view-home .briefing-status,
+#view-home .briefing-refresh,
+#view-home .first-deed-guide {
+  display: none !important;
+}
+
 #view-home .briefing-stage {
   display: grid;
-  grid-template-columns: var(--character-column) minmax(0, 1fr);
-  gap: var(--content-gap);
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 10px;
   align-items: stretch;
-  min-height: 266px;
-  padding: 22px 14px 14px;
+  min-height: 218px;
+  padding: 37px 14px 10px;
   overflow: hidden;
 }
+
+#view-home .briefing-stage::before { display: none; }
+#view-home .briefing-index { left: 14px; top: 11px; padding: 4px 8px; font-size: 10px; }
+#view-home .hero-paperclip { display: none; }
 
 #view-home .briefing-character {
   position: relative;
   left: auto;
   bottom: auto;
-  align-self: start;
-  width: var(--character-column);
-  height: 226px;
+  align-self: end;
+  width: 132px;
+  height: 171px;
   min-height: 0;
-  padding: 36px 0 29px;
+  padding: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
 
 #view-home .briefing-character::after {
-  left: 14px;
-  right: 14px;
-  bottom: 27px;
+  left: 15px;
+  right: 15px;
+  bottom: 3px;
 }
 
 #view-home .briefing-character img {
   width: 100%;
-  height: var(--character-height);
+  height: 171px;
   object-fit: contain;
   object-position: center bottom;
-}
-
-#view-home .briefing-character > span {
-  bottom: 5px;
-  font-size: 11px;
 }
 
 #view-home .briefing-panel {
   position: relative;
   margin: 0;
-  padding: 37px 0 31px;
+  padding: 15px 0 8px;
   min-width: 0;
-  align-self: stretch;
-}
-
-#view-home .briefing-panel > small {
-  font-size: 12px;
-  line-height: 1.4;
+  align-self: center;
 }
 
 #view-home .briefing-panel h1 {
-  margin-top: 6px;
-  font-size: 22px;
+  margin: 0 0 10px;
+  font-size: 21px;
   line-height: 1.15;
 }
 
-#view-home .butler-role {
-  margin-bottom: 9px;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
 #view-home .briefing-speech {
-  min-height: 0;
-  padding: 12px;
-  font-size: 16px;
+  position: relative;
+  min-height: 68px;
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid #d2c2b2;
+  border-radius: 4px 13px 13px 13px;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(70, 48, 37, .05);
+  font-size: 15px;
   font-weight: 680;
-  line-height: 1.48;
+  line-height: 1.42;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
-#view-home .briefing-status {
-  bottom: 0;
-  font-size: 11px;
+#view-home .briefing-speech::before {
+  content: "";
+  position: absolute;
+  display: block;
+  left: -8px;
+  top: 11px;
+  width: 9px;
+  height: 12px;
+  border: 0;
+  background: linear-gradient(135deg, transparent 0 48%, #d2c2b2 49% 54%, #fff 55%);
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
 }
 
 #view-home .entry-form { padding: 20px 14px 14px; }
@@ -516,8 +530,9 @@ select { font-size: max(16px, 1em); }
 
 @media (max-width: 390px) {
   :root { --character-column: 108px; --character-height: 204px; --content-gap: 11px; }
-  #view-home .briefing-stage { min-height: 252px; padding-right: 12px; padding-left: 12px; }
-  #view-home .briefing-character { height: 212px; }
+  #view-home .briefing-stage { grid-template-columns: 122px minmax(0, 1fr); min-height: 210px; padding-right: 12px; padding-left: 12px; }
+  #view-home .briefing-character { width: 122px; height: 163px; }
+  #view-home .briefing-character img { height: 163px; }
   #view-home .briefing-panel h1 { font-size: 20px; }
   #view-home .briefing-speech { font-size: 15px; }
   .archive-butler-brief { grid-template-columns: 102px minmax(0, 1fr); }
@@ -531,9 +546,10 @@ select { font-size: max(16px, 1em); }
 
 @media (max-width: 370px) {
   :root { --character-column: 96px; --character-height: 188px; --content-gap: 9px; }
-  #view-home .briefing-stage { min-height: 242px; }
-  #view-home .briefing-character { height: 202px; }
-  #view-home .briefing-panel { padding-top: 35px; }
+  #view-home .briefing-stage { grid-template-columns: 112px minmax(0, 1fr); gap: 8px; min-height: 204px; padding-right: 10px; padding-left: 10px; }
+  #view-home .briefing-character { width: 112px; height: 157px; }
+  #view-home .briefing-character img { height: 157px; }
+  #view-home .briefing-panel { padding-top: 12px; }
   #view-home .briefing-panel h1 { font-size: 19px; }
   #view-home .briefing-speech { padding: 10px; font-size: 14px; }
   .archive-butler-brief { grid-template-columns: 90px minmax(0, 1fr); gap: 9px; }

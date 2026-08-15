@@ -1150,6 +1150,13 @@
     return base + templateOwner(closings[state.character] || "");
   }
 
+  function getHomeGreeting(date = new Date()) {
+    const hour = date.getHours();
+    const slot = CHAT_ENGINE?.timeSlotForHour(hour) || (hour < 6 ? "dawn" : hour < 11 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night");
+    const messages = TIME_MESSAGES[state.character]?.[slot] || CHARACTER_PROFILES[state.character].briefings;
+    return templateOwner(randomItem(messages)).replace(/\s*\n+\s*/g, " ").trim();
+  }
+
   function ownerDisplayName() {
     const name = String(state.username || "").trim();
     if (!name) return "주인님";
@@ -1185,7 +1192,7 @@
 
   function startTimeBriefing() {
     setPoseImage($("#briefing-butler-image"), state.character, rememberedPoseFor());
-    const greeting = getTimeGreeting();
+    const greeting = getHomeGreeting();
     returnVisitContext.consumed = true;
     typeMessage($("#briefing-message"), greeting);
   }
@@ -1842,12 +1849,14 @@
       window.clearTimeout(catHomeBlinkTimer);
       return;
     }
-    if (!catHomeInitialized) {
-      window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      const room = $("#cat-home-room");
+      if (!room?.clientWidth) return;
+      if (!catHomeInitialized) {
         setCatHomeOffset(catHomeBounds().center);
         catHomeInitialized = true;
-      });
-    } else window.requestAnimationFrame(() => setCatHomeOffset(catHomeOffsetX));
+      } else setCatHomeOffset(catHomeOffsetX);
+    });
     scheduleCatHomeBlink();
   }
 

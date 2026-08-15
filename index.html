@@ -118,21 +118,21 @@
         </header>
 
         <section class="briefing-card briefing-stage document-card">
-          <span class="briefing-index">오늘의 담당 집사</span>
+          <span class="briefing-index">담당 집사</span>
           <span class="hero-paperclip" aria-hidden="true"></span>
           <button class="briefing-character" id="briefing-character-action" type="button" aria-label="요정 집사에게 말 걸기" aria-describedby="briefing-message">
             <img id="briefing-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" data-butler-pose="base" alt="요정 집사">
-            <span>톡톡 · 말 걸기</span>
+            <span hidden>톡톡 · 말 걸기</span>
           </button>
           <div class="briefing-panel">
-            <small id="home-butler-role-title">기록·판단·과잉 칭찬 담당</small>
+            <small id="home-butler-role-title" hidden>기록·판단·과잉 칭찬 담당</small>
             <h1 id="home-butler-name">요정 집사</h1>
-            <p class="butler-role" id="home-butler-desc">사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
-            <div class="home-relationship-status"><span id="home-relationship-stage">첫 만남</span><small id="home-relationship-next">다음 관계까지 15</small></div>
+            <p class="butler-role" id="home-butler-desc" hidden>사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
+            <div class="home-relationship-status" hidden><span id="home-relationship-stage">첫 만남</span><small id="home-relationship-next">다음 관계까지 15</small></div>
             <div class="briefing-speech" id="briefing-message" aria-live="polite">작은 일도 반짝이는 대업으로 만들어드릴게요!</div>
             <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 대업 접수하기 <span>↓</span></button>
-            <button class="briefing-refresh" id="briefing-refresh" type="button" aria-label="집사 브리핑 새로 보기">↻ 한마디 더</button>
-            <div class="briefing-status"><span><i></i> <b id="briefing-butler-label">요정 집사 · 업무 중</b></span></div>
+            <button class="briefing-refresh" id="briefing-refresh" type="button" aria-label="집사 브리핑 새로 보기" hidden>↻ 한마디 더</button>
+            <div class="briefing-status" hidden><span><i></i> <b id="briefing-butler-label">요정 집사 · 업무 중</b></span></div>
           </div>
         </section>
 
