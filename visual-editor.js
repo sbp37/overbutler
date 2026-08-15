@@ -2,7 +2,11 @@
   "use strict";
 
   const params = new URLSearchParams(window.location.search);
-  if (params.get("visual-edit") !== "1" || window.location.hostname === "overbutler.vercel.app") return;
+  // Allowlist: editor loads only on local dev and Vercel preview deployments,
+  // never on production or custom domains.
+  const host = window.location.hostname;
+  const isEditableHost = host === "localhost" || host === "127.0.0.1" || /-sbp37s-projects\.vercel\.app$/.test(host);
+  if (params.get("visual-edit") !== "1" || !isEditableHost) return;
 
   const STORAGE_KEY = "overbutler_visual_editor_v1";
   const APP_STORAGE_KEY = "butlermaker_v1";
