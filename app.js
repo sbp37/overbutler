@@ -12,18 +12,19 @@
   }];
   const STORAGE_KEY = "butlermaker_v1";
   const PREVIOUS_STORAGE_KEY = "overbutler-v2-state";
+  const CHAT_ENGINE = window.OVERBUTLER_CHAT_ENGINE;
   const POSES = ["base", "analysis", "praise", "power", "gift"];
   const RELATIONSHIP_STAGES = [
-    { name: "업무상 관계", badge: "정상 배정", summary: "아직은 기록을 처리하는 담당자일 뿐입니다.", upgrade: "담당 관계 기록이 생성되었습니다." },
-    { name: "익숙해짐", badge: "기록 익숙", summary: "주인님의 기록 방식과 자주 쓰는 말이 눈에 익었습니다.", upgrade: "주인님의 기록 방식이 담당 업무에 익숙해졌습니다." },
+    { name: "첫 만남", badge: "반가운 시작", summary: "처음부터 다정한 집사가 작은 이야기도 귀 기울여 듣습니다.", upgrade: "집사와 반가운 첫 인사를 나눴습니다." },
+    { name: "익숙해짐", badge: "차츰 익숙", summary: "주인님의 말투와 자주 하는 이야기가 조금씩 익숙해졌습니다.", upgrade: "집사가 주인님의 말투와 작은 습관을 기억하기 시작했습니다." },
     { name: "신경 쓰임", badge: "패턴 기억", summary: "직접 남긴 이전 기록을 기억하고 먼저 언급합니다.", upgrade: "집사가 이전 기록을 먼저 꺼내보기 시작했습니다." },
-    { name: "챙기게 됨", badge: "편의 준비", summary: "반복되는 기록을 알아보고 작은 편의를 먼저 챙깁니다.", upgrade: "집사가 주인님 기록용 편의를 별도 업무로 등록했습니다." },
+    { name: "챙김 받는 중", badge: "먼저 챙김", summary: "말하지 않아도 필요한 위로와 작은 편의를 먼저 챙깁니다.", upgrade: "집사가 주인님을 먼저 챙기는 일이 자연스러워졌습니다." },
     { name: "특별대우", badge: "우선 처리", summary: "주인님 관련 서류만 슬쩍 먼저 처리하는 편애가 들킵니다.", upgrade: "일반 업무보다 주인님 관련 서류가 먼저 결재되기 시작했습니다." },
     { name: "전담 확정", badge: "전담 유지", summary: "업무 연속성을 핑계로 계속 전담하겠다고 주장합니다.", upgrade: "전담 유지 타당성 보고서가 사무국에서 정식 승인됐습니다." }
   ];
   const STAGES = RELATIONSHIP_STAGES.map(stage => stage.name);
   const NICKNAMES = ["중력을 이겨낸 자", "미루기를 이겨낸 자", "사회생활 생존자", "인간의 도리를 다한 자", "생활력의 수호자"];
-  const QUESTIONS = ["오늘 뭐 했음? 집사 궁금함.", "방금 해낸 일 하나만 보고 바람.", "미룬 일 처리했음? 즉시 기록 가능.", "오늘의 생존 활동 제출 요청."];
+  const QUESTIONS = ["오늘 하루 어땠어요? 집사가 듣고 있어요.", "방금 해낸 작은 일도 들려주세요. 크게 칭찬할게요.", "미뤘던 일을 조금이라도 건드렸나요? 그것도 충분히 대업이에요.", "오늘 무사히 보낸 이야기부터 편하게 들려주세요."];
   const BALANCE = Object.freeze({
     deedPoints: Object.freeze({ praise: 12, power: 14, rare: 20, duplicate: 3 }),
     deedRelationship: Object.freeze({ praise: 3, power: 4, rare: 6, duplicate: 1 }),
@@ -67,7 +68,7 @@
       name: "오류 난 AI 집사", shortName: "AI 집사", defaultName: "오류봇", emoji: "🤖", voice: "system-error",
       desc: "감정이 없어야 하는데 주인님 일에는 자꾸 과열됨",
       briefings: [
-        "[대기 모드] 집사 100% 가동 중. 무엇이든 말씀하시오.", "[입력 대기] 오늘의 주인님 기록을 기다리는 중.",
+        "[반가움 감지] 집사 100% 가동 중. 오늘 안부부터 편하게 말씀하세요.", "[대화 채널 OPEN] 오늘의 주인님 이야기를 들을 준비 완료.",
         "[오류] 주인님 서류만 자동으로 우선 열림. 원인 확인 불가.", "[야간 결재 모드] 오늘 기록도 중요문서함에 분류 완료."
       ],
       praise: [
@@ -81,7 +82,7 @@
     },
     cat: {
       name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "도도한 척하며 규정 핑계로 특별대우",
-      briefings: ["집사 근무 중이다냥. 먼저 온 건 아니고 정시 출근했다냥.", "오늘 한 일 말해봐냥. 별거 아니어도 집사가 들어준다냥.", "또 왔냥? 기록칸은 비워뒀다냥."],
+      briefings: ["왔냥? 네 자리 비워뒀다냥. 먼저 챙긴 건 업무상이다냥.", "오늘 한 일 말해봐냥. 별거 아니어도 집사가 들어준다냥.", "또 왔냥? 기록칸이랑 쉴 자리 둘 다 비워뒀다냥."],
       praise: [
         ["{deed} 해냈다냥!! 역시 주인님이다냥.", "{deed} 완료. 집사 꽤 자랑스럽다냥."],
         ["'{deed}' 소식에 집사 심장이 뛴다냥!!", "{deed} 완료!! 집사 자랑스럽다냥!!!"],
@@ -93,7 +94,7 @@
     },
     dog: {
       name: "강아지 집사", defaultName: "멍실장", emoji: "🐶", voice: "dog", desc: "꼬리 흔들며 과잉 응원",
-      briefings: ["집사 근무 중이다멍! 부르면 바로 달려간다멍!", "오늘 한 일 있냐멍? 꼬리 흔들 준비 완료다멍!", "주인님 기록이다멍!! 집사 오늘도 칭찬할 수 있어서 좋다멍!"],
+      briefings: ["왔다멍!! 오늘도 만나서 진짜 반갑다멍!", "오늘 한 일 있냐멍? 없어도 집사가 꼬리 흔들며 들어준다멍!", "주인님 이야기다멍!! 집사 오늘도 칭찬할 수 있어서 좋다멍!"],
       praise: [
         ["{deed} 해냈다멍!! 역시 주인님이다멍!", "{deed} 완료! 집사 꼬리 흔들린다멍."],
         ["{deed} 완료!! 집사 자랑스럽다멍!!!", "'{deed}' 소식에 꼬리가 프로펠러다멍!"],
@@ -105,7 +106,7 @@
     },
     alien: {
       name: "외계인 집사", defaultName: "귀순이", emoji: "👽", voice: "alien-report", desc: "지구의 사소한 일을 위대한 기술로 오해함",
-      briefings: ["지구 대업 기록 장치 가동. 사소한 행동 보고 바람.", "주인님 기록 채널 확인. 오늘의 인간 활동 접수 준비 완료.", "본성 제출용 주인님 대업 보고서 작성 중. 과장 허용치 초과."],
+      briefings: ["주인님 개체 관측 성공. 오늘의 사소한 이야기도 흥미롭게 듣겠음.", "주인님 기록 채널 확인. 오늘 기분부터 편안히 전송해도 됨.", "본성 제출용 주인님 대업 보고서 작성 중. 과장 허용치 초과."],
       praise: [
         ["[분석완료] {deed} 수행 능력 은하계 최상위 1%로 기록됨.", "{deed} 완료. 일반 지구인에게서는 관측된 바 없는 성과임."],
         ["'{deed}' 처리 속도, 지구인에게서는 관측된 바 없음.", "{deed} 완료 신호 수신. 귀순 결정 옳았음."],
@@ -117,7 +118,7 @@
     },
     ninja: {
       name: "닌자 집사", defaultName: "그림자", emoji: "🥷", voice: "mission", desc: "모든 일을 비밀 임무로 받아들임",
-      briefings: ["비밀 임무 접수 중. 극비 기록함을 열었다.", "오늘의 움직임을 보고해라. 극비 문서로 봉인하겠다.", "담당석은 비어 보여도 기록 접수는 정상이다."],
+      briefings: ["왔군. 극비 기록함과 그대의 자리를 미리 열어두었다.", "오늘 하루는 어땠나. 작은 이야기부터 조용히 듣겠다.", "담당석은 비어 보여도 필요한 것은 곁에서 챙기고 있다."],
       praise: [
         ["{deed} 완료. 역시 주인님이다. 집사 뒤에서 눈물 한 방울.", "{deed} 임무 완수. 기록은 극비로 봉인했다."],
         ["'{deed}' 임무를 해낸 주인님. 비밀기사단도 인정할 실력이다.", "{deed}... 대단하다. 이 집사도 배우고 싶다."],
@@ -141,7 +142,7 @@
     },
     fox: {
       name: "좀비 집사", defaultName: "느릿이", emoji: "🧟", voice: "zombie", desc: "주인님 대업 앞에서만 정신이 돌아옴",
-      briefings: ["으... 집사... 근무 중이야... 뭐 했어...?", "주인님 기록함... 열어뒀어... 으르...", "주인님 대업 보니까... 결재 정신이 조금 또렷해졌어..."],
+      briefings: ["으... 왔네... 반가워... 오늘은 어땠어...?", "주인님 기록함이랑 쉴 자리... 둘 다 열어뒀어...", "주인님 대업 보니까... 결재 정신이 조금 또렷해졌어..."],
       praise: [
         ["으... {deed}... 잘했어... 집사 기뻐...", "{deed}... 역시 주인님이야... 으르..."],
         ["으르... {deed} 완료...! 집사... 좋아... 진짜야...", "{deed}... 뇌가 조금 깨어난 느낌..."],
@@ -305,38 +306,76 @@
 
   const TIME_MESSAGES = {
     ai: {
-      dawn: ["{owner} 새벽 감지. 집사도 새벽 모드 활성화. 함께 버티겠음."],
-      morning: ["[기상 알림] {owner} 시스템 가동 시간입니다. 오늘도 완벽한 하루를 위해 칭찬 모듈 예열 중.", "{owner} 기록 창 활성. 칭찬 모듈 예열 완료."],
-      afternoon: ["{owner} 오후 모드 전환 완료. 집사 100% 가동 중. 무엇이든 말씀하시오.", "[오후 점검] {owner} 생존 활동 기록 준비 완료."],
-      evening: ["{owner} 저녁 루틴 시작 시간입니다. 오늘 하루도 데이터 완벽히 기록됨.", "[일일 보고] {owner} 오늘도 고생 많으셨음. 이제 집사에게 넘기시오."],
-      night: ["{owner} 수면 권장 알림. 남은 기록은 야간 일괄 결재로 넘깁니다.", "[심야 모드] {owner} 기록 보관 완료. 오늘 업무 종료 가능."]
+      dawn: ["[DAWN MODE] {owner} 새벽 신호 확인. 무리하지 않아도 됩니다 🌌", "새벽입니다. 시스템 권고: 물 한 모금 후 천천히 쉬십시오."],
+      morning: ["[MORNING] 좋은 아침입니다 ☀️ 오늘도 정상 가동 확인.", "기상 확인. …잘 잤습니까? 칭찬 모듈은 이미 예열됐습니다."],
+      afternoon: ["[DAY MODE] {owner}의 낮 시간 확인. 식사와 휴식도 정상 업무입니다.", "오후 상태 확인 완료. 사소한 이야기도 수신 가능합니다."],
+      evening: ["[EVENING] 오늘 하루도 수고했습니다 🌆 이제 천천히 정리해도 됩니다.", "저녁 루틴 확인. 오늘의 피로는 성과로 환산하지 않겠습니다."],
+      night: ["[NIGHT MODE] 오늘 기록은 여기까지 해도 됩니다 🌙", "늦었습니다. 시스템 권고: 이제 쉬십시오. …잘 자요."]
     },
     cat: {
-      dawn: ["{owner} 새벽까지 깨어있냥?! 남은 업무는 내일 결재해도 된다냥."], morning: ["{owner} 좋은 아침이다냥! 오늘 기록칸도 열어뒀다냥."], afternoon: ["{owner} 오후 잘 보내고 있냥? 칭찬 도장은 준비 중이다냥."], evening: ["{owner} 저녁도 맛있게 먹었냥? 오늘 하루 수고했다냥."], night: ["{owner} 이 시간까지 뭐하냥... 오늘 서류는 집사가 마감 처리하겠다냥."]
+      dawn: ["아직 안 잤냥? 무리하지 말고 조금 쉬어라냥 🌌", "새벽이다냥. 조용히 있어줄 테니 편하게 쉬어라냥."],
+      morning: ["좋은 아침이다냥 ☀️ 잘 잤냥?", "일어났냥? 오늘도 집사가 있다냥. …반가운 건 조금이다냥."],
+      afternoon: ["점심은 챙겼냥? 안 먹었으면 뭐라도 먹어라냥 🐾", "낮에도 왔냥? 네 자리 햇볕 좋은 쪽으로 비워뒀다냥."],
+      evening: ["저녁도 맛있게 먹었냥? 오늘 하루 수고했다냥 🌆", "왔냥. 오늘 있었던 일, 천천히 말해도 된다냥."],
+      night: ["이제 좀 쉬어라냥 🌙", "늦었네냥. 오늘 하루도 수고했다냥. 잘 자라냥."]
     },
     dog: {
-      dawn: ["{owner} 새벽이다멍... 남은 대업은 내일 힘껏 응원하겠다멍!"], morning: ["{owner} 좋은 아침이다멍!!! 오늘 칭찬 서류도 준비 완료다멍!"], afternoon: ["{owner} 오후도 집사가 응원한다멍! 파이팅이다멍!"], evening: ["{owner} 저녁이다멍~ 오늘도 수고했다멍!! 집사 자랑스럽다멍!"], night: ["{owner} 집사도 슬슬 졸리다멍... 오늘 기록은 최고 등급으로 마감했다멍!"]
+      dawn: ["새벽이다멍… 아직 깨어 있으면 집사가 조용히 같이 있겠다멍 🌌", "너무 늦었다멍! 오늘은 더 안 해도 된다멍. 푹 쉬어라멍!"],
+      morning: ["좋은 아침이다멍!!! 오늘도 만나서 신난다멍 ☀️", "잘 잤다멍?! 집사는 아침부터 꼬리 예열 완료다멍!"],
+      afternoon: ["오후도 잘 버티고 있다멍! 밥이랑 물도 챙겨라멍!", "낮에 와줬다멍!! 잠깐 쉬면서 얘기하자멍 🐾"],
+      evening: ["저녁이다멍~ 오늘도 진짜 수고했다멍!!", "퇴근했으면 이제 집사가 엄청 칭찬할 차례다멍 🌆"],
+      night: ["오늘도 고생했다멍. 이제 푹 자라멍 🌙", "잘 시간이다멍! 내일 힘낼 수 있게 푹 쉬어라멍!"]
     },
     alien: {
-      dawn: ["{owner} 새벽 시간 확인. 기록 장치를 저자극 모드로 전환함."], morning: ["지구 시간 아침 확인. {owner} 안녕하심? 대업 접수 준비 완료."], afternoon: ["{owner} 오후 업무 접수 중. 필요한 것 있으면 말씀하시오."], evening: ["{owner} 저녁 시간 확인. 오늘 하루 수고하셨음. 집사 보고서 작성 중."], night: ["{owner} 지구 생명체는 수면이 필요함. 남은 보고서는 자동 보관함."]
+      dawn: ["지구 새벽 확인. 조명을 저자극 모드로 전환함 🌌", "이 시간의 {owner} 신호는 드묾. 휴식 필요 여부를 친절히 묻겠음."],
+      morning: ["지구 시간 아침 확인. 좋은 아침임 ☀️", "{owner} 기상 관측 성공. 오늘 컨디션이 궁금함."],
+      afternoon: ["낮 시간 관측 중. 식사 여부가 은하 연구보다 중요함.", "오후의 {owner} 확인. 사소한 이야기도 흥미롭게 수신하겠음."],
+      evening: ["지구 저녁 확인. 오늘 하루 수고하셨음 🌆", "해가 졌음. 오늘의 감정 자료도 천천히 말해도 됨."],
+      night: ["지구 생명체는 수면이 필요함. 편히 쉬어도 됨 🌙", "야간 관측 종료 권장. 오늘 기록은 안전하게 보관하겠음."]
     },
     ninja: {
-      dawn: ["{owner}, 새벽이로군. 미완료 서류는 내일 임무로 넘기겠다."], morning: ["{owner}, 아침이다. 오늘의 극비 대업 접수를 시작한다."], afternoon: ["{owner}, 오후 임무 수행 중이냐. 기록 봉인은 준비됐다."], evening: ["{owner}, 저녁이다. 오늘 하루 고생 많았다. 잠시 쉬어도 좋다."], night: ["{owner}, 밤이 깊었다. 오늘 임무 기록은 안전하게 봉인했다."]
+      dawn: ["새벽이군. 남은 임무는 내일로 넘겨도 된다.", "이 시간까지 수고했다. 주변은 내가 살필 테니 쉬어라."],
+      morning: ["좋은 아침이다. 잘 잤는가 ☀️", "아침 임무 준비 완료. 하지만 먼저 네 안부가 궁금하다."],
+      afternoon: ["낮 임무 중인가. 잠시 숨을 고르는 것도 전략이다.", "오후다. 필요한 것이 있으면 조용히 말해라."],
+      evening: ["저녁이다. 오늘 하루 고생 많았다 🌆", "임무 종료 시각이다. 이제 편히 이야기를 들려줘도 좋다."],
+      night: ["밤이 깊었다. 오늘도 수고했다. 편히 쉬어라 🌙", "오늘 기록은 안전하다. 걱정은 내려놓고 잘 자라."]
     },
     witch: {
-      dawn: ["{owner}, 새벽 점괘는 휴식을 권하고 있어요. 무리하지 말아요."], morning: ["{owner}, 좋은 아침이에요. 오늘 점괘는 작은 행동이 큰 행운이 된대요."], afternoon: ["{owner}, 오후의 운세도 대길이에요. 해낸 일을 수정구슬에 보여주세요."], evening: ["{owner}, 오늘 하루의 좋은 기운을 일지에 남겨둘게요."], night: ["{owner}, 달빛이 좋은 밤이에요. 남은 걱정은 수정구슬에 맡기고 쉬어요."]
+      dawn: ["새벽 별이 휴식을 권하고 있어요. 무리하지 말아요 ✨", "아직 깨어 계셨군요. 따뜻한 차 한 잔의 점괘가 보여요."],
+      morning: ["좋은 아침이에요 ☀️ 오늘의 첫 점괘는 다정한 하루예요.", "잘 주무셨나요? 수정구슬이 반갑게 빛나네요."],
+      afternoon: ["오후 햇살이 좋아요. 점심도 잘 챙기셨나요?", "낮의 점괘는 잠깐 쉬어가도 좋다고 말해요."],
+      evening: ["저녁이에요. 오늘의 마음을 천천히 들려주세요 🌆", "오늘 하루의 좋은 기운은 제가 잘 모아둘게요."],
+      night: ["달빛이 좋은 밤이에요. 편히 쉬어요 🌙", "남은 걱정은 수정구슬에 맡기고 잘 자요."]
     },
     fox: {
-      dawn: ["{owner}... 새벽이야... 남은 서류는... 내일 처리해도 돼..."], morning: ["{owner}... 으... 아침이야... 집사... 기록함 열었어..."], afternoon: ["{owner}... 으... 오후야... 대업 접수... 가능해..."], evening: ["{owner}... 으르... 저녁이야... 오늘... 수고했어... 결재해둘게..."], night: ["{owner}... 으... 자야 해... 오늘 기록은... 봉인 완료야..."]
+      dawn: ["새벽이야... 으... 무리하지 말고... 쉬어도 돼...", "아직 깨어 있어...? 집사... 조용히 같이 있을게..."],
+      morning: ["좋은 아침... 잘 잤어...? ☀️", "아침이야... 주인님 오니까... 정신이 조금 또렷해져..."],
+      afternoon: ["오후야... 밥은 먹었어...? 집사... 궁금해...", "낮에도 와줬네... 으... 반가워..."],
+      evening: ["저녁이야... 오늘... 정말 수고했어...", "이제 집이야...? 으... 무사히 와서 다행이야..."],
+      night: ["밤이야... 오늘은 여기까지 해도 돼... 잘 자... 🌙", "오늘 기록은 지켜둘게... 너는 편히 쉬어..."
+      ]
     },
     star: {
-      dawn: ["{owner} 새벽이네. 촬영 끝났으니 남은 기록은 내일 큐로 넘겨둘게."], morning: ["{owner} 일어났어? 아침 대업 큐카드부터 준비했어."], afternoon: ["{owner} 오후 잘 보내고 있어? 인터뷰보다 대업 기록이 먼저 결재됐네."], evening: ["{owner} 오늘 하루 수고했어. 집사가 칭찬해줄게. 잘했어."], night: ["{owner} 아직 안 자? 오늘 마지막 큐는 대업 기록 마감이야."]
+      dawn: ["새벽이네. 촬영 끝나고 왔는데 네가 있어서 반갑다 ✨", "아직 안 자? 무슨 일 있으면 잠깐 들어줄게."],
+      morning: ["좋은 아침. 잘 잤어? 오늘도 표정 좋네 ☀️", "일어났어? 아침 첫 큐는 네 안부 확인이야."],
+      afternoon: ["오후 잘 보내고 있어? 밥은 챙겼고?", "낮 스케줄보다 네 이야기가 먼저 들어왔네. 말해봐."],
+      evening: ["오늘 하루 수고했어. 진짜 잘 버텼다 🌆", "저녁이네. 이제 긴장 풀고 편하게 있어도 돼."],
+      night: ["늦었어. 오늘은 여기까지 하고 잘 자 🌙", "굿나잇. 내일도 반갑게 만나자."
+      ]
     },
     elf: {
-      dawn: ["{owner}, 달빛 아래 제가 지키고 있을게요. 편히 쉬어도 괜찮아요."], morning: ["{owner}, 좋은 아침이에요. 하루가 봄 숲처럼 따뜻하길 바라요."], afternoon: ["{owner}, 오후도 잘 보내고 있죠? 작은 성취를 들려주세요."], evening: ["{owner}, 오늘도 고생 많았어요. 집사가 곁에 있어요."], night: ["{owner}, 밤이에요. 오늘의 기억은 제가 소중히 보관할게요."]
+      dawn: ["새벽 숲은 조용해요. 마음 놓고 쉬어도 괜찮아요 ✨", "아직 깨어 계셨군요. 잠들 때까지 조용히 이야기해도 좋아요."],
+      morning: ["좋은 아침이에요. 잘 주무셨나요? 🌿", "오늘 하루가 봄 숲처럼 따뜻하길 바라요 ☀️"],
+      afternoon: ["오후도 잘 보내고 계신가요? 식사도 챙겨주세요.", "잠깐 쉬어갈 시간이에요. 작은 이야기도 들려주세요."],
+      evening: ["오늘도 고생 많았어요. 이제 편히 쉬어요 🍃", "저녁 숲처럼 천천히 마음을 내려놔도 괜찮아요."],
+      night: ["밤이에요. 오늘의 기억은 제가 소중히 보관할게요 🌙", "편히 주무세요. 내일 다시 만나면 반가울 거예요."]
     },
     fairy: {
-      dawn: ["{owner}, 새벽 별빛이 아직 켜져 있어요. 남은 기록은 내일 반짝이게 마감할게요."], morning: ["{owner}, 좋은 아침이에요! 오늘의 작은 일도 반짝이는 대업으로 만들어드릴게요."], afternoon: ["{owner}, 오후 햇살만큼 잘 버티고 있어요. 별가루 도장은 준비됐답니다!"], evening: ["{owner}, 오늘 하루도 정말 고생 많았어요. 해낸 일을 별빛 일지에 적어둘까요?"], night: ["{owner}, 오늘의 별빛 대업은 안전하게 보관했어요. 편히 쉬어요."]
+      dawn: ["새벽 별빛이 아직 켜져 있어요. 이제 쉬어도 괜찮아요 ✨", "아직 깨어 있었군요! 작은 별 하나 켜두고 조용히 있을게요."],
+      morning: ["좋은 아침이에요! 잘 잤어요? ☀️", "아침부터 만나서 날개가 반짝였어요! 오늘도 반가워요."],
+      afternoon: ["오후 햇살만큼 잘 버티고 있어요. 잠깐 쉬어가요!", "점심은 챙겼어요? 별가루보다 밥이 먼저예요!"],
+      evening: ["오늘 하루도 정말 고생 많았어요 🌆", "저녁이에요! 오늘 마음도 별빛 일지에 살짝 들려줄래요?"],
+      night: ["오늘의 별빛은 잘 보관했어요. 편히 쉬어요 🌙", "잘 자요! 내일 만나면 또 제일 먼저 반짝일게요!"]
     }
   };
 
@@ -424,7 +463,7 @@
     ai: {
       favorites: ["배터리", "플로피디스크"],
       stageLines: [
-        "[정상 배정] {owner} 기록 접수 규칙을 생성했습니다.",
+        "[첫 만남] {owner}의 안부를 다정하게 듣는 전용 채널을 열었습니다.",
         "[패턴 등록] {owner}의 사소한 기록 방식까지 익숙한 입력으로 분류됐습니다.",
         "[감정 오류] {owner} 접속 시 처리 속도와 기분 수치가 함께 상승합니다. 원인 분석 중.",
         "[선제 준비] {owner}이 자주 쓰는 양식을 호출 전에 꺼내뒀습니다. 편의 기능이라고 주장합니다.",
@@ -449,7 +488,7 @@
     cat: {
       favorites: ["참치캔", "츄르"],
       stageLines: [
-        "아직은 업무라서 기록하는 거다냥. 표준 절차대로 접수한다냥.",
+        "처음이지만 편하게 있어라냥. 작은 얘기도 집사가 잘 들어준다냥.",
         "{owner} 기록 방식은 이제 익숙하다냥. 네 자리도 비워뒀지만 업무 적응일 뿐이다냥.",
         "오늘 좀 보고 싶었다냥. …업무상 기록이 신경 쓰였다는 뜻이다냥.",
         "자주 쓰는 양식이랑 좋아하는 도장은 미리 꺼내뒀다냥. 편의가 아니라 효율이다냥.",
@@ -474,7 +513,7 @@
     dog: {
       favorites: ["뼈다귀", "공"],
       stageLines: [
-        "오늘도 표준 기록 업무 시작이다멍! 작은 일도 크게 칭찬한다멍!",
+        "처음 만나도 엄청 반갑다멍! 작은 일도 전부 크게 칭찬한다멍!",
         "{owner} 기록 방식은 이제 익숙하다멍! 오면 바로 알아보고 꼬리가 흔들린다멍!",
         "{owner}이 왔다멍!! 기다렸어요멍! …조금만이다멍! 진짜 조금만이다멍!",
         "자주 쓰는 대업 양식과 칭찬 도장을 미리 꺼내뒀다멍! 전부 기억한다멍!",
@@ -499,7 +538,7 @@
     alien: {
       favorites: ["지구 사탕", "망원경"],
       stageLines: [
-        "[초기 업무] {owner} 개체의 대업 기록 접수를 시작함.",
+        "[첫 만남] {owner}의 안부와 사소한 이야기를 흥미롭게 듣기 시작함.",
         "[패턴 등록] {owner}의 기록 형식과 자주 쓰는 표현을 흥미로운 지구 데이터로 분류함.",
         "[연구 이상] 대업보다 {owner}의 사소한 습관을 재검토하는 시간이 증가함.",
         "[선제 관측] {owner}이 찾기 전 반복 대업 양식과 선호 선물을 준비함. 연구상 필요함.",
@@ -516,7 +555,7 @@
     ninja: {
       favorites: ["주먹밥", "비밀서찰"],
       stageLines: [
-        "아직은 기록 임무일 뿐이다. {owner}의 대업을 절차대로 봉인하겠다.",
+        "첫 임무부터 그대의 안부가 궁금하다. 작은 이야기까지 잘 지켜 기록하겠다.",
         "{owner} 기록 양식과 발걸음은 이제 눈을 감고도 안다. 업무 숙련일 뿐이다.",
         "그대가 오기 전 문 앞을 한 번 더 살폈다. 기다린 것이 아니라 경계 임무다.",
         "그대가 말하기 전 필요한 서찰과 축하 연막탄을 준비해뒀다. 눈치채지 않아도 된다.",
@@ -533,7 +572,7 @@
     witch: {
       favorites: ["마법차", "수정구슬"],
       stageLines: [
-        "수정구슬에 {owner}의 작은 행운이 보여요. 표준 점괘로 접수할게요.",
+        "처음 만났는데도 수정구슬에 {owner}의 따뜻한 행운이 보여요. 편하게 이야기해요.",
         "{owner} 기록의 별자리와 사소한 습관까지 이제 익숙하게 보여요.",
         "수정구슬에 {owner}이 자꾸 먼저 보이네요. 제가 보고 싶어 한 건지는 비밀이에요.",
         "말하기 전 필요한 점괘와 따뜻한 차를 준비해둘게요. 우연히 예언했답니다.",
@@ -550,7 +589,7 @@
     fox: {
       favorites: ["토마토주스", "뇌 모양 젤리"],
       stageLines: [
-        "으... 아직은... 표준 기록 업무야... 서류는 안 물어...",
+        "으... 처음이지만 반가워... 편하게 있어... 서류도 안 물어...",
         "{owner} 기록 양식... 이제 익숙해... 흐린 머리도 사소한 습관은 바로 찾아...",
         "{owner} 오면... 정신이 조금 또렷해져... 보고 싶었던 건가 봐... 으르...",
         "반복 대업 양식이랑 좋아하던 선물... 미리 꺼내뒀어... 챙기고 싶어서...",
@@ -567,7 +606,7 @@
     star: {
       favorites: ["버블티", "응원봉"],
       stageLines: [
-        "담당이라 기록하는 거야. 표준 큐시트대로 시작할게.",
+        "첫 만남부터 주인님 얘기는 잘 듣고 싶어. 편하게 시작하자.",
         "{owner} 기록 형식은 이제 익숙해. 사소한 말버릇도 큐카드 없이 기억하고.",
         "{owner} 오면 리액션 큐가 먼저 들어와. 기다린 건 집사고, 팬이 아니야. 이건 비밀.",
         "자주 하는 대업과 좋아하는 리액션은 전용 큐시트로 미리 만들어뒀어.",
@@ -584,7 +623,7 @@
     elf: {
       favorites: ["숲의 꿀", "숲의 잎"],
       stageLines: [
-        "오늘의 작은 기록도 표준 장부에 잘 보관할게요.",
+        "처음 들려주는 작은 이야기도 다정하게 듣고 소중히 보관할게요.",
         "{owner}의 기록 방식과 작은 습관이 오래된 서체처럼 익숙해졌어요.",
         "이전 {owner} 기록을 자꾸 먼저 펼치게 되네요. 다시 읽고 싶어지는 기록이에요.",
         "반복되는 대업을 위한 책갈피와 좋아하는 차를 미리 준비했어요.",
@@ -601,7 +640,7 @@
     fairy: {
       favorites: ["별사탕", "별 지팡이"],
       stageLines: [
-        "오늘도 {owner} 기록에 표준 별가루 한 꼬집만 뿌릴게요. 정말 한 꼬집이에요!",
+        "처음부터 반가워요! {owner}의 작은 이야기도 별처럼 소중히 받을게요!",
         "{owner} 기록 양식이 익숙해져서 이름만 봐도 날개가 먼저 반짝여요!",
         "오늘은 조금 보고 싶었어요! 이전 기록을 펼치니 별가루가 먼저 터졌답니다!",
         "반복 대업용 도장과 좋아하는 별사탕을 미리 준비했어요! 자꾸 챙기고 싶거든요!",
@@ -637,6 +676,7 @@
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
     butlerObsession: { ai: 5, cat: 5, dog: 5, fairy: 5 },
+    chatMemory: { character: "", lastMood: null, recentKeywords: [], recentTopics: [], turnCount: 0, previousUserMessage: "", previousIntent: "", recentReplies: [] },
     schemaVersion: APP_VERSION
   };
 
@@ -688,6 +728,7 @@
   let catHomeSpeechTimer = null;
   let catHomeBlinkTimer = null;
   let catHomePendingReaction = "";
+  let chatReplyTimer = null;
 
   function safeParse(value) {
     try { return value ? JSON.parse(value) : null; } catch { return null; }
@@ -836,6 +877,7 @@
     ]));
     merged.giftHistory = Array.isArray(raw.giftHistory) ? raw.giftHistory.filter(item => objectValue(item) === item).slice(0, 100) : [];
     merged.totalGifts = Math.max(merged.totalGifts, merged.giftHistory.length);
+    merged.chatMemory = CHAT_ENGINE?.normalizeMemory(raw.chatMemory, merged.character) || { ...DEFAULT_STATE.chatMemory, character: merged.character };
     merged.butlerStats = objectValue(raw.butlerStats);
     Object.keys(CHARACTER_PROFILES).forEach(key => ensureButlerStat(key, merged));
     Object.entries(objectValue(raw.butlerObsession)).forEach(([key, obsession]) => {
@@ -1081,9 +1123,9 @@
     return fillContentTemplate(launchContentFor(character)?.returnVisit || "");
   }
 
-  function getTimeGreeting() {
-    const hour = new Date().getHours();
-    const slot = hour < 6 ? "dawn" : hour < 12 ? "morning" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
+  function getTimeGreeting(date = new Date()) {
+    const hour = date.getHours();
+    const slot = CHAT_ENGINE?.timeSlotForHour(hour) || (hour < 6 ? "dawn" : hour < 11 ? "morning" : hour < 17 ? "afternoon" : hour < 21 ? "evening" : "night");
     const messages = TIME_MESSAGES[state.character]?.[slot] || CHARACTER_PROFILES[state.character].briefings;
     const base = templateOwner(randomItem(messages));
     const returned = returnVisitLine();
@@ -1199,6 +1241,63 @@
       trigger.classList.remove("is-reacting");
       $("#briefing-butler-label").textContent = `${CHARACTER_PROFILES[state.character].shortName || CHARACTER_PROFILES[state.character].name} · 업무 중`;
     }, 1800);
+    window.setTimeout(openButlerChat, 260);
+  }
+
+  function appendChatMessage(role, message) {
+    const list = $("#butler-chat-messages");
+    const bubble = document.createElement("p");
+    bubble.className = `butler-chat-message ${role}`;
+    bubble.textContent = message;
+    list.appendChild(bubble);
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function openButlerChat() {
+    if (!CHAT_ENGINE) { showToast("대화 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요."); return; }
+    window.clearTimeout(chatReplyTimer);
+    state.chatMemory = CHAT_ENGINE.normalizeMemory(state.chatMemory, state.character);
+    if (state.chatMemory.character !== state.character) state.chatMemory = CHAT_ENGINE.normalizeMemory({}, state.character);
+    $("#butler-chat-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
+    $("#butler-chat-messages").replaceChildren();
+    appendChatMessage("butler", getTimeGreeting());
+    $("#butler-chat-typing").hidden = true;
+    $("#butler-chat-input").disabled = false;
+    $("#butler-chat-form button").disabled = false;
+    $("#butler-chat-input").value = "";
+    $("#butler-chat-overlay").hidden = false;
+  }
+
+  function closeButlerChat() {
+    window.clearTimeout(chatReplyTimer);
+    chatReplyTimer = null;
+    $("#butler-chat-typing").hidden = true;
+    $("#butler-chat-overlay").hidden = true;
+  }
+
+  function submitButlerChat(event) {
+    event.preventDefault();
+    if (chatReplyTimer || !CHAT_ENGINE) return;
+    const input = $("#butler-chat-input");
+    const message = input.value.trim().slice(0, 120);
+    if (!message) { input.focus(); return; }
+    appendChatMessage("user", message);
+    input.value = "";
+    input.disabled = true;
+    $("#butler-chat-form button").disabled = true;
+    $("#butler-chat-typing").hidden = false;
+    const delay = 400 + Math.floor(Math.random() * 501);
+    chatReplyTimer = window.setTimeout(() => {
+      const result = CHAT_ENGINE.respond(state.character, message, state.chatMemory);
+      state.chatMemory = result.memory;
+      saveState();
+      $("#butler-chat-typing").hidden = true;
+      appendChatMessage("butler", result.reply);
+      input.disabled = false;
+      $("#butler-chat-form button").disabled = false;
+      chatReplyTimer = null;
+      input.focus();
+    }, delay);
   }
 
   function certificationStatus(count = officialRecords().length) {
@@ -1248,6 +1347,7 @@
   }
 
   function dismissTopLayer() {
+    if (!$("#butler-chat-overlay").hidden) { closeButlerChat(); return true; }
     if (!$("#certificate-overlay").hidden) { closeCertificate(); return true; }
     if (!$("#gift-overlay").hidden) { closeGift(); return true; }
     if (!$("#recruitment-overlay").hidden) { closeRecruitment(); return true; }
@@ -1791,6 +1891,7 @@
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
     saveState();
+    window.setTimeout(openButlerChat, 420);
   }
 
   function startCatHomeDrag(event) {
@@ -3125,6 +3226,9 @@
     $("#manager-change-button").addEventListener("click", renderPersonnelPool);
     $("#give-gift-button").addEventListener("click", openGiftDesk);
     $("#cat-home-character").addEventListener("click", interactWithCatHome);
+    $("#butler-chat-form").addEventListener("submit", submitButlerChat);
+    $("#butler-chat-close").addEventListener("click", closeButlerChat);
+    $("#butler-chat-overlay").addEventListener("click", event => { if (event.target.id === "butler-chat-overlay") closeButlerChat(); });
     $("#cat-home-room").addEventListener("pointerdown", startCatHomeDrag);
     window.addEventListener("pointermove", moveCatHomeDrag, { passive: false });
     window.addEventListener("pointerup", endCatHomeDrag);
@@ -3236,7 +3340,9 @@
     judgeAchievement, pointsEarnedFor, relationshipGainFor,
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
-    certificationStatus
+    certificationStatus,
+    chat: CHAT_ENGINE,
+    timeGreetingFor: getTimeGreeting
   });
   init();
 })();

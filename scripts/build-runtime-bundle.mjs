@@ -7,6 +7,7 @@ const maxBundleBytes = 100 * 1024 * 1024;
 
 const entryFiles = [
   "index.html",
+  "chat-engine.js",
   "app.js",
   "app.css",
   "home-final.css",
@@ -70,4 +71,3 @@ const report = {
 };
 await writeFile(resolve(output, "bundle-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify({ output, ...report }, null, 2));
-

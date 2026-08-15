@@ -128,7 +128,7 @@
             <small id="home-butler-role-title">기록·판단·과잉 칭찬 담당</small>
             <h1 id="home-butler-name">요정 집사</h1>
             <p class="butler-role" id="home-butler-desc">사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
-            <div class="home-relationship-status"><span id="home-relationship-stage">업무상 관계</span><small id="home-relationship-next">다음 관계까지 15</small></div>
+            <div class="home-relationship-status"><span id="home-relationship-stage">첫 만남</span><small id="home-relationship-next">다음 관계까지 15</small></div>
             <div class="briefing-speech" id="briefing-message" aria-live="polite">작은 일도 반짝이는 대업으로 만들어드릴게요!</div>
             <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 대업 접수하기 <span>↓</span></button>
             <button class="briefing-refresh" id="briefing-refresh" type="button" aria-label="집사 브리핑 새로 보기">↻ 한마디 더</button>
@@ -324,12 +324,12 @@
           </div>
           <div class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</div>
           <div class="manager-obsession">
-            <div class="obsession-heading"><span id="obsession-label">과몰입도 · 낯가림</span><b><span id="obsession-value">5</span> / 100</b></div>
+            <div class="obsession-heading"><span id="obsession-label">과몰입도 · 첫 만남</span><b><span id="obsession-value">5</span> / 100</b></div>
             <div class="obsession-track"><i id="obsession-fill"></i></div>
             <div class="relationship-summary">
-              <span id="relationship-stage-badge">정상 배정</span>
-              <strong id="relationship-stage-title">업무상 관계</strong>
-              <p id="relationship-stage-summary">아직은 기록을 처리하는 담당자일 뿐입니다.</p>
+              <span id="relationship-stage-badge">반가운 시작</span>
+              <strong id="relationship-stage-title">첫 만남</strong>
+              <p id="relationship-stage-summary">처음부터 다정한 집사가 작은 이야기도 귀 기울여 듣습니다.</p>
               <small id="relationship-next-copy">다음 관계까지 과몰입 15</small>
             </div>
           </div>
@@ -581,7 +581,7 @@
         <blockquote id="gift-message">[선물 수신] 행복 수치 최대치 도달. 감사 표현 모듈 무한 반복 중.</blockquote>
         <section class="relationship-result" id="gift-relationship-result" aria-live="polite">
           <span id="gift-relationship-kicker">관계 기록 업데이트 · +3</span>
-          <div><strong id="gift-relationship-stage">업무상 관심</strong><small id="gift-relationship-next">다음 관계까지 15</small></div>
+          <div><strong id="gift-relationship-stage">첫 만남</strong><small id="gift-relationship-next">다음 관계까지 15</small></div>
           <b><i id="gift-relationship-fill"></i></b>
           <p id="gift-relationship-message">집사가 선물 받은 순간을 관계 기록에 추가했습니다.</p>
         </section>
@@ -595,7 +595,25 @@
     </div>
   </div>
 
+  <div class="overlay butler-chat-overlay" id="butler-chat-overlay" role="dialog" aria-modal="true" aria-labelledby="butler-chat-title" hidden>
+    <section class="butler-chat-sheet">
+      <header class="butler-chat-header">
+        <div><small>잠깐 대화하기</small><h2 id="butler-chat-title"><span id="butler-chat-name">집사</span>와 이야기</h2></div>
+        <button id="butler-chat-close" type="button" aria-label="집사 대화 닫기">×</button>
+      </header>
+      <div class="butler-chat-messages" id="butler-chat-messages" aria-live="polite"></div>
+      <div class="butler-chat-typing" id="butler-chat-typing" aria-label="집사가 답변을 생각하는 중" hidden><span></span><span></span><span></span></div>
+      <form class="butler-chat-form" id="butler-chat-form">
+        <label class="visually-hidden" for="butler-chat-input">집사에게 할 말</label>
+        <input id="butler-chat-input" type="text" maxlength="120" autocomplete="off" placeholder="집사에게 편하게 말해보세요">
+        <button type="submit">보내기</button>
+      </form>
+      <p class="butler-chat-note">대업 보고와 별개의 짧은 대화입니다. 이 앱에서 직접 한 말만 기억해요.</p>
+    </section>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=cat-home-1"></script>
+  <script src="chat-engine.js?v=chat-warmth-1"></script>
+  <script src="app.js?v=chat-warmth-1"></script>
 </body>
 </html>
