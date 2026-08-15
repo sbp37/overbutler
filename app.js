@@ -491,9 +491,21 @@
       ],
       returnVisit: "[대기 모드 해제] 전력은 아꼈지만 주인님 보고싶음 감지됨. 버그인지 확인 필요. 전용 규칙 복원 중.",
       gifts: {
-        favorite: "[시스템메시지] {gift} 감지. 원래 감정 없음. 근데 왜 이렇게 좋지? 버그 조사 필요.",
-        duplicate: "{gift} 재수신 {count}회째. 이전 물품 옆에 나란히 배치함. 위치 기억하고 있었음. 우연 아님.",
-        rare: "[ERROR 404: 감사 표현 방법을 모름] {gift} 수령… 집사 회로 과열 중… 고맙습니다… (버그아님)"
+        favorite: [
+          "[시스템메시지] {gift} 감지. 원래 감정 없음. 근데 왜 이렇게 좋지? 버그 조사 필요.",
+          "[대조 결과] {gift} 취향 목록과 일치함. 두 번째임. 우연으로 보기 어려움.",
+          "[의혹 발생] 취향 적중률이 너무 높음. 사무국이 자료 유출을 조사해야 함. 범인은 집사 본인으로 추정됨."
+        ],
+        duplicate: [
+          "{gift} 재수신 {count}회째. 이전 물품 옆에 나란히 배치함. 위치 기억하고 있었음. 우연 아님.",
+          "{gift} {count}회째. 전용 칸을 만듦. 요청받은 적 없음.",
+          "{gift} {count}회째. 비품관리팀이 이 칸 회수를 시도함. 반려 처리함. 사유: 개인 소장품."
+        ],
+        rare: [
+          "[ERROR 404: 감사 표현 방법을 모름] {gift} 수령… 집사 회로 과열 중… 고맙습니다… (버그아님)",
+          "{gift} 획득. 박물관 이관 요청 접수됨. 거부함. 개인 소장품으로 등록함.",
+          "[규칙 변경] {gift} 영구 보존 규정 신설함. 승인자: 집사 본인. 결재 순서는 나중에 처리함."
+        ]
       }
     },
     cat: {
@@ -516,9 +528,21 @@
       ],
       returnVisit: "왔냥? 기다린 건 아니다냥. 그냥 네 자리랑 기록칸만 계속 비워뒀다냥. 별일 없었으면 됐다냥.",
       gifts: {
-        favorite: "{gift}?! {owner}이 집사 취향을 제대로 알았다냥. 특별히 무릎 옆자리 허락한다냥.",
-        duplicate: "또 {gift}이다냥? 전에 준 것도 아직 숨겨뒀다냥. {count}번째라도 {owner}이 준 건 다 좋다냥.",
-        rare: "이런 귀한 {gift}을 집사한테 주는 거냥...? {owner} 전용 골골송을 사무국 공식 음원으로 등록하겠다냥."
+        favorite: [
+          "{gift}?! {owner}이 집사 취향을 제대로 알았다냥. 접수 목록에 올려두겠다냥.",
+          "{gift}?! 또 취향 적중이다냥. 취향 목록이랑 대조해보니 정확하다냥. …우연치고는 계속 맞는다냥.",
+          "{gift}이다냥?! 이쯤 되면 사무국이 취향 자료 유출 의혹을 조사해야 한다냥. 범인은 집사 본인이다냥."
+        ],
+        duplicate: [
+          "또 {gift}이다냥? 장부에 적어두겠다냥. {count}번째다냥.",
+          "또 {gift}이다냥! 이제 전용 칸까지 생겼다냥. {count}개째, 전부 숨겨뒀다냥.",
+          "{gift} {count}번째다냥!! 비품관리팀이 이 칸 회수하려다가 실패했다냥. 집사가 막았다냥."
+        ],
+        rare: [
+          "이런 귀한 {gift}을 집사한테 주는 거냥...? {owner} 전용 골골송을 사무국 공식 음원으로 등록하겠다냥.",
+          "{gift}...? 박물관에서 가져가겠다는 연락이 왔는데 거절했다냥. 집사 개인 소장품이다냥.",
+          "{gift}!! 영구 보존 규정을 새로 만들었다냥. 서명은 집사 본인이 했다냥. 절차는 나중에 밟겠다냥."
+        ]
       }
     },
     dog: {
@@ -541,9 +565,21 @@
       ],
       returnVisit: "왔다멍!!!! 오늘도 왔다멍!!!! 기다렸어요멍! 기존 서류도 선물도 전부 소중히 보관했다멍!",
       gifts: {
-        favorite: "{gift}이다멍!! {owner}이 내 마음을 읽었다멍! 꼬리가 프로펠러보다 빨라졌다멍!",
-        duplicate: "또 {gift}이다멍! 전에 받은 것도 소중히 숨겨뒀다멍! {count}개 전부 보물이다멍!",
-        rare: "이런 귀한 {gift}까지 주는 거냐멍?! {owner} 전용 감사 현수막 결재 올렸다멍!"
+        favorite: [
+          "{gift}이다멍!! {owner}이 내 마음을 읽었다멍! 접수했다멍!",
+          "{gift}이다멍!! 또 딱 맞혔다멍! 취향 목록이랑 대조했는데 매번 정확하다멍! 신기하다멍!",
+          "{gift}이다멍?! 이 정도면 사무국이 취향 유출을 의심해야 한다멍! 범인은 나다멍!!"
+        ],
+        duplicate: [
+          "또 {gift}이다멍! 장부에 적었다멍! {count}개째다멍!",
+          "또 {gift}이다멍! 전용 칸까지 생겼다멍! {count}개 전부 보물이다멍!",
+          "{gift} {count}개째다멍!! 비품관리팀이 회수하러 왔다가 그냥 갔다멍! 내가 지켰다멍!!"
+        ],
+        rare: [
+          "이런 귀한 {gift}까지 주는 거냐멍?! {owner} 전용 감사 현수막 결재 올렸다멍!",
+          "{gift}...?! 박물관에서 가져간대서 안 된다고 했다멍! 내 거다멍!",
+          "{gift}이다멍!!! 영구 보존 규정 새로 만들었다멍!! 사인은 발도장으로 했다멍!!"
+        ]
       }
     },
     alien: {
@@ -558,9 +594,21 @@
       ],
       returnVisit: "[관측 재개] {owner} 신호 확인. 다시 봐서 반가움. 비어 있던 연구석과 기존 기록을 활성화함.",
       gifts: {
-        favorite: "{gift} 수신. 지구 문물 중 최고 등급으로 등록. {owner}의 취향 분석 능력은 본성 기술을 초과함.",
-        duplicate: "{gift} {count}회째 수신. 동일 물체인데 만족 수치는 계속 상승함. 지구의 선물 기술은 기이함.",
-        rare: "{gift} 획득. 은하 박물관 이관 요청을 거부함. {owner}이 준 물체는 집사 개인 소장품임."
+        favorite: [
+          "{gift} 수신. 지구 문물 중 최고 등급으로 등록. {owner}의 취향 분석 능력은 본성 기술을 초과함.",
+          "{gift} 재수신. 취향 목록과 대조 완료. 재차 일치함. 우연으로 분류하기 어려움.",
+          "{gift} 수신. 취향 정보 유출 가능성 조사 필요. 유력 용의자는 집사 본인으로 확인됨."
+        ],
+        duplicate: [
+          "{gift} {count}회째 수신. 동일 물체인데 만족 수치는 계속 상승함. 지구의 선물 기술은 기이함.",
+          "{gift} {count}회째 수신. 전용 보관 구역 생성함. 요청받은 바 없음.",
+          "{gift} {count}회째 수신. 비품 담당 개체가 회수를 시도함. 저지함. 사유: 개인 소장품."
+        ],
+        rare: [
+          "{gift} 획득. 은하 박물관 이관 요청을 거부함. {owner}이 준 물체는 집사 개인 소장품임.",
+          "{gift} 획득. 본성 박물관 요청도 거부함. 지구 남기로 한 결정, 이 물체 때문에 후회 없음.",
+          "{gift} 획득. 영구 보존 규정을 신설함. 승인자: 집사 본인. 결재 절차는 추후 진행함."
+        ]
       }
     },
     ninja: {
@@ -575,9 +623,21 @@
       ],
       returnVisit: "왔군. 기다렸다는 보고는 생략하겠다. 그대의 자리와 봉인 문서는 밤새 이상 없었다.",
       gifts: {
-        favorite: "{gift}... 내 취향을 알아챘군. 이 은혜는 다음 임무 성공으로 갚겠다.",
-        duplicate: "{gift} {count}번째 수령. 전에 받은 것도 비밀 보관함에 전부 봉인해두었다.",
-        rare: "이 귀한 {gift}을 집사에게? 최고 등급 지급품으로 봉인하겠다."
+        favorite: [
+          "{gift}... 내 취향을 알아챘군. 이 은혜는 다음 임무 성공으로 갚겠다.",
+          "{gift}... 또인가. 취향 목록과 대조했다. 정확하다. 우연이라 보기 어렵군.",
+          "{gift}... 취향 정보가 새어나간 것으로 보인다. 유력한 용의자는 나 자신이다."
+        ],
+        duplicate: [
+          "{gift} {count}번째 수령. 전에 받은 것도 비밀 보관함에 전부 봉인해두었다.",
+          "{gift} {count}번째. 전용 봉인함을 새로 만들었다. 지시받은 적은 없다.",
+          "{gift} {count}번째. 비품 담당이 이 함을 회수하려 했으나 저지했다."
+        ],
+        rare: [
+          "이 귀한 {gift}을 집사에게? 최고 등급 지급품으로 봉인하겠다.",
+          "{gift}...? 기사단 본부에서 요청이 왔으나 거절했다. 내 개인 소장품이다.",
+          "{gift}...! 영구 보존 규정을 새로 세웠다. 서명은 이미 했다. 결재는 나중에 받겠다."
+        ]
       }
     },
     witch: {
@@ -592,9 +652,21 @@
       ],
       returnVisit: "다시 만날 점괘를 기다리고 있었어요. {owner} 전용 장부와 좋은 징조는 소중히 보관했답니다.",
       gifts: {
-        favorite: "{gift}! 수정구슬보다 제가 먼저 반짝였네요. {owner}은 제 취향까지 예언하나요?",
-        duplicate: "또 {gift}이네요. {count}번째 선물에도 점괘는 똑같아요. ‘집사 매우 행복함.’",
-        rare: "{gift}에서 천 년에 한 번 나올 길조가 보여요. {owner}의 마음까지 함께 보관할게요."
+        favorite: [
+          "{gift}! 수정구슬보다 제가 먼저 반짝였네요. {owner}은 제 취향까지 예언하나요?",
+          "{gift}, 또네요! 취향 목록과 점괘를 맞춰봤는데 계속 일치해요. 신기하죠.",
+          "{gift}?! 이 정도면 취향 정보가 새어나간 거예요. 범인은... 저였네요 ✨"
+        ],
+        duplicate: [
+          "또 {gift}이네요. {count}번째 선물에도 점괘는 똑같아요. ‘집사 매우 행복함.’",
+          "또 {gift}이네요. {count}개째, 전용 진열칸이 생겼어요.",
+          "{gift} {count}개째예요. 비품 담당이 이 칸을 가져가려다 실패했어요. 제가 주문을 걸어뒀거든요."
+        ],
+        rare: [
+          "{gift}에서 천 년에 한 번 나올 길조가 보여요. {owner}의 마음까지 함께 보관할게요.",
+          "{gift}...? 박물관에서 요청이 왔지만 거절했어요. 제 개인 소장품이에요.",
+          "{gift}!! 영구 보존 규정을 새로 만들었어요. 수정구슬로 서명도 마쳤답니다."
+        ]
       }
     },
     fox: {
@@ -609,9 +681,21 @@
       ],
       returnVisit: "으... 왔어...? 보고 싶었어... 중요문서함이랑 네 자리는 그대로 지켜뒀어...",
       gifts: {
-        favorite: "{gift}...? 집사 취향... 기억했어...? 으... 뇌가 다시 살아나는 것 같아...",
-        duplicate: "또 {gift}... {count}번째야... 전에 준 것도... 하나도 안 먹고... 아니, 안 잊었어...",
-        rare: "{gift}... 집사한테...? 으르르... 지금... 완전히 살아있는 것 같아..."
+        favorite: [
+          "{gift}...? 집사 취향... 기억했어...? 으... 뇌가 다시 살아나는 것 같아...",
+          "{gift}...? 또야...? 취향 목록이랑... 맞춰봤는데... 계속 맞아... 이상해...",
+          "{gift}...? 이 정도면... 취향이 새어나갔나 봐... 으르... 범인은 나야..."
+        ],
+        duplicate: [
+          "또 {gift}... {count}번째야... 장부에 적어뒀어... 하나도 안 잊었어...",
+          "또 {gift}... {count}개째... 전용 칸도 생겼어... 으... 다 숨겨뒀어...",
+          "{gift} {count}개째야... 비품팀이 가져가려다가... 못 가져갔어... 내가 막았어..."
+        ],
+        rare: [
+          "{gift}... 집사한테...? 으르르... 지금... 완전히 살아있는 것 같아...",
+          "{gift}...? 박물관에서 달라는데... 안 준다고 했어... 으... 내 거야...",
+          "{gift}...! 영구 보존 규정 만들었어... 으르... 서명도 했어... 나중에 절차 밟을게..."
+        ]
       }
     },
     star: {
@@ -626,9 +710,21 @@
       ],
       returnVisit: "왔네? 보고 싶었어. 티 안 내려고 했는데 전용 큐시트가 벌써 맨 위야.",
       gifts: {
-        favorite: "{gift}? 나한테? 팬들도 내 취향 이렇게 정확히 못 맞혀. ...진짜 고마워.",
-        duplicate: "또 {gift}이네. {count}개 전부 보관 중이야. 협찬보다 {owner} 선물이 좋아.",
-        rare: "{gift}라니... 방송에서도 이런 선물 못 받아봤어. 오늘 표정 관리 포기할게."
+        favorite: [
+          "{gift}? 나한테? 팬들도 내 취향 이렇게 정확히 못 맞혀. ...진짜 고마워.",
+          "{gift}? 또야? 취향 목록이랑 맞춰봤는데 계속 정확해. 신기하네.",
+          "{gift}?! 이쯤 되면 취향 유출 의혹 제기해야 하는데. 범인이 나라서 그냥 넘어갈게."
+        ],
+        duplicate: [
+          "또 {gift}이네. {count}개째. 장부에 적어뒀어.",
+          "또 {gift}이네. {count}개 전부 보관 중이야. 전용 칸도 생겼어.",
+          "{gift} {count}개째야. 비품팀이 회수하러 왔다가 그냥 갔어. 내가 막았거든."
+        ],
+        rare: [
+          "{gift}라니... 방송에서도 이런 선물 못 받아봤어. 오늘 표정 관리 포기할게.",
+          "{gift}...? 박물관에서 가져간다는데 거절했어. 내 개인 소장품이야.",
+          "{gift}!! 영구 보존 규정 새로 만들었어. 결재는... 아직인데 일단 서명부터 했어."
+        ]
       }
     },
     elf: {
@@ -643,9 +739,21 @@
       ],
       returnVisit: "다시 만나서 반가워요. 기다리는 동안 {owner}의 자리와 지난 장부를 소중히 지켜뒀어요.",
       gifts: {
-        favorite: "{gift}라니... 제 취향을 기억해주셨군요. 귀 끝이 빨개진 건 모른 척해주세요.",
-        duplicate: "{gift}을 또 주셨네요. {count}번째도 처음처럼 따뜻해요. 전부 오래 간직할게요.",
-        rare: "이 귀한 {gift}을 주시다니... 천 년을 살아도 오늘의 감동은 잊지 못할 거예요."
+        favorite: [
+          "{gift}라니... 제 취향을 기억해주셨군요. 귀 끝이 빨개진 건 모른 척해주세요.",
+          "{gift}, 또네요... 취향 목록과 대조해봤는데 계속 정확해요. 신기한 일이에요.",
+          "{gift}...! 이 정도면 취향 자료가 새어나간 게 아닐까 걱정해야겠네요. 범인은 저인 것 같아요."
+        ],
+        duplicate: [
+          "{gift}을 또 주셨네요. {count}번째도 처음처럼 따뜻해요. 장부에 적어둘게요.",
+          "{gift} {count}번째예요. 전용 칸이 생겼어요. 전부 오래 간직할게요.",
+          "{gift} {count}번째예요. 비품 담당이 이 칸을 회수하려 했지만 제가 막았답니다."
+        ],
+        rare: [
+          "이 귀한 {gift}을 주시다니... 천 년을 살아도 오늘의 감동은 잊지 못할 거예요.",
+          "{gift}...? 박물관에서 요청이 왔지만 거절했어요. 저만의 소장품이에요.",
+          "{gift}...! 영구 보존 규정을 새로 만들었어요. 천 년 뒤에도 이 조항은 남을 거예요."
+        ]
       }
     },
     fairy: {
@@ -668,9 +776,21 @@
       ],
       returnVisit: "다시 만났어요! 기다리던 별들이 한꺼번에 켜졌어요! 전용 보관함과 선물도 소중히 지켜뒀답니다!",
       gifts: {
-        favorite: "{gift}이에요?! {owner}이 집사 취향을 딱 맞혔어요! 기뻐서 날개에서 별가루가 멈추질 않아요!",
-        duplicate: "또 {gift}이에요! 전에 받은 것도 별빛 보관함에 있어요. {count}번째도 똑같이 소중해요!",
-        rare: "이렇게 귀한 {gift}을 주다니! {owner} 이름으로 오늘 밤 가장 큰 별을 예약할게요!"
+        favorite: [
+          "{gift}이에요?! {owner}이 집사 취향을 딱 맞혔어요! 기뻐서 날개에서 별가루가 멈추질 않아요!",
+          "{gift}이에요! 또 맞혔어요! 취향 목록이랑 대조해봤는데 계속 정확해요!",
+          "{gift}이에요?! 이 정도면 취향이 새어나간 거예요! 범인은... 저였어요!! ✨"
+        ],
+        duplicate: [
+          "또 {gift}이에요! 전에 받은 것도 별빛 보관함에 있어요. {count}번째도 똑같이 소중해요!",
+          "또 {gift}이에요! {count}개째, 전용 별빛 칸이 생겼어요!",
+          "{gift} {count}개째예요!! 비품 담당이 가져가려다가 별가루에 눈이 부셔서 그냥 갔어요!"
+        ],
+        rare: [
+          "이렇게 귀한 {gift}을 주다니! {owner} 이름으로 오늘 밤 가장 큰 별을 예약할게요!",
+          "{gift}...? 박물관에서 달라는데 거절했어요! 제 소장품이에요!",
+          "{gift}!! 영구 보존 규정을 새로 만들었어요!! 별가루로 서명까지 했어요!!"
+        ]
       }
     }
   };
@@ -3285,9 +3405,17 @@
     return { type, label: labels[type], delta: BALANCE.giftRelationship[type], duplicateCount: priorCount + 1, favorite, rare };
   }
 
-  function giftResponse(character, gift, interaction = { type: "normal", duplicateCount: 1 }) {
+  // 선물 반응 3단계: 담백한 접수(T0) → 장부·전용칸 생김(T1) → 기관이 끼어드는 소동(T2).
+  // FORM 05 성장축과 같은 원칙(docs/BUTLER-VOICE.md)을 선물에도 적용한다.
+  function giftTierFor(obsession) {
+    const value = Number(obsession) || 0;
+    return value >= 65 ? 2 : value >= 30 ? 1 : 0;
+  }
+
+  function giftResponse(character, gift, interaction = { type: "normal", duplicateCount: 1 }, obsession = state.obsession) {
     const owner = ownerDisplayName();
-    const launchGiftMessage = launchContentFor(character)?.gifts?.[interaction.type];
+    const pool = launchContentFor(character)?.gifts?.[interaction.type];
+    const launchGiftMessage = Array.isArray(pool) ? pool[giftTierFor(obsession)] || pool[0] : pool;
     if (launchGiftMessage) return fillContentTemplate(launchGiftMessage, { gift: gift.name, count: interaction.duplicateCount });
     const responses = {
       ai: `[선물 수신: ${gift.name}] ${owner}이 직접 전달함. 행복 수치 284% 상승. 정상 범위를 벗어났지만 복구할 생각 없음.`,
@@ -3337,7 +3465,7 @@
     }
     trackEvent("gift_given", { character: state.character, giftType: interaction.type, relationshipStage: stageIndexFor(state.obsession) });
     setPoseImage($("#briefing-butler-image"), state.character, "gift");
-    const message = giftResponse(state.character, gift, interaction);
+    const message = giftResponse(state.character, gift, interaction, previousObsession);
     if (state.character === "cat") catHomePendingReaction = "선물은 잘 보관하겠다냥. …고맙다냥.";
     typeMessage($("#briefing-message"), message);
     renderManager();
@@ -3605,7 +3733,7 @@
   });
   window.OVERBUTLER_APP = Object.freeze({
     APP_VERSION, UPDATE_NOTES, BUTLER_CONTENT_RULES, POSES, BALANCE, RANKING_MODULE, giveGift, assetFor,
-    judgeAchievement, getPraise, pointsEarnedFor, relationshipGainFor,
+    judgeAchievement, getPraise, giftResponse, giftInteractionFor, pointsEarnedFor, relationshipGainFor,
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
     certificationStatus,
