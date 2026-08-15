@@ -208,6 +208,22 @@
       6: [["운영팀", "담당 변경 권고에 데이터 연속성 검토 요청이 자동 제출됨. 사용자의 변경 기능은 정상 작동함."], ["감사실", "사용자 접수 전용 환영 문구가 표준 시작 화면보다 먼저 실행되도록 설정됨."]]
     }
   });
+  // 주접 소품: 점수·등급·칭호는 진행도가 아니라 개그 장치다.
+  // 항상 87점 이상이 나오는 이유는 사무국이 원래 후하게 주기 때문.
+  const NICKNAMES = ["중력을 이겨낸 자", "미루기를 이겨낸 자", "사회생활 생존자", "인간의 도리를 다한 자", "생활력의 수호자"];
+  const CATEGORY_NICKNAMES = Object.freeze({
+    hygiene: ["씻기의 지배자", "청결 문명의 수호자", "거품을 다스린 자"],
+    hydration: ["수분 균형의 수호자", "한 잔을 완수한 자", "메마름을 이긴 자"],
+    food: ["생존 연료를 충전한 자", "한 끼의 영웅", "공복을 물리친 자"],
+    work: ["답장을 보낸 전설", "사회생활 생존자", "미루기를 이겨낸 자"],
+    home: ["생활력의 수호자", "집안일을 끝낸 자", "먼지와 싸워 이긴 자"],
+    movement: ["침대에서 탈출한 자", "중력을 이겨낸 자", "두 발로 일어선 전설"],
+    social: ["연락을 성사시킨 자", "관계를 지켜낸 자", "답변의 용사"],
+    other: NICKNAMES
+  });
+  const RARE_ROLL_DIVISOR = 31;
+  const RARE_PITY_AFTER = 24;
+
   const QUESTIONS = ["오늘 뭐 했음? 집사 궁금함.", "방금 해낸 일 하나만 보고 바람.", "미룬 일 처리했음? 즉시 기록 가능.", "오늘의 생존 활동 제출 요청."];
   const BALANCE = Object.freeze({
     giftRelationship: Object.freeze({ normal: 3, favorite: 5, duplicate: 1, rare: 8 }),
@@ -951,6 +967,7 @@
   let interactionResetTimer = null;
   let toastTimer = null;
   let achievementSubmissionActive = false;
+  let currentResult = null;
   let giftTransferActive = false;
   let handlingBrowserBack = false;
   let focusReturnTarget = null;
@@ -2170,6 +2187,7 @@
     if (!$("#recruitment-overlay").hidden) { closeRecruitment(); return true; }
     if (!$("#gift-desk-overlay").hidden) { closeGiftDesk(); return true; }
     if (!$("#record-detail-overlay").hidden) { closeRecordDetail(); return true; }
+    if (!$("#praise-result-overlay").hidden) { closePraiseResult(); return true; }
     return false;
   }
 
@@ -2391,7 +2409,7 @@
       list.innerHTML = '<div class="empty-record">아직 보관된 오늘 기록이 없습니다.<br>물 한 잔 같은 작은 일부터 남겨보세요.</div>';
       return;
     }
-    list.innerHTML = state.records.filter(record => record.date === today()).slice(-3).reverse().map(record => `<article class="record-row"><img loading="lazy" decoding="async" src="${recordPortrait(record)}" alt=""><div><strong>${escapeHtml(record.deed)}</strong><small>${escapeHtml(relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name)} · ${escapeHtml(record.date)}</small></div><span class="record-stamp">${record.stampEligible === false ? "반복" : "기억됨"}</span></article>`).join("");
+    list.innerHTML = state.records.filter(record => record.date === today()).slice(-3).reverse().map(record => `<article class="record-row"><img loading="lazy" decoding="async" src="${recordPortrait(record)}" alt=""><div><strong>${escapeHtml(record.deed)}</strong><small>${escapeHtml(record.grade || "일상 기록")} · ${escapeHtml(scoreText(record))}</small></div><span class="record-stamp">${record.stampEligible === false ? "반복" : "도장 +1"}</span></article>`).join("");
   }
 
   function ensureDailyOfficeEvent(character = state.character) {
@@ -2749,6 +2767,43 @@
     return state.records.filter(record => record.date === today() && recordCharacter(record) === key && record.stampEligible !== false && record.relationshipEligible !== false).length;
   }
 
+  function stableDeedNumber(deed) {
+    let hash = 2166136261;
+    for (const character of normalizeDeed(deed)) { hash ^= character.charCodeAt(0); hash = Math.imul(hash, 16777619); }
+    return hash >>> 0;
+  }
+
+  function recordsSinceRare() {
+    const records = Array.isArray(state.records) ? state.records : [];
+    const lastRareIndex = records.map(record => Boolean(record.rare)).lastIndexOf(true);
+    return lastRareIndex === -1 ? records.length : records.length - lastRareIndex - 1;
+  }
+
+  function scoreText(record) { return record?.scoreLabel || `${record?.score ?? 99}점`; }
+
+  // Comedy verdict only: the sheet always approves, the numbers are the punchline.
+  function judgeAchievement(deed, duplicate = false) {
+    const seed = stableDeedNumber(deed);
+    const category = categoryForDeed(deed);
+    const score = 87 + (seed % 13);
+    const rare = !duplicate && (seed % RARE_ROLL_DIVISOR === 0 || recordsSinceRare() >= RARE_PITY_AFTER);
+    const power = rare || score >= 98;
+    const grade = rare ? "설명 불가한 위업"
+      : score >= 99 ? "우주 최초 기록"
+      : score >= 96 ? "인류사적 대업"
+      : score >= 93 ? "집사 가문 경사"
+      : score >= 90 ? "국가적 성취"
+      : "소소한 기적";
+    const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
+    const nickname = rare ? "통계청이 포기한 자" : nicknamePool[(seed >>> 5) % nicknamePool.length];
+    return {
+      seed, category, score: rare ? 100 : score,
+      scoreLabel: rare ? "측정 불가" : `${score}점`,
+      grade, nickname, rare, power,
+      verdictType: rare ? "rare" : power ? "power" : "praise"
+    };
+  }
+
   function submitAchievement() {
     if (achievementSubmissionActive) return;
     const input = $("#achievement-input");
@@ -2783,7 +2838,7 @@
     const relationshipEligible = !duplicate && relationshipGrowthCountToday(state.character) < RELATIONSHIP_DAILY_VALID_LIMIT;
     const prospectiveCount = relation.validRecordCount + (relationshipEligible ? 1 : 0);
     const nextStage = Math.max(previousStage, stageForValidRecordCount(prospectiveCount));
-    const evaluation = pendingEvaluation || { category: categoryForDeed(deed), verdictType: "memory" };
+    const evaluation = judgeAchievement(deed, duplicate);
     const relationshipGain = relationshipEligible ? 1 : 0;
     const pointsEarned = 0;
     pendingEvaluation = null;
@@ -2796,9 +2851,9 @@
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       createdAt: new Date().toISOString(),
-      deed, grade: "일상 기록", nickname: "집사가 기억한 순간", score: null,
-      scoreLabel: relationshipStage(nextStage).name, category: evaluation.category,
-      verdictType: "memory", rare: false,
+      deed, grade: evaluation.grade, nickname: evaluation.nickname, score: evaluation.score,
+      scoreLabel: evaluation.scoreLabel, category: evaluation.category,
+      verdictType: evaluation.verdictType, rare: evaluation.rare,
       date: today(), number: state.records.length + 1,
       report: resolveRelationshipReaction({ character: butler.character, stage: nextStage, situation: reactionSituation, deed, memories: memoryBefore, context: { previousDeed: memoryBefore.lastDeed } }), pose,
       reactionSituation,
@@ -2867,7 +2922,9 @@
     render();
     if (duplicate) showToast("같은 하루도 집사가 다시 기억해뒀습니다.");
     else if (!relationshipEligible) showToast("오늘의 기록은 계속 집사 기억에 보관됩니다.");
-    showInlineHomeReaction(record, nextRelation.stage > previousStage ? { from: previousStage, to: nextRelation.stage } : null);
+    const stageChange = nextRelation.stage > previousStage ? { from: previousStage, to: nextRelation.stage } : null;
+    showInlineHomeReaction(record, stageChange);
+    window.setTimeout(() => openPraiseResult(record, stageChange), 520);
     if (certificateReason) showToast(`희귀 인증서 보관 · ${certificateReason}`, 2600);
   }
 
@@ -2891,6 +2948,63 @@
       returnPose: firstWeekRestingPose(record.character)
     });
     panel.scrollIntoView({ behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+  }
+
+  function openPraiseResult(record, stageChange = null) {
+    const overlay = $("#praise-result-overlay");
+    if (!overlay) return false;
+    const butler = record.butler || snapshotButler(record);
+    const rare = Boolean(record.rare) || record.verdictType === "rare";
+    const power = rare || record.verdictType === "power";
+    const official = isOfficialCertificate(record);
+    const stageValue = clamp(Number(record.relationshipAfter || record.relationshipStage) || currentRelationshipStage(butler.character), 1, 6);
+    currentResult = record;
+    overlay.dataset.mode = rare ? "rare" : power ? "power" : "praise";
+    overlay.dataset.firstRecord = String(isFirstRecord(record));
+    $("#result-form-label").textContent = rare ? "희귀 대업 판정서 · FORM 05-R" : power ? "긴급 주접 결재서 · FORM 05-P" : "대업 심사 결과서 · FORM 05";
+    $("#result-mode-badge").textContent = rare ? "측정 포기" : power ? "긴급 주접" : "일반 주접";
+    $("#result-title").innerHTML = rare ? "사무국<br>측정 포기" : power ? "긴급 주접<br>승인" : "집사 주접<br>승인";
+    $("#result-verdict").textContent = rare
+      ? "통상적인 평가 기준으로는 위대함을 측정할 수 없어 사무국이 판정을 포기했습니다."
+      : power
+        ? "규정 한도를 넘는 주접이 발생했습니다. 담당 집사를 말리지 못했습니다."
+        : "검토 결과, 공식적으로 떠받들기로 결정했습니다.";
+    $("#result-stamp").innerHTML = rare ? "측정<br>포기" : power ? "긴급<br>승인" : "칭찬<br>승인";
+    $("#result-butler-name").textContent = `${butler.name} 담당 집사`;
+    $("#result-deed").textContent = record.deed;
+    $("#result-record-status").textContent = record.stampEligible === false ? "반복 기록 · 도장 없음" : "도장 +1";
+    $("#result-report").textContent = "";
+    $("#result-rare-note").hidden = !rare;
+    $("#result-grade").textContent = record.grade;
+    $("#result-score").textContent = scoreText(record);
+    $("#result-nickname").textContent = record.nickname;
+    $("#result-certificate-button").innerHTML = official ? "공식 인증서 발급 <span>→</span>" : "대업 기념 인증서 보기 <span>→</span>";
+    $("#result-close").textContent = "기록만 하고 홈으로";
+    $("#result-footnote").textContent = official
+      ? "관계의 특별한 순간이 공식 인증서로 보관되었습니다."
+      : "집사 사무국 과몰입 관리 규정에 따라 자동 결재되었습니다.";
+    renderRelationshipResult("result", stageChange ? stageChange.from : stageValue, stageChange ? stageChange.to : stageValue, Number(record.relationshipGain) || 0, "deed");
+    setPoseImage($("#result-butler-image"), butler.character, record.pose || "praise");
+    overlay.hidden = false;
+    document.body.style.overflow = "hidden";
+    window.setTimeout(() => typeMessage($("#result-report"), record.report, rare ? 22 : 27), 240);
+    return true;
+  }
+
+  function closePraiseResult() {
+    $("#praise-result-overlay").hidden = true;
+    document.body.style.overflow = "";
+    currentResult = null;
+    showView("home");
+  }
+
+  function issueCertificateFromResult() {
+    if (!currentResult) return;
+    const record = currentResult;
+    trackEvent("certificate_open", { character: record.character, source: "result", official: isOfficialCertificate(record) });
+    $("#praise-result-overlay").hidden = true;
+    currentResult = null;
+    openCertificate(record);
   }
 
   function categoryForDeed(deed) {
@@ -2961,21 +3075,21 @@
     $("#certificate-card").dataset.verdict = rare ? "rare" : "official";
     $("#certificate-card").dataset.certification = official ? "official" : "commemorative";
     $("#certificate-card").dataset.deedLength = deedLength > 42 ? "extra-long" : deedLength > 24 ? "long" : "normal";
-    $("#certificate-screen-title").textContent = official ? "공식 관계 인증서" : "관계 기념 인증서";
+    $("#certificate-screen-title").textContent = official ? "공식 대업 인증서" : "대업 기념 인증서";
     $("#certificate-screen-copy").textContent = official
       ? "집사와 함께 만든 특별한 순간을 인증합니다."
       : firstRecord ? "첫 기록을 집사가 특별히 기념합니다." : "오늘의 기록을 집사가 특별히 기념합니다.";
-    $("#certificate-title").textContent = official ? "공식 관계 인증서" : "관계 기념 인증서";
+    $("#certificate-title").textContent = official ? "공식 대업 인증서" : "대업 기념 인증서";
     $("#certificate-declaration").textContent = official
       ? "이 증서는 아래의 관계 순간을 엄숙하게 인증합니다"
       : "이 증서는 오늘의 기록을 집사 사무국이 기쁘게 기념합니다";
-    $("#certificate-number").textContent = `문서번호 관계-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
-    $("#certificate-grade").textContent = record.certificateReason || "특별한 관계 순간";
+    $("#certificate-number").textContent = `문서번호 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
+    $("#certificate-grade").textContent = record.grade || record.certificateReason || "소소한 기적";
     $("#certificate-deed").textContent = record.deed;
-    $("#certificate-nickname").textContent = "― 집사가 오래 기억할 기록 ―";
+    $("#certificate-nickname").textContent = `― ${record.nickname || "집사가 기억한 순간"} ―`;
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
-    $("#certificate-difficulty").textContent = record.certificateReason || "특별 기억";
-    $("#certificate-score").textContent = relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name;
+    $("#certificate-difficulty").textContent = "★".repeat(clamp(Math.round(((Number(record.score) || 90) - 86) / 3), 1, 5));
+    $("#certificate-score").textContent = scoreText(record);
     $("#certificate-report").textContent = `“${record.report}”`;
     $("#certificate-butler-name").textContent = butler.name;
     $("#certificate-date").textContent = record.date;
@@ -3783,6 +3897,8 @@
     $("#quick-suggestion-dismiss").addEventListener("click", dismissQuickRecordSuggestion);
     $("#achievement-input").addEventListener("input", event => { $("#char-count").textContent = event.target.value.length; });
     $("#report-button").addEventListener("click", submitAchievement);
+    $("#result-close").addEventListener("click", closePraiseResult);
+    $("#result-certificate-button").addEventListener("click", issueCertificateFromResult);
     $("#briefing-character-action").addEventListener("click", interactWithButler);
     $("#briefing-room-world").addEventListener("pointerdown", startHomeRoomDrag);
     window.addEventListener("pointermove", moveHomeRoomDrag, { passive: false });
