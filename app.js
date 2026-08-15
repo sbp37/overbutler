@@ -1629,189 +1629,117 @@
     return `${text}${(code - 0xac00) % 28 !== 0 ? withJong : withoutJong}`;
   }
   const topicParticle = word => withParticle(word, "은", "는");
-  const objectParticle = word => withParticle(word, "을", "를");
 
-  // 집사 일기: 하루치 기록을 담당 집사의 말투로 짧게 돌아본다.
-  // 사용자가 남기지 않은 사실은 만들지 않는다. deeds/mood 모두 실제 기록에서만 온다.
+  // 해석기가 만든 행동 라벨을 사람이 말하듯 풀어쓴다.
+  // verb = 서술형("씻었다"), noun = 명사형("씻기"). 둘 다 사용자가 실제 말한 행동에서만 나온다.
+  const ACTION_PHRASE = Object.freeze({
+    "결혼식 다녀옴": { verb: "결혼식에 다녀왔다", noun: "결혼식" },
+    "집에 도착함": { verb: "집에 무사히 돌아왔다", noun: "귀가" },
+    "출근함": { verb: "출근했다", noun: "출근" },
+    "회사 업무를 해냄": { verb: "회사 일을 해냈다", noun: "회사 일" },
+    "씻기 완료": { verb: "씻었다", noun: "씻기" },
+    "침대에서 일어나기": { verb: "침대에서 일어났다", noun: "기상" },
+    "물 한 잔 챙기기": { verb: "물도 한 잔 마셨다", noun: "물 마시기" },
+    "운동 완료": { verb: "운동을 했다", noun: "운동" },
+    "식사 챙김": { verb: "밥도 챙겨 먹었다", noun: "식사" },
+    "충분히 쉬기": { verb: "푹 쉬었다", noun: "휴식" },
+    "설거지 완료": { verb: "설거지를 끝냈다", noun: "설거지" },
+    "빨래 완료": { verb: "빨래를 했다", noun: "빨래" },
+    "청소 완료": { verb: "청소를 했다", noun: "청소" },
+    "답장 완료": { verb: "미뤄둔 답장도 보냈다", noun: "답장" },
+    "발표 완료": { verb: "발표를 마쳤다", noun: "발표" },
+    "외출 일정 완료": { verb: "외출 일정을 마쳤다", noun: "외출" }
+  });
+
+  function actionPhrase(label) {
+    const key = String(label || "").trim();
+    if (ACTION_PHRASE[key]) return { ...ACTION_PHRASE[key], known: true };
+    // 표에 없는 라벨(구버전 기록의 대업명 등)은 억지로 활용하지 않고 그대로 인용한다.
+    const plain = key.includes(":") ? key.split(":").pop().trim() : key;
+    return { verb: `‘${plain}’`, noun: plain, known: false };
+  }
+
+  // 캐릭터별 어미. 서술형 "…다"를 각 집사 말투로 바꾼다.
+  const DIARY_ENDING = Object.freeze({
+    cat: "다냥", dog: "다멍", ai: "습니다", ninja: "다", alien: "음",
+    witch: "어요", elf: "어요", fairy: "어요", fox: "어", star: "어"
+  });
+  function speak(sentence, character) {
+    const ending = DIARY_ENDING[character] || DIARY_ENDING.ai;
+    return String(sentence).replace(/다$/, "") + ending;
+  }
+
+  // 집사 일기: 사용자의 하루를 담당 집사가 관찰자 시점으로 짧게 돌아본다.
+  // [실제로 한 일] + [사용자가 표현한 감정] + [집사의 개인 코멘트] 구조를 유지한다.
   const DIARY_VOICE = {
     cat: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈다냥.`,
-        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔다냥.`,
-        (owner, head) => `오늘 기록에는 ${objectParticle(head)} 했다고 적혀 있다냥.`
-      ],
-      more: rest => `거기에 ${objectParticle(rest)} 챙긴 것도 확인했다냥.`,
-      mood: {
-        tired: ["꽤 힘들었다고 했는데도 할 건 했다냥.", "지쳤다는 말이 먼저 나왔다냥. 그럴 만한 하루였다냥."],
-        sad: ["마음이 좀 가라앉은 날이었다냥.", "속상하다는 말을 조용히 적어뒀다냥."],
-        low: ["의욕이 없다고 했다냥. 그런 날도 있는 거다냥.", "아무것도 하기 싫은 날이었다냥."],
-        angry: ["화가 났던 하루였다냥. 참지 않은 건 잘한 거다냥."],
-        worried: ["걱정이 많은 하루였다냥.", "고민이 길어진 날이었다냥."],
-        happy: ["기분이 좋아 보였다냥. 나쁘지 않았다냥.", "오늘은 목소리가 좀 밝았다냥."],
-        neutral: ["별다른 말은 없었지만 하루는 잘 지나갔다냥."]
-      },
-      close: ["오늘은 그냥 푹 쉬게 두는 게 좋겠다냥 🌙", "이 정도면 충분한 하루다냥. 내일은 내일 듣겠다냥 🐾", "기록은 집사가 잘 넣어뒀다냥. 걱정 말라냥."]
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "꽤 힘들었다고 했는데", sad: "마음이 좀 가라앉았다고 했는데", low: "아무것도 하기 싫다고 했는데", angry: "화가 많이 났다고 했는데", worried: "걱정이 많다고 했는데", happy: "기분이 좋아 보였는데" },
+      moodAlone: { tired: "꽤 힘들었다고 했다", sad: "마음이 좀 가라앉은 하루였다", low: "아무것도 하기 싫은 날이었다", angry: "화가 많이 난 하루였다", worried: "걱정이 많은 하루였다", happy: "기분이 좋아 보였다", neutral: "별다른 말은 없었지만 하루는 잘 지나갔다" },
+      also: noun => `${noun}까지 했다`, alsoLead: noun => `${noun}까지 했다`,
+      close: ["오늘은 그냥 푹 쉬었으면 좋겠다냥 🌙", "이 정도면 충분한 하루다냥. 내일은 내일 듣겠다냥 🐾", "기록은 집사가 잘 넣어뒀다냥. 걱정 말라냥."]
     },
     ai: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 완료했습니다.`,
-        (owner, head) => `[일일 요약] ${topicParticle(owner)} ${objectParticle(head)} 수행했습니다.`,
-        (owner, head) => `금일 기록: ${objectParticle(head)} 처리 완료.`
-      ],
-      more: rest => `추가로 ${objectParticle(rest)} 완료한 것으로 확인됩니다.`,
-      mood: {
-        tired: ["높은 피로도를 함께 보고했습니다.", "피로 신호가 기록에 남아 있습니다."],
-        sad: ["감정 지표가 낮게 관측되었습니다.", "가라앉은 상태가 함께 보고되었습니다."],
-        low: ["활동 의욕 저하가 보고되었습니다.", "저전력 상태로 하루를 보냈습니다."],
-        angry: ["분노 신호가 함께 기록되었습니다."],
-        worried: ["불안 신호가 함께 감지되었습니다."],
-        happy: ["긍정 지표 상승이 확인되었습니다.", "기분 좋음이 함께 보고되었습니다."],
-        neutral: ["특이 감정 신호는 없었습니다."]
-      },
+      open: (owner, verb) => `금일 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "피로가 높다고 보고했지만", sad: "감정 지표가 낮았지만", low: "활동 의욕 저하를 보고했지만", angry: "분노 신호가 있었지만", worried: "불안 신호가 있었지만", happy: "긍정 지표가 높은 상태로" },
+      moodAlone: { tired: "높은 피로도를 함께 보고했다", sad: "감정 지표가 낮게 관측되었다", low: "활동 의욕 저하가 보고되었다", angry: "분노 신호가 함께 기록되었다", worried: "불안 신호가 함께 감지되었다", happy: "긍정 지표 상승이 확인되었다", neutral: "특이 감정 신호는 없었다" },
+      also: noun => `${noun}까지 완료했다`, alsoLead: noun => `${noun}까지 완료했다`,
       close: ["[결론] 오늘은 추가 성과보다 휴식을 권장합니다.", "[결론] 금일 기록은 정상 보관했습니다.", "[결론] 오늘 수행량은 충분합니다. 종료를 권장합니다."]
     },
     dog: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈다멍!`,
-        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔다멍!`,
-        (owner, head) => `오늘의 대업은 ${head}이었다멍!`
-      ],
-      more: rest => `게다가 ${objectParticle(rest)} 하고 왔다멍!`,
-      mood: {
-        tired: ["많이 힘들었다고 했다멍. 그래도 해낸 게 대단하다멍!", "지쳤다는데도 버텼다멍!"],
-        sad: ["속상한 하루였다멍. 옆에 딱 붙어 있었다멍.", "마음이 아팠던 날이다멍."],
-        low: ["아무것도 하기 싫은 날이었다멍. 그래도 괜찮다멍!", "의욕이 없다고 했다멍."],
-        angry: ["화가 났던 날이다멍. 집사가 다 들어줬다멍!"],
-        worried: ["걱정이 많은 하루였다멍."],
-        happy: ["기분이 좋아 보여서 집사도 신났다멍!", "오늘은 웃는 날이었다멍!"],
-        neutral: ["무사한 하루였다멍!"]
-      },
-      close: ["오늘도 정말 수고했다멍! 푹 쉬라멍 🌙", "내일도 같이 있고 싶다멍!", "집사는 오늘 하루가 자랑스럽다멍!"]
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "많이 힘들었다고 했는데", sad: "속상했다고 했는데", low: "아무것도 하기 싫다고 했는데", angry: "화가 났다고 했는데", worried: "걱정이 많다고 했는데", happy: "기분이 좋아 보였는데" },
+      moodAlone: { tired: "많이 힘들었다고 했다", sad: "속상한 하루였다", low: "아무것도 하기 싫은 날이었다", angry: "화가 났던 날이다", worried: "걱정이 많은 하루였다", happy: "기분이 좋아 보였다", neutral: "무사한 하루였다" },
+      also: noun => `${noun}까지 했다`, alsoLead: noun => `${noun}까지 해냈다`,
+      close: ["오늘도 정말 수고했다멍! 푹 쉬라멍 🌙", "내일도 같이 있고 싶다멍!", "집사는 오늘 하루가 진짜 자랑스럽다멍!"]
     },
     alien: {
-      open: [
-        (owner, head) => `금일 관측: ${topicParticle(owner)} ${objectParticle(head)} 수행함.`,
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 완료한 것을 확인함.`,
-        (owner, head) => `관측 기록에 ${head} 항목이 남았음.`
-      ],
-      more: rest => `추가 관측: ${objectParticle(rest)} 수행함.`,
-      mood: {
-        tired: ["에너지 소모가 큰 하루로 분류함.", "피로 수치가 높게 관측됨."],
-        sad: ["감정 파장이 낮게 관측됨."],
-        low: ["활동 의욕 저하 관측. 정상 생체 주기로 분류함."],
-        angry: ["분노 반응 관측. 타당한 사유가 있는 것으로 보임."],
-        worried: ["불안 파장이 함께 관측됨."],
-        happy: ["긍정 파장이 강하게 관측됨."],
-        neutral: ["특이 파장 없이 안정적인 하루였음."]
-      },
+      open: (owner, verb) => `금일 관측: ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "피로 수치가 높았지만", sad: "감정 파장이 낮았지만", low: "활동 의욕 저하가 있었지만", angry: "분노 반응이 있었지만", worried: "불안 파장이 있었지만", happy: "긍정 파장이 강한 상태로" },
+      moodAlone: { tired: "에너지 소모가 큰 하루로 분류함", sad: "감정 파장이 낮게 관측됨", low: "활동 의욕 저하 관측. 정상 생체 주기로 분류함", angry: "분노 반응 관측. 타당한 사유가 있는 것으로 보임", worried: "불안 파장이 함께 관측됨", happy: "긍정 파장이 강하게 관측됨", neutral: "특이 파장 없이 안정적인 하루였음" },
+      also: noun => `${noun}까지 수행했다`, alsoLead: noun => `${noun}까지 수행했다`,
       close: ["[결론] 오늘은 회복을 우선 권고함.", "[결론] 본 기록을 중요 표본으로 보존함.", "[결론] 금일 관측 종료. 무사함을 확인했음."]
     },
     ninja: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 완수했다.`,
-        (owner, head) => `금일 임무: ${topicParticle(owner)} ${objectParticle(head)} 해냈다.`,
-        (owner, head) => `오늘의 기록에 ${head} 임무가 남았다.`
-      ],
-      more: rest => `이어서 ${objectParticle(rest)} 마쳤다.`,
-      mood: {
-        tired: ["고된 하루였다고 전했다.", "피로가 깊은 날이었다."],
-        sad: ["마음이 다친 하루였다."],
-        low: ["움직이기 어려운 날이었다."],
-        angry: ["분노가 있었던 하루다. 억누르지 않은 것이 옳다."],
-        worried: ["고민이 깊은 하루였다."],
-        happy: ["좋은 기운이 느껴진 하루였다."],
-        neutral: ["큰 동요 없이 지나간 하루다."]
-      },
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "고된 하루였다고 했지만", sad: "마음이 다쳤다고 했지만", low: "움직이기 어려웠다고 했지만", angry: "분노가 있었지만", worried: "고민이 깊었지만", happy: "좋은 기운을 지닌 채" },
+      moodAlone: { tired: "고된 하루였다고 전했다", sad: "마음이 다친 하루였다", low: "움직이기 어려운 날이었다", angry: "분노가 있었던 하루다", worried: "고민이 깊은 하루였다", happy: "좋은 기운이 느껴진 하루였다", neutral: "큰 동요 없이 지나간 하루다" },
+      also: noun => `${noun}까지 마쳤다`, alsoLead: noun => `${noun}까지 마쳤다`,
       close: ["오늘은 경계를 풀고 쉬어도 좋다 🌙", "기록은 조용히 봉인해두었다.", "내일도 곁을 지키겠다."]
     },
     witch: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어요.`,
-        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 마쳤답니다.`,
-        (owner, head) => `오늘의 점괘에는 ${head} 이야기가 적혔어요.`
-      ],
-      more: rest => `그리고 ${objectParticle(rest)} 챙기기까지 했어요.`,
-      mood: {
-        tired: ["많이 지쳤다고 했어요. 운명의 실이 꼬인 날이었죠.", "피곤한 기운이 짙은 하루였어요."],
-        sad: ["마음에 비가 내린 하루였어요."],
-        low: ["아무 주문도 쓰고 싶지 않은 날이었어요."],
-        angry: ["화난 기운이 있었어요. 그럴 만했답니다."],
-        worried: ["걱정이 많은 하루였어요."],
-        happy: ["행운의 기운이 반짝인 하루였어요."],
-        neutral: ["잔잔하게 흘러간 하루였어요."]
-      },
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "많이 지쳤다고 했는데", sad: "마음에 비가 내렸다고 했는데", low: "아무것도 하고 싶지 않았다고 했는데", angry: "화난 기운이 있었는데", worried: "걱정이 많았는데", happy: "좋은 기운을 안고" },
+      moodAlone: { tired: "많이 지쳤다고 했다", sad: "마음에 비가 내린 하루였다", low: "아무 주문도 쓰고 싶지 않은 날이었다", angry: "화난 기운이 있었다", worried: "걱정이 많은 하루였다", happy: "행운의 기운이 반짝인 하루였다", neutral: "잔잔하게 흘러간 하루였다" },
+      also: noun => `${noun}까지 챙겼다`, alsoLead: noun => `${noun}까지 챙겼다`,
       close: ["오늘은 따뜻한 휴식 주문이 가장 필요해 보여요 🌙", "좋은 꿈 주문을 걸어둘게요.", "이 기록은 오래 간직할게요 ✨"]
     },
     fox: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 했어…`,
-        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔대…`,
-        (owner, head) => `기록에 ${head} 이라고 적혀 있어…`
-      ],
-      more: rest => `그리고 ${rest}까지 했어…`,
-      mood: {
-        tired: ["많이 힘들었대… 그래도 해낸 거야…", "지쳤다고 했어… 그럴 만해…"],
-        sad: ["속상했나 봐… 조용히 옆에 있었어…"],
-        low: ["아무것도 하기 싫은 날이었대…"],
-        angry: ["화가 났었대… 참지 않아서 다행이야…"],
-        worried: ["걱정이 많았나 봐…"],
-        happy: ["기분이 좋아 보였어… 나도 좀 살아났어…"],
-        neutral: ["조용히 지나간 하루였어…"]
-      },
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "많이 힘들었대는데", sad: "속상했다고 했는데", low: "아무것도 하기 싫었다는데", angry: "화가 났다는데", worried: "걱정이 많았다는데", happy: "기분이 좋아 보였는데" },
+      moodAlone: { tired: "많이 힘들었대", sad: "속상했나 봐", low: "아무것도 하기 싫은 날이었대", angry: "화가 났었대", worried: "걱정이 많았나 봐", happy: "기분이 좋아 보였어", neutral: "조용히 지나간 하루였어" },
+      also: noun => `${noun}까지 했다`, alsoLead: noun => `${noun}까지 했다`,
       close: ["오늘은 그냥 푹 자면 좋겠어… 🌙", "기록은 내가 보고 있을게…", "내일은 좀 더 편했으면 좋겠어…"]
     },
     star: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어.`,
-        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔어.`,
-        (owner, head) => `오늘의 메인 장면은 ${head}이었어.`
-      ],
-      more: rest => `거기다 ${rest}까지 소화했어.`,
-      mood: {
-        tired: ["많이 지쳤다고 했어. 그래도 오늘 분량은 충분했어.", "피곤한 하루였어."],
-        sad: ["속상한 장면이 있었던 날이야."],
-        low: ["아무것도 하기 싫은 날이었어. 휴방해도 되는 날."],
-        angry: ["화날 만한 일이 있었어."],
-        worried: ["고민이 많았던 하루야."],
-        happy: ["기분 좋은 하루였어. 스포트라이트 줄 만했어."],
-        neutral: ["무난하게 잘 지나간 하루야."]
-      },
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "많이 지쳤다고 했는데", sad: "속상했다고 했는데", low: "아무것도 하기 싫었다는데", angry: "화날 만한 일이 있었는데", worried: "고민이 많았는데", happy: "기분 좋은 상태로" },
+      moodAlone: { tired: "많이 지쳤다고 했어", sad: "속상한 장면이 있었던 날이야", low: "아무것도 하기 싫은 날이었어", angry: "화날 만한 일이 있었어", worried: "고민이 많았던 하루야", happy: "기분 좋은 하루였어", neutral: "무난하게 잘 지나간 하루야" },
+      also: noun => `${noun}까지 소화했다`, alsoLead: noun => `${noun}까지 소화했다`,
       close: ["오늘의 엔딩은 수고했다는 자막으로 마칠게 🌙", "이 장면은 편집 없이 저장해둘게.", "내일 큐는 천천히 가자."]
     },
     elf: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어요.`,
-        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 마쳤답니다.`,
-        (owner, head) => `오늘의 기록에 ${head} 이야기가 남았어요.`
-      ],
-      more: rest => `그리고 ${rest}까지 챙겼어요.`,
-      mood: {
-        tired: ["많이 지친 하루였다고 해요.", "피로가 깊게 남은 날이었어요."],
-        sad: ["마음이 무거운 하루였어요."],
-        low: ["아무것도 하고 싶지 않은 날이었어요."],
-        angry: ["화가 났던 하루였어요."],
-        worried: ["걱정이 많았던 하루예요."],
-        happy: ["따뜻한 기운이 감돈 하루였어요."],
-        neutral: ["잔잔하게 흘러간 하루였어요."]
-      },
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "많이 지쳤다고 했는데", sad: "마음이 무거웠다고 했는데", low: "아무것도 하고 싶지 않았다고 했는데", angry: "화가 났다고 했는데", worried: "걱정이 많았는데", happy: "따뜻한 기운을 안고" },
+      moodAlone: { tired: "많이 지친 하루였다고 해요", sad: "마음이 무거운 하루였어요", low: "아무것도 하고 싶지 않은 날이었어요", angry: "화가 났던 하루였어요", worried: "걱정이 많았던 하루예요", happy: "따뜻한 기운이 감돈 하루였어요", neutral: "잔잔하게 흘러간 하루였어요" },
+      also: noun => `${noun}까지 챙겼다`, alsoLead: noun => `${noun}까지 챙겼다`,
       close: ["오늘은 푹 쉬시길 바라요 🌙", "이 하루도 오래 간직할게요.", "천천히 가도 괜찮아요."]
     },
     fairy: {
-      open: [
-        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어요!`,
-        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔어요!`,
-        (owner, head) => `오늘 반짝인 순간은 ${head}이었어요!`
-      ],
-      more: rest => `게다가 ${rest}까지 해냈어요!`,
-      mood: {
-        tired: ["많이 힘들었대요. 그래도 해낸 게 대단해요!", "지친 하루였어요."],
-        sad: ["마음이 가라앉은 하루였어요."],
-        low: ["아무것도 하기 싫은 날이었어요. 그래도 괜찮아요!"],
-        angry: ["화가 났던 하루였어요."],
-        worried: ["걱정이 많았던 하루예요."],
-        happy: ["기분이 좋아서 별가루가 더 반짝였어요!"],
-        neutral: ["조용하지만 좋은 하루였어요!"]
-      },
+      open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
+      moodLead: { tired: "많이 힘들었다고 했는데", sad: "마음이 가라앉았다고 했는데", low: "아무것도 하기 싫었다고 했는데", angry: "화가 났다고 했는데", worried: "걱정이 많았는데", happy: "기분 좋은 마음으로" },
+      moodAlone: { tired: "많이 힘들었대요", sad: "마음이 가라앉은 하루였어요", low: "아무것도 하기 싫은 날이었어요", angry: "화가 났던 하루였어요", worried: "걱정이 많았던 하루예요", happy: "기분이 좋아서 별가루가 더 반짝였어요", neutral: "조용하지만 좋은 하루였어요" },
+      also: noun => `${noun}까지 해냈다`, alsoLead: noun => `${noun}까지 해냈다`,
       close: ["오늘은 푹 쉬어요 🌙", "이 기록에 별가루 살짝 뿌려뒀어요 ✨", "내일도 작은 반짝임을 같이 찾아요!"]
     }
   };
@@ -1822,24 +1750,48 @@
     return order.find(item => moods.includes(item)) || "neutral";
   }
 
+  // 일기 재료: 저장된 activities를 우선 쓰고, 없으면(구버전 기록) deed로 대체한다.
+  function diaryActionLabels(entries) {
+    const labels = [];
+    entries.forEach(entry => {
+      const list = Array.isArray(entry.activities) && entry.activities.length
+        ? entry.activities
+        : [entry.deed || entry.todos?.[0]].filter(Boolean);
+      list.forEach(label => { if (label && !labels.includes(label)) labels.push(label); });
+    });
+    return labels;
+  }
+
   function diaryReflection(character, entries, ownerName = entries.at(-1)?.ownerName || ownerDisplayName()) {
     const key = normalizeCharacter(character);
     const voice = DIARY_VOICE[key] || DIARY_VOICE.ai;
-    const readable = value => String(value).includes(":") ? String(value).split(":").pop().trim() : String(value);
-    const deeds = [...new Set(entries.map(entry => entry.deed || entry.todos?.[0]).filter(Boolean).map(readable))];
-    const head = deeds[0] || "오늘의 기록";
-    const rest = deeds.slice(1);
+    const labels = diaryActionLabels(entries);
+    const phrases = labels.map(actionPhrase);
     const owner = ownerName || ownerDisplayName();
-    const seedSource = `${entries[0]?.date || ""}|${key}|${deeds.join("|")}`;
+    const seedSource = `${entries[0]?.date || ""}|${key}|${labels.join("|")}`;
     const seed = seedSource.split("").reduce((total, value) => total + value.charCodeAt(0), 0);
-    const pick = (pool, offset) => pool[(seed + offset) % pool.length];
     const moodKey = dominantDiaryMood(entries);
-    const moodPool = voice.mood[moodKey] || voice.mood.neutral;
-    const sentences = [pick(voice.open, 0)(owner, head)];
-    if (rest.length) sentences.push(voice.more(rest.length > 1 ? `${rest[0]} 외 ${rest.length - 1}가지` : rest[0]));
-    if (moodPool?.length) sentences.push(pick(moodPool, 1));
-    sentences.push(pick(voice.close, 2));
-    return sentences.join(" ");
+    const sentences = [];
+
+    if (phrases.length) {
+      sentences.push(phrases[0].known
+        ? speak(voice.open(owner, phrases[0].verb), key)
+        : speak(`오늘 ${owner}의 기록에는 ${phrases[0].verb}${withParticle(phrases[0].noun, "이", "가").slice(phrases[0].noun.length)} 남았다`, key));
+    }
+    const rest = phrases.slice(1);
+    const moodLead = voice.moodLead?.[moodKey];
+    if (rest.length) {
+      const nouns = rest.slice(0, 2).map(item => item.noun);
+      const tail = rest.length > 2 ? `${nouns.join("랑 ")} 같은 것` : nouns.join("랑 ");
+      // 감정과 남은 행동을 한 문장으로 엮는다: "꽤 힘들었다고 했는데 씻기까지 했다냥."
+      sentences.push(moodLead
+        ? speak(`${moodLead} ${voice.alsoLead(tail)}`, key)
+        : speak(voice.also(tail), key));
+    } else if (moodKey !== "neutral" || !phrases.length) {
+      sentences.push(speak(voice.moodAlone[moodKey] || voice.moodAlone.neutral, key));
+    }
+    sentences.push(voice.close[seed % voice.close.length]);
+    return sentences.map(sentence => /[.!?…🌙🐾✨]$/.test(sentence) ? sentence : `${sentence}.`).join(" ");
   }
 
   function backfillDiaryReflections() {
@@ -2486,7 +2438,7 @@
     const comfort = mode === "comfort";
     note.dataset.tone = comfort ? "comfort" : "record";
     $("#gentle-note-kicker").textContent = comfort ? "집사가 오늘 이야기에서 발견한 것" : "집사가 발견한 오늘의 대업";
-    $("#gentle-note-badge").textContent = duplicate ? "다시 기억함" : "기록 보관";
+    $("#gentle-note-badge").textContent = duplicate ? "다시 기억함" : "기록 보관 · 도장 +1";
     $("#gentle-note-title").textContent = record.deed;
     $("#gentle-note-copy").textContent = comfort
       ? "오늘은 이 정도만 적어두겠습니다. 나머지는 쉬어도 됩니다."

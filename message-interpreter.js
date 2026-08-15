@@ -148,16 +148,14 @@
     if (achievementCandidate) intents.push("achievement");
     if (!intents.length) intents.push("freeform");
     const uniqueIntents = [...new Set(intents)];
-    // 반응 강도 5단계. 감정이 부정적이면 행동이 있어도 위로가 먼저다.
-    const bigWin = /합격|수상|우승|승진|성공|1등|최우수|해냈|드디어/i.test(text) || (mood === "happy" && /칭찬/i.test(text));
-    const notable = mood === "happy"
-      || activityTypes.includes("social")
-      || /발표|면접|시험|마감|완주|끝냈|버텼|처음으로/i.test(text);
+    // 반응 강도. 감정이 부정적이면 행동이 있어도 위로가 먼저다.
+    // 다만 감정 표현 없이 완료 행동만 보고한 경우는, 그게 아무리 하찮아도
+    // 과잉집사의 본체인 대업 판정(FORM 05)으로 보낸다. 씻기·물 마시기·설거지가 핵심 재료다.
+    const bigWin = /합격|수상|우승|승진|성공|1등|최우수|드디어/i.test(text) || (mood === "happy" && /칭찬/i.test(text));
     const responseMode = negative ? "comfort"
       : !achievementCandidate ? "conversation"
       : bigWin ? "special-achievement"
-      : notable ? "achievement"
-      : "normal-record";
+      : "achievement";
     const priority = negative ? "comfort-first" : achievementCandidate ? "activity-first" : "conversation-first";
     const sentiment = negative ? "negative" : sentiments.includes("positive") ? "positive" : "neutral";
     const hitCount = uniqueIntents.length + activities.length;
