@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="reaction-final.css">
   <link rel="stylesheet" href="relationship-final.css">
   <link rel="stylesheet" href="ux-polish.css">
+  <link rel="stylesheet" href="contextual-response.css">
 </head>
 <body>
   <div class="app-shell" id="app-shell">
@@ -155,6 +156,12 @@
             <button type="button" data-quick-focus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>추가</span></button>
           </div>
           <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 들려주기</b><span>→</span></button>
+          <section class="gentle-note" id="gentle-note" aria-live="polite" hidden>
+            <header><span id="gentle-note-kicker">집사가 발견한 오늘의 대업</span><b id="gentle-note-badge">기록 보관</b></header>
+            <p class="gentle-note-title" id="gentle-note-title"></p>
+            <p class="gentle-note-copy" id="gentle-note-copy"></p>
+          </section>
+
           <div class="entry-footnote">
           <div class="stamp-progress">
             <div class="progress-heading"><strong>접수 도장 진행</strong><b><span id="stamp-count">0</span>/<span id="stamp-target">5</span></b></div>

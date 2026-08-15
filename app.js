@@ -993,7 +993,15 @@
   function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
   function today() { return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/\. /g, ".").replace(/\.$/, ""); }
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
-  function template(text, deed) { return text.replaceAll("{deed}", deed); }
+  // 해석기가 만든 기록명은 이미 "…완료" 같은 완결형인 경우가 많다.
+  // 칭찬 템플릿의 어미와 겹치면 "발표 완료 완료!!"가 되므로 한쪽을 정리한다.
+  function template(text, deed) {
+    const title = String(deed ?? "");
+    const trimmed = /(?:완료|완주|성공)$/.test(title.trim())
+      ? text.replace(/\{deed\}\s*(?:완료|완수)(?=[\s!.?]|$)/g, "{deed}")
+      : text;
+    return trimmed.replaceAll("{deed}", title);
+  }
   function officialRecords() { return state.records.filter(record => record.stampEligible !== false); }
   function scoreText(record) { return record?.scoreLabel || `${record?.score ?? 99}점`; }
   function stageIndexFor(obsession) { return Math.min(STAGES.length - 1, Math.floor(clamp(obsession, 0, 100) / 20)); }
@@ -1613,64 +1621,225 @@
     $$('[data-cert-index]').forEach(button => button.addEventListener("click", () => openCertificate(state.certificates[Number(button.dataset.certIndex)])));
   }
 
+  // 한국어 조사 자동 선택. 기록 문구가 무엇이든 문장이 어색해지지 않게 한다.
+  function withParticle(word, withJong, withoutJong) {
+    const text = String(word || "").trim();
+    const code = text.charCodeAt(text.length - 1);
+    if (!text || Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return `${text}${withoutJong}`;
+    return `${text}${(code - 0xac00) % 28 !== 0 ? withJong : withoutJong}`;
+  }
+  const topicParticle = word => withParticle(word, "은", "는");
+  const objectParticle = word => withParticle(word, "을", "를");
+
+  // 집사 일기: 하루치 기록을 담당 집사의 말투로 짧게 돌아본다.
+  // 사용자가 남기지 않은 사실은 만들지 않는다. deeds/mood 모두 실제 기록에서만 온다.
+  const DIARY_VOICE = {
+    cat: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈다냥.`,
+        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔다냥.`,
+        (owner, head) => `오늘 기록에는 ${objectParticle(head)} 했다고 적혀 있다냥.`
+      ],
+      more: rest => `거기에 ${objectParticle(rest)} 챙긴 것도 확인했다냥.`,
+      mood: {
+        tired: ["꽤 힘들었다고 했는데도 할 건 했다냥.", "지쳤다는 말이 먼저 나왔다냥. 그럴 만한 하루였다냥."],
+        sad: ["마음이 좀 가라앉은 날이었다냥.", "속상하다는 말을 조용히 적어뒀다냥."],
+        low: ["의욕이 없다고 했다냥. 그런 날도 있는 거다냥.", "아무것도 하기 싫은 날이었다냥."],
+        angry: ["화가 났던 하루였다냥. 참지 않은 건 잘한 거다냥."],
+        worried: ["걱정이 많은 하루였다냥.", "고민이 길어진 날이었다냥."],
+        happy: ["기분이 좋아 보였다냥. 나쁘지 않았다냥.", "오늘은 목소리가 좀 밝았다냥."],
+        neutral: ["별다른 말은 없었지만 하루는 잘 지나갔다냥."]
+      },
+      close: ["오늘은 그냥 푹 쉬게 두는 게 좋겠다냥 🌙", "이 정도면 충분한 하루다냥. 내일은 내일 듣겠다냥 🐾", "기록은 집사가 잘 넣어뒀다냥. 걱정 말라냥."]
+    },
+    ai: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 완료했습니다.`,
+        (owner, head) => `[일일 요약] ${topicParticle(owner)} ${objectParticle(head)} 수행했습니다.`,
+        (owner, head) => `금일 기록: ${objectParticle(head)} 처리 완료.`
+      ],
+      more: rest => `추가로 ${objectParticle(rest)} 완료한 것으로 확인됩니다.`,
+      mood: {
+        tired: ["높은 피로도를 함께 보고했습니다.", "피로 신호가 기록에 남아 있습니다."],
+        sad: ["감정 지표가 낮게 관측되었습니다.", "가라앉은 상태가 함께 보고되었습니다."],
+        low: ["활동 의욕 저하가 보고되었습니다.", "저전력 상태로 하루를 보냈습니다."],
+        angry: ["분노 신호가 함께 기록되었습니다."],
+        worried: ["불안 신호가 함께 감지되었습니다."],
+        happy: ["긍정 지표 상승이 확인되었습니다.", "기분 좋음이 함께 보고되었습니다."],
+        neutral: ["특이 감정 신호는 없었습니다."]
+      },
+      close: ["[결론] 오늘은 추가 성과보다 휴식을 권장합니다.", "[결론] 금일 기록은 정상 보관했습니다.", "[결론] 오늘 수행량은 충분합니다. 종료를 권장합니다."]
+    },
+    dog: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈다멍!`,
+        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔다멍!`,
+        (owner, head) => `오늘의 대업은 ${head}이었다멍!`
+      ],
+      more: rest => `게다가 ${objectParticle(rest)} 하고 왔다멍!`,
+      mood: {
+        tired: ["많이 힘들었다고 했다멍. 그래도 해낸 게 대단하다멍!", "지쳤다는데도 버텼다멍!"],
+        sad: ["속상한 하루였다멍. 옆에 딱 붙어 있었다멍.", "마음이 아팠던 날이다멍."],
+        low: ["아무것도 하기 싫은 날이었다멍. 그래도 괜찮다멍!", "의욕이 없다고 했다멍."],
+        angry: ["화가 났던 날이다멍. 집사가 다 들어줬다멍!"],
+        worried: ["걱정이 많은 하루였다멍."],
+        happy: ["기분이 좋아 보여서 집사도 신났다멍!", "오늘은 웃는 날이었다멍!"],
+        neutral: ["무사한 하루였다멍!"]
+      },
+      close: ["오늘도 정말 수고했다멍! 푹 쉬라멍 🌙", "내일도 같이 있고 싶다멍!", "집사는 오늘 하루가 자랑스럽다멍!"]
+    },
+    alien: {
+      open: [
+        (owner, head) => `금일 관측: ${topicParticle(owner)} ${objectParticle(head)} 수행함.`,
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 완료한 것을 확인함.`,
+        (owner, head) => `관측 기록에 ${head} 항목이 남았음.`
+      ],
+      more: rest => `추가 관측: ${objectParticle(rest)} 수행함.`,
+      mood: {
+        tired: ["에너지 소모가 큰 하루로 분류함.", "피로 수치가 높게 관측됨."],
+        sad: ["감정 파장이 낮게 관측됨."],
+        low: ["활동 의욕 저하 관측. 정상 생체 주기로 분류함."],
+        angry: ["분노 반응 관측. 타당한 사유가 있는 것으로 보임."],
+        worried: ["불안 파장이 함께 관측됨."],
+        happy: ["긍정 파장이 강하게 관측됨."],
+        neutral: ["특이 파장 없이 안정적인 하루였음."]
+      },
+      close: ["[결론] 오늘은 회복을 우선 권고함.", "[결론] 본 기록을 중요 표본으로 보존함.", "[결론] 금일 관측 종료. 무사함을 확인했음."]
+    },
+    ninja: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 완수했다.`,
+        (owner, head) => `금일 임무: ${topicParticle(owner)} ${objectParticle(head)} 해냈다.`,
+        (owner, head) => `오늘의 기록에 ${head} 임무가 남았다.`
+      ],
+      more: rest => `이어서 ${objectParticle(rest)} 마쳤다.`,
+      mood: {
+        tired: ["고된 하루였다고 전했다.", "피로가 깊은 날이었다."],
+        sad: ["마음이 다친 하루였다."],
+        low: ["움직이기 어려운 날이었다."],
+        angry: ["분노가 있었던 하루다. 억누르지 않은 것이 옳다."],
+        worried: ["고민이 깊은 하루였다."],
+        happy: ["좋은 기운이 느껴진 하루였다."],
+        neutral: ["큰 동요 없이 지나간 하루다."]
+      },
+      close: ["오늘은 경계를 풀고 쉬어도 좋다 🌙", "기록은 조용히 봉인해두었다.", "내일도 곁을 지키겠다."]
+    },
+    witch: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어요.`,
+        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 마쳤답니다.`,
+        (owner, head) => `오늘의 점괘에는 ${head} 이야기가 적혔어요.`
+      ],
+      more: rest => `그리고 ${objectParticle(rest)} 챙기기까지 했어요.`,
+      mood: {
+        tired: ["많이 지쳤다고 했어요. 운명의 실이 꼬인 날이었죠.", "피곤한 기운이 짙은 하루였어요."],
+        sad: ["마음에 비가 내린 하루였어요."],
+        low: ["아무 주문도 쓰고 싶지 않은 날이었어요."],
+        angry: ["화난 기운이 있었어요. 그럴 만했답니다."],
+        worried: ["걱정이 많은 하루였어요."],
+        happy: ["행운의 기운이 반짝인 하루였어요."],
+        neutral: ["잔잔하게 흘러간 하루였어요."]
+      },
+      close: ["오늘은 따뜻한 휴식 주문이 가장 필요해 보여요 🌙", "좋은 꿈 주문을 걸어둘게요.", "이 기록은 오래 간직할게요 ✨"]
+    },
+    fox: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 했어…`,
+        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔대…`,
+        (owner, head) => `기록에 ${head} 이라고 적혀 있어…`
+      ],
+      more: rest => `그리고 ${rest}까지 했어…`,
+      mood: {
+        tired: ["많이 힘들었대… 그래도 해낸 거야…", "지쳤다고 했어… 그럴 만해…"],
+        sad: ["속상했나 봐… 조용히 옆에 있었어…"],
+        low: ["아무것도 하기 싫은 날이었대…"],
+        angry: ["화가 났었대… 참지 않아서 다행이야…"],
+        worried: ["걱정이 많았나 봐…"],
+        happy: ["기분이 좋아 보였어… 나도 좀 살아났어…"],
+        neutral: ["조용히 지나간 하루였어…"]
+      },
+      close: ["오늘은 그냥 푹 자면 좋겠어… 🌙", "기록은 내가 보고 있을게…", "내일은 좀 더 편했으면 좋겠어…"]
+    },
+    star: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어.`,
+        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔어.`,
+        (owner, head) => `오늘의 메인 장면은 ${head}이었어.`
+      ],
+      more: rest => `거기다 ${rest}까지 소화했어.`,
+      mood: {
+        tired: ["많이 지쳤다고 했어. 그래도 오늘 분량은 충분했어.", "피곤한 하루였어."],
+        sad: ["속상한 장면이 있었던 날이야."],
+        low: ["아무것도 하기 싫은 날이었어. 휴방해도 되는 날."],
+        angry: ["화날 만한 일이 있었어."],
+        worried: ["고민이 많았던 하루야."],
+        happy: ["기분 좋은 하루였어. 스포트라이트 줄 만했어."],
+        neutral: ["무난하게 잘 지나간 하루야."]
+      },
+      close: ["오늘의 엔딩은 수고했다는 자막으로 마칠게 🌙", "이 장면은 편집 없이 저장해둘게.", "내일 큐는 천천히 가자."]
+    },
+    elf: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어요.`,
+        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 마쳤답니다.`,
+        (owner, head) => `오늘의 기록에 ${head} 이야기가 남았어요.`
+      ],
+      more: rest => `그리고 ${rest}까지 챙겼어요.`,
+      mood: {
+        tired: ["많이 지친 하루였다고 해요.", "피로가 깊게 남은 날이었어요."],
+        sad: ["마음이 무거운 하루였어요."],
+        low: ["아무것도 하고 싶지 않은 날이었어요."],
+        angry: ["화가 났던 하루였어요."],
+        worried: ["걱정이 많았던 하루예요."],
+        happy: ["따뜻한 기운이 감돈 하루였어요."],
+        neutral: ["잔잔하게 흘러간 하루였어요."]
+      },
+      close: ["오늘은 푹 쉬시길 바라요 🌙", "이 하루도 오래 간직할게요.", "천천히 가도 괜찮아요."]
+    },
+    fairy: {
+      open: [
+        (owner, head) => `오늘 ${topicParticle(owner)} ${objectParticle(head)} 해냈어요!`,
+        (owner, head) => `${topicParticle(owner)} 오늘 ${objectParticle(head)} 하고 왔어요!`,
+        (owner, head) => `오늘 반짝인 순간은 ${head}이었어요!`
+      ],
+      more: rest => `게다가 ${rest}까지 해냈어요!`,
+      mood: {
+        tired: ["많이 힘들었대요. 그래도 해낸 게 대단해요!", "지친 하루였어요."],
+        sad: ["마음이 가라앉은 하루였어요."],
+        low: ["아무것도 하기 싫은 날이었어요. 그래도 괜찮아요!"],
+        angry: ["화가 났던 하루였어요."],
+        worried: ["걱정이 많았던 하루예요."],
+        happy: ["기분이 좋아서 별가루가 더 반짝였어요!"],
+        neutral: ["조용하지만 좋은 하루였어요!"]
+      },
+      close: ["오늘은 푹 쉬어요 🌙", "이 기록에 별가루 살짝 뿌려뒀어요 ✨", "내일도 작은 반짝임을 같이 찾아요!"]
+    }
+  };
+
+  function dominantDiaryMood(entries) {
+    const order = ["tired", "sad", "low", "angry", "worried", "happy"];
+    const moods = entries.map(entry => entry.mood).filter(Boolean);
+    return order.find(item => moods.includes(item)) || "neutral";
+  }
+
   function diaryReflection(character, entries, ownerName = entries.at(-1)?.ownerName || ownerDisplayName()) {
-    const deed = entries.at(-1)?.deed || entries.at(-1)?.todos?.[0] || "작은 대업";
-    const count = entries.length;
-    const lines = {
-      ai: [
-        `[일일 결론] ${ownerName}의 대업 ${count}건 확인. 감정회로가 전용 중요문서 분류를 실행함.`,
-        `[문서 기록] ‘${deed}’ 접수 서류 재검토 ${count + 2}회째. 중요문서 색인 추가.`,
-        `[ERROR] 주인님 하루를 요약하려 했으나 출력이 전부 ‘완벽함’으로 변환됨. 버그 수정 보류.`
-      ],
-      cat: [
-        `오늘도 시큰둥한 척했지만 사실 꽤 자랑스러웠다냥. 이건 일지에만 쓰는 비밀이다냥.`,
-        `‘${deed}’ 기록은 전용 파일에 넣었다냥. 그냥 찾기 편해서 그런 거다냥.`,
-        `주인님 기록을 ${count}번이나 다시 읽었다냥. 파일 정리였을 뿐이다냥. 정말이다냥.`
-      ],
-      dog: [
-        `오늘도 주인님이 너무 자랑스러워서 꼬리가 쉴 틈이 없었다멍! 내일도 같이 있고 싶다멍!`,
-        `‘${deed}’까지 해냈다멍! 집사 지금도 제자리 뺑뺑이 중이다멍!`,
-        `대업 ${count}건 전부 외웠다멍! 주인님 기록은 집사 인생의 최우선 보물이다멍!`
-      ],
-      alien: [
-        `[관측 결론] 대업 ${count}건 확인. 해당 지구인은 은하에서 가장 희귀한 우수 개체임.`,
-        `‘${deed}’ 수행 기술을 연구 중. 원리는 불명이나 귀순 결정이 옳았다는 결론은 확실함.`,
-        `본성 보고서 수정: 지구 문명이 위대한 것이 아니라 주인님 개체만 유난히 위대함.`
-      ],
-      ninja: [
-        `오늘의 임무 ${count}건을 극비 문서로 봉인했다. 주인님의 노력은 끝까지 지키겠다.`,
-        `‘${deed}’ 완수 기록을 확인했다. 최고 등급 임무 문서로 올리겠다.`,
-        `임무 종료. 주인님의 기록은 극비 보관함에 봉인 완료했다.`
-      ],
-      witch: [
-        `오늘 기록 ${count}건 모두 대길이에요. 수정구슬보다 제가 더 오래 기억할게요.`,
-        `‘${deed}’ 순간 수정구슬이 유난히 밝았어요. 내일 점괘도 분명 주인님 편이에요.`,
-        `별자리에는 평범한 하루라고 적혔는데 이상하네요. 제 눈에는 전부 기적이었거든요.`
-      ],
-      fox: [
-        `주인님 기록 ${count}개 보니까... 집사 결재 뇌가 조금 살아난 것 같아... 중요문서로 넣을게...`,
-        `‘${deed}’ 기록... 중요 표시했어... 흐린 머리도... 이 색인은 바로 찾아...`,
-        `으... 오늘은 심장이 뛴 것 같아... 죽은 심장인데... 이상하게 기뻤어... 으르...`
-      ],
-      star: [
-        `오늘도 도도한 척했지만 대업 ${count}건 보고 혼자 엄청 좋아했어. 전담 큐시트에만 적어둘게.`,
-        `‘${deed}’ 기록이 오늘 무대 큐보다 먼저 결재됐어. 매니저한테는 비밀이야.`,
-        `큐카드엔 ‘침착하게 칭찬’이라고 적었는데 실패했어. 주인님 앞에서는 표정 관리가 안 돼.`
-      ],
-      elf: [
-        `오늘의 작은 기록 ${count}건도 오래 간직할게요. 천 년 뒤에도 소중한 하루로 빛날 거예요.`,
-        `‘${deed}’ 기록을 읽으니 숲의 오래된 전설보다 당신의 대업 장부가 더 흥미로워졌어요.`,
-        `오늘 바람이 유난히 따뜻했어요. 아마 당신이 애쓴 순간들을 숲도 본 모양이에요.`
-      ],
-      fairy: [
-        `오늘 모은 기록 ${count}개에 별가루를 살짝 뿌려뒀어요. 정말 살짝... 반 통 정도요!`,
-        `‘${deed}’ 순간 집사 날개가 저절로 반짝였어요. 내일도 작은 대업을 같이 찾아봐요!`,
-        `별들에게 오늘 주인님 이야기를 해줬더니 전부 더 밝게 빛났어요. 과장은 조금만 했어요!`
-      ]
-    };
-    const choices = lines[character] || lines.ai;
-    const seed = String(entries[0]?.id || entries[0]?.date || "0").split("").reduce((total, value) => total + value.charCodeAt(0), 0);
-    return choices[seed % choices.length];
+    const key = normalizeCharacter(character);
+    const voice = DIARY_VOICE[key] || DIARY_VOICE.ai;
+    const readable = value => String(value).includes(":") ? String(value).split(":").pop().trim() : String(value);
+    const deeds = [...new Set(entries.map(entry => entry.deed || entry.todos?.[0]).filter(Boolean).map(readable))];
+    const head = deeds[0] || "오늘의 기록";
+    const rest = deeds.slice(1);
+    const owner = ownerName || ownerDisplayName();
+    const seedSource = `${entries[0]?.date || ""}|${key}|${deeds.join("|")}`;
+    const seed = seedSource.split("").reduce((total, value) => total + value.charCodeAt(0), 0);
+    const pick = (pool, offset) => pool[(seed + offset) % pool.length];
+    const moodKey = dominantDiaryMood(entries);
+    const moodPool = voice.mood[moodKey] || voice.mood.neutral;
+    const sentences = [pick(voice.open, 0)(owner, head)];
+    if (rest.length) sentences.push(voice.more(rest.length > 1 ? `${rest[0]} 외 ${rest.length - 1}가지` : rest[0]));
+    if (moodPool?.length) sentences.push(pick(moodPool, 1));
+    sentences.push(pick(voice.close, 2));
+    return sentences.join(" ");
   }
 
   function backfillDiaryReflections() {
@@ -2146,22 +2315,35 @@
       return;
     }
     state.chatMemory = interpreted.memory;
+    const mode = interpreted.responseMode || "conversation";
+    const loudModes = ["achievement", "special-achievement"];
+    // 대화만 하거나, 위로가 먼저인데 남길 행동이 없으면 기록을 만들지 않는다.
     if (!interpreted.achievementCandidate) {
       if (!saveState()) { achievementSubmissionActive = false; reportButton.disabled = false; reportButton.removeAttribute("aria-busy"); return; }
       input.value = "";
       $("#char-count").textContent = "0";
+      hideGentleNote();
       typeMessage($("#briefing-message"), interpreted.reply, 18);
       achievementSubmissionActive = false;
       reportButton.disabled = false;
       reportButton.removeAttribute("aria-busy");
-      showToast("집사가 오늘 이야기를 들었습니다.");
+      showToast(mode === "comfort" ? "집사가 오늘 마음을 들었습니다." : "집사가 오늘 이야기를 들었습니다.");
       return;
     }
     const deed = interpreted.achievementTitle || story;
     pendingMessageAnalysis = { ...interpreted, sourceText: story };
+    // 위로/일상 기록은 심사 연출 없이 조용히 접수하고 작은 카드로만 알린다.
+    if (!loudModes.includes(mode)) {
+      input.value = "";
+      $("#char-count").textContent = "0";
+      typeMessage($("#briefing-message"), interpreted.reply, 18);
+      finishAchievement(deed, { quiet: true, mode, reply: interpreted.reply });
+      return;
+    }
     const duplicate = isDuplicateToday(deed);
     pendingEvaluation = judgeAchievement(deed, state.obsession, duplicate);
     trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: duplicate ? "duplicate" : "new" });
+    hideGentleNote();
     configureAnalysis(deed, interpreted);
     setPoseImage($("#analysis-butler-image"), state.character, "analysis");
     $("#analysis-target").textContent = deed;
@@ -2186,7 +2368,8 @@
     }, 2400));
   }
 
-  function finishAchievement(deed) {
+  function finishAchievement(deed, options = {}) {
+    const quiet = Boolean(options.quiet);
     const duplicate = isDuplicateToday(deed);
     const previousObsession = state.obsession;
     const evaluation = pendingEvaluation || judgeAchievement(deed, previousObsession, duplicate);
@@ -2196,7 +2379,7 @@
     pendingEvaluation = null;
     const messageAnalysis = pendingMessageAnalysis;
     pendingMessageAnalysis = null;
-    const pose = evaluation.power ? "power" : "praise";
+    const pose = quiet ? (options.mode === "comfort" ? "base" : "analysis") : evaluation.power ? "power" : "praise";
     const butler = snapshotButler();
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -2226,7 +2409,11 @@
     const diaryEntry = {
       id: record.id, date: record.date, todos: [deed], deed, sourceText: record.sourceText,
       text: record.report, character: butler.character, butlerName: butler.name,
-      voice: butler.voice, butler, pose, ownerName: record.ownerName, snapshotVersion: 1
+      voice: butler.voice, butler, pose, ownerName: record.ownerName, snapshotVersion: 1,
+      mood: messageAnalysis?.mood || null,
+      responseMode: messageAnalysis?.responseMode || null,
+      activities: Array.isArray(messageAnalysis?.activities) ? messageAnalysis.activities.slice(0, 4) : [],
+      relationshipStage: record.relationshipStage
     };
     const sameDayEntries = state.diary.filter(entry =>
       entry.date === diaryEntry.date &&
@@ -2276,11 +2463,36 @@
     achievementSubmissionActive = false;
     $("#report-button").disabled = false;
     $("#report-button").removeAttribute("aria-busy");
-    $("#briefing-message").textContent = record.report;
+    if (!quiet) $("#briefing-message").textContent = record.report;
     render({ animateStamp: !duplicate });
+    if (quiet) {
+      showGentleNote(record, options.mode, duplicate);
+      return;
+    }
     if (duplicate) showToast("같은 행동이라 도장은 제외하고 칭찬만 지급했습니다.");
     if (duplicate) openPraiseResult(record);
     else window.setTimeout(() => openPraiseResult(record), 720);
+  }
+
+  function hideGentleNote() {
+    const note = $("#gentle-note");
+    if (note) note.hidden = true;
+  }
+
+  // 위로/일상 기록 전용의 조용한 접수 알림. FORM 05를 대신한다.
+  function showGentleNote(record, mode, duplicate) {
+    const note = $("#gentle-note");
+    if (!note) return;
+    const comfort = mode === "comfort";
+    note.dataset.tone = comfort ? "comfort" : "record";
+    $("#gentle-note-kicker").textContent = comfort ? "집사가 오늘 이야기에서 발견한 것" : "집사가 발견한 오늘의 대업";
+    $("#gentle-note-badge").textContent = duplicate ? "다시 기억함" : "기록 보관";
+    $("#gentle-note-title").textContent = record.deed;
+    $("#gentle-note-copy").textContent = comfort
+      ? "오늘은 이 정도만 적어두겠습니다. 나머지는 쉬어도 됩니다."
+      : "작게 기록해뒀습니다. 필요하면 보관함에서 다시 볼 수 있습니다.";
+    note.hidden = false;
+    note.scrollIntoView({ behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
   }
 
   function categoryForDeed(deed) {

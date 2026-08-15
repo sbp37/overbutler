@@ -7,7 +7,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "nothing", "work", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
+  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "quiet_day", "no_motivation", "work", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
   const MOOD_TYPES = ["tired", "sad", "angry", "worried", "low", "hungry", "bored", "happy", "affection"];
 
   const EMOTIONS = [
@@ -15,7 +15,7 @@
     ["sad", "sad", "negative", /우울|속상|슬프|서럽|눈물|마음\s*아프|허무|공허|울적/i],
     ["angry", "angry", "negative", /짜증|빡쳐|빡침|개빡|화나|화났|열받|기분\s*나빠|분하/i],
     ["worried", "worried", "negative", /걱정|고민|불안|초조|어떡하|어떻게\s*해야|막막/i],
-    ["nothing", "low", "negative", /아무것도\s*(?:하기|하고)\s*싫|의욕\s*(?:없|제로)|아무것도\s*못\s*하겠|무기력/i],
+    ["no_motivation", "low", "negative", /아무것도\s*(?:하기|하고)\s*싫|의욕\s*(?:이|은|가)?\s*(?:없|안\s*나|제로|하나도\s*없)|아무것도\s*못\s*하겠|무기력|손\s*하나\s*까딱|다\s*귀찮|몸이\s*안\s*움직/i],
     ["bored", "bored", "neutral", /심심|무료|재미\s*없/i],
     ["hungry", "hungry", "neutral", /배\s*고파|배고파|허기|굶었|꼬르륵|(?:밥|끼니)\s*못\s*먹/i],
     ["happy", "happy", "positive", /기분\s*(?:진짜\s*)?좋|행복|재밌|즐거|신나|칭찬\s*받|뿌듯|좋았|좋음/i],
@@ -125,9 +125,12 @@
       }
     }
 
-    const nothing = /아무것도\s*(?:(?:안|못)|(?:하기|하고)\s*싫)|별일\s*없|한\s*게\s*없|그냥\s*누워/i.test(text);
+    // 무기력(no_motivation)은 EMOTIONS에서 이미 감지된다. 여기서는 "그냥 평범했던 하루"만 따로 본다.
+    const noMotivation = intents.includes("no_motivation");
+    const quietDay = !noMotivation && /별일\s*없|별\s*일\s*없|한\s*게\s*없|특별한\s*(?:일|건|거)\s*(?:는)?\s*없|그냥\s*(?:그랬|그랬어|평범|보통|쉬었|누워)|평범(?:한|했|하게)|무난(?:한|했|하게)|아무것도\s*(?:안|못)\s*했/i.test(text);
+    const nothing = noMotivation || quietDay;
     const rest = /누워|쉬었|휴식|낮잠|뒹굴/i.test(text);
-    if (nothing) intents.push("nothing");
+    if (quietDay) intents.push("quiet_day");
     if (rest) intents.push("rest");
     if (/회사|업무|출근|퇴근|야근|발표|회의/i.test(text)) intents.push("work");
     if (activityTypes.includes("commute")) intents.push("commute");
@@ -145,9 +148,16 @@
     if (achievementCandidate) intents.push("achievement");
     if (!intents.length) intents.push("freeform");
     const uniqueIntents = [...new Set(intents)];
-    const responseMode = negative ? "comfort" : achievementCandidate
-      ? (mood === "happy" || /칭찬|합격|성공|수상|완료/i.test(text) ? "special-achievement" : "normal-record")
-      : "conversation";
+    // 반응 강도 5단계. 감정이 부정적이면 행동이 있어도 위로가 먼저다.
+    const bigWin = /합격|수상|우승|승진|성공|1등|최우수|해냈|드디어/i.test(text) || (mood === "happy" && /칭찬/i.test(text));
+    const notable = mood === "happy"
+      || activityTypes.includes("social")
+      || /발표|면접|시험|마감|완주|끝냈|버텼|처음으로/i.test(text);
+    const responseMode = negative ? "comfort"
+      : !achievementCandidate ? "conversation"
+      : bigWin ? "special-achievement"
+      : notable ? "achievement"
+      : "normal-record";
     const priority = negative ? "comfort-first" : achievementCandidate ? "activity-first" : "conversation-first";
     const sentiment = negative ? "negative" : sentiments.includes("positive") ? "positive" : "neutral";
     const hitCount = uniqueIntents.length + activities.length;
