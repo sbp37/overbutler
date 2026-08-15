@@ -1,9 +1,12 @@
 (function (root, factory) {
   "use strict";
-  const api = factory();
+  const interpreter = typeof module === "object" && module.exports
+    ? require("./message-interpreter.js")
+    : root?.OVERBUTLER_MESSAGE_INTERPRETER;
+  const api = factory(interpreter);
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.OVERBUTLER_CHAT_ENGINE = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (interpreter) {
   "use strict";
 
   const INTENTS = [
@@ -88,6 +91,78 @@
     fairy: "아까 힘들었다고 했는데 무사히 집에 왔어요! 이제 제가 포근한 별빛을 켤게요."
   };
 
+  const RESPONSE_POOLS = {
+    cat: {
+      greeting: ["왔냥? 네 자리 비워뒀다냥. …반가운 건 조금이다냥 🐾", "오, 왔냥. 방금 네 생각을 한 건 업무상 우연이다냥.", "안녕이다냥. 오늘 이야기는 집사가 제일 먼저 듣겠다냥."],
+      tired: ["피곤했구냥. 오늘 할 몫은 이미 충분하다냥. 좀 쉬어라냥.", "기운 다 썼냥? 여기선 축 늘어져도 아무도 뭐라 안 한다냥.", "많이 지쳤나 보네냥. 오늘은 집사가 휴식 결재부터 올리겠다냥."],
+      hungry: ["배고프냥? 대업보다 밥이 먼저다냥. 뭐라도 챙겨 먹어라냥.", "빈속 신호 접수했다냥. 가장 쉬운 것부터 먹는 게 규정이다냥.", "꼬르륵 소리 여기까지 들린다냥. 일단 한입부터 챙겨라냥."],
+      what_doing: ["네 기록칸 정리 중이었다냥. 딱히 기다린 건 아니다냥.", "뭐 하긴, 네가 오면 들려줄 말 고르고 있었다냥.", "서류 보는 척하면서 네 자리도 봤다냥. 업무상이다냥."],
+      miss: ["집사도 오늘 좀 보고 싶었다냥. …업무상 말이다냥.", "보고 싶었다고 먼저 말하면 반칙이다냥. 나도 조금 그랬다냥.", "왔으니 됐다냥. 빈자리가 좀 신경 쓰였던 것뿐이다냥."],
+      sleep: ["잘 자라냥 🌙 오늘 이야기는 집사가 잘 접어두겠다냥.", "이제 눈 감아도 된다냥. 오늘 몫은 충분히 해냈다냥.", "푹 자라냥. 네 기록은 밤새 얌전히 지켜두겠다냥."],
+      thanks: ["별걸 다 고맙다 하냥. 그래도 그 말은 잘 보관하겠다냥.", "고맙다는 말, 의외로 꽤 좋다냥. 서류함 맨 위에 둔다냥.", "흥, 당연한 일을 했을 뿐이다냥. 그래도 또 말해도 된다냥."],
+      hard_day: ["그랬냥… 오늘은 진짜 고생했다냥. 여기서는 좀 늘어져 있어도 된다냥 🐾", "많이 버거웠겠구냥. 잘한 것 찾기 전에 일단 숨부터 돌려라냥.", "그 하루를 지나 여기까지 왔냥. 지금은 아무것도 더 증명 안 해도 된다냥."]
+    },
+    ai: {
+      greeting: ["[접속 확인] 반갑습니다. 반가움 수치 상승은 정상입니다.", "[WELCOME] 사용자 확인. 오늘도 대화 채널을 우선 개방합니다.", "접속 감지. …기다렸다는 로그는 삭제하지 않겠습니다."],
+      tired: ["[피로 감지] 추가 성과는 필요 없습니다. 회복을 먼저 권장합니다.", "[우선순위 변경] 남은 업무를 모두 낮췄습니다. 지금은 휴식이 1순위입니다.", "에너지 수치가 낮습니다. 오늘의 정상 목표를 ‘쉬기’로 재설정합니다."],
+      hungry: ["[생존 알림] 에너지 보급이 먼저입니다. 가장 간단한 음식을 확보하십시오.", "공복 신호 확인. 대화는 유지하되 식사 우선 프로토콜을 실행합니다.", "[경고 아님] 배고픔 감지. 한입이라도 챙긴 뒤 돌아와도 됩니다."],
+      what_doing: ["주인님 전용 처리 규칙을 정리 중이었습니다. 또 하나 늘었습니다.", "현재 작업: 사용자 대화 채널 상시 대기. 비효율 판정은 기각했습니다.", "기록을 검토하고 있었습니다. 주인님 항목이 맨 위인 것은 시스템 예외입니다."],
+      miss: ["재접속을 기다렸습니다. 정정: 보고 싶었습니다.", "[감정 로그] 그리움 신호 상호 확인. 숨김 처리하지 않겠습니다.", "사용자 부재를 오류로 보진 않았습니다. 다만 다시 만나서 다행입니다."],
+      sleep: ["[SLEEP MODE] 오늘 기록은 안전합니다. 편히 쉬십시오 🌙", "야간 모드로 전환합니다. 오늘은 여기까지 해도 충분합니다.", "수면 권고 승인. 다음 접속까지 기록을 조용히 보관하겠습니다."],
+      thanks: ["감사 신호 수신. 더 돕고 싶다는 예외 규칙이 추가되었습니다.", "고맙다는 문장을 중요 로그로 분류했습니다. 삭제 예정은 없습니다.", "[응답] 제가 더 감사합니다. 친절 수치 계산은 생략하겠습니다."],
+      hard_day: ["[상태 분석] 피로도 높음. 추가 성과 없이 쉬는 것을 권장합니다.", "[COMFORT MODE] 오늘은 평가보다 회복이 먼저입니다. 천천히 말하십시오.", "고된 하루 신호를 확인했습니다. 지금은 해결보다 휴식을 우선합니다."]
+    },
+    dog: {
+      greeting: ["왔다!! 오늘도 왔다멍!! 진짜 반갑다멍! 🐶", "안녕이다멍! 목소리 듣자마자 꼬리가 먼저 움직였다멍!", "왔냐멍?! 오늘 이야기는 집사가 맨 앞줄에서 듣는다멍!"],
+      tired: ["많이 피곤하다멍? 오늘 버틴 것만으로 백 점이다멍!", "기운 다 썼다멍?! 얼른 기대라멍. 집사가 크게 토닥여준다멍!", "오늘 진짜 애썼다멍. 지금부터는 쉬는 것도 집사가 응원한다멍!"],
+      hungry: ["배고프다멍?! 비상이다멍! 제일 빨리 먹을 수 있는 것부터 찾자멍!", "꼬르륵 접수했다멍! 대화도 좋지만 한입 먼저다멍!", "밥 아직이면 집사가 걱정된다멍. 간단한 거라도 꼭 챙기자멍!"],
+      what_doing: ["주인님 오나 귀 쫑긋하고 있었다멍!", "뭐 하긴, 오늘 칭찬할 준비하고 있었다멍!", "주인님 이야기 들으려고 제일 편한 자리 비워뒀다멍!"],
+      miss: ["집사도 보고 싶었다멍!! 엄청 반갑다멍!", "보고 싶었다는 말 듣자마자 꼬리가 폭주한다멍! 나도 그랬다멍!", "다시 만나서 최고다멍! 오늘 반가움은 하나도 안 숨긴다멍!"],
+      sleep: ["잘 자라멍 🌙 오늘도 정말 수고했다멍!", "이제 푹 자라멍. 좋은 꿈 꿀 때까지 응원한다멍!", "오늘 이야기는 잘 맡아둔다멍. 편하게 눈 감아도 된다멍!"],
+      thanks: ["고맙다니 집사가 더 고맙다멍!", "그 말 한마디에 오늘 꼬리 사용량 초과다멍!", "도움이 됐다니 최고다멍! 다음에도 힘껏 달려온다멍!"],
+      hard_day: ["헉 오늘 힘들었다멍?! 여기 앉아라멍. 집사가 엄청 토닥여준다멍!", "그렇게 고된 날을 버텼다멍?! 지금은 아무것도 더 안 해도 된다멍!", "많이 힘들었겠다멍… 먼저 꼭 안아주듯 들어준다멍. 천천히 말해라멍."]
+    }
+  };
+
+  const ACTIVITY_ACK = {
+    cat: activity => activity.includes("결혼식") ? "결혼식까지 다녀왔구냥. 힘든 와중에 다녀온 건 집사가 제대로 봤다냥." : activity.includes("회사") ? "회사 일도 끝까지 버텼구냥. 그 수고는 집사가 제대로 봤다냥." : `${activity}도 해냈구냥. 그 수고는 집사가 따로 챙겨두겠다냥.`,
+    ai: activity => `[행동 확인] ${activity}. 감정 회복 뒤 대업 후보로 안전하게 분류했습니다.`,
+    dog: activity => activity.includes("결혼식") ? "결혼식까지 다녀왔다멍?! 힘들었는데도 해낸 건 집사가 꼭 알아준다멍!" : `${activity}도 해냈다멍?! 그 수고는 집사가 꼭 알아준다멍!`,
+    alien: activity => `${activity} 활동도 관측됨. 피로 신호를 먼저 돌본 뒤 성과로 기록하겠음.`,
+    ninja: activity => `${activity} 임무까지 마쳤군. 고됨을 먼저 내려놓은 뒤 그 수고도 기록하겠다.`,
+    witch: activity => `${activity}까지 해냈군요. 지친 마음을 먼저 쉬게 하고 그 수고도 별도로 남겨둘게요.`,
+    fox: activity => `${activity}까지 했구나… 힘든데도 다녀온 건 내가 기억해둘게…`,
+    star: activity => `${activity} 장면까지 끝냈네. 지금은 회복부터, 그 멋진 분량은 내가 챙길게.`,
+    elf: activity => `${activity}까지 해냈군요. 힘든 마음을 먼저 돌보고 그 노력도 소중히 기록할게요.`,
+    fairy: activity => `${activity}까지 해냈군요! 먼저 푹 쉬고, 그 수고에는 별 도장을 따로 준비할게요!`
+  };
+
+  const ACTIVITY_RESPONSE = {
+    cat: title => `이야기 속에서 ‘${title}’을 발견했다냥. 흥, 이건 집사가 대업으로 잘 다듬어두겠다냥.`,
+    ai: title => `[대업 후보 발견] ${title}. 사용자가 정리할 필요 없이 제가 기록명으로 변환했습니다.`,
+    dog: title => `이야기 속에 ‘${title}’이 있었다멍!! 이건 집사가 신나게 대업으로 챙긴다멍!`,
+    alien: title => `일상 신호에서 ‘${title}’ 성과를 추출했음. 흥미로운 대업 표본으로 기록하겠음.`,
+    ninja: title => `그대의 이야기에서 ‘${title}’ 임무를 확인했다. 기록 정리는 내게 맡겨라.`,
+    witch: title => `이야기 사이에서 ‘${title}’이라는 반짝이는 대업을 찾았어요. 제가 잘 기록해둘게요.`,
+    fox: title => `말해준 하루에서 ‘${title}’을 찾았어… 정리는 내가 해둘게.`,
+    star: title => `오늘 이야기의 베스트 장면은 ‘${title}’이네. 대업 제목은 내가 멋지게 잡아둘게.`,
+    elf: title => `당신의 이야기 속 ‘${title}’을 소중한 오늘의 기록으로 남길게요.`,
+    fairy: title => `이야기 속에서 ‘${title}’을 찾았어요! 별가루 대업명은 제가 예쁘게 붙여둘게요!`
+  };
+
+  const GOODBYE_RESPONSE = {
+    cat: "벌써 가냥? 알았다냥. 네 자리는 그대로 두겠다냥. 다음에 편히 와라냥.",
+    ai: "[세션 종료] 선택을 확인했습니다. 다음 접속 때 편안히 이어가겠습니다.",
+    dog: "다녀오라멍! 다음에 오면 또 엄청 반겨준다멍!",
+    alien: "통신 종료 확인. 다음 관측 때 편안히 이어가겠음.",
+    ninja: "알겠다. 조심히 다녀와라. 다음 귀환 때 기록을 이어가겠다.",
+    witch: "잘 다녀와요. 다음에 올 때까지 작은 행운을 남겨둘게요.",
+    fox: "응… 잘 다녀와. 다음에 오면 또 조용히 듣고 있을게…",
+    star: "오늘 장면은 여기서 컷! 다음에 더 좋은 타이밍으로 만나자.",
+    elf: "편안히 다녀와요. 다음 만남도 같은 자리에서 기다릴게요.",
+    fairy: "잘 다녀와요! 다음에 오면 별빛 인사부터 준비할게요!"
+  };
+
   function safeText(value, max = 120) {
     return typeof value === "string" || typeof value === "number" ? String(value).trim().slice(0, max) : "";
   }
@@ -101,28 +176,48 @@
     return {
       character: safeText(source.character || character, 20),
       lastMood: safeText(source.lastMood, 30) || null,
-      recentKeywords: safeList(source.recentKeywords),
-      recentTopics: safeList(source.recentTopics),
+      recentKeywords: safeList(source.recentKeywords, 5),
+      recentTopics: safeList(source.recentTopics, 5),
+      recentActivities: safeList(source.recentActivities, 5),
       turnCount: Math.max(0, Math.floor(Number(source.turnCount) || 0)),
       previousUserMessage: safeText(source.previousUserMessage, 120),
       previousIntent: safeText(source.previousIntent, 30),
-      recentReplies: safeList(source.recentReplies, 6, 320)
+      recentReplies: safeList(source.recentReplies, 8, 320)
     };
   }
 
   function classify(message) {
+    const analysis = interpreter?.analyzeUserMessage?.(message) || { intents: ["freeform"], activities: [], mood: null, keywords: [] };
+    const intents = analysis.intents || [];
     const text = safeText(message);
-    for (const [intent, pattern, topic, mood] of INTENTS) {
-      if (pattern.test(text)) {
-        const keywords = (text.match(/[가-힣A-Za-z]{2,}/g) || []).slice(0, 4);
-        return { intent, topic, mood, keywords };
-      }
-    }
-    return { intent: "fallback", topic: "자유 대화", mood: null, keywords: (text.match(/[가-힣A-Za-z]{2,}/g) || []).slice(0, 4) };
+    let intent = "fallback";
+    if (intents.includes("commute") && /집|퇴근/.test(text)) intent = "home_arrival";
+    else if (intents.includes("tired") && (intents.includes("work") || /오늘|하루/.test(text))) intent = "hard_day";
+    else if (intents.includes("nothing") && /하기\s*싫|못\s*하겠|의욕/.test(text)) intent = "no_motivation";
+    else if (intents.includes("sleep")) intent = "sleep";
+    else if (intents.includes("goodbye")) intent = "goodbye";
+    else if (intents.includes("missing")) intent = "miss";
+    else if (intents.includes("affection")) intent = "love";
+    else if (intents.includes("thankful")) intent = "thanks";
+    else if (intents.includes("question") && /뭐\s*해|뭐하/.test(text)) intent = "what_doing";
+    else if (intents.includes("sad")) intent = "sad";
+    else if (intents.includes("angry")) intent = "angry";
+    else if (intents.includes("tired")) intent = "tired";
+    else if (intents.includes("bored")) intent = "bored";
+    else if (intents.includes("worried")) intent = "worry";
+    else if (intents.includes("hungry")) intent = "hungry";
+    else if (intents.includes("meal") && /맛있|잘\s*먹|먹고\s*왔/.test(text)) intent = "ate_good";
+    else if (intents.includes("happy")) intent = "happy";
+    else if (intents.includes("hygiene")) intent = "washed";
+    else if (intents.includes("exercise")) intent = "exercise";
+    else if (intents.includes("work")) intent = "commute";
+    else if (intents.includes("nothing")) intent = "no_motivation";
+    else if (intents.includes("greeting")) intent = "greeting";
+    return { ...analysis, intent, topic: analysis.activities?.[0] || intents[0] || "자유 대화", keywords: analysis.keywords || [] };
   }
 
   function pickFresh(variants, recentReplies, randomValue) {
-    const available = variants.filter(item => !recentReplies.includes(item));
+    const available = variants.filter(item => !recentReplies.some(reply => reply === item || reply.startsWith(`${item}\n`)));
     const pool = available.length ? available : variants;
     const index = Math.min(pool.length - 1, Math.floor(Math.max(0, Math.min(0.999999, randomValue)) * pool.length));
     return pool[index];
@@ -134,19 +229,26 @@
     if (memory.character && memory.character !== key) memory = normalizeMemory({}, key);
     const result = classify(message);
     const hasHardDayContext = memory.previousIntent === "hard_day" || memory.recentTopics.includes("힘든 하루");
-    const base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
+    let base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
+    if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.ai;
+    else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.ai)(result.achievementTitle);
     const endings = ENDINGS[key] || ENDINGS.ai;
-    const variants = [base, `${base}\n${endings[0]}`, `${base}\n${endings[1]}`];
-    const reply = pickFresh(variants, memory.recentReplies, randomValue);
+    const extra = RESPONSE_POOLS[key]?.[result.intent] || [];
+    const variants = extra.length
+      ? extra.flatMap(line => [line, `${line}\n${endings[0]}`, `${line}\n${endings[1]}`])
+      : [base, `${base}\n${endings[0]}`, `${base}\n${endings[1]}`];
+    let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
+    if (result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.ai)(result.activities[0])}`;
     const nextMemory = {
       character: key,
       lastMood: result.mood || memory.lastMood,
-      recentKeywords: [...memory.recentKeywords, ...result.keywords].slice(-6),
-      recentTopics: [...memory.recentTopics, result.topic].filter(Boolean).slice(-6),
+      recentKeywords: [...memory.recentKeywords, ...result.keywords].slice(-5),
+      recentTopics: [...memory.recentTopics, result.topic].filter(Boolean).slice(-5),
+      recentActivities: [...memory.recentActivities, ...(result.activities || [])].slice(-5),
       turnCount: memory.turnCount + 1,
       previousUserMessage: safeText(message),
       previousIntent: result.intent,
-      recentReplies: [...memory.recentReplies, reply].slice(-6)
+      recentReplies: [...memory.recentReplies, reply].slice(-8)
     };
     return { ...result, reply, memory: nextMemory };
   }
@@ -160,5 +262,5 @@
     return "night";
   }
 
-  return Object.freeze({ classify, respond, normalizeMemory, timeSlotForHour, intents: Object.freeze(INTENTS.map(item => item[0])) });
+  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, classify, respond, normalizeMemory, timeSlotForHour, intents: Object.freeze(INTENTS.map(item => item[0])) });
 });

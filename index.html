@@ -138,14 +138,14 @@
 
         <section class="entry-form document-card">
           <div class="entry-heading">
-            <span id="entry-kicker">대업 접수처 · FORM 01</span>
-            <h2 id="home-title">오늘 뭐라도 하셨나요?</h2>
-            <p id="entry-description">별것 아니어도 괜찮아요. 집사가 알아서 크게 보고합니다.</p>
+            <span id="entry-kicker">오늘 이야기 접수처 · FORM 01</span>
+            <h2 id="home-title">오늘은 어떻게 보내셨어요?</h2>
+            <p id="entry-description">잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.</p>
           </div>
           <div class="achievement-field">
-            <label class="visually-hidden" for="achievement-input">오늘 해낸 대업 입력</label>
-            <textarea id="achievement-input" maxlength="60" rows="2" placeholder="예: 출근했다, 물 마셨다, 답장했다..."></textarea>
-            <span><b id="char-count">0</b>/60</span>
+            <label class="visually-hidden" for="achievement-input">오늘 이야기 입력</label>
+            <textarea id="achievement-input" maxlength="160" rows="3" placeholder="예: 결혼식 다녀왔는데 너무 힘들었어"></textarea>
+            <span><b id="char-count">0</b>/160</span>
           </div>
           <div class="quick-actions" aria-label="빠른 입력">
             <button type="button" data-quick="침대에서 일어남"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>일어남</span></button>
@@ -154,7 +154,7 @@
             <button type="button" data-quick="씻음"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14M8 11V7a4 4 0 0 1 7-2"/><path d="M8 15v1M12 15v2M16 15v1"/></svg><span>씻음</span></button>
             <button type="button" data-quick-focus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>추가</span></button>
           </div>
-          <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 대업 보고하기</b><span>→</span></button>
+          <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 들려주기</b><span>→</span></button>
           <div class="entry-footnote">
           <div class="stamp-progress">
             <div class="progress-heading"><strong>접수 도장 진행</strong><b><span id="stamp-count">0</span>/<span id="stamp-target">5</span></b></div>
@@ -412,7 +412,7 @@
         <div class="scanner"><img id="analysis-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-analysis.png" alt="클립보드를 분석하는 AI 집사"></div>
         <div class="analysis-copy"><small>담당 집사 검토 의견</small><h2 id="analysis-title">대업 가치 분석 중</h2><p id="analysis-description">집사가 사소함을 제거하고 역사적 의미를 추가하고 있습니다.</p></div>
       </div>
-      <div class="analysis-target-file"><span>접수된 대업 후보</span><strong>“<b id="analysis-target"></b>”</strong><i aria-hidden="true">접수</i></div>
+      <div class="analysis-target-file"><span>집사가 발견한 오늘의 대업</span><strong>“<b id="analysis-target"></b>”</strong><i aria-hidden="true">발견</i></div>
       <ol class="analysis-steps" id="analysis-steps">
         <li><i>01</i><b>행동 완료 여부 확인</b><span>대기</span></li>
         <li><i>02</i><b>국가 기여도 과장</b><span>대기</span></li>
@@ -613,7 +613,8 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="chat-engine.js?v=chat-warmth-1"></script>
-  <script src="app.js?v=chat-warmth-1"></script>
+  <script src="message-interpreter.js?v=local-interpreter-1"></script>
+  <script src="chat-engine.js?v=local-interpreter-1"></script>
+  <script src="app.js?v=local-interpreter-1"></script>
 </body>
 </html>

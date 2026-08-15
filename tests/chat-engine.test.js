@@ -26,10 +26,27 @@ const arrived = chat.respond("cat", "이제 집이야", hardDay.memory, 0);
 assert.match(arrived.reply, /아까 회사 때문에 힘들다 했는데/);
 assert.equal(arrived.memory.previousUserMessage, "이제 집이야");
 assert.equal(arrived.memory.turnCount, 2);
+assert.ok(hardDay.memory.recentActivities.length === 0);
 
 const firstGreeting = chat.respond("cat", "안녕", arrived.memory, 0);
 const repeatedGreeting = chat.respond("cat", "안녕", firstGreeting.memory, 0);
 assert.notEqual(firstGreeting.reply, repeatedGreeting.reply);
+
+let greetingMemory = chat.normalizeMemory({}, "cat");
+const greetingReplies = [];
+for (let index = 0; index < 8; index += 1) {
+  const result = chat.respond("cat", "안녕", greetingMemory, 0);
+  greetingReplies.push(result.reply);
+  greetingMemory = result.memory;
+}
+assert.equal(new Set(greetingReplies).size, 8);
+
+const wedding = chat.respond("cat", "결혼식 다녀왔는데 너무 힘들었어", {}, 0);
+assert.equal(wedding.responseMode, "comfort");
+assert.equal(wedding.achievementCandidate, true);
+assert.equal(wedding.achievementTitle, "힘든 와중에도 결혼식 다녀오기");
+assert.match(wedding.reply, /결혼식까지 다녀왔구냥/);
+assert.deepEqual(wedding.memory.recentActivities, ["결혼식 다녀옴"]);
 
 const characters = ["ai", "cat", "dog", "alien", "ninja", "witch", "fox", "star", "elf", "fairy"];
 const hardDayReplies = characters.map(character => chat.respond(character, "오늘 너무 힘들었어", {}, 0).reply);

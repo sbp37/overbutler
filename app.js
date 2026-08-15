@@ -676,7 +676,7 @@
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
     butlerObsession: { ai: 5, cat: 5, dog: 5, fairy: 5 },
-    chatMemory: { character: "", lastMood: null, recentKeywords: [], recentTopics: [], turnCount: 0, previousUserMessage: "", previousIntent: "", recentReplies: [] },
+    chatMemory: { character: "", lastMood: null, recentKeywords: [], recentTopics: [], recentActivities: [], turnCount: 0, previousUserMessage: "", previousIntent: "", recentReplies: [] },
     schemaVersion: APP_VERSION
   };
 
@@ -708,6 +708,7 @@
   let currentRecordDetail = null;
   let currentCertificateImagePromise = null;
   let pendingEvaluation = null;
+  let pendingMessageAnalysis = null;
   let typingTimer = null;
   let activeGiftDrag = null;
   let selectedGiftIndex = null;
@@ -927,6 +928,7 @@
       ...source,
       id: source.id ?? `legacy-${migratedDate}-${storedText(source.docNo, `record-${index + 1}`)}`,
       deed,
+      sourceText: storedText(source.sourceText, deed),
       date: migratedDate,
       number: nonNegativeInteger(source.number) || Number(String(source.docNo || "").match(/(\d+)$/)?.[1]) || 1,
       score: Number.isFinite(contribution) && contribution > 0 ? contribution : 99,
@@ -1537,11 +1539,11 @@
     const entry = $("#view-home .entry-form");
     $("#first-deed-guide").hidden = !pending;
     entry.classList.toggle("first-run-entry", pending);
-    $("#entry-kicker").textContent = pending ? "첫 대업 접수 · FORM 01" : "대업 접수처 · FORM 01";
+    $("#entry-kicker").textContent = pending ? "첫 이야기 접수 · FORM 01" : "오늘 이야기 접수처 · FORM 01";
     $("#entry-description").textContent = pending
-      ? `${ownerDisplayName()}의 첫 기록은 아주 사소해도 충분해요.`
-      : "별것 아니어도 괜찮아요. 집사가 알아서 크게 보고합니다.";
-    $("#report-button-label").textContent = pending ? "첫 대업 보고하기" : "집사에게 대업 보고하기";
+      ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 괜찮아요.`
+      : "잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.";
+    $("#report-button-label").textContent = "집사에게 들려주기";
   }
 
   function render(options = {}) {
@@ -2115,10 +2117,10 @@
     return ["행동 완료 사실 교차 확인", categoryStep, "국가·인류·우주 기여도 과장", ANALYSIS_FINAL_STEPS[state.character] || ANALYSIS_FINAL_STEPS.ai];
   }
 
-  function configureAnalysis(deed) {
+  function configureAnalysis(deed, interpretation = null) {
     const [title, description] = ANALYSIS_CHARACTER_COPY[state.character] || ANALYSIS_CHARACTER_COPY.ai;
     $("#analysis-title").textContent = title;
-    $("#analysis-description").textContent = description;
+    $("#analysis-description").textContent = interpretation?.reply || description;
     const labels = analysisStepsFor(deed);
     $$("#analysis-steps li b").forEach((label, index) => { label.textContent = labels[index]; });
   }
@@ -2126,8 +2128,8 @@
   function submitAchievement() {
     if (achievementSubmissionActive) return;
     const input = $("#achievement-input");
-    const deed = input.value.trim();
-    if (!deed) { showToast("오늘 해낸 하찮은 일을 먼저 적어주세요."); input.focus(); return; }
+    const story = input.value.trim();
+    if (!story) { showToast("오늘 이야기를 편하게 들려주세요."); input.focus(); return; }
     achievementSubmissionActive = true;
     const reportButton = $("#report-button");
     reportButton.disabled = true;
@@ -2135,10 +2137,32 @@
     $("#toast").classList.remove("show");
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
+    const interpreted = CHAT_ENGINE?.respond(state.character, story, state.chatMemory);
+    if (!interpreted) {
+      achievementSubmissionActive = false;
+      reportButton.disabled = false;
+      reportButton.removeAttribute("aria-busy");
+      showToast("이야기 해석 모듈을 불러오지 못했습니다. 다시 시도해주세요.");
+      return;
+    }
+    state.chatMemory = interpreted.memory;
+    if (!interpreted.achievementCandidate) {
+      if (!saveState()) { achievementSubmissionActive = false; reportButton.disabled = false; reportButton.removeAttribute("aria-busy"); return; }
+      input.value = "";
+      $("#char-count").textContent = "0";
+      typeMessage($("#briefing-message"), interpreted.reply, 18);
+      achievementSubmissionActive = false;
+      reportButton.disabled = false;
+      reportButton.removeAttribute("aria-busy");
+      showToast("집사가 오늘 이야기를 들었습니다.");
+      return;
+    }
+    const deed = interpreted.achievementTitle || story;
+    pendingMessageAnalysis = { ...interpreted, sourceText: story };
     const duplicate = isDuplicateToday(deed);
     pendingEvaluation = judgeAchievement(deed, state.obsession, duplicate);
     trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: duplicate ? "duplicate" : "new" });
-    configureAnalysis(deed);
+    configureAnalysis(deed, interpreted);
     setPoseImage($("#analysis-butler-image"), state.character, "analysis");
     $("#analysis-target").textContent = deed;
     $("#analysis-overlay").hidden = false;
@@ -2170,6 +2194,8 @@
     const pointsEarned = pointsEarnedFor(evaluation, duplicate);
     const nextObsession = clamp(previousObsession + relationshipGain, 0, 100);
     pendingEvaluation = null;
+    const messageAnalysis = pendingMessageAnalysis;
+    pendingMessageAnalysis = null;
     const pose = evaluation.power ? "power" : "praise";
     const butler = snapshotButler();
     const record = {
@@ -2183,12 +2209,22 @@
       relationshipGain, pointsEarned,
       relationshipStage: relationshipStageFor(nextObsession).name,
       stampEligible: !duplicate, character: butler.character, ownerName: ownerDisplayName(),
-      butlerName: butler.name, voice: butler.voice, butler
+      butlerName: butler.name, voice: butler.voice, butler,
+      sourceText: messageAnalysis?.sourceText || deed,
+      interpretation: messageAnalysis ? {
+        intents: messageAnalysis.intents,
+        activities: messageAnalysis.activities,
+        mood: messageAnalysis.mood,
+        sentiment: messageAnalysis.sentiment,
+        priority: messageAnalysis.priority,
+        responseMode: messageAnalysis.responseMode,
+        confidence: messageAnalysis.confidence
+      } : undefined
     };
     state.records.push(record);
     state.todos.push({ id: record.id, text: deed, done: true, date: new Date().toDateString(), overbutlerRecordId: record.id });
     const diaryEntry = {
-      id: record.id, date: record.date, todos: [deed], deed,
+      id: record.id, date: record.date, todos: [deed], deed, sourceText: record.sourceText,
       text: record.report, character: butler.character, butlerName: butler.name,
       voice: butler.voice, butler, pose, ownerName: record.ownerName, snapshotVersion: 1
     };
