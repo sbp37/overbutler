@@ -277,6 +277,27 @@
       </section>
 
       <section class="app-view" id="view-manager" aria-labelledby="manager-title">
+        <section class="manager-cat-home" id="manager-cat-home" aria-label="고양이 집사방" hidden>
+          <div class="cat-home-room" id="cat-home-room">
+            <div class="cat-home-world" id="cat-home-world">
+              <div class="cat-home-background" aria-hidden="true"></div>
+              <button class="cat-home-character" id="cat-home-character" type="button" aria-label="고양이 집사에게 말 걸기">
+                <img id="cat-home-character-image" src="design/character-assets/cat-butler/desk-poses/cat-desk-base.png" alt="책상 뒤에 앉아 있는 고양이 집사">
+              </button>
+              <div class="cat-home-foreground" aria-hidden="true"></div>
+              <p class="cat-home-speech" id="cat-home-speech" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+          <nav class="cat-home-actions" aria-label="집사방 메뉴">
+            <button type="button" data-cat-home-action="info"><span>집사 정보</span></button>
+            <button type="button" data-cat-home-action="gift"><span>선물</span></button>
+            <button type="button" data-cat-home-action="roster"><span>우리 집사들</span></button>
+            <button type="button" data-cat-home-action="handover"><span>담당 변경</span></button>
+          </nav>
+        </section>
+
+        <div class="manager-details" id="manager-details">
+          <button class="manager-details-back" id="manager-details-back" type="button">← CAT HOME으로</button>
         <header class="manager-office-header">
           <div class="manager-logo-lockup"><strong>과잉집사</strong><span>OVERBUTLER DUTY OFFICE</span></div>
           <div class="manager-office-running"><i></i> 사무국 정상 운영 중</div>
@@ -345,6 +366,7 @@
           <div><strong>과잉집사</strong><span>버전 <b id="app-version">2.18.0</b> · 기기 안에 기록 저장</span></div>
           <nav aria-label="정책 문서"><a href="privacy.html" target="_blank" rel="noopener" data-analytics-event="privacy_open">개인정보 처리방침</a><a href="terms.html" target="_blank" rel="noopener" data-analytics-event="terms_open">이용약관</a></nav>
         </footer>
+        </div>
       </section>
 
       <nav class="bottom-nav" aria-label="주 메뉴">

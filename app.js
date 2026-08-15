@@ -682,6 +682,12 @@
   let giftTransferActive = false;
   let handlingBrowserBack = false;
   let focusReturnTarget = null;
+  let catHomeOffsetX = 0;
+  let catHomeDrag = null;
+  let catHomeInitialized = false;
+  let catHomeSpeechTimer = null;
+  let catHomeBlinkTimer = null;
+  let catHomePendingReaction = "";
 
   function safeParse(value) {
     try { return value ? JSON.parse(value) : null; } catch { return null; }
@@ -1340,6 +1346,10 @@
     });
     $("#main-screen").classList.toggle("home-active", name === "home");
     $("#main-screen").dataset.currentView = name;
+    if (name === "manager" && state.character === "cat") {
+      closeManagerDetails(false);
+      window.requestAnimationFrame(configureCatHome);
+    }
     if (name === "archive" && ["records", "diary", "certificates"].includes(navKey)) showArchiveTab(navKey);
     trackEvent("view_change", { view: name, tab: navKey });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1681,6 +1691,158 @@
     openCertificate(record);
   }
 
+  function catHomeBounds() {
+    const room = $("#cat-home-room");
+    const world = $("#cat-home-world");
+    if (!room || !world || state.character !== "cat") return { min: 0, max: 0, center: 0 };
+    const min = Math.min(0, room.clientWidth - world.offsetWidth);
+    return { min, max: 0, center: min / 2 };
+  }
+
+  function positionCatHomeSpeech() {
+    const room = $("#cat-home-room");
+    const world = $("#cat-home-world");
+    const speech = $("#cat-home-speech");
+    if (!room || !world || !speech) return;
+    const catScreenX = world.offsetWidth / 2 + catHomeOffsetX;
+    const screenLeft = clamp(catScreenX + 38, 8, Math.max(8, room.clientWidth - 138));
+    speech.style.left = `${screenLeft - catHomeOffsetX}px`;
+    speech.style.top = `${Math.max(14, room.clientHeight - 228)}px`;
+  }
+
+  function setCatHomeOffset(value, settle = false) {
+    const world = $("#cat-home-world");
+    if (!world) return;
+    const bounds = catHomeBounds();
+    catHomeOffsetX = clamp(Number(value) || 0, bounds.min, bounds.max);
+    world.classList.toggle("is-settling", settle);
+    world.style.transform = `translate3d(${catHomeOffsetX}px,0,0)`;
+    positionCatHomeSpeech();
+  }
+
+  function scheduleCatHomeBlink() {
+    window.clearTimeout(catHomeBlinkTimer);
+    if (state.character !== "cat" || $("#manager-cat-home")?.hidden) return;
+    catHomeBlinkTimer = window.setTimeout(() => {
+      if (state.character !== "cat" || catHomeDrag) return;
+      const image = $("#cat-home-character-image");
+      image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
+      window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 170);
+      scheduleCatHomeBlink();
+    }, 6500 + Math.floor(Math.random() * 4500));
+  }
+
+  function configureCatHome() {
+    const isCat = state.character === "cat";
+    $("#manager-cat-home").hidden = !isCat;
+    $("#view-manager").classList.toggle("cat-home-active", isCat);
+    if (!isCat) {
+      $("#manager-details").classList.add("is-open");
+      $("#view-manager").classList.remove("details-open");
+      window.clearTimeout(catHomeBlinkTimer);
+      return;
+    }
+    if (!catHomeInitialized) {
+      window.requestAnimationFrame(() => {
+        setCatHomeOffset(catHomeBounds().center);
+        catHomeInitialized = true;
+      });
+    } else window.requestAnimationFrame(() => setCatHomeOffset(catHomeOffsetX));
+    scheduleCatHomeBlink();
+  }
+
+  function catHomeLine() {
+    const lines = [
+      ["뭐냥. 업무 중이다냥.", "봤으면 됐다냥."],
+      ["왔냥? …그냥 확인한 거다냥.", "네 자리만 정리해뒀다냥."],
+      ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥."],
+      ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 네 자리 비워뒀다냥."],
+      ["오늘도 왔네. …나쁘지 않다냥.", "네 서류부터 봐주겠다냥."],
+      ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥."]
+    ];
+    const stageLines = lines[stageIndexFor(state.obsession)] || lines[0];
+    const stat = ensureButlerStat("cat");
+    return stageLines[stat.interactions % stageLines.length];
+  }
+
+  function showCatHomeSpeech(message) {
+    const speech = $("#cat-home-speech");
+    const character = $("#cat-home-character");
+    const image = $("#cat-home-character-image");
+    if (!speech || !character || state.character !== "cat") return;
+    window.clearTimeout(catHomeSpeechTimer);
+    speech.textContent = message;
+    positionCatHomeSpeech();
+    speech.classList.add("is-visible");
+    character.classList.remove("is-reacting");
+    void character.offsetWidth;
+    character.classList.add("is-reacting");
+    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
+    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 190);
+    catHomeSpeechTimer = window.setTimeout(() => {
+      speech.classList.remove("is-visible");
+      character.classList.remove("is-reacting");
+    }, 2800);
+  }
+
+  function interactWithCatHome() {
+    const stat = ensureButlerStat("cat");
+    showCatHomeSpeech(catHomeLine());
+    stat.interactions += 1;
+    stat.lastInteractionAt = new Date().toISOString();
+    saveState();
+  }
+
+  function startCatHomeDrag(event) {
+    if (state.character !== "cat" || event.button > 0 || event.target.closest("button")) return;
+    catHomeDrag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startOffset: catHomeOffsetX, moved: false };
+    $("#cat-home-room").classList.add("is-dragging");
+    $("#cat-home-world").classList.remove("is-settling");
+    $("#cat-home-world").setPointerCapture?.(event.pointerId);
+  }
+
+  function moveCatHomeDrag(event) {
+    if (!catHomeDrag || event.pointerId !== catHomeDrag.pointerId) return;
+    const dx = event.clientX - catHomeDrag.startX;
+    const dy = event.clientY - catHomeDrag.startY;
+    if (!catHomeDrag.moved) {
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6) return;
+      if (Math.abs(dx) < 5) return;
+      catHomeDrag.moved = true;
+    }
+    event.preventDefault();
+    setCatHomeOffset(catHomeDrag.startOffset + dx);
+  }
+
+  function endCatHomeDrag(event) {
+    if (!catHomeDrag || event.pointerId !== catHomeDrag.pointerId) return;
+    catHomeDrag = null;
+    $("#cat-home-room").classList.remove("is-dragging");
+    setCatHomeOffset(catHomeOffsetX, true);
+  }
+
+  function openManagerDetails(target = "info") {
+    $("#manager-details").classList.add("is-open");
+    $("#view-manager").classList.add("details-open");
+    window.requestAnimationFrame(() => {
+      const section = target === "roster" ? $(".butler-roster-card") : $(".personnel-card");
+      section?.scrollIntoView({ block: "start" });
+    });
+  }
+
+  function closeManagerDetails(scroll = true) {
+    if (state.character !== "cat") return;
+    $("#manager-details").classList.remove("is-open");
+    $("#view-manager").classList.remove("details-open");
+    if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleCatHomeAction(action) {
+    if (action === "info" || action === "roster") openManagerDetails(action);
+    if (action === "gift") openGiftDesk();
+    if (action === "handover") renderPersonnelPool();
+  }
+
   function renderManager() {
     const stat = ensureButlerStat(state.character);
     const profile = CHARACTER_PROFILES[state.character];
@@ -1732,6 +1894,7 @@
       $("#recruit-description").textContent = "눌러서 보유 집사와 인수인계 기록을 확인하세요.";
     }
     $("#recruit-note").classList.toggle("available", state.pendingApplicants.length > 0);
+    configureCatHome();
   }
 
   function renderWeeklyReport() {
@@ -2671,6 +2834,7 @@
     trackEvent("butler_switch", { character: key, source: returning ? "return" : "handover" });
     closeRecruitment();
     render();
+    if (key === "cat") closeManagerDetails(false);
     typeMessage($("#briefing-message"), message);
     showToast(`${CHARACTER_PROFILES[key].name}에게 인수인계했습니다.`);
   }
@@ -2805,6 +2969,7 @@
     trackEvent("gift_given", { character: state.character, giftType: interaction.type, relationshipStage: stageIndexFor(state.obsession) });
     setPoseImage($("#briefing-butler-image"), state.character, "gift");
     const message = giftResponse(state.character, gift, interaction);
+    if (state.character === "cat") catHomePendingReaction = "선물은 잘 보관하겠다냥. …고맙다냥.";
     typeMessage($("#briefing-message"), message);
     renderManager();
     renderRelationshipStatus();
@@ -2866,6 +3031,15 @@
   function closeGift() {
     $("#gift-overlay").hidden = true;
     document.body.style.overflow = "";
+    if (state.character === "cat" && $("#main-screen").dataset.currentView === "manager") {
+      closeManagerDetails(false);
+      window.scrollTo({ top: 0, behavior: "auto" });
+      if (catHomePendingReaction) {
+        const message = catHomePendingReaction;
+        catHomePendingReaction = "";
+        window.setTimeout(() => showCatHomeSpeech(message), 80);
+      }
+    }
   }
 
   function registerOwnerName(value) {
@@ -2950,6 +3124,17 @@
     });
     $("#manager-change-button").addEventListener("click", renderPersonnelPool);
     $("#give-gift-button").addEventListener("click", openGiftDesk);
+    $("#cat-home-character").addEventListener("click", interactWithCatHome);
+    $("#cat-home-room").addEventListener("pointerdown", startCatHomeDrag);
+    window.addEventListener("pointermove", moveCatHomeDrag, { passive: false });
+    window.addEventListener("pointerup", endCatHomeDrag);
+    window.addEventListener("pointercancel", endCatHomeDrag);
+    window.addEventListener("resize", () => setCatHomeOffset(catHomeOffsetX));
+    $("#manager-cat-home").addEventListener("click", event => {
+      const trigger = event.target.closest("[data-cat-home-action]");
+      if (trigger) handleCatHomeAction(trigger.dataset.catHomeAction);
+    });
+    $("#manager-details-back").addEventListener("click", () => closeManagerDetails());
     $("#gift-desk-close").addEventListener("click", closeGiftDesk);
     $("#gift-desk-overlay").addEventListener("click", event => { if (event.target.id === "gift-desk-overlay") closeGiftDesk(); });
     $("#gift-catalog").addEventListener("click", event => {

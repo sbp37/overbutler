@@ -37,6 +37,9 @@ design/character-assets/
     cat-butler-5-pose-sheet-transparent-hq.png
     cat-butler-5-pose-sheet-transparent.png
     cat-butler-reference.png
+    desk-poses/
+      cat-desk-base.png
+      cat-desk-blink.png
   dog-butler/
     dog-butler-5-pose-sheet-chroma.png
     dog-butler-5-pose-sheet-transparent-hq.png
@@ -86,6 +89,8 @@ design/character-assets/
     zombie-butler-5-pose-sheet-transparent.png
     zombie-butler-reference.png
 ```
+
+CAT HOME also uses the approved room background at `design/rooms/cat-office-room.webp`. The background is rendered unchanged at a 155% draggable room-world width; the desk foreground mask reuses the same image so the desk remains in front of the transparent CAT desk pose.
 
 ## Brand and release artwork
 
