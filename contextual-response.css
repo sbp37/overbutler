@@ -38,17 +38,47 @@
   white-space:nowrap;
 }
 
+/* 집사 답변이 이 카드의 주인공이다. 기록/도장 정보보다 크고 먼저 온다. */
+.gentle-note-reply{
+  margin:0;
+  color:#3d3230;
+  font:700 16px/1.5 "Wanted Sans Variable","Wanted Sans",sans-serif;
+  letter-spacing:-.01em;
+  word-break:keep-all;
+  white-space:pre-line;
+}
+.gentle-note-reply:empty{display:none}
+
+/* 발견한 대업은 답변에 딸린 부가 정보. 눈에 띄되 답변을 이기지 않는다. */
+.gentle-note-deed{
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:4px 8px;
+  margin-top:10px;
+  padding-top:9px;
+  border-top:1px dashed #ddcdb4;
+}
+.gentle-note-deed[hidden]{display:none}
+.gentle-note-deed>span{
+  flex:none;
+  color:#8a6b3d;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.02em;
+}
+.gentle-note-deed>span::before{content:"📎 ";}
 .gentle-note-title{
   margin:0;
   color:#4a3a33;
-  font:800 15px/1.35 "Wanted Sans Variable","Wanted Sans",sans-serif;
+  font:800 14px/1.35 "Wanted Sans Variable","Wanted Sans",sans-serif;
   letter-spacing:-.02em;
   word-break:keep-all;
 }
 .gentle-note-copy{
-  margin:7px 0 0;
-  color:#7d6c62;
-  font-size:12px;
+  margin:6px 0 0;
+  color:#8b7a6f;
+  font-size:11px;
   line-height:1.5;
   word-break:keep-all;
 }
@@ -67,10 +97,10 @@
   to{opacity:1;transform:translateY(0)}
 }
 
-@media(max-width:300px){
-  .gentle-note{padding:11px 11px 12px}
-  .gentle-note-title{font-size:14px}
-  .gentle-note-copy{font-size:11px}
+@media(max-width:372px){
+  .gentle-note{padding:12px 12px 13px}
+  .gentle-note-reply{font-size:15px}
+  .gentle-note-title{font-size:13px}
 }
 
 @media(prefers-reduced-motion:reduce){

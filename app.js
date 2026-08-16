@@ -2583,13 +2583,15 @@
       if (!saveState()) { achievementSubmissionActive = false; reportButton.disabled = false; reportButton.removeAttribute("aria-busy"); return; }
       input.value = "";
       $("#char-count").textContent = "0";
-      hideGentleNote();
       typeMessage($("#briefing-message"), interpreted.reply, 18);
-      showCatHomeSpeech(interpreted.reply, 5200);
+      // 접수대 말풍선은 첫 인사·고양이 탭 전용이다. 제출한 오늘 이야기의 답은
+      // 사용자가 버튼을 누른 자리에서 보여야 하므로 여기서는 쓰지 않는다.
+      // 토스트도 띄우지 않는다 — "들었습니다" 같은 시스템 문구가 집사 답변보다
+      // 먼저 눈에 들어오면 안 된다.
+      showButlerReply({ reply: interpreted.reply, mode });
       achievementSubmissionActive = false;
       reportButton.disabled = false;
       reportButton.removeAttribute("aria-busy");
-      showToast(mode === "comfort" ? "집사가 오늘 마음을 들었습니다." : "집사가 오늘 이야기를 들었습니다.");
       return;
     }
     const deed = interpreted.achievementTitle || story;
@@ -2747,7 +2749,7 @@
     if (quiet) {
       $("#analysis-overlay").hidden = true;
       document.body.style.overflow = "";
-      showGentleNote(record, options.mode, duplicate);
+      showButlerReply({ reply: options.reply || record.report, record, mode: options.mode, duplicate });
       return;
     }
     if (duplicate) showToast("같은 행동이라 도장은 제외하고 칭찬만 지급했습니다.");
@@ -2762,22 +2764,54 @@
     if (note) note.hidden = true;
   }
 
-  // 위로/일상 기록 전용의 조용한 접수 알림. FORM 05를 대신한다.
-  function showGentleNote(record, mode, duplicate) {
+  // 오늘 이야기를 접수한 직후, 사용자가 [집사에게 들려주기]를 누른 그 자리에서
+  // 집사의 답을 바로 보여준다. 이 카드는 접수서 안 CTA 바로 아래에 있다.
+  // 예전에는 집사 답이 홈 맨 위 접수대 말풍선으로만 나가서, 사용자가 답을 보려면
+  // 위로 다시 스크롤해야 했다. 답을 찾아 이동해야 하면 즉시 피드백이 아니다.
+  //
+  // 위계: 집사 답변이 가장 크고 먼저. 기록/도장 같은 시스템 상태는 그 아래 작게.
+  function showButlerReply({ reply, record = null, mode = "conversation", duplicate = false }) {
     const note = $("#gentle-note");
     if (!note) return;
     const comfort = mode === "comfort";
+    const character = normalizeCharacter(record?.character || state.character);
+    const isAi = character === "ai";
     note.dataset.tone = comfort ? "comfort" : "record";
-    $("#gentle-note-kicker").textContent = comfort ? "집사가 오늘 이야기에서 발견한 것" : "집사가 발견한 오늘의 대업";
-    $("#gentle-note-badge").textContent = duplicate ? "다시 기억함" : "기록 보관 · 도장 +1";
-    $("#gentle-note-title").textContent = record.deed;
-    // AI 집사는 같은 안내도 시스템 로그체로 출력한다.
-    const isAi = normalizeCharacter(record.character) === "ai";
-    $("#gentle-note-copy").textContent = comfort
-      ? (isAi ? "오늘 기록은 여기까지만 저장함. 나머지 항목 요구 없음." : "오늘은 이 정도만 적어두겠습니다. 나머지는 쉬어도 됩니다.")
-      : (isAi ? "작게 기록 완료. 보관함에서 재열람 가능." : "작게 기록해뒀습니다. 필요하면 보관함에서 다시 볼 수 있습니다.");
+    $("#gentle-note-kicker").textContent = CHARACTER_PROFILES[character]?.name || "담당 집사";
+    $("#gentle-note-reply").textContent = String(reply || "").trim();
+
+    // 대업은 집사 답변에 딸린 부가 정보다. 발견했을 때만, 답변 아래에 작게 붙는다.
+    const deedBlock = $("#gentle-note-deed");
+    if (record?.deed) {
+      $("#gentle-note-badge").textContent = duplicate ? "오늘 이미 접수한 대업" : "집사가 대업 하나 발견함";
+      $("#gentle-note-title").textContent = record.deed;
+      deedBlock.hidden = false;
+      $("#gentle-note-copy").textContent = duplicate
+        ? (isAi ? "중복 항목이라 도장 미반영. 칭찬은 정상 지급함." : "같은 행동이라 도장은 그대로 두고 칭찬만 지급했습니다.")
+        : (isAi ? "기록 완료. 도장 +1. 보관함에서 재열람 가능." : "기록해뒀습니다. 도장 +1. 보관함에서 다시 볼 수 있습니다.");
+    } else {
+      deedBlock.hidden = true;
+      $("#gentle-note-copy").textContent = "";
+    }
+
     note.hidden = false;
-    note.scrollIntoView({ behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    revealAboveBottomNav(note);
+  }
+
+  // 카드가 하단 고정 nav에 가려질 때만, 가려진 만큼만 아래로 민다.
+  // scrollIntoView({block:"nearest"})는 position:fixed인 nav를 모르기 때문에
+  // 카드 아래쪽이 nav 뒤에 깔려도 "이미 보인다"고 판단해 아무것도 하지 않는다.
+  // 위로 올리거나 상단으로 점프하는 경우는 없다 — 답을 찾아 이동시키지 않는 게 목적이다.
+  function revealAboveBottomNav(element) {
+    if (!element) return;
+    const nav = $(".bottom-nav");
+    const limit = (nav ? nav.getBoundingClientRect().top : window.innerHeight) - 12;
+    const overflow = element.getBoundingClientRect().bottom - limit;
+    if (overflow <= 0) return;
+    const room = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
+    const delta = Math.min(overflow, Math.max(0, room));
+    if (delta <= 0) return;
+    window.scrollBy({ top: delta, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
 
   // 대업명은 사용자가 쓴 말을 집사가 격상시킨 제목이라("물 한 잔 마셨어" → "생존 수분 충전 완료")
