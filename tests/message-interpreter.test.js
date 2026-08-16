@@ -26,7 +26,7 @@ assert.equal(analyzed["결혼식 다녀왔는데 너무 힘들었어"].priority,
 assert.equal(analyzed["결혼식 다녀왔는데 너무 힘들었어"].achievementTitle, "힘든 와중에도 결혼식 다녀오기");
 
 assert.equal(analyzed["오늘 결혼식 갔는데 생각보다 안 힘들었어"].mood, null);
-assert.equal(analyzed["오늘 결혼식 갔는데 생각보다 안 힘들었어"].responseMode, "normal-record");
+assert.equal(analyzed["오늘 결혼식 갔는데 생각보다 안 힘들었어"].responseMode, "achievement");
 assert.equal(analyzed["회사 개힘들었다"].mood, "tired");
 assert.equal(analyzed["회사 개힘들었다"].achievementCandidate, true);
 assert.equal(analyzed["나 이제 집왔어"].achievementCandidate, false);
@@ -44,7 +44,7 @@ assert.equal(analyzed["화난 건 아닌데 좀 짜증나"].mood, "angry");
 assert.deepEqual(analyzed["오늘 운동하고 치킨 먹었어"].activities, ["운동 완료", "식사 챙김"]);
 assert.equal(analyzed["오늘 운동하고 치킨 먹었어"].achievementCandidate, true);
 assert.equal(analyzed["그냥 별일 없었어"].achievementCandidate, false);
-assert.ok(analyzed["그냥 별일 없었어"].intents.includes("nothing"));
+assert.ok(analyzed["그냥 별일 없었어"].intents.includes("quiet_day"));
 
 for (const message of ["별로 안 피곤해", "화난 건 아니야", "슬프진 않은데 평온해"]) {
   const result = analyzeUserMessage(message);

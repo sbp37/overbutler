@@ -48,7 +48,7 @@ assert.equal(wedding.achievementTitle, "힘든 와중에도 결혼식 다녀오�
 assert.match(wedding.reply, /결혼식까지 다녀왔구냥/);
 assert.deepEqual(wedding.memory.recentActivities, ["결혼식 다녀옴"]);
 
-const characters = ["ai", "cat", "dog", "alien", "ninja", "witch", "fox", "star", "elf", "fairy"];
+const characters = ["ai", "cat", "dog", "alien", "ninja", "witch", "zombie", "star", "elf", "fairy"];
 const hardDayReplies = characters.map(character => chat.respond(character, "오늘 너무 힘들었어", {}, 0).reply);
 assert.equal(new Set(hardDayReplies).size, characters.length);
 

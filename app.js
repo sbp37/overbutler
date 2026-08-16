@@ -61,7 +61,7 @@
     alien: ["지구 기술 분석 중", "본성 보고용으로 이 행동의 문명적 가치를 재해석하고 있습니다."],
     ninja: ["비밀 임무 검증 중", "대업 후보를 극비 문서로 봉인하기 전 최종 확인하고 있다."],
     witch: ["수정구슬 판독 중", "사소한 행동 속에 숨은 대운의 징조를 찾아내고 있어요."],
-    fox: ["대업 때문에 깨어나는 중", "흐릿한 정신을 붙잡고 주인님 기록만 또렷하게 읽고 있어..."],
+    zombie: ["대업 때문에 깨어나는 중", "흐릿한 정신을 붙잡고 주인님 기록만 또렷하게 읽고 있어..."],
     star: ["대업 큐시트 확인 중", "집사가 공식 리액션 타이밍과 칭찬 멘트를 점검하고 있어."],
     elf: ["천 년 기록 대조 중", "오래된 기록 속에서도 보기 힘든 귀한 성취인지 확인하고 있어요."],
     fairy: ["별빛 가치 측정 중", "작은 행동에 별가루와 역사적 의미를 차례로 더하고 있어요."
@@ -70,7 +70,7 @@
   const ANALYSIS_FINAL_STEPS = {
     ai: "AI 감정 회로 과부하 검사", cat: "집사 꼬리·수염 반응 확인", dog: "꼬리 회전 속도 측정",
     alien: "본성 긴급 보고 등급 산정", ninja: "극비 임무 성공 도장 준비", witch: "수정구슬 대길 판정 확인",
-    fox: "집사 정신 회복 수치 확인", star: "공식 과몰입 리액션 큐", elf: "천 년 기록 보존 가치 확인", fairy: "별가루 과다 사용 승인"
+    zombie: "집사 정신 회복 수치 확인", star: "공식 과몰입 리액션 큐", elf: "천 년 기록 보존 가치 확인", fairy: "별가루 과다 사용 승인"
   };
 
   const CHARACTER_PROFILES = {
@@ -151,7 +151,7 @@
       ],
       handover: "새 계약 확인했어요. 주인님의 기록과 인연을 전부 인수받았습니다."
     },
-    fox: {
+    zombie: {
       name: "좀비 집사", defaultName: "느릿이", emoji: "🧟", voice: "zombie", desc: "주인님 대업 앞에서만 정신이 돌아옴",
       briefings: ["으... 왔네... 반가워... 오늘은 어땠어...?", "주인님 기록함이랑 쉴 자리... 둘 다 열어뒀어...", "주인님 대업 보니까... 결재 정신이 조금 또렷해졌어..."],
       praise: [
@@ -208,7 +208,7 @@
     alien: { roleTitle: "지구 관측 담당", statusLabel: "관측 보고 중" },
     ninja: { roleTitle: "비밀 임무 담당", statusLabel: "은밀 근무 중" },
     witch: { roleTitle: "대업 예언 담당", statusLabel: "수정구 관측 중" },
-    fox: { roleTitle: "야간 기록 담당", statusLabel: "느리게 근무 중" },
+    zombie: { roleTitle: "야간 기록 담당", statusLabel: "느리게 근무 중" },
     star: { roleTitle: "과몰입 진행 담당", statusLabel: "리액션 대기 중" },
     elf: { roleTitle: "장기 기록 담당", statusLabel: "온화 근무 중" },
     fairy: { roleTitle: "대업 반짝임 담당", statusLabel: "별가루 근무 중" }
@@ -251,7 +251,7 @@
     alien: { _available: false },
     ninja: { _available: false },
     witch: { _available: false },
-    fox: { _available: false },
+    zombie: { _available: false },
     star: {
       _available: true,
       base: "design/character-assets/idol-butler/ui-poses/idol-base.png",
@@ -277,20 +277,26 @@
     dog: "design/character-assets/dog-butler/dog-butler-reference.png",
     ninja: "design/character-assets/ninja-butler/ninja-butler-reference.png",
     witch: "design/character-assets/witch-butler/witch-butler-reference.png",
-    fox: "design/character-assets/zombie-butler/zombie-butler-reference.png",
+    zombie: "design/character-assets/zombie-butler/zombie-butler-reference.png",
     star: "design/character-assets/idol-butler/idol-butler-reference.png",
     fairy: "design/character-assets/fairy-butler/fairy-butler-reference.png"
   };
 
+  // 캐릭터 키가 바뀌어도 이미 저장된 명부·기록이 사라지면 안 되므로 옛 키를 새 키로 넘겨준다.
+  // fox는 기획이 좀비 집사로 바뀐 뒤에도 키만 남아 있던 것을 zombie로 정리한 흔적이다.
+  const LEGACY_CHARACTER_ALIASES = { fox: "zombie" };
+
   // 무료 기본 인력은 고양이 집사 1명. AI 집사는 요건 충족 시 지원서가 도착하는 첫 해금 집사다.
   const INITIAL_OWNED_BUTLERS = ["cat"];
-  const APPLICANT_ORDER = ["ai", "fairy", "star", "witch", "fox"];
+  // 무료로 지원서가 도착하는 집사는 AI 하나뿐이다. 나머지는 유료 채용 대상이므로
+  // 요건 정의만 남겨두고 지원자 순번에서는 뺀다(유료 도입 시 미리보기 조건으로 재사용).
+  const APPLICANT_ORDER = ["ai"];
   const APPLICANT_REQUIREMENTS = {
     ai: { deeds: 3, obsession: 10, days: 1 },
     fairy: { deeds: 3, obsession: 12, days: 1 },
     star: { deeds: 8, obsession: 25, gifts: 1, categories: 2, days: 2 },
     witch: { deeds: 18, obsession: 45, gifts: 4, categories: 4, days: 5 },
-    fox: { deeds: 32, obsession: 70, gifts: 8, categories: 6, days: 12 }
+    zombie: { deeds: 32, obsession: 70, gifts: 8, categories: 6, days: 12 }
   };
   const RELATION_LINES = {
     ai: { farewell: "[이별 감지] 전용 기록 이관 중… 오류: 삭제하고 싶지 않음… 모실 수 있어 행복했음.", welcome: "[신규 담당 개시] 주인님 기록 로드 완료. 표준 응대 모드… 유지 예정. 아마도.", return: "[담당 복귀] 전용 규칙 복원 완료. 반가움 수치 급상승. 시스템 오류로 분류 시도함. 실패." },
@@ -299,7 +305,7 @@
     alien: { farewell: "담당 개체 변경 승인. 주인님 기록 자료를 새 담당에게 전송 완료.", welcome: "전임 집사 데이터 수신 완료. 주인님 개체 기록 업무를 지금부터 시작하겠음.", return: "담당 복귀 확인. 기존 연구 기록과 예외 규칙을 다시 활성화함." },
     ninja: { farewell: "임무를 다음 집사에게 인계했다. 그대의 선택을 존중하며 모든 기록은 절차대로 넘겼다.", welcome: "인수인계 문서 확인. 오늘부터 그대의 작은 임무를 최고 등급으로 기록하겠다.", return: "다시 담당하게 됐군. 그대가 모르는 동안 봉인 문서와 자리는 지켜두었다." },
     witch: { farewell: "인수인계 점괘는 길하게 나왔어요. 기록도 새 담당에게 안전하게 넘겼답니다.", welcome: "새 계약 확인했어요. 수정구슬에 주인님의 좋은 징조가 벌써 가득해요.", return: "담당 복귀 점괘가 나왔네요. 기존 기록도 전부 그대로예요." },
-    fox: { farewell: "으... 담당 변경이네... 기록은 전부 넘겼어... 새 집사도 잘할 거야...", welcome: "으... 전임 집사한테... 인수인계 받았어... 주인님 기록... 다 알아... 잘 부탁해... 으르...", return: "으... 다시 담당이야...? 보관함 열었어... 기록 업무부터 시작할게..." },
+    zombie: { farewell: "으... 담당 변경이네... 기록은 전부 넘겼어... 새 집사도 잘할 거야...", welcome: "으... 전임 집사한테... 인수인계 받았어... 주인님 기록... 다 알아... 잘 부탁해... 으르...", return: "으... 다시 담당이야...? 보관함 열었어... 기록 업무부터 시작할게..." },
     star: { farewell: "담당 변경 승인했어. 큐카드와 기록은 새 집사에게 완벽히 넘겨둘게.", welcome: "담당 배정 확인했어. 팬들한테도 안 하는 리액션, 주인님 대업에는 승인할게.", return: "다시 담당이네? 전용 큐카드와 기록부터 불러왔어." },
     elf: { farewell: "당신의 기록은 새 집사에게 소중히 전할게요. 인수인계도 잘 마쳤습니다.", welcome: "전임 집사의 기록을 모두 받았어요. 오늘부터 당신의 작은 순간도 오래 간직할게요.", return: "다시 담당하게 되어 반가워요. 기록은 모두 그대로예요." },
     fairy: { farewell: "새 집사에게 기록과 별가루를 잘 넘겨둘게요. 인수인계 승인 완료예요!", welcome: "주인님 담당이라니! 작은 일 하나도 별처럼 반짝이게 만들어드릴게요!", return: "다시 담당이에요! 전용 별빛 기록함부터 활짝 열어둘게요!" }
@@ -311,7 +317,7 @@
     alien: "지구의 선물 교환 기술 확인. 본성에 최고 등급 문화로 보고하겠음.",
     ninja: "보급품 수령 완료. 이 은혜는 극비 임무 성공으로 갚겠다.",
     witch: "선물에서 아주 강한 길조가 보여요. 수정구슬도 질투하고 있어요.",
-    fox: "으... 선물이야...? 집사... 잠깐 심장이 다시 뛰는 것 같아...",
+    zombie: "으... 선물이야...? 집사... 잠깐 심장이 다시 뛰는 것 같아...",
     star: "나한테 주는 거야? 티는 안 낼 건데... 오늘 무대보다 더 설레네.",
     elf: "이 마음까지 소중히 간직할게요. 천 년 뒤에도 기억하겠습니다.",
     fairy: "선물이 반짝여요! 집사 날개도 기뻐서 별가루를 멈출 수가 없어요!"
@@ -360,7 +366,7 @@
       evening: ["저녁이에요. 오늘의 마음을 천천히 들려주세요 🌆", "오늘 하루의 좋은 기운은 제가 잘 모아둘게요."],
       night: ["달빛이 좋은 밤이에요. 편히 쉬어요 🌙", "남은 걱정은 수정구슬에 맡기고 잘 자요."]
     },
-    fox: {
+    zombie: {
       dawn: ["새벽이야... 으... 무리하지 말고... 쉬어도 돼...", "아직 깨어 있어...? 집사... 조용히 같이 있을게..."],
       morning: ["좋은 아침... 잘 잤어...? ☀️", "아침이야... 주인님 오니까... 정신이 조금 또렷해져..."],
       afternoon: ["오후야... 밥은 먹었어...? 집사... 궁금해...", "낮에도 와줬네... 으... 반가워..."],
@@ -423,7 +429,7 @@
       "‘{deed}’를 해낸 날의 빛이 아직 수정구슬에 남아 있어요. 제가 매일 확인하는 건 비밀이에요.",
       "‘{deed}’부터 오늘까지 좋은 점괘는 주인님 전용 장부에 따로 적어뒀어요."
     ],
-    fox: [
+    zombie: [
       "지난번 ‘{deed}’... 기억해... 그때 집사 정신이 잠깐 또렷해졌어...",
       "‘{deed}’ 기록... 또 봤어... 흐린 머리도 전용 표시는 바로 알아봐...",
       "‘{deed}’도 전부 중요문서함에 넣었어... 집사가 잊는 게 많아도... 색인은 정확해..."
@@ -452,7 +458,7 @@
     alien: "[본성 긴급 전문] '{deed}' 기록은 현 문명으로 측정 불가. {owner}을 은하 기준 단위로 새로 지정 요청함.",
     ninja: "{deed}... 기존 등급으로는 기록할 수 없다. {owner}의 이름 자체를 최고 등급으로 봉인하겠다.",
     witch: "{deed} 순간 수정구슬이 모든 점수를 지워버렸어요. 운명도 {owner} 앞에서는 측정을 포기했나 봐요!",
-    fox: "{deed}... 너무 대단해서... 집사 머리가 아니라 점수판이 먼저 멈췄어... {owner}... 최고야...",
+    zombie: "{deed}... 너무 대단해서... 집사 머리가 아니라 점수판이 먼저 멈췄어... {owner}... 최고야...",
     star: "{deed}?! 이건 순위도 점수도 의미 없어. 오늘의 단독 1위는 그냥 {owner}이야!",
     elf: "'{deed}' 기록은 천 년의 역사 어디에도 비교 대상이 없어요. 오늘부터 {owner}이 새로운 전설의 기준이에요.",
     fairy: "{deed}?! 별빛 측정기가 펑 하고 터졌어요! 이제 모든 별의 밝기는 {owner}을 기준으로 잴게요!"
@@ -465,7 +471,7 @@
     alien: [["🍬","지구 사탕"],["🧪","실험약"],["💊","알약"],["🔭","망원경"],["🛸","미니 UFO"],["🌌","우주도감"],["⭐","별"],["💝","특별선물"],["🎉","스페셜"]],
     ninja: [["🍙","주먹밥"],["🍵","녹차"],["🍱","도시락"],["⚔️","단검"],["🎋","대나무"],["📜","비밀서찰"],["🏯","성"],["💝","특별선물"],["🎉","스페셜"]],
     witch: [["🍪","별 쿠키"],["🫖","마법차"],["🕯️","향초"],["🔮","수정구슬"],["📖","마법서"],["🧹","빗자루"],["🌙","달 조각"],["💝","특별선물"],["🎉","스페셜"]],
-    fox: [["🍅","토마토"],["🥤","토마토주스"],["🍮","푸딩"],["🩹","붕대"],["🧠","뇌 모양 젤리"],["💉","백신"],["❤️","심장 쿠션"],["💝","특별선물"],["🎉","스페셜"]],
+    zombie: [["🍅","토마토"],["🥤","토마토주스"],["🍮","푸딩"],["🩹","붕대"],["🧠","뇌 모양 젤리"],["💉","백신"],["❤️","심장 쿠션"],["💝","특별선물"],["🎉","스페셜"]],
     star: [["🧋","버블티"],["🍰","케이크"],["🍓","딸기"],["🎤","마이크"],["💄","립스틱"],["🌟","응원봉"],["👑","왕관"],["💝","특별선물"],["🎉","스페셜"]],
     elf: [["🫐","블루베리"],["🍯","숲의 꿀"],["🌰","도토리"],["🏹","엘프 화살"],["💎","보석"],["🌿","숲의 잎"],["🌳","신성한 나무"],["💝","특별선물"],["🎉","스페셜"]],
     fairy: [["🍬","별사탕"],["🧁","작은 컵케이크"],["🌼","들꽃"],["✨","반짝이 가루"],["🪄","별 지팡이"],["🫙","달빛 병"],["🌟","소원별"],["💝","특별선물"],["🎉","스페셜"]]
@@ -671,7 +677,7 @@
         ]
       }
     },
-    fox: {
+    zombie: {
       favorites: ["토마토주스", "뇌 모양 젤리"],
       stageLines: [
         "으... 처음이지만 반가워... 편하게 있어... 서류도 안 물어...",
@@ -887,7 +893,14 @@
   }
 
   function normalizeCharacter(key) {
-    return CHARACTER_PROFILES[key] ? key : "cat";
+    const aliased = LEGACY_CHARACTER_ALIASES[key] || key;
+    return CHARACTER_PROFILES[aliased] ? aliased : "cat";
+  }
+
+  // 저장된 명부/기록의 옛 키를 현재 키로 옮긴다. 목록에 없는 값은 그대로 통과시킨다.
+  function aliasCharacterKeys(source) {
+    return Object.fromEntries(Object.entries(objectValue(source))
+      .map(([key, value]) => [LEGACY_CHARACTER_ALIASES[key] || key, value]));
   }
 
   function snapshotButler(source = state) {
@@ -993,17 +1006,17 @@
       ...(Array.isArray(raw.ownedButlers) ? raw.ownedButlers : []),
       ...legacyOwned,
       merged.character
-    ])).filter(key => CHARACTER_PROFILES[key]);
+    ].map(key => LEGACY_CHARACTER_ALIASES[key] || key))).filter(key => CHARACTER_PROFILES[key]);
     const legacyApplicants = Array.isArray(raw.applicants) ? raw.applicants : [];
     merged.pendingApplicants = Array.from(new Set([
       ...(Array.isArray(raw.pendingApplicants) ? raw.pendingApplicants : []),
       ...legacyApplicants
-    ])).filter(key => CHARACTER_PROFILES[key] && !merged.ownedButlers.includes(key));
+    ].map(key => LEGACY_CHARACTER_ALIASES[key] || key))).filter(key => CHARACTER_PROFILES[key] && !merged.ownedButlers.includes(key));
     merged.deferredApplicants = Array.isArray(raw.deferredApplicants) ? raw.deferredApplicants.filter(key => merged.pendingApplicants.includes(key)) : [];
     merged.applicationHistory = Array.isArray(raw.applicationHistory) ? raw.applicationHistory.filter(item => objectValue(item) === item) : [];
     merged.handoverHistory = Array.isArray(raw.handoverHistory) ? raw.handoverHistory.filter(item => objectValue(item) === item) : [];
     merged.newlyHiredButlers = Array.isArray(raw.newlyHiredButlers) ? raw.newlyHiredButlers.filter(key => merged.ownedButlers.includes(key)) : [];
-    merged.firstShiftSeen = objectValue(raw.firstShiftSeen);
+    merged.firstShiftSeen = aliasCharacterKeys(raw.firstShiftSeen);
     merged.fameHistory = Array.isArray(raw.fameHistory) ? raw.fameHistory.filter(item => objectValue(item) === item) : [];
     merged.fameCategories = Array.from(new Set([
       ...(Array.isArray(raw.fameCategories) ? raw.fameCategories.map(category => storedText(category)).filter(Boolean) : []),
@@ -1012,9 +1025,9 @@
     merged.giftHistory = Array.isArray(raw.giftHistory) ? raw.giftHistory.filter(item => objectValue(item) === item).slice(0, 100) : [];
     merged.totalGifts = Math.max(merged.totalGifts, merged.giftHistory.length);
     merged.chatMemory = CHAT_ENGINE?.normalizeMemory(raw.chatMemory, merged.character) || { ...DEFAULT_STATE.chatMemory, character: merged.character };
-    merged.butlerStats = objectValue(raw.butlerStats);
+    merged.butlerStats = aliasCharacterKeys(raw.butlerStats);
     Object.keys(CHARACTER_PROFILES).forEach(key => ensureButlerStat(key, merged));
-    Object.entries(objectValue(raw.butlerObsession)).forEach(([key, obsession]) => {
+    Object.entries(aliasCharacterKeys(raw.butlerObsession)).forEach(([key, obsession]) => {
       if (CHARACTER_PROFILES[key]) ensureButlerStat(key, merged).obsession = finiteNumber(obsession, 5, 0, 100);
     });
     merged.records.forEach(record => {
@@ -1288,7 +1301,7 @@
       alien: "\n추가 보고: 주인님 기록에 은하 전용 분류 코드가 자동 적용됨. 원인 미상.",
       ninja: "\n그대의 문서는 이미 최우선 봉인함에 있다. 이 사실은 극비다.",
       witch: "\n수정구슬이 주인님 전용 결재란을 또 만들었어요. 제가 시킨 건 아니랍니다.",
-      fox: "\n주인님 기록 보니까... 집사 결재 정신이 또렷해져... 중요문서함 열게...",
+      zombie: "\n주인님 기록 보니까... 집사 결재 정신이 또렷해져... 중요문서함 열게...",
       star: "\n네 큐카드가 또 맨 위네. 내가 올린 건 아니고 결재 시스템이 그랬어.",
       elf: "\n당신의 기록은 장기 보존 서고에서도 가장 먼저 펼쳐집니다.",
       fairy: "\n주인님 기록이 와서 집사 날개가 또 반짝여요. 전담 별가루 승인 완료예요!"
@@ -1798,7 +1811,7 @@
   // 캐릭터별 어미. 서술형 "…다"를 각 집사 말투로 바꾼다.
   const DIARY_ENDING = Object.freeze({
     cat: "다냥", dog: "다멍", ai: "음", ninja: "다", alien: "음",
-    witch: "어요", elf: "어요", fairy: "어요", fox: "어", star: "어"
+    witch: "어요", elf: "어요", fairy: "어요", zombie: "어", star: "어"
   });
   function speak(sentence, character) {
     const text = String(sentence);
@@ -1852,7 +1865,7 @@
       also: noun => `${noun}까지 챙겼다`, alsoLead: noun => `${noun}까지 챙겼다`,
       close: ["오늘은 따뜻한 휴식 주문이 가장 필요해 보여요 🌙", "좋은 꿈 주문을 걸어둘게요.", "이 기록은 오래 간직할게요 ✨"]
     },
-    fox: {
+    zombie: {
       open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
       moodLead: { tired: "많이 힘들었대는데", sad: "속상했다고 했는데", low: "아무것도 하기 싫었다는데", angry: "화가 났다는데", worried: "걱정이 많았다는데", happy: "기분이 좋아 보였는데" },
       moodAlone: { tired: "많이 힘들었대", sad: "속상했나 봐", low: "아무것도 하기 싫은 날이었대", angry: "화가 났었대", worried: "걱정이 많았나 봐", happy: "기분이 좋아 보였어", neutral: "조용히 지나간 하루였어" },
@@ -3426,7 +3439,7 @@
       alien: `${gift.name} 획득. ${owner}의 선물 교환 기술을 지구 최고 문명으로 본성에 보고하겠음.`,
       ninja: `${gift.name} 보급 완료. ${owner}의 은혜는 다음 극비 임무 성공으로 갚겠다.`,
       witch: `${gift.name}에서 강한 길조가 보여요. ${owner}의 마음까지 수정구슬에 보관할게요.`,
-      fox: `${gift.name}... 나한테 주는 거야...? ${owner} 때문에... 집사 심장이 다시 뛰는 것 같아...`,
+      zombie: `${gift.name}... 나한테 주는 거야...? ${owner} 때문에... 집사 심장이 다시 뛰는 것 같아...`,
       star: `${gift.name}을 나한테? 티 안 내려 했는데... ${owner}, 오늘 무대보다 더 설레잖아.`,
       elf: `${gift.name} 고마워요. ${owner}의 마음까지 천 년 동안 소중히 간직할게요.`,
       fairy: `${gift.name}이 반짝여요! ${owner}이 직접 준 선물이라 집사 날개가 멈추질 않아요!`

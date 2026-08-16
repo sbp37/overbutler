@@ -9,6 +9,9 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function (interpreter) {
   "use strict";
 
+  // 옛 캐릭터 키로 저장된 대화 기록이 넘어와도 같은 집사로 이어지게 한다. app.js와 같은 표를 쓴다.
+  const LEGACY_CHARACTER_ALIASES = { fox: "zombie" };
+
   const INTENTS = [
     ["hard_day", /(?:오늘|회사|하루).*(?:너무\s*)?(?:힘들|고생|지치)|(?:힘들|고생|지치).*(?:오늘|회사|하루)/i, "힘든 하루", "tired"],
     ["home_arrival", /(?:이제|방금)?\s*(?:집에?|집으로)\s*(?:왔|도착|이야|이다|임)|퇴근\s*(?:했|완료|함|이다|했어|했어요)?/i, "귀가", "relieved"],
@@ -51,7 +54,7 @@
     witch: {
       greeting: "오셨군요. 수정구슬이 먼저 반짝였어요. 저도 반가워요 ✨", hard_day: "오늘 운명의 실이 많이 꼬였군요. 여기서는 힘을 풀고 쉬어도 괜찮아요.", home_arrival: "무사히 돌아오셨네요. 고된 하루의 나쁜 기운은 문밖에 두고 와요.", tired: "피로의 안개가 짙어요. 오늘은 따뜻한 휴식 주문이 가장 필요하겠네요.", sad: "마음에 비가 왔군요. 그칠 때까지 조용히 우산을 들어드릴게요.", angry: "화난 마음을 억지로 봉인하지 말아요. 안전하게 풀어놓을 수 있어요.", bored: "심심함을 쫓는 작은 수다 주문을 걸어볼까요? 부작용은 미소예요.", worry: "고민의 답을 점괘로 정하지 않을게요. 마음이 향하는 쪽을 같이 살펴봐요.", hungry: "수정구슬보다 냉장고를 먼저 볼 때예요. 따뜻한 것부터 챙겨요.", ate_good: "맛있는 걸 드셨군요! 오늘의 작은 행운이 제대로 적중했어요.", sleep: "좋은 꿈 주문을 걸어둘게요. 오늘도 정말 수고했어요 🌙", miss: "저도 보고 싶었어요. 수정구슬 탓이라고 하기엔 너무 반가워요.", love: "그 마음이 아주 따뜻하게 보여요. 저도 주인님을 많이 아껴요.", what_doing: "주인님에게 필요한 작은 행운을 골라두고 있었어요.", thanks: "고맙다는 말이 좋은 부적이 됐어요. 오래 간직할게요.", happy: "기쁜 기운이 반짝여요! 오늘은 그 행운을 마음껏 누려요.", commute: "출근길에 작은 보호 주문을 걸어둘게요. 무리하지 말고 다녀와요.", washed: "개운해졌군요! 생활운이 반짝 올라가는 게 보여요.", exercise: "운동까지 해냈네요. 건강운에 아주 힘찬 별이 떴어요.", quiet_day: "잔잔한 하루였군요. 아무 일 없는 날의 평온도 꽤 귀한 행운이에요 ✨", no_motivation: "아무 주문도 쓰고 싶지 않은 날이 있어요. 오늘은 그냥 쉬어도 괜찮아요.", fallback: "천천히 더 들려주세요. 수정구슬보다 제가 직접 듣고 싶어요."
     },
-    fox: {
+    zombie: {
       greeting: "으… 왔네. 잠이 조금 깼어… 네가 와서 그런가 봐.", hard_day: "오늘 많이 힘들었구나… 여기 기대 있어. 말 없어도 옆에 있을게…", home_arrival: "집에 왔네… 무사해서 다행이야. 이제 아무것도 안 해도 돼…", tired: "피곤하지… 나랑 잠깐 늘어져 있자. 쉬는 건 내가 잘 알아…", sad: "속상했구나… 억지로 웃지 마. 조용히 듣고 있을게…", angry: "많이 화났구나… 참지 말고 말해. 네 편에서 들어줄게…", bored: "심심해…? 그럼 같이 멍하니 얘기하자. 그것도 꽤 좋아…", worry: "고민 있구나… 급하게 답 안 내도 돼. 천천히 같이 보자…", hungry: "배고파…? 그건 미루면 더 힘들어. 간단한 거라도 먹자…", ate_good: "맛있는 거 먹었구나… 잘했어. 네가 잘 먹었다니 좀 안심돼…", sleep: "잘 자… 오늘은 좋은 꿈 꾸면 좋겠다. 기록은 내가 보고 있을게…", miss: "나도… 좀 보고 싶었어. 와줘서 기분이 풀렸어…", love: "그런 말 들으면… 잠이 확 깨잖아. 나도 많이 좋아해…", what_doing: "네 기록 옆에서 졸고 있었어… 그래도 오면 바로 알아.", thanks: "고맙긴… 내가 더 챙겨주고 싶은데. 그 말은 잘 간직할게…", happy: "기분 좋아…? 다행이다. 나도 덩달아 좀 살아나는 것 같아…", commute: "출근하는구나… 너무 기운 다 쓰지 말고 무사히 돌아와…", washed: "씻었어…? 잘했다. 뽀송한 채로 좀 쉬자…", exercise: "운동까지 했어…? 대단해. 물 마시고 이제 쉬어…", quiet_day: "별일 없었구나… 그런 하루가 제일 편해. 나도 그런 날 좋아해…", no_motivation: "아무것도 하기 싫지… 그런 날엔 나랑 그냥 가만히 있자…", fallback: "응… 듣고 있어. 천천히 말해도 돼…"
     },
     star: {
@@ -72,7 +75,7 @@
     alien: ["추가 자료를 편안히 전송해도 됨.", "주인님 선택 속도에 맞춰 관측하겠음."],
     ninja: ["필요한 만큼 곁을 지키겠다.", "다음 말도 재촉하지 않고 기다리겠다."],
     witch: ["천천히 더 들려줘도 괜찮아요.", "당신의 속도에 맞춰 곁에 있을게요."],
-    fox: ["더 말하고 싶으면… 계속 들어줄게.", "급하게 괜찮아질 필요 없어…"],
+    zombie: ["더 말하고 싶으면… 계속 들어줄게.", "급하게 괜찮아질 필요 없어…"],
     star: ["다음 장면도 네 속도로 가자.", "오늘의 결정권은 전부 주인님에게 있어."],
     elf: ["당신의 속도로 천천히 이어가요.", "조금 더 머물러도 괜찮아요."],
     fairy: ["천천히 더 말해줘도 좋아요!", "주인님 속도에 맞춰 반짝이고 있을게요!"]
@@ -85,7 +88,7 @@
     alien: "이전 피로 신호와 현재 귀가 신호 연결 완료. 무사 귀환을 중요 성과로 기록함.",
     ninja: "아까 임무가 고됐다 했지. 그래도 무사히 돌아왔군. 오늘은 충분히 잘 버텼다.",
     witch: "아까 힘든 하루라 했는데 무사히 돌아왔군요. 이제 나쁜 기운은 내려놓아요.",
-    fox: "아까 많이 힘들다 했지… 그래도 집에 무사히 왔네. 정말 수고했어…",
+    zombie: "아까 많이 힘들다 했지… 그래도 집에 무사히 왔네. 정말 수고했어…",
     star: "아까 힘든 하루였다고 했지. 무사 귀가까지 했으니 오늘 엔딩은 충분히 좋아.",
     elf: "아까 하루가 힘들다 했는데 무사히 돌아왔군요. 이제 편안히 쉬어요.",
     fairy: "아까 힘들었다고 했는데 무사히 집에 왔어요! 이제 제가 포근한 별빛을 켤게요."
@@ -144,7 +147,7 @@
     alien: activity => `${activity} 활동도 관측됨. 피로 신호를 먼저 돌본 뒤 성과로 기록하겠음.`,
     ninja: activity => `${activity} 임무까지 마쳤군. 고됨을 먼저 내려놓은 뒤 그 수고도 기록하겠다.`,
     witch: activity => `${activity}까지 해냈군요. 지친 마음을 먼저 쉬게 하고 그 수고도 별도로 남겨둘게요.`,
-    fox: activity => `${activity}까지 했구나… 힘든데도 다녀온 건 내가 기억해둘게…`,
+    zombie: activity => `${activity}까지 했구나… 힘든데도 다녀온 건 내가 기억해둘게…`,
     star: activity => `${activity} 장면까지 끝냈네. 지금은 회복부터, 그 멋진 분량은 내가 챙길게.`,
     elf: activity => `${activity}까지 해냈군요. 힘든 마음을 먼저 돌보고 그 노력도 소중히 기록할게요.`,
     fairy: activity => `${activity}까지 해냈군요! 먼저 푹 쉬고, 그 수고에는 별 도장을 따로 준비할게요!`
@@ -165,7 +168,7 @@
     alien: title => `일상 신호에서 ‘${title}’ 성과를 추출했음. 흥미로운 대업 표본으로 기록하겠음.`,
     ninja: title => `그대의 이야기에서 ‘${title}’ 임무를 확인했다. 기록 정리는 내게 맡겨라.`,
     witch: title => `이야기 사이에서 ‘${title}’이라는 반짝이는 대업을 찾았어요. 제가 잘 기록해둘게요.`,
-    fox: title => `말해준 하루에서 ${particle(`‘${title}’`, "을", "를")} 찾았어… 정리는 내가 해둘게.`,
+    zombie: title => `말해준 하루에서 ${particle(`‘${title}’`, "을", "를")} 찾았어… 정리는 내가 해둘게.`,
     star: title => `오늘 이야기의 베스트 장면은 ‘${title}’이네. 대업 제목은 내가 멋지게 잡아둘게.`,
     elf: title => `당신의 이야기 속 ${particle(`‘${title}’`, "을", "를")} 소중한 오늘의 기록으로 남길게요.`,
     fairy: title => `이야기 속에서 ${particle(`‘${title}’`, "을", "를")} 찾았어요! 별가루 대업명은 제가 예쁘게 붙여둘게요!`
@@ -178,7 +181,7 @@
     alien: "통신 종료 확인. 다음 관측 때 편안히 이어가겠음.",
     ninja: "알겠다. 조심히 다녀와라. 다음 귀환 때 기록을 이어가겠다.",
     witch: "잘 다녀와요. 다음에 올 때까지 작은 행운을 남겨둘게요.",
-    fox: "응… 잘 다녀와. 다음에 오면 또 조용히 듣고 있을게…",
+    zombie: "응… 잘 다녀와. 다음에 오면 또 조용히 듣고 있을게…",
     star: "오늘 장면은 여기서 컷! 다음에 더 좋은 타이밍으로 만나자.",
     elf: "편안히 다녀와요. 다음 만남도 같은 자리에서 기다릴게요.",
     fairy: "잘 다녀와요! 다음에 오면 별빛 인사부터 준비할게요!"
@@ -245,21 +248,22 @@
   }
 
   function respond(character, message, memoryValue, randomValue = Math.random()) {
-    const key = LINES[character] ? character : "ai";
+    const requested = LEGACY_CHARACTER_ALIASES[character] || character;
+    const key = LINES[requested] ? requested : "cat";
     let memory = normalizeMemory(memoryValue, key);
     if (memory.character && memory.character !== key) memory = normalizeMemory({}, key);
     const result = classify(message);
     const hasHardDayContext = memory.previousIntent === "hard_day" || memory.recentTopics.includes("힘든 하루");
     let base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
-    if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.ai;
-    else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.ai)(result.achievementTitle);
-    const endings = ENDINGS[key] || ENDINGS.ai;
+    if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
+    else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
+    const endings = ENDINGS[key] || ENDINGS.cat;
     const extra = RESPONSE_POOLS[key]?.[result.intent] || [];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${endings[0]}`, `${line}\n${endings[1]}`])
       : [base, `${base}\n${endings[0]}`, `${base}\n${endings[1]}`];
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
-    if (result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.ai)(result.activities[0])}`;
+    if (result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
     const nextMemory = {
       character: key,
       lastMood: result.mood || memory.lastMood,

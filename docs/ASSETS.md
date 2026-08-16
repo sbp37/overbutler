@@ -119,7 +119,7 @@ design/brand/
 - `cat`, `dog`: `_available: true` with 1:1 UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
 - `fairy`: `_available: true` with 1:1 UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
 - `star`: `_available: true` with 1:1 idol UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
-- `alien`, `ninja`, `witch`, `fox`, `elf`: `_available: false` (fallback retained until a complete runtime pose set exists).
+- `alien`, `ninja`, `witch`, `zombie`, `elf`: `_available: false` (fallback retained until a complete runtime pose set exists).
 
 Notes:
 - `alien-butler` and `elf-butler` directories do not exist currently.
