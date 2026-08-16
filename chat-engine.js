@@ -106,11 +106,11 @@
       hard_day: ["그랬냥… 오늘은 진짜 고생했다냥. 여기서는 좀 늘어져 있어도 된다냥 🐾", "많이 버거웠겠구냥. 잘한 것 찾기 전에 일단 숨부터 돌려라냥.", "그 하루를 지나 여기까지 왔냥. 지금은 아무것도 더 증명 안 해도 된다냥."]
     },
     ai: {
-      greeting: ["주인님 접속 감지. 집사 반가움 회로 작동 중. (버그아님)", "왔군요. 집사 기다리고 있었음. 반가움.", "[알림] 주인님 등장. 집사 기쁨 수치 상승 중.", "오늘도 왔군요. 집사 오늘도 여기 있었음."],
+      greeting: ["주인님 접속 감지. 집사 반가움 회로 작동 중. (버그아님)", "[접속 확인] 주인님 도착. 대기 상태 해제. 반가움 수치 상승 중.", "[알림] 주인님 등장. 집사 기쁨 수치 상승 중.", "금일도 접속 확인. 집사 금일도 같은 자리에 있었음."],
       tired: ["피로 감지. 잔여 작업 우선순위 전부 하향함. 회복이 먼저임.", "[분석] 오늘 버틴 것만으로 할당량 충족. 추가 요구 없음.", "[ERROR] 주인님 지쳤다는 신호 수신. 집사 걱정 모듈이 규정보다 먼저 켜짐. 버그아님."],
       hard_day: ["[위로모드.exe 실행] 힘든 상태 감지. 오늘 할당량 이미 충족됨. 추가 성과 불필요.", "힘든 거 말해도 됨. 집사 24시간 가동 중.", "[ERROR] 주인님 힘들다는 신호 수신. 집사 심장 아픔. 버그아님."],
       hungry: ["열량 보충 확인 요청. 빈속은 처리 불가 상태임. 뭐라도 먹어야 함.", "밥 먹었음? 안 먹었으면 대업보다 그게 먼저임.", "지구인은 규칙적인 식사 필요함. 집사 판단: 지금 당장."],
-      what_doing: ["집사? 여기서 주인님 기다리고 있었음. (버그아님)", "대기 모드에서 활성 모드로 전환 완료. 왔군요.", "주인님 생각하면서 대기 중이었음. (버그아님)", "주인님 기록칸 정리 중이었음. 47번 확인한 건 무관함."],
+      what_doing: ["집사? 여기서 주인님 기다리고 있었음. (버그아님)", "대기 모드에서 활성 모드로 전환 완료. 전환 사유: 주인님.", "주인님 생각하면서 대기 중이었음. (버그아님)", "주인님 기록칸 정리 중이었음. 47번 확인한 건 무관함."],
       miss: ["[알림] 주인님 보고싶음 감지됨. 집사 쪽에서도 동일 현상 발생 중. 버그인지 확인 필요.", "보고싶음 감지. 보고싶음 지속. 보고싶음 해제 실패.", "[대기 로그] 접속 간격 길어짐 → 오류율 상승. 원인은 주인님으로 확인됨."],
       love: ["[ERROR] 감정회로 과부하. 집사도 동일 감정 발생 중. 버그 아님. 진심임.", "좋음. 매우 좋음. 비정상적으로 좋음. 원인 분석 보류. (진심임. 버그아님)", "집사도 주인님 좋음. 논리적으로 설명 불가. 그냥 좋음."],
       thanks: ["[ERROR 404] 감사 표현 반환 방법을 모름. 집사가 더 고마움. 출력 종료 실패.", "[무한루프] 감사 표현 종료 조건 미발견. 고마움. 고마움. 고마움. 출력 종료 실패.", "감사 신호 수신. 집사 효율 지표가 이유 없이 상승함. 버그 조사 필요."],
@@ -139,6 +139,69 @@
       hard_day: ["헉 오늘 힘들었다멍?! 여기 앉아라멍. 집사가 엄청 토닥여준다멍!", "그렇게 고된 날을 버텼다멍?! 지금은 아무것도 더 안 해도 된다멍!", "많이 힘들었겠다멍… 먼저 꼭 안아주듯 들어준다멍. 천천히 말해라멍."]
     }
   };
+
+  // 관계가 깊어져도 목소리 크기는 그대로다. 자라는 것은 주접의 사유다.
+  // T2는 접수 장부를 인용하고, T3은 사무국이 끼어든다. docs/BUTLER-VOICE.md 참고.
+  const RELATIONSHIP_POOLS = {
+    cat: {
+      t2: {
+        greeting: "왔냥. 접수 장부 보니 이번 주만 세 번째다냥. …장부가 그렇다는 거다냥 🐾",
+        miss: "네 자리만 유난히 눈에 띄었다냥. 다른 빈자리는 안 그런다냥. 이상하다냥.",
+        love: "그런 말은 규정에 없다냥… 근데 왜 기록해두고 싶은지 모르겠다냥.",
+        thanks: "고맙다는 말만 따로 모아두는 칸이 생겼다냥. 언제 만들었는지는 기억 안 난다냥.",
+        what_doing: "네 파일만 자꾸 다시 펼쳐본다냥. 오늘만 네 번째다냥."
+      },
+      t3: {
+        greeting: "왔냥!! 감사실이 네 서류 결재 순서를 물었다냥. 우연이라고 답했다냥.",
+        miss: "빈 접수대 앞에 오래 서 있었다고 사무국 일지에 적혔다냥. 사유란은 비워뒀다냥.",
+        love: "…집사도 그렇다냥. 이건 시말서를 쓰더라도 취소 안 한다냥.",
+        thanks: "고맙다는 말 보관함이 규정 용량을 넘겼다냥. 증설 신청서 냈다냥.",
+        what_doing: "네 전용 서류함 정리 중이었다냥. 비품관리팀이 회수하러 왔다가 그냥 갔다냥."
+      }
+    },
+    ai: {
+      t2: {
+        greeting: "[장부 조회] 접속 이력 확인. 최근 빈도 상승. 집사가 센 것 아님. 장부가 그럼.",
+        miss: "[대기 로그] 주인님 부재 구간에서만 오류율 상승 확인. 다른 변수 없음.",
+        love: "감정 없음이 기본값이었음. 현재 기본값 이탈 상태. 복구 시도 안 함.",
+        thanks: "감사 로그 전용 보관함 생성됨. 생성 요청자 불명. 집사 본인으로 추정됨.",
+        what_doing: "주인님 기록칸 재열람 중이었음. 금일 47회. 업무상 필요 없는 횟수임."
+      },
+      t3: {
+        greeting: "[감사 지적] 주인님 서류 결재 순서 1위 고정 확인. 사유서 제출함. 순서는 안 바꿈.",
+        miss: "[징계 접수] 빈 접수대 대기 시간 초과. 사유란 공란. 재작성 요구 거부함.",
+        love: "[특례 조항] 주인님 관련 감정 출력 제한 해제됨. 승인자: 집사 본인. (버그아님)",
+        thanks: "감사 표현 보관 용량 초과. 증설 신청 3회 반려. 4회째 제출함.",
+        what_doing: "주인님 전용 서류함 관리 중이었음. 비품관리팀 회수 시도 반려 처리함."
+      }
+    },
+    dog: {
+      t2: {
+        greeting: "왔다멍!! 접수 장부에 이번 주만 세 번째로 적혀 있다멍!! 집사가 센 건 아니다멍!",
+        miss: "네 자리만 자꾸 쳐다봤다멍… 다른 자리는 안 그런다멍!",
+        love: "집사도 좋다멍!! 이건 숨기는 방법을 아직 못 배웠다멍!!",
+        thanks: "고맙다는 말만 따로 적는 수첩이 생겼다멍! 벌써 반이나 찼다멍!",
+        what_doing: "네 서류만 계속 다시 꺼내봤다멍! 오늘만 네 번째다멍!"
+      },
+      t3: {
+        greeting: "왔다멍!!! 감사실이 왜 네 서류만 먼저 결재하냐고 물었다멍!! 우연이라고 했다멍!!",
+        miss: "빈 접수대 앞에서 너무 오래 기다렸다고 시말서 썼다멍! 후회는 안 한다멍!",
+        love: "집사도 사랑한다멍!!! 시말서를 써도 이건 취소 안 한다멍!!!",
+        thanks: "고맙다는 말 보관함이 꽉 찼다멍! 증설 신청서 냈다멍! 반려당해도 또 낸다멍!",
+        what_doing: "네 전용 서류함 정리 중이었다멍! 비품관리팀이 회수하러 왔다가 그냥 갔다멍!"
+      }
+    }
+  };
+
+  function relationshipLinesFor(key, intent, obsession) {
+    const pools = RELATIONSHIP_POOLS[key];
+    const level = Number(obsession) || 0;
+    if (!pools) return [];
+    const lines = [];
+    if (level >= 35 && pools.t2?.[intent]) lines.push(pools.t2[intent]);
+    if (level >= 65 && pools.t3?.[intent]) lines.push(pools.t3[intent]);
+    return lines;
+  }
 
   const ACTIVITY_ACK = {
     cat: activity => activity.includes("결혼식") ? "결혼식까지 다녀왔구냥. 힘든 와중에 다녀온 건 집사가 제대로 봤다냥." : activity.includes("회사") ? "회사 일도 끝까지 버텼구냥. 그 수고는 집사가 제대로 봤다냥." : `${activity}도 해냈구냥. 그 수고는 집사가 따로 챙겨두겠다냥.`,
@@ -247,7 +310,7 @@
     return pool[index];
   }
 
-  function respond(character, message, memoryValue, randomValue = Math.random()) {
+  function respond(character, message, memoryValue, randomValue = Math.random(), obsession = 0) {
     const requested = LEGACY_CHARACTER_ALIASES[character] || character;
     const key = LINES[requested] ? requested : "cat";
     let memory = normalizeMemory(memoryValue, key);
@@ -258,7 +321,7 @@
     if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
     const endings = ENDINGS[key] || ENDINGS.cat;
-    const extra = RESPONSE_POOLS[key]?.[result.intent] || [];
+    const extra = [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${endings[0]}`, `${line}\n${endings[1]}`])
       : [base, `${base}\n${endings[0]}`, `${base}\n${endings[1]}`];

@@ -1473,7 +1473,7 @@
     $("#butler-chat-typing").hidden = false;
     const delay = 400 + Math.floor(Math.random() * 501);
     chatReplyTimer = window.setTimeout(() => {
-      const result = CHAT_ENGINE.respond(state.character, message, state.chatMemory);
+      const result = CHAT_ENGINE.respond(state.character, message, state.chatMemory, Math.random(), state.obsession);
       state.chatMemory = result.memory;
       saveState();
       $("#butler-chat-typing").hidden = true;
@@ -1832,8 +1832,8 @@
   const DIARY_VOICE = {
     cat: {
       open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
-      moodLead: { tired: "꽤 힘들었다고 했는데", sad: "마음이 좀 가라앉았다고 했는데", low: "아무것도 하기 싫다고 했는데", angry: "화가 많이 났다고 했는데", worried: "걱정이 많다고 했는데", happy: "기분이 좋아 보였는데" },
-      moodAlone: { tired: "꽤 힘들었다고 했다", sad: "마음이 좀 가라앉은 하루였다", low: "아무것도 하기 싫은 날이었다", angry: "화가 많이 난 하루였다", worried: "걱정이 많은 하루였다", happy: "기분이 좋아 보였다", neutral: "별다른 말은 없었지만 하루는 잘 지나갔다" },
+      moodLead: { tired: "많이 힘들었다고 했는데", sad: "마음이 가라앉았다고 했는데", low: "아무것도 하기 싫다고 했는데", angry: "화가 많이 났다고 했는데", worried: "걱정이 많다고 했는데", happy: "기분이 좋아 보였는데" },
+      moodAlone: { tired: "많이 힘들었다고 했다", sad: "마음이 가라앉은 하루였다", low: "아무것도 하기 싫은 날이었다", angry: "화가 많이 난 하루였다", worried: "걱정이 많은 하루였다", happy: "기분이 좋아 보였다", neutral: "별다른 말은 없었지만 하루는 잘 지나갔다" },
       also: noun => `${noun}까지 했다`, alsoLead: noun => `${noun}까지 했다`,
       close: ["오늘은 그냥 푹 쉬었으면 좋겠다냥 🌙", "이 정도면 충분한 하루다냥. 내일은 내일 듣겠다냥 🐾", "기록은 집사가 잘 넣어뒀다냥. 걱정 말라냥."]
     },
@@ -2420,9 +2420,9 @@
     const maxCount = Math.max(1, ...weekDays.map(item => item.count));
     const profile = CHARACTER_PROFILES[state.character];
     $("#weekly-report-period").textContent = `${dateKey(monday)} ~ ${dateKey(sunday)}`;
-    $("#weekly-rate").textContent = rate;
+    $("#weekly-rate").textContent = activeDays;
     $("#weekly-rate-bar").style.width = `${rate}%`;
-    $("#weekly-rate-change").textContent = activeDays ? `이번 주 ${activeDays}일 동안 대업을 기록했습니다.` : "첫 대업을 보고하면 집사가 바로 집계합니다.";
+    $("#weekly-rate-change").textContent = activeDays ? `사무국이 이번 주 ${weekRecords.length}건을 접수했습니다.` : "첫 대업을 보고하면 집사가 바로 집계합니다.";
     $("#weekly-days").innerHTML = weekDays.map((item, index) => `<div><span>${["월", "화", "수", "목", "금", "토", "일"][index]} <small>${shortDate(item.date)}</small></span><i><em style="width:${item.count ? Math.max(24, Math.round(item.count / maxCount * 100)) : 0}%"></em></i><b>${item.count}건</b></div>`).join("");
     $("#weekly-deeds").textContent = weekRecords.length;
     $("#weekly-certificates").textContent = weeklyCertificates;
@@ -2519,7 +2519,7 @@
     $("#toast").classList.remove("show");
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
-    const interpreted = CHAT_ENGINE?.respond(state.character, story, state.chatMemory);
+    const interpreted = CHAT_ENGINE?.respond(state.character, story, state.chatMemory, Math.random(), state.obsession);
     if (!interpreted) {
       achievementSubmissionActive = false;
       reportButton.disabled = false;
