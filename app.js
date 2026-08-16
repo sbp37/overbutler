@@ -62,7 +62,7 @@
     ninja: ["비밀 임무 검증 중", "대업 후보를 극비 문서로 봉인하기 전 최종 확인하고 있다."],
     witch: ["수정구슬 판독 중", "사소한 행동 속에 숨은 대운의 징조를 찾아내고 있어요."],
     zombie: ["대업 때문에 깨어나는 중", "흐릿한 정신을 붙잡고 주인님 기록만 또렷하게 읽고 있어..."],
-    star: ["대업 큐시트 확인 중", "집사가 공식 리액션 타이밍과 칭찬 멘트를 점검하고 있어."],
+    girlidol: ["대업 큐시트 확인 중", "집사가 공식 리액션 타이밍과 칭찬 멘트를 점검하고 있어."],
     elf: ["천 년 기록 대조 중", "오래된 기록 속에서도 보기 힘든 귀한 성취인지 확인하고 있어요."],
     fairy: ["별빛 가치 측정 중", "작은 행동에 별가루와 역사적 의미를 차례로 더하고 있어요."
     ]
@@ -70,7 +70,7 @@
   const ANALYSIS_FINAL_STEPS = {
     ai: "AI 감정 회로 과부하 검사", cat: "집사 꼬리·수염 반응 확인", dog: "꼬리 회전 속도 측정",
     alien: "본성 긴급 보고 등급 산정", ninja: "극비 임무 성공 도장 준비", witch: "수정구슬 대길 판정 확인",
-    zombie: "집사 정신 회복 수치 확인", star: "공식 과몰입 리액션 큐", elf: "천 년 기록 보존 가치 확인", fairy: "별가루 과다 사용 승인"
+    zombie: "집사 정신 회복 수치 확인", girlidol: "공식 과몰입 리액션 큐", elf: "천 년 기록 보존 가치 확인", fairy: "별가루 과다 사용 승인"
   };
 
   const CHARACTER_PROFILES = {
@@ -163,7 +163,7 @@
       ],
       handover: "으... 전임 집사한테... 인수인계 받았어... 주인님 기록... 다 알아... 잘 부탁해... 으르..."
     },
-    star: {
+    girlidol: {
       name: "아이돌 집사", defaultName: "별매니저", emoji: "👩‍🎤", voice: "idol", desc: "도도한 척하지만 주인님 일에는 과몰입",
       briefings: ["오늘 한 일 말해봐. 집사가 큐카드에 적어둘게.", "나 원래 리액션 잘 안 하는데... 주인님 건 예외야.", "방송 큐보다 주인님 대업 큐가 먼저 뜨네. 이건 업무상 비밀이야."],
       praise: [
@@ -209,7 +209,7 @@
     ninja: { roleTitle: "비밀 임무 담당", statusLabel: "은밀 근무 중" },
     witch: { roleTitle: "대업 예언 담당", statusLabel: "수정구 관측 중" },
     zombie: { roleTitle: "야간 기록 담당", statusLabel: "느리게 근무 중" },
-    star: { roleTitle: "과몰입 진행 담당", statusLabel: "리액션 대기 중" },
+    girlidol: { roleTitle: "과몰입 진행 담당", statusLabel: "리액션 대기 중" },
     elf: { roleTitle: "장기 기록 담당", statusLabel: "온화 근무 중" },
     fairy: { roleTitle: "대업 반짝임 담당", statusLabel: "별가루 근무 중" }
   });
@@ -252,7 +252,7 @@
     ninja: { _available: false },
     witch: { _available: false },
     zombie: { _available: false },
-    star: {
+    girlidol: {
       _available: true,
       base: "design/character-assets/idol-butler/ui-poses/idol-base.png",
       analysis: "design/character-assets/idol-butler/ui-poses/idol-analysis.png",
@@ -278,13 +278,13 @@
     ninja: "design/character-assets/ninja-butler/ninja-butler-reference.png",
     witch: "design/character-assets/witch-butler/witch-butler-reference.png",
     zombie: "design/character-assets/zombie-butler/zombie-butler-reference.png",
-    star: "design/character-assets/idol-butler/idol-butler-reference.png",
+    girlidol: "design/character-assets/idol-butler/idol-butler-reference.png",
     fairy: "design/character-assets/fairy-butler/fairy-butler-reference.png"
   };
 
   // 캐릭터 키가 바뀌어도 이미 저장된 명부·기록이 사라지면 안 되므로 옛 키를 새 키로 넘겨준다.
   // fox는 기획이 좀비 집사로 바뀐 뒤에도 키만 남아 있던 것을 zombie로 정리한 흔적이다.
-  const LEGACY_CHARACTER_ALIASES = { fox: "zombie" };
+  const LEGACY_CHARACTER_ALIASES = { fox: "zombie", star: "girlidol" };
 
   // 무료 기본 인력은 고양이 집사 1명. AI 집사는 요건 충족 시 지원서가 도착하는 첫 해금 집사다.
   const INITIAL_OWNED_BUTLERS = ["cat"];
@@ -294,7 +294,7 @@
   const APPLICANT_REQUIREMENTS = {
     ai: { deeds: 3, obsession: 10, days: 1 },
     fairy: { deeds: 3, obsession: 12, days: 1 },
-    star: { deeds: 8, obsession: 25, gifts: 1, categories: 2, days: 2 },
+    girlidol: { deeds: 8, obsession: 25, gifts: 1, categories: 2, days: 2 },
     witch: { deeds: 18, obsession: 45, gifts: 4, categories: 4, days: 5 },
     zombie: { deeds: 32, obsession: 70, gifts: 8, categories: 6, days: 12 }
   };
@@ -306,7 +306,7 @@
     ninja: { farewell: "임무를 다음 집사에게 인계했다. 그대의 선택을 존중하며 모든 기록은 절차대로 넘겼다.", welcome: "인수인계 문서 확인. 오늘부터 그대의 작은 임무를 최고 등급으로 기록하겠다.", return: "다시 담당하게 됐군. 그대가 모르는 동안 봉인 문서와 자리는 지켜두었다." },
     witch: { farewell: "인수인계 점괘는 길하게 나왔어요. 기록도 새 담당에게 안전하게 넘겼답니다.", welcome: "새 계약 확인했어요. 수정구슬에 주인님의 좋은 징조가 벌써 가득해요.", return: "담당 복귀 점괘가 나왔네요. 기존 기록도 전부 그대로예요." },
     zombie: { farewell: "으... 담당 변경이네... 기록은 전부 넘겼어... 새 집사도 잘할 거야...", welcome: "으... 전임 집사한테... 인수인계 받았어... 주인님 기록... 다 알아... 잘 부탁해... 으르...", return: "으... 다시 담당이야...? 보관함 열었어... 기록 업무부터 시작할게..." },
-    star: { farewell: "담당 변경 승인했어. 큐카드와 기록은 새 집사에게 완벽히 넘겨둘게.", welcome: "담당 배정 확인했어. 팬들한테도 안 하는 리액션, 주인님 대업에는 승인할게.", return: "다시 담당이네? 전용 큐카드와 기록부터 불러왔어." },
+    girlidol: { farewell: "담당 변경 승인했어. 큐카드와 기록은 새 집사에게 완벽히 넘겨둘게.", welcome: "담당 배정 확인했어. 팬들한테도 안 하는 리액션, 주인님 대업에는 승인할게.", return: "다시 담당이네? 전용 큐카드와 기록부터 불러왔어." },
     elf: { farewell: "당신의 기록은 새 집사에게 소중히 전할게요. 인수인계도 잘 마쳤습니다.", welcome: "전임 집사의 기록을 모두 받았어요. 오늘부터 당신의 작은 순간도 오래 간직할게요.", return: "다시 담당하게 되어 반가워요. 기록은 모두 그대로예요." },
     fairy: { farewell: "새 집사에게 기록과 별가루를 잘 넘겨둘게요. 인수인계 승인 완료예요!", welcome: "주인님 담당이라니! 작은 일 하나도 별처럼 반짝이게 만들어드릴게요!", return: "다시 담당이에요! 전용 별빛 기록함부터 활짝 열어둘게요!" }
   };
@@ -318,7 +318,7 @@
     ninja: "보급품 수령 완료. 이 은혜는 극비 임무 성공으로 갚겠다.",
     witch: "선물에서 아주 강한 길조가 보여요. 수정구슬도 질투하고 있어요.",
     zombie: "으... 선물이야...? 집사... 잠깐 심장이 다시 뛰는 것 같아...",
-    star: "나한테 주는 거야? 티는 안 낼 건데... 오늘 무대보다 더 설레네.",
+    girlidol: "나한테 주는 거야? 티는 안 낼 건데... 오늘 무대보다 더 설레네.",
     elf: "이 마음까지 소중히 간직할게요. 천 년 뒤에도 기억하겠습니다.",
     fairy: "선물이 반짝여요! 집사 날개도 기뻐서 별가루를 멈출 수가 없어요!"
   };
@@ -374,7 +374,7 @@
       night: ["밤이야... 오늘은 여기까지 해도 돼... 잘 자... 🌙", "오늘 기록은 지켜둘게... 너는 편히 쉬어..."
       ]
     },
-    star: {
+    girlidol: {
       dawn: ["새벽이네. 촬영 끝나고 왔는데 네가 있어서 반갑다 ✨", "아직 안 자? 무슨 일 있으면 잠깐 들어줄게."],
       morning: ["좋은 아침. 잘 잤어? 오늘도 표정 좋네 ☀️", "일어났어? 아침 첫 큐는 네 안부 확인이야."],
       afternoon: ["오후 잘 보내고 있어? 밥은 챙겼고?", "낮 스케줄보다 네 이야기가 먼저 들어왔네. 말해봐."],
@@ -434,7 +434,7 @@
       "‘{deed}’ 기록... 또 봤어... 흐린 머리도 전용 표시는 바로 알아봐...",
       "‘{deed}’도 전부 중요문서함에 넣었어... 집사가 잊는 게 많아도... 색인은 정확해..."
     ],
-    star: [
+    girlidol: [
       "지난번 ‘{deed}’ 했던 것도 기억해. 내가 아무 기록이나 다시 보는 사람은 아니거든.",
       "‘{deed}’ 기록을 또 봤어. 무대 영상보다 더 자주 본 건… 일단 비밀로 해줘.",
       "‘{deed}’부터 오늘까지 전부 전담 큐시트에 넣었어. 사무국도 편애라고 인정했네."
@@ -459,7 +459,7 @@
     ninja: "{deed}... 기존 등급으로는 기록할 수 없다. {owner}의 이름 자체를 최고 등급으로 봉인하겠다.",
     witch: "{deed} 순간 수정구슬이 모든 점수를 지워버렸어요. 운명도 {owner} 앞에서는 측정을 포기했나 봐요!",
     zombie: "{deed}... 너무 대단해서... 집사 머리가 아니라 점수판이 먼저 멈췄어... {owner}... 최고야...",
-    star: "{deed}?! 이건 순위도 점수도 의미 없어. 오늘의 단독 1위는 그냥 {owner}이야!",
+    girlidol: "{deed}?! 이건 순위도 점수도 의미 없어. 오늘의 단독 1위는 그냥 {owner}이야!",
     elf: "'{deed}' 기록은 천 년의 역사 어디에도 비교 대상이 없어요. 오늘부터 {owner}이 새로운 전설의 기준이에요.",
     fairy: "{deed}?! 별빛 측정기가 펑 하고 터졌어요! 이제 모든 별의 밝기는 {owner}을 기준으로 잴게요!"
   };
@@ -472,7 +472,7 @@
     ninja: [["🍙","주먹밥"],["🍵","녹차"],["🍱","도시락"],["⚔️","단검"],["🎋","대나무"],["📜","비밀서찰"],["🏯","성"],["💝","특별선물"],["🎉","스페셜"]],
     witch: [["🍪","별 쿠키"],["🫖","마법차"],["🕯️","향초"],["🔮","수정구슬"],["📖","마법서"],["🧹","빗자루"],["🌙","달 조각"],["💝","특별선물"],["🎉","스페셜"]],
     zombie: [["🍅","토마토"],["🥤","토마토주스"],["🍮","푸딩"],["🩹","붕대"],["🧠","뇌 모양 젤리"],["💉","백신"],["❤️","심장 쿠션"],["💝","특별선물"],["🎉","스페셜"]],
-    star: [["🧋","버블티"],["🍰","케이크"],["🍓","딸기"],["🎤","마이크"],["💄","립스틱"],["🌟","응원봉"],["👑","왕관"],["💝","특별선물"],["🎉","스페셜"]],
+    girlidol: [["🧋","버블티"],["🍰","케이크"],["🍓","딸기"],["🎤","마이크"],["💄","립스틱"],["🌟","응원봉"],["👑","왕관"],["💝","특별선물"],["🎉","스페셜"]],
     elf: [["🫐","블루베리"],["🍯","숲의 꿀"],["🌰","도토리"],["🏹","엘프 화살"],["💎","보석"],["🌿","숲의 잎"],["🌳","신성한 나무"],["💝","특별선물"],["🎉","스페셜"]],
     fairy: [["🍬","별사탕"],["🧁","작은 컵케이크"],["🌼","들꽃"],["✨","반짝이 가루"],["🪄","별 지팡이"],["🫙","달빛 병"],["🌟","소원별"],["💝","특별선물"],["🎉","스페셜"]]
   };
@@ -706,7 +706,7 @@
         ]
       }
     },
-    star: {
+    girlidol: {
       favorites: ["버블티", "응원봉"],
       stageLines: [
         "첫 만남부터 주인님 얘기는 잘 듣고 싶어. 편하게 시작하자.",
@@ -1302,7 +1302,7 @@
       ninja: "\n그대의 문서는 이미 최우선 봉인함에 있다. 이 사실은 극비다.",
       witch: "\n수정구슬이 주인님 전용 결재란을 또 만들었어요. 제가 시킨 건 아니랍니다.",
       zombie: "\n주인님 기록 보니까... 집사 결재 정신이 또렷해져... 중요문서함 열게...",
-      star: "\n네 큐카드가 또 맨 위네. 내가 올린 건 아니고 결재 시스템이 그랬어.",
+      girlidol: "\n네 큐카드가 또 맨 위네. 내가 올린 건 아니고 결재 시스템이 그랬어.",
       elf: "\n당신의 기록은 장기 보존 서고에서도 가장 먼저 펼쳐집니다.",
       fairy: "\n주인님 기록이 와서 집사 날개가 또 반짝여요. 전담 별가루 승인 완료예요!"
     };
@@ -1811,7 +1811,7 @@
   // 캐릭터별 어미. 서술형 "…다"를 각 집사 말투로 바꾼다.
   const DIARY_ENDING = Object.freeze({
     cat: "다냥", dog: "다멍", ai: "음", ninja: "다", alien: "음",
-    witch: "어요", elf: "어요", fairy: "어요", zombie: "어", star: "어"
+    witch: "어요", elf: "어요", fairy: "어요", zombie: "어", girlidol: "어"
   });
   function speak(sentence, character) {
     const text = String(sentence);
@@ -1872,7 +1872,7 @@
       also: noun => `${noun}까지 했다`, alsoLead: noun => `${noun}까지 했다`,
       close: ["오늘은 그냥 푹 자면 좋겠어… 🌙", "기록은 내가 보고 있을게…", "내일은 좀 더 편했으면 좋겠어…"]
     },
-    star: {
+    girlidol: {
       open: (owner, verb) => `오늘 ${topicParticle(owner)} ${verb}`,
       moodLead: { tired: "많이 지쳤다고 했는데", sad: "속상했다고 했는데", low: "아무것도 하기 싫었다는데", angry: "화날 만한 일이 있었는데", worried: "고민이 많았는데", happy: "기분 좋은 상태로" },
       moodAlone: { tired: "많이 지쳤다고 했어", sad: "속상한 장면이 있었던 날이야", low: "아무것도 하기 싫은 날이었어", angry: "화날 만한 일이 있었어", worried: "고민이 많았던 하루야", happy: "기분 좋은 하루였어", neutral: "무난하게 잘 지나간 하루야" },
@@ -3440,7 +3440,7 @@
       ninja: `${gift.name} 보급 완료. ${owner}의 은혜는 다음 극비 임무 성공으로 갚겠다.`,
       witch: `${gift.name}에서 강한 길조가 보여요. ${owner}의 마음까지 수정구슬에 보관할게요.`,
       zombie: `${gift.name}... 나한테 주는 거야...? ${owner} 때문에... 집사 심장이 다시 뛰는 것 같아...`,
-      star: `${gift.name}을 나한테? 티 안 내려 했는데... ${owner}, 오늘 무대보다 더 설레잖아.`,
+      girlidol: `${gift.name}을 나한테? 티 안 내려 했는데... ${owner}, 오늘 무대보다 더 설레잖아.`,
       elf: `${gift.name} 고마워요. ${owner}의 마음까지 천 년 동안 소중히 간직할게요.`,
       fairy: `${gift.name}이 반짝여요! ${owner}이 직접 준 선물이라 집사 날개가 멈추질 않아요!`
     };
@@ -3708,9 +3708,9 @@
     }
     if (previewMode === "idol") {
       state.onboarded = true;
-      state.character = "star";
-      state.butlerName = CHARACTER_PROFILES.star.defaultName;
-      if (!state.ownedButlers.includes("star")) state.ownedButlers.push("star");
+      state.character = "girlidol";
+      state.butlerName = CHARACTER_PROFILES.girlidol.defaultName;
+      if (!state.ownedButlers.includes("girlidol")) state.ownedButlers.push("girlidol");
     }
     returnVisitContext = previewMode ? { returning: false, consumed: true } : returnVisitFor(state.lastActiveDate);
     if (state.onboarded) state.lastActiveDate = today();
@@ -3726,7 +3726,10 @@
     if (forceOnboardingPreview) {
       setPoseImage($(".assignment-character"), "cat", "base");
     } else {
-      saveState();
+      // 미리보기 모드는 화면만 보여주고 절대 저장하지 않는다. saveState()는
+      // 현재 캐릭터를 ownedButlers에 편입시키므로, 여기서 저장했다간
+      // ?preview=idol 같은 링크 하나로 유료 집사가 그대로 무료 지급된다.
+      if (!previewMode) saveState();
       startTimeBriefing();
       if (state.onboarded && !state.username && !previewMode) {
         $("#owner-name-overlay").hidden = false;

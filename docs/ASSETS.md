@@ -118,7 +118,7 @@ design/brand/
 - `ai`: `_available: true` and 1:1 UI pose paths are defined (`base`, `analysis`, `praise`, `power`, `gift`).
 - `cat`, `dog`: `_available: true` with 1:1 UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
 - `fairy`: `_available: true` with 1:1 UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
-- `star`: `_available: true` with 1:1 idol UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
+- `girlidol`: `_available: true` with 1:1 idol UI pose paths defined (`base`, `analysis`, `praise`, `power`, `gift`).
 - `alien`, `ninja`, `witch`, `zombie`, `elf`: `_available: false` (fallback retained until a complete runtime pose set exists).
 
 Notes:
