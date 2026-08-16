@@ -28,7 +28,11 @@ assert.equal(analyzed["결혼식 다녀왔는데 너무 힘들었어"].achieveme
 assert.equal(analyzed["오늘 결혼식 갔는데 생각보다 안 힘들었어"].mood, null);
 assert.equal(analyzed["오늘 결혼식 갔는데 생각보다 안 힘들었어"].responseMode, "achievement");
 assert.equal(analyzed["회사 개힘들었다"].mood, "tired");
-assert.equal(analyzed["회사 개힘들었다"].achievementCandidate, true);
+// "회사 업무를 해냄" 규칙이 예전엔 "힘들"만 보고도 완료 활동으로 잡아서, 완료 행동이
+// 하나도 없는 순수 감정 토로("힘들었다")까지 achievementCandidate=true로 새는 버그가
+// 있었다(EMOTION_ONLY가 대업 판정으로 흘러들어감). "일/업무/발표/회의/야근/버텼/칭찬"처럼
+// 실제로 뭔가 했다는 서술이 없으면 완료로 보지 않는 게 맞는 동작이다.
+assert.equal(analyzed["회사 개힘들었다"].achievementCandidate, false);
 assert.equal(analyzed["나 이제 집왔어"].achievementCandidate, false);
 assert.ok(analyzed["나 이제 집왔어"].intents.includes("commute"));
 assert.ok(analyzed["씻었다"].intents.includes("hygiene"));
