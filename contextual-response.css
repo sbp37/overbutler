@@ -86,12 +86,12 @@
   border-color:rgba(122,98,58,.55);
   color:#7c6234;
 }
-blockquote.diary-sealed{
-  position:relative;
-  border-left-color:#b39a6a !important;
-  color:#7a6a58 !important;
-  font-style:italic;
-}
+.diary-paper-lines blockquote{white-space:pre-line}
+.diary-teaser{display:grid;gap:7px;margin-top:10px;padding:12px;border:1px solid #d7c7ae;border-radius:8px;background:rgba(250,244,232,.9)}
+.diary-teaser>span{color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.08em}
+.diary-teaser>strong{color:#463836;font-size:13px;line-height:1.45;word-break:keep-all}
+.diary-teaser>blockquote{margin:1px 0 0!important;border-left-color:#b39a6a!important;color:#65564e!important;font-size:15px!important;font-style:normal;white-space:pre-line}
+.diary-teaser>small{color:#806d5e;font-size:11px;font-weight:750;line-height:1.4}
 
 /* 선물 접수처는 집사 탭 칩 안에만 있어서 홈에서는 존재 자체가 보이지 않았다.
    집사에게 하는 일이니 집사 카드 바로 아래에 두고, 어디에도 안 보이던 선물 포인트도 함께 노출한다. */

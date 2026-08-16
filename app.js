@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2.18.0";
+  const APP_VERSION = "2.19.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
@@ -974,10 +974,13 @@
         butler: { ...butler, ...entryButler, character: butler.character, name: butler.name },
         date: storedText(entry.date, today()),
         deed: storedText(entry.deed || entry.todos?.[0]),
+        sourceText: storedText(entry.sourceText || entry.deed || entry.todos?.[0]),
         todos: Array.isArray(entry.todos) ? entry.todos.map(todo => storedText(todo)).filter(Boolean) : [],
         text: storedText(entry.text),
         reflection: storedText(entry.reflection),
         reflectionVersion: nonNegativeInteger(entry.reflectionVersion),
+        diaryRevealVersion: nonNegativeInteger(entry.diaryRevealVersion),
+        diaryRevealed: Boolean(entry.diaryRevealed),
         snapshotVersion: entry.snapshotVersion || 1
       };
     }) : [];
@@ -1942,19 +1945,31 @@
     return pool[seed % pool.length].replaceAll("{butler}", butlerName || "담당");
   }
 
+  function analyzeDiarySource(entry) {
+    const sourceText = storedText(entry?.sourceText).trim();
+    if (!sourceText) return null;
+    try {
+      return window.OVERBUTLER_MESSAGE_INTERPRETER?.analyzeUserMessage(sourceText) || null;
+    } catch { return null; }
+  }
+
   function dominantDiaryMood(entries) {
     const order = ["tired", "sad", "low", "angry", "worried", "happy"];
-    const moods = entries.map(entry => entry.mood).filter(Boolean);
+    const moods = entries.map(entry => analyzeDiarySource(entry)?.mood || entry.mood).filter(Boolean);
     return order.find(item => moods.includes(item)) || "neutral";
   }
 
-  // 일기 재료: 저장된 activities를 우선 쓰고, 없으면(구버전 기록) deed로 대체한다.
+  // 일기 재료는 사용자가 직접 남긴 원문을 다시 해석한 결과가 최우선이다.
+  // 원문이 없거나 해석되지 않는 구버전 기록만 저장된 activities, deed 순으로 사용한다.
   function diaryActionLabels(entries) {
     const labels = [];
     entries.forEach(entry => {
-      const list = Array.isArray(entry.activities) && entry.activities.length
-        ? entry.activities
-        : [entry.deed || entry.todos?.[0]].filter(Boolean);
+      const sourceActivities = analyzeDiarySource(entry)?.activities || [];
+      const list = sourceActivities.length
+        ? sourceActivities
+        : Array.isArray(entry.activities) && entry.activities.length
+          ? entry.activities
+          : [entry.deed || entry.todos?.[0]].filter(Boolean);
       list.forEach(label => { if (label && !labels.includes(label)) labels.push(label); });
     });
     return labels;
@@ -1992,7 +2007,8 @@
     const news = officeNewsFor(entries, entries.at(-1)?.butlerName, seed);
     if (news) sentences.push(news);
     sentences.push(voice.close[seed % voice.close.length]);
-    return sentences.map(sentence => /[.!?…🌙🐾✨]$/.test(sentence) ? sentence : `${sentence}.`).join(" ");
+    const separator = key === "ai" ? "\n" : " ";
+    return sentences.map(sentence => /[.!?…🌙🐾✨]$/.test(sentence) ? sentence : `${sentence}.`).join(separator);
   }
 
   function backfillDiaryReflections() {
@@ -2013,22 +2029,49 @@
     return changed;
   }
 
-  // 봉인 안내도 집사 말투로 나간다. AI는 로그체, 나머지는 각자의 어미.
-  const SEALED_DIARY_NOTES = Object.freeze({
-    ai: "[작성 중] 금일 관찰 일지 미완료. 봉인 해제 예정 시각: 내일. 미리 열람 요청은 반려됨.",
-    cat: "오늘 일지는 아직 안 보여준다냥. 내일 사무국이 봉인을 푼다냥. 미리 보려고 하지 말라냥.",
-    dog: "오늘 일지는 아직 비밀이다멍! 내일 열어준다멍! 그때까지 꾹 참는다멍!",
-    alien: "금일 관찰 일지 작성 중. 봉인 해제는 다음 주기로 예정함.",
-    ninja: "오늘의 일지는 아직 봉인 중이다. 내일 그대에게 열어 보이겠다.",
-    witch: "오늘 일지에는 아직 봉인 주문이 걸려 있어요. 내일 아침에 풀린답니다.",
-    zombie: "오늘 일지는... 아직 안 끝났어... 내일 보여줄게...",
-    girlidol: "오늘 분량은 아직 편집 중이야. 공개는 내일. 스포는 없어.",
-    elf: "오늘의 기록은 아직 여미는 중이에요. 내일 조용히 펼쳐 보일게요.",
-    fairy: "오늘 일지는 아직 별가루로 덮여 있어요! 내일 아침에 반짝 열릴 거예요!"
+  function unlockPastDiaryEntries() {
+    state.diary.forEach(entry => {
+      if (nonNegativeInteger(entry.diaryRevealVersion) > 0 && entry.date < today()) entry.diaryRevealed = true;
+    });
+  }
+
+  const DIARY_TEASERS = Object.freeze({
+    cat: {
+      kicker: "집사 일기 작성 중",
+      count: count => `오늘 집사가 ${count}개의 이야기를 적어두는 중이다냥.`,
+      quote: { tired: "오늘은 좀 고생한 날이었던 것 같다냥.", sad: "오늘 마음은 집사가 조용히 접어두는 중이다냥.", low: "오늘은 쉬어간 것도 기록해두는 중이다냥.", neutral: "오늘 기록은 집사가 잘 정리하는 중이다냥." },
+      release: "전체 일기는 다음 날짜에 보여준다냥 🌙"
+    },
+    ai: {
+      kicker: "[DAY LOG 작성 중]",
+      count: count => `오늘 기록 ${count}건 수신 완료.`,
+      quote: { tired: "피로 신호 포함됨. 오늘 수행량 충분함. 상세 로그 봉인 상태.", sad: "감정 신호 안전하게 보관됨. 상세 로그 봉인 상태.", low: "최소 가동도 정상 기록됨. 상세 로그 봉인 상태.", neutral: "오늘 수행량 충분함. 상세 로그는 아직 봉인 상태." },
+      release: "전체 로그 다음 로컬 날짜에 공개됨."
+    },
+    dog: {
+      kicker: "꼬리 일기 작성 중",
+      count: count => `오늘 이야기 ${count}개 받았다멍! 집사가 신나게 적는 중이다멍!`,
+      quote: { tired: "오늘 진짜 고생 많았다멍! 그건 크게 적어둘 거다멍!", sad: "속상했던 마음까지 집사가 소중히 적는 중이다멍.", low: "쉬어간 하루도 집사한테는 중요한 기록이다멍!", neutral: "오늘 대업은 하나도 빠짐없이 적는 중이다멍!" },
+      release: "전체 일기는 내일 힘차게 공개한다멍!"
+    },
+    alien: { kicker: "관측 일지 작성 중", count: count => `금일 기록 ${count}건 수신 완료.`, quote: { neutral: "지구 생활 자료의 중요도 재분석 중임." }, release: "전체 관측 보고는 다음 주기에 공개함." },
+    ninja: { kicker: "극비 일지 작성 중", count: count => `오늘 임무 기록 ${count}건을 봉인했다.`, quote: { neutral: "그대의 하루를 빠짐없이 정리하는 중이다." }, release: "전체 문서는 내일 봉인을 해제한다." },
+    witch: { kicker: "일지 봉인 주문 중", count: count => `오늘 이야기 ${count}개를 수정구슬에 적어두고 있어요.`, quote: { neutral: "오늘의 기운을 조심스럽게 정리하는 중이에요." }, release: "전체 일지는 내일 주문이 풀리면 보여드릴게요." },
+    zombie: { kicker: "느린 일지 작성 중", count: count => `오늘 이야기 ${count}개... 잊기 전에 적는 중이야...`, quote: { neutral: "오늘 하루... 소중해서 천천히 쓰고 있어..." }, release: "전체 일기는... 내일 보여줄게..." },
+    girlidol: { kicker: "오늘 분량 편집 중", count: count => `오늘 장면 ${count}개를 큐시트에 정리했어.`, quote: { neutral: "오늘 엔딩은 아직 편집 중이야. 스포는 없어." }, release: "전체 일기는 내일 공개할게." },
+    elf: { kicker: "하루 기록을 여미는 중", count: count => `오늘 이야기 ${count}개를 오래 남을 기록으로 적고 있어요.`, quote: { neutral: "오늘의 결을 잃지 않도록 조용히 정리하고 있어요." }, release: "전체 일기는 다음 날 펼쳐 보여드릴게요." },
+    fairy: { kicker: "별빛 일지 작성 중", count: count => `오늘 이야기 ${count}개에 별가루 표시를 해뒀어요!`, quote: { neutral: "오늘의 반짝임을 예쁘게 정리하는 중이에요!" }, release: "전체 일지는 내일 반짝 공개할게요!" }
   });
 
-  function sealedDiaryNote(character) {
-    return SEALED_DIARY_NOTES[normalizeCharacter(character)] || SEALED_DIARY_NOTES.cat;
+  function diaryTeaser(character, entries) {
+    const voice = DIARY_TEASERS[normalizeCharacter(character)] || DIARY_TEASERS.cat;
+    const mood = dominantDiaryMood(entries);
+    return {
+      kicker: voice.kicker,
+      count: voice.count(entries.length),
+      quote: voice.quote[mood] || voice.quote.neutral,
+      release: voice.release
+    };
   }
 
   function renderButlerDiary() {
@@ -2053,15 +2096,16 @@
       const butler = sample.butler || snapshotButler(sample);
       const deeds = entries.map(entry => entry.deed || entry.todos?.[0]).filter(Boolean);
       const reflection = [...entries].reverse().find(entry => entry.reflection)?.reflection || diaryReflection(butler.character, entries, sample.ownerName);
-      // 오늘치 일지는 아직 봉인 상태다. 속마음은 다음 날 열어야 내일 올 이유가 된다.
-      const sealed = sample.date === today();
+      // PASS 2 이후 생성된 오늘치만 봉인한다. 필드가 없는 기존/legacy 일기는 계속 공개한다.
+      const sealed = nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
+      const teaser = sealed ? diaryTeaser(butler.character, entries) : null;
       const body = sealed
-        ? `<blockquote class="diary-sealed">${escapeHtml(sealedDiaryNote(butler.character))}</blockquote>`
-        : `<blockquote>${escapeHtml(reflection)}</blockquote>`;
+        ? `<section class="diary-teaser"><span>${escapeHtml(teaser.kicker)}</span><strong>${escapeHtml(teaser.count)}</strong><blockquote>${escapeHtml(teaser.quote)}</blockquote><small>${escapeHtml(teaser.release)}</small></section>`
+        : `<ul>${deeds.map(deed => `<li>${escapeHtml(deed)}</li>`).join("")}</ul><blockquote>${escapeHtml(reflection)}</blockquote>`;
       return `<article class="butler-diary-page${sealed ? " sealed" : ""}">
         <header><div><img src="${recordPortrait(sample, "base")}" alt="${escapeHtml(butler.name)}"><span><b>${escapeHtml(butler.name)}</b><small>${escapeHtml(sample.date || "")}</small></span></div><em>${String(entries.length).padStart(2, "0")} DEEDS</em></header>
-        <div class="diary-paper-lines"><p><strong>${escapeHtml(sample.ownerName || ownerDisplayName())}의 오늘 기록</strong></p><ul>${deeds.map(deed => `<li>${escapeHtml(deed)}</li>`).join("")}</ul>${body}</div>
-        <footer><span>${escapeHtml(CHARACTER_PROFILES[butler.character].name)} 관찰 일지</span><b>${sealed ? "작성 중 · 봉인" : "기록 완료"}</b></footer>
+        <div class="diary-paper-lines"><p><strong>${escapeHtml(sample.ownerName || ownerDisplayName())}의 오늘 기록</strong></p>${body}</div>
+        <footer><span>${escapeHtml(CHARACTER_PROFILES[butler.character].name)} 관찰 일지</span><b>${sealed ? "다음 날짜 공개" : "기록 완료"}</b></footer>
       </article>`;
     }).join("");
   }
@@ -2647,7 +2691,7 @@
     const diaryEntry = {
       id: record.id, date: record.date, todos: [deed], deed, sourceText: record.sourceText,
       text: record.report, character: butler.character, butlerName: butler.name,
-      voice: butler.voice, butler, pose, ownerName: record.ownerName, snapshotVersion: 1,
+      voice: butler.voice, butler, pose, ownerName: record.ownerName, snapshotVersion: 1, diaryRevealVersion: 1, diaryRevealed: false,
       mood: messageAnalysis?.mood || null,
       obsession: nextObsession,
       responseMode: messageAnalysis?.responseMode || null,
@@ -2660,7 +2704,7 @@
       (entry.butler?.name || entry.butlerName || "") === butler.name
     );
     diaryEntry.reflection = diaryReflection(butler.character, [...sameDayEntries, diaryEntry], record.ownerName);
-    diaryEntry.reflectionVersion = 1;
+    diaryEntry.reflectionVersion = 2;
     state.diary.push(diaryEntry);
     state.totalTodos = (Number(state.totalTodos) || 0) + 1;
     state.points = (Number(state.points) || 0) + pointsEarned;
@@ -3832,6 +3876,7 @@
     if (state.onboarded) state.lastActiveDate = today();
     checkApplicantUnlocks();
     backfillDiaryReflections();
+    unlockPastDiaryEntries();
     if (state.onboarded && !forceOnboardingPreview) {
       $("#assignment-screen").hidden = true;
       $("#main-screen").hidden = false;
