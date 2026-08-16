@@ -384,6 +384,27 @@
     return lines;
   }
 
+  // 문장 전체를 읽었다는 티를 내기 위한 고양이 전용 반응. 다른 캐릭터는 기존 로직을
+  // 그대로 쓴다 (docs/INPUT-ROUTING.md §15 — 이번 패스 품질 기준은 고양이 하나).
+  // toneShift 첫 문장은 실제 mood를 그대로 반영한다. "힘들었구냥"으로 뭉뚱그리면
+  // 짜증/서운함/걱정처럼 다른 감정도 전부 "힘들었다"로 읽혀버린다.
+  const TONE_SHIFT_OPENER = {
+    tired: "많이 피곤했구냥", sad: "속상했었구냥", angry: "아까는 화났었구냥",
+    worried: "고민이 있었구냥", bored: "심심했었구냥", hungry: "배고팠었구냥"
+  };
+  function toneShiftOpener(mood) { return TONE_SHIFT_OPENER[mood] || "아까는 좀 그랬구냥"; }
+  const CAT_TONE_SHIFT = {
+    // 앞이 부정이었다가 뒤에서 (아직 하지 않은) 계획 얘기로 살아난 경우.
+    withPlan: (mood, snippet) => `${toneShiftOpener(mood)}. 근데 ‘${snippet}’ 얘기 나오는 거 보니 벌써 좀 살아난 거 같다냥 ㅋㅋ 그건 그때 가서 확실히 해내라냥.`,
+    // 계획 언급 없이 그냥 뒤에서 톤만 풀린 경우.
+    general: mood => `${toneShiftOpener(mood)}. 근데 뒷말 들어보니 지금은 다시 좀 풀린 거 같다냥 ㅋㅋ 그럼 됐다냥.`
+  };
+  // 완료 행동 없이 계획만 있는 문장. 대업으로 올리지 않는다는 걸 직접 말해준다.
+  const CAT_FUTURE_PLAN_ONLY = snippet => `‘${snippet}’ 소리 접수했다냥. 아직 안 한 건 대업으로 안 올린다냥. 하고 나서 다시 알려달라냥.`;
+  // 완료 행동이 여러 개 잡힌 경우(ACTION_LIST). 하나만 조용히 뽑아가지 않고
+  // 다 읽었다는 걸 보여준 다음, 그중 하나를 오늘의 대업으로 콕 집는다.
+  const CAT_MULTI_ACTIVITY = (activities, title) => `${activities.slice(0, 3).join(", ")}까지?! 오늘 생활능력 종합시험 봤냥?! 그중 ${particle(`'${title}'`, "을", "를")} 오늘 대업으로 올린다냥.`;
+
   const ACTIVITY_ACK = {
     cat: activity => activity.includes("결혼식") ? "결혼식까지 다녀왔구냥. 힘든 와중에 다녀온 건 집사가 제대로 봤다냥." : activity.includes("회사") ? "회사 일도 끝까지 버텼구냥. 그 수고는 집사가 제대로 봤다냥." : `${activity}도 해냈구냥. 그 수고는 집사가 따로 챙겨두겠다냥.`,
     ai: activity => `${activity} 확인. 힘든 와중에 해낸 것으로 기록됨. 집사가 따로 챙겨둠.`,
@@ -498,11 +519,21 @@
     if (memory.character && memory.character !== key) memory = normalizeMemory({}, key);
     const result = classify(message);
     const hasHardDayContext = memory.previousIntent === "hard_day" || memory.recentTopics.includes("힘든 하루");
+    // 문장 전체를 읽었다는 신호(toneShift/futurePlans/여러 완료 행동)가 있으면, 그 문장
+    // 전용으로 고른 대사를 쓰고 RESPONSE_POOLS/relationshipLinesFor의 일반 변주는
+    // 건너뛴다 — 그 풀들은 "힘든 하루"류 단일 감정 대사라 이 신호를 못 담는다.
+    const toneShiftOverride = key === "cat" && result.toneShift;
+    const futurePlanOverride = key === "cat" && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
+    const multiActivityOverride = key === "cat" && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
     let base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
     if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
+    else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.mood, result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general(result.mood);
+    else if (futurePlanOverride) base = CAT_FUTURE_PLAN_ONLY(result.futurePlans[0].snippet);
+    else if (multiActivityOverride) base = CAT_MULTI_ACTIVITY(result.activities, result.achievementTitle);
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
+    const bypassPools = toneShiftOverride || futurePlanOverride || multiActivityOverride;
     const endings = ENDINGS[key] || ENDINGS.cat;
-    const extra = [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
+    const extra = bypassPools ? [] : [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${tail}`])
