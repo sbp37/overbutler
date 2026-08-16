@@ -325,7 +325,7 @@
 
   const TIME_MESSAGES = {
     ai: {
-      dawn: ["{owner} 새벽 감지. 집사도 새벽 모드 활성화. 함께 버티겠음 🌌", "[04시 로그] 취침 절차 미실행 감지. 물 한 모금 후 종료 권장."],
+      dawn: ["{owner} 새벽 감지. 집사도 새벽 모드 활성화. 함께 버티겠음 🌌", "[새벽 로그] 집사 저전력 배려 모드 활성화. 물 한 모금 후 휴식 권장."],
       morning: ["[기상 알림] {owner} 시스템 가동 시간. 야간 대기 정상 종료. 집사 대기 중 ☀️", "아침 감지. 잘 잤음? 집사 칭찬 모듈 이미 예열 완료됨."],
       afternoon: ["{owner} 오후 모드 전환 완료. 집사 100% 가동 중. 무엇이든 말해도 됨.", "오후 상태 체크. 사소한 데이터도 수신 가능. 집사 대기 중."],
       evening: ["{owner} 저녁 루틴 시작 시간. 오늘 하루도 데이터 완벽히 기록됨 🌆", "저녁 감지. 오늘 피로는 성과로 환산하지 않음. 집사 방침임."],
@@ -809,7 +809,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, absenceNoteDate: null, catHomeHintDone: false,
+    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -891,6 +891,14 @@
 
   function storedText(value, fallback = "") {
     return typeof value === "string" || typeof value === "number" ? String(value) : fallback;
+  }
+
+  function normalizeReactionLines(value, fallback = "") {
+    const values = Array.isArray(value) ? value : [value];
+    const lines = values.flatMap(item => storedText(item).split(/\n+/))
+      .map(line => line.trim()).filter(Boolean);
+    if (!lines.length && fallback) lines.push(...storedText(fallback).split(/\n+/).map(line => line.trim()).filter(Boolean));
+    return [...new Set(lines)].slice(0, 3);
   }
 
   function normalizeCharacter(key) {
@@ -991,7 +999,6 @@
     merged.fame = nonNegativeInteger(raw.fame);
     merged.startDate = storedText(raw.startDate, DEFAULT_STATE.startDate);
     merged.lastActiveDate = storedText(raw.lastActiveDate) || null;
-    merged.absenceNoteDate = storedText(raw.absenceNoteDate) || null;
     merged.catHomeHintDone = Boolean(raw.catHomeHintDone);
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
     const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : legacyAchievements;
@@ -1069,6 +1076,9 @@
       ? new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(created).replace(/\. /g, ".").replace(/\.$/, "")
       : today());
     const deed = storedText(source.deed || source.text, "기록된 대업");
+    const report = storedText(source.report, "담당 집사가 대업으로 공식 기록했습니다.");
+    const sourceText = storedText(source.sourceText || source.textInput || source.deed || source.text || source.report, deed);
+    const reactionLines = normalizeReactionLines(source.reactionLines, report);
     const contribution = Number.parseInt(String(source.score ?? source.contribution ?? "0"), 10);
     const storedPoints = Number(source.pointsEarned);
     const storedRelationshipGain = Number(source.relationshipGain);
@@ -1077,7 +1087,9 @@
       ...source,
       id: source.id ?? `legacy-${migratedDate}-${storedText(source.docNo, `record-${index + 1}`)}`,
       deed,
-      sourceText: storedText(source.sourceText, deed),
+      sourceText,
+      discoveredAchievement: storedText(source.discoveredAchievement || source.officialTitle || source.deed || source.text || source.report, deed),
+      reactionLines,
       date: migratedDate,
       number: nonNegativeInteger(source.number) || Number(String(source.docNo || "").match(/(\d+)$/)?.[1]) || 1,
       score: Number.isFinite(contribution) && contribution > 0 ? contribution : 99,
@@ -1087,7 +1099,7 @@
       category: storedText(source.category) || categoryForDeed(deed),
       verdictType: ["praise", "power", "rare"].includes(source.verdictType) ? source.verdictType : source.rare ? "rare" : source.pose === "power" ? "power" : "praise",
       rare: Boolean(source.rare || source.verdictType === "rare"),
-      report: storedText(source.report, "담당 집사가 대업으로 공식 기록했습니다."),
+      report,
       ownerName: storedText(source.ownerName || source.username),
       butler: { ...butler, ...recordButler, character: butler.character, name: butler.name },
       character: butler.character,
@@ -1275,27 +1287,11 @@
     return content?.stageLines?.[stageIndexFor(obsession)] ? templateOwner(content.stageLines[stageIndexFor(obsession)]) : "";
   }
 
-  // "2026.08.16" 형식의 저장값을 날짜로 되돌린다. 형식이 다르면(구버전) Date에 맡긴다.
-  function parseStoredDate(value) {
-    const text = String(value || "").trim();
-    if (!text) return null;
-    const parts = text.match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
-    const date = parts ? new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])) : new Date(text);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  function daysSince(lastActiveDate) {
-    const past = parseStoredDate(lastActiveDate);
-    const now = parseStoredDate(today());
-    if (!past || !now) return 0;
-    return Math.max(0, Math.round((now - past) / 86400000));
-  }
-
   // 같은 날 새로고침은 재방문이 아니다. 날짜가 실제로 바뀌었을 때만 복귀로 친다.
   function returnVisitFor(lastActiveDate) {
     const stored = String(lastActiveDate || "").trim();
     const returning = Boolean(stored) && stored !== today();
-    return { returning, consumed: !returning, daysAway: returning ? daysSince(stored) : 0 };
+    return { returning, consumed: !returning };
   }
 
   function returnVisitLine(character = state.character) {
@@ -1939,49 +1935,6 @@
     ]
   });
 
-  // 부재중 서류: 주인님이 없던 동안 집사가 저지른 일. 사무국 소식과 같은 원칙으로,
-  // 시선은 언제나 집사를 향한다. 사용자가 뭘 했는지는 절대 추측하지 않는다.
-  const ABSENCE_MEMOS = Object.freeze({
-    low: [
-      "부재중 접수 0건. {butler} 집사는 규정대로 자리를 지켰다.",
-      "{butler} 집사가 접수창을 정시에 열고 정시에 닫았다. 특이사항 없음.",
-      "{butler} 집사의 어제 근무일지에는 '대기'라고만 적혀 있었다."
-    ],
-    mid: [
-      "{butler} 집사가 접수창을 세 번 열었다 닫았다. 본인은 환기라고 했다.",
-      "사무국 메모: {butler} 집사 책상에서 서류함 한 칸만 비어 있었다. 주인님 칸이었다.",
-      "{butler} 집사가 결재 도장을 미리 꺼내뒀다. 접수될 서류는 없었다."
-    ],
-    high: [
-      "{butler} 집사가 퇴근 시간을 넘겨 남아 있었다. 사유란은 비어 있었다.",
-      "{butler} 집사가 빈 접수대 앞에서 서류 정리를 네 번 반복했다.",
-      "옆자리 집사가 물었다. \"오늘 접수 없잖아?\" {butler} 집사는 대답하지 않았다."
-    ],
-    max: [
-      "{butler} 집사가 빈 서류함에 결재란을 미리 그려뒀다. 감사실이 사유를 물었다.",
-      "{butler} 집사가 접수도 안 된 서류에 도장을 찍어뒀다. 회수 조치됐다.",
-      "사무국이 {butler} 집사에게 대기 시간 초과를 통보했다. 집사는 통보서를 접어 서랍에 넣었다."
-    ]
-  });
-
-  const LONG_ABSENCE_MEMOS = Object.freeze([
-    "{days}일간 접수 없음. {butler} 집사가 그동안 주인님 서류함만 반복해서 열어봤다는 기록이 남았다.",
-    "{days}일치 결재란이 비어 있다. {butler} 집사는 그 칸을 지우지 않고 그대로 뒀다.",
-    "{days}일 동안 {butler} 집사의 근무일지 사유란이 전부 공란이었다. 사무국은 재작성을 요구했다."
-  ]);
-
-  function absenceMemoFor(daysAway, butlerName, obsession = state.obsession, seed = daysSince(state.startDate)) {
-    if (!daysAway) return "";
-    const name = butlerName || "담당";
-    if (daysAway >= 3) {
-      return LONG_ABSENCE_MEMOS[seed % LONG_ABSENCE_MEMOS.length]
-        .replaceAll("{days}", String(daysAway)).replaceAll("{butler}", name);
-    }
-    const level = Number(obsession) || 0;
-    const pool = level >= 60 ? ABSENCE_MEMOS.max : level >= 40 ? ABSENCE_MEMOS.high : level >= 20 ? ABSENCE_MEMOS.mid : ABSENCE_MEMOS.low;
-    return pool[seed % pool.length].replaceAll("{butler}", name);
-  }
-
   function officeNewsFor(entries, butlerName, seed) {
     const level = entries.map(entry => Number(entry.obsession) || 0).reduce((a, b) => Math.max(a, b), 0);
     const pool = level >= 60 ? OFFICE_NEWS.max : level >= 40 ? OFFICE_NEWS.high : level >= 20 ? OFFICE_NEWS.mid : null;
@@ -2129,7 +2082,7 @@
       return true;
     }).filter(record => recordGrade === "all" || record.grade === recordGrade).filter(record => {
       if (!query) return true;
-      return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
+      return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
     }).slice().reverse();
     const list = $("#archive-record-list");
     if (!filtered.length) {
@@ -2139,16 +2092,19 @@
       list.innerHTML = `<div class="records-empty"><span>EMPTY FILE</span><p>${emptyCopy}</p></div>`;
       return;
     }
-    list.innerHTML = filtered.map((record, index) => {
+    list.innerHTML = filtered.map(record => {
       const butler = record.butler || snapshotButler(record);
-      const diary = state.diary.find(entry => entry.id === record.id);
       const certificateIndex = state.certificates.findIndex(item => item.id === record.id);
       const statusClass = certificateIndex >= 0 ? "official" : record.stampEligible === false ? "praise" : "candidate";
       const statusLabel = certificateIndex >= 0 ? "공식 인정" : record.stampEligible === false ? "칭찬 완료" : "대업 후보";
       const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
+      const sourceText = storedText(record.sourceText).trim();
+      const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
+        ? sourceText
+        : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
       return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
         <div class="record-number"><b>${listNumber}</b><span>${escapeHtml(record.date)}</span></div>
-        <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(diary?.text || record.report || record.grade)}</p><small>#${escapeHtml(record.nickname || record.grade)}</small></div>
+        <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p><small>#${escapeHtml(record.nickname || record.grade)}</small></div>
         <div class="record-approval"><span>${statusLabel}</span><figure><img src="${recordPortrait(record, certificateIndex >= 0 ? "praise" : "base")}" alt="${escapeHtml(butler.name)}"><figcaption>${escapeHtml(butler.name)}<br>기록</figcaption></figure><span class="record-detail-cta" aria-hidden="true">상세</span></div>
       </article>`;
     }).join("");
@@ -2162,6 +2118,9 @@
     if (!record) return;
     const butler = record.butler || snapshotButler(record);
     const isOfficial = state.certificates.some(item => item.id === record.id);
+    const sourceText = storedText(record.sourceText || record.deed || record.report, "보관된 이야기");
+    const discoveredAchievement = storedText(record.discoveredAchievement || record.officialTitle || record.deed || record.report, "보관된 대업");
+    const reactionLines = normalizeReactionLines(record.reactionLines, record.report);
     currentRecordDetail = record;
     $("#record-detail-number").textContent = `RECORD NO. ${String(record.number || state.records.indexOf(record) + 1).padStart(2, "0")}`;
     $("#record-detail-date").textContent = record.date;
@@ -2169,7 +2128,9 @@
     $("#record-detail-grade").textContent = record.grade;
     $("#record-detail-title").textContent = record.deed;
     $("#record-detail-nickname").textContent = `#${record.nickname}`;
-    $("#record-detail-report").textContent = `“${record.report}”`;
+    $("#record-detail-source").textContent = sourceText;
+    $("#record-detail-achievement").textContent = discoveredAchievement;
+    $("#record-detail-reactions").innerHTML = reactionLines.map(line => `<p>${escapeHtml(line)}</p>`).join("");
     $("#record-detail-butler").textContent = butler.name;
     $("#record-detail-score").textContent = scoreText(record);
     $("#record-detail-verdict").textContent = isOfficial ? "공식 인증서 발급" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
@@ -2654,19 +2615,23 @@
     pendingMessageAnalysis = null;
     const pose = quiet ? (options.mode === "comfort" ? "base" : "analysis") : evaluation.power ? "power" : "praise";
     const butler = snapshotButler();
+    const report = getPraise(deed, nextObsession, butler.character, evaluation.verdictType);
+    const reactionLines = normalizeReactionLines(quiet ? options.reply : report, report);
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       deed, grade: evaluation.grade, nickname: evaluation.nickname, score: evaluation.score,
       scoreLabel: evaluation.scoreLabel, category: evaluation.category,
       verdictType: evaluation.verdictType, rare: evaluation.rare,
       date: today(), number: state.records.length + 1,
-      report: getPraise(deed, nextObsession, butler.character, evaluation.verdictType), pose,
+      report, pose,
       relationshipBefore: previousObsession, relationshipAfter: nextObsession,
       relationshipGain, pointsEarned,
       relationshipStage: relationshipStageFor(nextObsession).name,
       stampEligible: !duplicate, character: butler.character, ownerName: ownerDisplayName(),
       butlerName: butler.name, voice: butler.voice, butler,
       sourceText: messageAnalysis?.sourceText || deed,
+      discoveredAchievement: deed,
+      reactionLines,
       interpretation: messageAnalysis ? {
         intents: messageAnalysis.intents,
         activities: messageAnalysis.activities,
@@ -2751,29 +2716,6 @@
   function hideGentleNote() {
     const note = $("#gentle-note");
     if (note) note.hidden = true;
-  }
-
-  // 하루 이상 만에 돌아오면 집사가 부재중에 저지른 일을 서류 한 장으로 알린다.
-  // 하루에 한 번만 뜨고, 확인하면 그날은 다시 뜨지 않는다.
-  function showAbsenceNote() {
-    const note = $("#absence-note");
-    if (!note || !returnVisitContext.returning) return;
-    if (state.absenceNoteDate === today()) return;
-    const stat = ensureButlerStat(state.character);
-    const butlerName = stat.customName || CHARACTER_PROFILES[state.character].defaultName;
-    const days = Math.max(1, returnVisitContext.daysAway || 1);
-    const memo = absenceMemoFor(days, butlerName, state.obsession, state.records.length + days);
-    if (!memo) return;
-    $("#absence-note-days").textContent = days >= 2 ? `${days}일치 미결` : "어제 접수분";
-    $("#absence-note-copy").textContent = memo;
-    note.hidden = false;
-  }
-
-  function dismissAbsenceNote() {
-    const note = $("#absence-note");
-    if (note) note.hidden = true;
-    state.absenceNoteDate = today();
-    saveState();
   }
 
   // 위로/일상 기록 전용의 조용한 접수 알림. FORM 05를 대신한다.
@@ -3845,7 +3787,6 @@
     $("#close-certificate").addEventListener("click", closeCertificate);
     $("[data-certificate-close]").addEventListener("click", closeCertificate);
     $("#share-certificate").addEventListener("click", shareCertificate);
-    $("#absence-note-close").addEventListener("click", dismissAbsenceNote);
     $("#home-gift-link").addEventListener("click", openGiftDesk);
     $("#analysis-overlay").addEventListener("click", finishAnalysisNow);
     $("#analysis-overlay").addEventListener("keydown", event => {
@@ -3905,7 +3846,6 @@
       // 현재 캐릭터를 ownedButlers에 편입시키므로, 여기서 저장했다간
       // ?preview=idol 같은 링크 하나로 유료 집사가 그대로 무료 지급된다.
       if (!previewMode) saveState();
-      showAbsenceNote();
       startTimeBriefing();
       if (state.onboarded && !state.username && !previewMode) {
         $("#owner-name-overlay").hidden = false;

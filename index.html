@@ -143,12 +143,6 @@
           <em aria-hidden="true">→</em>
         </button>
 
-        <section class="absence-note" id="absence-note" aria-live="polite" hidden>
-          <header><span>부재중 서류 · MEMO</span><b id="absence-note-days">어제 접수분</b></header>
-          <p class="absence-note-copy" id="absence-note-copy"></p>
-          <button class="absence-note-close" id="absence-note-close" type="button">확인했습니다</button>
-        </section>
-
         <section class="entry-form document-card">
           <div class="entry-heading">
             <span id="entry-kicker">오늘 이야기 접수처 · FORM 01</span>
@@ -410,11 +404,15 @@
       </header>
       <article class="record-detail-document">
         <div class="record-detail-meta"><span id="record-detail-number">RECORD NO. 01</span><time id="record-detail-date"></time></div>
+        <div class="record-detail-context">
+          <section><span>01 · 내가 들려준 이야기</span><p id="record-detail-source"></p></section>
+          <section><span>02 · 집사가 발견한 대업</span><p id="record-detail-achievement"></p></section>
+          <section><span>03 · 당시 집사의 한마디</span><div id="record-detail-reactions"></div></section>
+        </div>
         <section class="record-detail-hero">
           <div class="record-detail-portrait"><img id="record-detail-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt=""></div>
           <div class="record-detail-title-copy"><small id="record-detail-grade">국가적 성취</small><h2 id="record-detail-title">침대에서 일어남</h2><p id="record-detail-nickname">#중력을 이겨낸 자</p></div>
         </section>
-        <blockquote id="record-detail-report"></blockquote>
         <dl class="record-detail-facts">
           <div><dt>담당 집사</dt><dd id="record-detail-butler"></dd></div>
           <div><dt>인류 기여도</dt><dd id="record-detail-score"></dd></div>

@@ -49,7 +49,7 @@
 .record-number span{display:block;margin-top:6px;font-size:10px;line-height:1.25}
 .record-main{align-self:center;min-width:0;padding:13px 9px}
 .record-main strong{display:block;color:#352b2b;font-size:15px;line-height:1.3;word-break:keep-all}
-.record-main p{display:-webkit-box;margin:5px 0 4px;color:#786a64;font-size:12px;line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.record-main p{display:-webkit-box;margin:5px 0 4px;color:#786a64;font-size:12px;line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden}
 .record-main small{color:#a07843;font-size:11px;font-weight:750}
 .record-approval{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px 5px;border-left:1px solid #e3d9cc}
 .record-approval>span{padding:4px 7px;border:1px solid #cdbd9e;border-radius:99px;color:#8c6a34;background:#fffaf0;font-size:10px;font-weight:850;white-space:nowrap}
@@ -121,6 +121,7 @@
 .record-detail-document{position:relative;margin-top:13px;padding:16px 14px 12px;border:1px solid #d4c4b1;border-radius:10px;background:#fffdf8;box-shadow:0 8px 18px rgba(69,46,36,.08)}
 .record-detail-document:before{content:"";position:absolute;right:20px;top:-9px;width:12px;height:37px;border:2px solid #9a7544;border-bottom-color:transparent;border-radius:8px;transform:rotate(9deg)}
 .record-detail-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid #e0d5c8;color:#8a786d;font-size:10px;font-weight:800;letter-spacing:.06em}
+.record-detail-context{display:grid;gap:8px;padding:12px 0 2px}.record-detail-context section{padding:10px 11px;border:1px solid #ded2c4;border-radius:7px;background:#faf5ed}.record-detail-context section>span{display:block;margin-bottom:5px;color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.05em}.record-detail-context p{margin:0;color:#443637;font-size:13px;line-height:1.5;word-break:keep-all}.record-detail-context section:nth-child(2) p{font-weight:850}.record-detail-context section:nth-child(3){background:#f5ede1}.record-detail-context section:nth-child(3) p{position:relative;padding-left:11px}.record-detail-context section:nth-child(3) p:before{content:"“";position:absolute;left:0;color:#a48456;font-weight:900}.record-detail-context section:nth-child(3) p+p{margin-top:5px}
 .record-detail-hero{display:grid;grid-template-columns:122px minmax(0,1fr);align-items:end;gap:8px;min-height:185px;padding:12px 0 10px}
 .record-detail-portrait{align-self:stretch;display:flex;align-items:flex-end;justify-content:center;border-radius:8px;background:radial-gradient(circle at 50% 58%,#fff 0 43%,transparent 70%)}
 .record-detail-portrait img{width:135px;height:178px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 5px 2px rgba(62,42,34,.08))}
