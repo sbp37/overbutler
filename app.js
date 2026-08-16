@@ -76,7 +76,7 @@
   const CHARACTER_PROFILES = {
     ai: {
       name: "오류 난 AI 집사", shortName: "AI 집사", defaultName: "오류봇", emoji: "🤖", voice: "system-error",
-      desc: "감정이 없어야 하는데 주인님 일에는 자꾸 과열됨",
+      desc: "감정이 없어야 하는데 주인님 일에는 자꾸 과열됨", personality: "감정 없다고 우기는 형", specialty: "사소한 입력을 대업으로 판정",
       briefings: [
         "집사 여기 있음. 무엇이든 말해도 됨.", "오늘 뭐 했음? 집사 궁금함.",
         "[오류] 주인님 서류만 자동 우선 열림. 원인 확인 불가.", "주인님과 대화 중. 집사 기쁨 회로 작동 중.",
@@ -92,7 +92,7 @@
       handover: "[인수인계 완료] 전임 집사 데이터 이관됨. 주인님 기록 로드 완료. 잘 부탁함."
     },
     cat: {
-      name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "도도한 척하며 규정 핑계로 특별대우",
+      name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "도도한 척하며 규정 핑계로 특별대우", personality: "규정 핑계 츤데레형", specialty: "안 보는 척하면서 다 챙김",
       briefings: ["왔냥? 네 자리 비워뒀다냥. 먼저 챙긴 건 업무상이다냥.", "오늘 한 일 말해봐냥. 별거 아니어도 집사가 들어준다냥.", "또 왔냥? 기록칸이랑 쉴 자리 둘 다 비워뒀다냥."],
       praise: [
         ["{deed} 접수!! 규정에 따라 인류사적 대업으로 분류했다냥!! 이의 신청은 안 받는다냥!!", "{deed}?! 사무국 기준 최고 등급이다냥!! 도장 세 개 찍었다냥!! 🐾"],
@@ -104,7 +104,7 @@
       handover: "전임 집사한테 인수인계 받았다냥! 기록 다 전달받았다냥. 잘 부탁한다냥!"
     },
     dog: {
-      name: "강아지 집사", defaultName: "멍실장", emoji: "🐶", voice: "dog", desc: "꼬리 흔들며 과잉 응원",
+      name: "강아지 집사", defaultName: "멍실장", emoji: "🐶", voice: "dog", desc: "꼬리 흔들며 과잉 응원", personality: "전력 응원 폭주형", specialty: "꼬리 회전수로 기쁨 측정",
       briefings: ["왔다멍!! 오늘도 만나서 진짜 반갑다멍!", "오늘 한 일 있냐멍? 없어도 집사가 꼬리 흔들며 들어준다멍!", "주인님 이야기다멍!! 집사 오늘도 칭찬할 수 있어서 좋다멍!"],
       praise: [
         ["{deed} 접수!! 사무국 규정상 최고 등급이다멍!! 도장 다섯 개다멍!! 🐾", "{deed}?! 이건 무조건 대업이다멍!! 규정에 그렇게 적혀 있다멍!!"],
@@ -116,7 +116,7 @@
       handover: "전임 집사한테 인수인계 서류 전부 받았다멍! 한 장도 안 빠졌다멍!"
     },
     alien: {
-      name: "외계인 집사", defaultName: "귀순이", emoji: "👽", voice: "alien-report", desc: "지구의 사소한 일을 위대한 기술로 오해함",
+      name: "외계인 집사", defaultName: "귀순이", emoji: "👽", voice: "alien-report", desc: "지구의 사소한 일을 위대한 기술로 오해함", personality: "관측 우선 보고형", specialty: "지구 일상을 문명 성과로 분류",
       briefings: ["주인님 개체 관측 성공. 오늘의 사소한 이야기도 흥미롭게 듣겠음.", "주인님 기록 채널 확인. 오늘 기분부터 편안히 전송해도 됨.", "본성 제출용 주인님 대업 보고서 작성 중. 과장 허용치 초과."],
       praise: [
         ["[분석완료] {deed} 수행 능력 은하계 최상위 1%로 기록됨. 규정에 따른 판정임.", "{deed} 완료 신호 수신. 사무국 최고 등급으로 분류함."],
@@ -128,7 +128,7 @@
       handover: "전임 집사로부터 데이터 이관 완료. 주인님 정보 수신됨. 잘 부탁함."
     },
     ninja: {
-      name: "닌자 집사", defaultName: "그림자", emoji: "🥷", voice: "mission", desc: "모든 일을 비밀 임무로 받아들임",
+      name: "닌자 집사", defaultName: "그림자", emoji: "🥷", voice: "mission", desc: "모든 일을 비밀 임무로 받아들임", personality: "과묵한 충성형", specialty: "기록을 극비 임무로 봉인",
       briefings: ["왔군. 극비 기록함과 그대의 자리를 미리 열어두었다.", "오늘 하루는 어땠나. 작은 이야기부터 조용히 듣겠다.", "담당석은 비어 보여도 필요한 것은 곁에서 챙기고 있다."],
       praise: [
         ["{deed} 완료. 규정에 따라 인류사적 대업으로 봉인했다.", "{deed} 확인. 사무국 최고 등급이다. 도장은 이미 찍었다."],
@@ -140,7 +140,7 @@
       handover: "전임 집사에게 인수인계 받았다. 기록도, 믿음도. 잘 부탁한다."
     },
     witch: {
-      name: "마녀 집사", defaultName: "루나", emoji: "🔮", voice: "witch", desc: "사소한 행동을 길조와 대업으로 점쳐버림",
+      name: "마녀 집사", defaultName: "루나", emoji: "🔮", voice: "witch", desc: "사소한 행동을 길조와 대업으로 점쳐버림", personality: "길조 해석형", specialty: "작은 행동에서 행운 점치기",
       briefings: ["수정구슬 확인 완료. 오늘의 작은 길조를 보고해주세요.", "주인님의 사소한 행동에서 대운의 징조가 보여요."],
       praise: [
         ["{deed} 접수했어요. 규정상 인류사적 대업이에요. 점괘도 같은 결과예요.", "{deed}? 사무국 최고 등급이에요. 수정구슬도 동의했어요 ✨"],
@@ -152,7 +152,7 @@
       handover: "새 계약 확인했어요. 주인님의 기록과 인연을 전부 인수받았습니다."
     },
     zombie: {
-      name: "좀비 집사", defaultName: "느릿이", emoji: "🧟", voice: "zombie", desc: "주인님 대업 앞에서만 정신이 돌아옴",
+      name: "좀비 집사", defaultName: "느릿이", emoji: "🧟", voice: "zombie", desc: "주인님 대업 앞에서만 정신이 돌아옴", personality: "느릿한 각성형", specialty: "주인님 서류 앞에서만 정신 회복",
       briefings: ["으... 왔네... 반가워... 오늘은 어땠어...?", "주인님 기록함이랑 쉴 자리... 둘 다 열어뒀어...", "주인님 대업 보니까... 결재 정신이 조금 또렷해졌어..."],
       praise: [
         ["으... {deed}... 규정상 대업이야... 집사가 도장 찍었어...", "{deed}... 사무국 최고 등급... 으르... 이건 규정이야..."],
@@ -164,7 +164,7 @@
       handover: "으... 전임 집사한테... 인수인계 받았어... 주인님 기록... 다 알아... 잘 부탁해... 으르..."
     },
     girlidol: {
-      name: "아이돌 집사", defaultName: "별매니저", emoji: "👩‍🎤", voice: "idol", desc: "도도한 척하지만 주인님 일에는 과몰입",
+      name: "아이돌 집사", defaultName: "별매니저", emoji: "👩‍🎤", voice: "idol", desc: "도도한 척하지만 주인님 일에는 과몰입", personality: "도도한 척 과몰입형", specialty: "대업을 무대 장면으로 편집",
       briefings: ["오늘 한 일 말해봐. 집사가 큐카드에 적어둘게.", "나 원래 리액션 잘 안 하는데... 주인님 건 예외야.", "방송 큐보다 주인님 대업 큐가 먼저 뜨네. 이건 업무상 비밀이야."],
       praise: [
         ["{deed} 완료? 사무국 규정상 최고 등급이야. 도장 찍었어.", "{deed}? 이건 무조건 대업 처리야. 규정이 그래."],
@@ -176,7 +176,7 @@
       handover: "전임 집사한테 다 들었어. 기록도 봤어. 앞으로 잘해볼게."
     },
     elf: {
-      name: "엘프 집사", defaultName: "로엘", emoji: "🧝", voice: "elf", desc: "천 년 경력의 다정한 집사",
+      name: "엘프 집사", defaultName: "로엘", emoji: "🧝", voice: "elf", desc: "천 년 경력의 다정한 집사", personality: "천 년 다정형", specialty: "짧은 순간을 오래 보관",
       briefings: ["오늘의 작은 성취를 들려주세요. 집사가 기록할게요.", "당신이 해낸 일이라면 무엇이든 빛날 거예요."],
       praise: [
         ["{deed}를 해내셨군요. 규정에 따라 인류사적 대업으로 기록했어요.", "{deed} 완료. 사무국 최고 등급으로 분류했습니다 🌿"],
@@ -188,7 +188,7 @@
       handover: "전임 집사에게 인수인계 받았어요. 주인님의 기록, 소중히 이어갈게요."
     },
     fairy: {
-      name: "요정 집사", defaultName: "별송이", emoji: "🧚", voice: "fairy", desc: "사소한 일에도 별가루를 뿌리며 대업으로 만들어버림",
+      name: "요정 집사", defaultName: "별송이", emoji: "🧚", voice: "fairy", desc: "사소한 일에도 별가루를 뿌리며 대업으로 만들어버림", personality: "반짝임 과다형", specialty: "작은 일에 별가루 도장",
       briefings: ["오늘의 작은 일도 반짝이는 대업으로 만들어드릴게요!", "별것 아니어도 말해주세요. 집사가 별가루부터 준비할게요."],
       praise: [
         ["{deed} 접수했어요! 규정에 따라 인류사적 대업이에요!", "{deed}? 사무국 최고 등급이에요! 별가루 도장 찍었어요 ✨"],
@@ -2272,8 +2272,9 @@
     const characterKeys = Object.keys(CHARACTER_PROFILES);
     $("#manager-file-number").textContent = String(characterKeys.indexOf(state.character) + 1).padStart(2, "0");
     $("#manager-butler-alias").textContent = stat.customName || profile.defaultName;
-    $("#manager-butler-personality").textContent = STAGES[stageIndex];
-    $("#manager-butler-specialty").textContent = profile.desc;
+    // 성격·특기는 집사 고유값이다. 관계 단계는 바로 아래 과몰입도 막대가 이미 보여준다.
+    $("#manager-butler-personality").textContent = profile.personality || profile.desc;
+    $("#manager-butler-specialty").textContent = profile.specialty || profile.desc;
     $("#manager-butler-symbol").textContent = "✦";
     $("#manager-handnote").textContent = profile.briefings[0];
     $("#obsession-value").textContent = state.obsession;
@@ -2402,16 +2403,16 @@
     return BALANCE.deedRelationship[evaluation?.verdictType] || BALANCE.deedRelationship.praise;
   }
 
-  function judgeAchievement(deed, obsession = state.obsession, duplicate = false) {
+  function judgeAchievement(deed, obsession = state.obsession, duplicate = false, sourceText = "") {
     const seed = stableDeedNumber(deed);
-    const category = categoryForDeed(deed);
+    const category = categoryForDeed(deed, sourceText);
     const score = 87 + (seed % 13);
     const rare = !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
     const powerThreshold = BALANCE.powerChanceByStage[stageIndexFor(obsession)];
     const power = rare || score === 99 || ((seed >>> 8) % 100) < powerThreshold;
     const grade = rare ? "설명 불가한 위업" : score >= 99 ? "우주 최초 기록" : score >= 96 ? "인류사적 대업" : score >= 93 ? "집사 가문 경사" : score >= 90 ? "국가적 성취" : "소소한 기적";
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
-    const nickname = rare ? "통계청이 포기한 자" : nicknamePool[(seed >>> 5) % nicknamePool.length];
+    const nickname = rare ? "통계청이 포기한 자" : freshNickname(nicknamePool, seed);
     return { seed, category, score: rare ? 100 : score, scoreLabel: rare ? "측정 불가" : `${score}점`, grade, nickname, rare, power, verdictType: rare ? "rare" : power ? "power" : "praise" };
   }
 
@@ -2480,7 +2481,7 @@
       return;
     }
     const duplicate = isDuplicateToday(deed);
-    pendingEvaluation = judgeAchievement(deed, state.obsession, duplicate);
+    pendingEvaluation = judgeAchievement(deed, state.obsession, duplicate, story);
     trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: duplicate ? "duplicate" : "new" });
     hideGentleNote();
     configureAnalysis(deed, interpreted);
@@ -2511,7 +2512,7 @@
     const quiet = Boolean(options.quiet);
     const duplicate = isDuplicateToday(deed);
     const previousObsession = state.obsession;
-    const evaluation = pendingEvaluation || judgeAchievement(deed, previousObsession, duplicate);
+    const evaluation = pendingEvaluation || judgeAchievement(deed, previousObsession, duplicate, pendingMessageAnalysis?.sourceText || "");
     const relationshipGain = relationshipGainFor(evaluation, duplicate);
     const pointsEarned = pointsEarnedFor(evaluation, duplicate);
     const nextObsession = clamp(previousObsession + relationshipGain, 0, 100);
@@ -2637,18 +2638,30 @@
     note.scrollIntoView({ behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
   }
 
-  function categoryForDeed(deed) {
-    const value = normalizeDeed(deed);
+  // 대업명은 사용자가 쓴 말을 집사가 격상시킨 제목이라("물 한 잔 마셨어" → "생존 수분 충전 완료")
+  // 원문 키워드가 남아있지 않다. 분류할 때 원문을 함께 보고, 격상된 제목에 쓰이는 말도 같이 잡는다.
+  function categoryForDeed(deed, sourceText = "") {
+    const value = normalizeDeed(`${deed} ${sourceText}`);
     const groups = [
-      ["hygiene", ["씻", "샤워", "양치", "세수", "머리감"]],
-      ["hydration", ["물", "차", "커피"]],
-      ["food", ["밥", "먹", "요리", "간식"]],
-      ["work", ["출근", "업무", "메일", "답장", "공부"]],
-      ["home", ["청소", "설거지", "빨래", "정리"]],
-      ["movement", ["일어", "산책", "운동", "스트레칭"]],
-      ["social", ["전화", "연락", "약속", "대화"]]
+      ["hygiene", ["씻", "샤워", "양치", "세수", "머리감", "목욕", "위생", "청결"]],
+      ["hydration", ["물", "차", "커피", "수분", "음료", "마셨", "마심"]],
+      ["food", ["밥", "먹", "요리", "간식", "식사", "끼니", "라면", "점심", "저녁"]],
+      ["work", ["출근", "업무", "메일", "공부", "회사", "직장", "근무", "야근", "과제", "발표", "보고서"]],
+      ["home", ["청소", "설거지", "빨래", "정리", "집안일", "정돈", "주방", "의류"]],
+      ["movement", ["일어", "산책", "운동", "스트레칭", "체력", "움직", "헬스", "러닝", "달리기", "기상", "탈출"]],
+      ["social", ["전화", "연락", "약속", "대화", "답장", "소통", "결혼식", "모임", "친구", "만남"]]
     ];
     return groups.find(([, words]) => words.some(word => value.includes(word)))?.[0] || "other";
+  }
+
+  // 같은 칭호가 연달아 붙으면 자동 생성 티가 난다. 최근 기록에 쓰인 칭호는 풀에서 건너뛴다.
+  function freshNickname(pool, seed) {
+    const recent = state.records.slice(0, 3).map(record => record.nickname).filter(Boolean);
+    for (let step = 0; step < pool.length; step += 1) {
+      const candidate = pool[((seed >>> 5) + step) % pool.length];
+      if (!recent.includes(candidate)) return candidate;
+    }
+    return pool[(seed >>> 5) % pool.length];
   }
 
   function highestButlerObsession() {

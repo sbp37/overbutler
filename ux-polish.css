@@ -217,8 +217,15 @@ select { font-size: max(16px, 1em); }
 }
 
 .office-record-card::after { display: none; }
+/* 날짜 한 줄이 들어갈 만큼만 번호 칸을 넓힌다. */
+.office-record-card { grid-template-columns: 62px minmax(0, 1fr) 76px; }
+@media (max-width: 360px) {
+  .office-record-card { grid-template-columns: 58px minmax(0, 1fr) 70px; }
+  .record-number span { font-size: 9px; }
+}
 .record-number b { font-size: 21px; }
-.record-number span { font-size: 10px; }
+/* 좁은 칸에서 "2026.08.16"이 "2026.08.1 / 6"으로 접히던 것을 막는다. */
+.record-number span { font-size: 10px; white-space: nowrap; }
 .record-main { padding: 11px 9px; }
 .record-main strong {
   display: -webkit-box;
