@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "2.19.0";
+  const APP_VERSION = "2.18.0";
   const UPDATE_NOTES = [{
     version: APP_VERSION,
     items: [
@@ -2096,8 +2096,9 @@
       const butler = sample.butler || snapshotButler(sample);
       const deeds = entries.map(entry => entry.deed || entry.todos?.[0]).filter(Boolean);
       const reflection = [...entries].reverse().find(entry => entry.reflection)?.reflection || diaryReflection(butler.character, entries, sample.ownerName);
-      // PASS 2 이후 생성된 오늘치만 봉인한다. 필드가 없는 기존/legacy 일기는 계속 공개한다.
-      const sealed = nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
+      // 당일 혼합 그룹은 기존 공개 상태를 보존한다. 신규 항목만 있는 그룹부터 봉인한다.
+      const hasLegacyEntry = entries.some(entry => nonNegativeInteger(entry.diaryRevealVersion) === 0);
+      const sealed = !hasLegacyEntry && nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
       const teaser = sealed ? diaryTeaser(butler.character, entries) : null;
       const body = sealed
         ? `<section class="diary-teaser"><span>${escapeHtml(teaser.kicker)}</span><strong>${escapeHtml(teaser.count)}</strong><blockquote>${escapeHtml(teaser.quote)}</blockquote><small>${escapeHtml(teaser.release)}</small></section>`
