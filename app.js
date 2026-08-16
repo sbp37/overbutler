@@ -42,7 +42,9 @@
     giftCosts: Object.freeze([10, 20, 35, 55, 80, 110, 150, 210, 300]),
     rareRollDivisor: 31,
     rarePityAfter: 24,
-    powerChanceByStage: Object.freeze([12, 18, 24, 32, 40, 40])
+    // 파워 주접은 "가끔 만나는 이벤트"여야 한다. 예전 값(12~40%)에 아래 firstInCategory
+    // 보장까지 겹쳐서 실측 발생률이 48~59%였다. 절반이 파워면 그게 기본값이지 이벤트가 아니다.
+    powerChanceByStage: Object.freeze([6, 8, 10, 12, 14, 14])
   });
   const CATEGORY_NICKNAMES = {
     hygiene: ["씻기의 지배자", "청결 문명의 수호자", "거품을 다스린 자"],
@@ -94,12 +96,15 @@
     cat: {
       name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "도도한 척하며 규정 핑계로 특별대우", personality: "규정 핑계 츤데레형", specialty: "안 보는 척하면서 다 챙김",
       briefings: ["왔냥? 네 자리 비워뒀다냥. 먼저 챙긴 건 업무상이다냥.", "오늘 한 일 말해봐냥. 별거 아니어도 집사가 들어준다냥.", "또 왔냥? 기록칸이랑 쉴 자리 둘 다 비워뒀다냥."],
+      // 웃음은 볼륨이 아니라 "사무국이 이런 걸 굳이 공식 대업으로 올린다"는 부조리와
+      // 아닌 척 챙기는 태도에서 나온다. 단계가 올라가도 목소리는 그대로고,
+      // 숨기던 마음이 더 들킬 뿐이다. docs/BUTLER-VOICE.md 참고.
       praise: [
-        ["{deed} 접수!! 규정에 따라 인류사적 대업으로 분류했다냥!! 이의 신청은 안 받는다냥!!", "{deed}?! 사무국 기준 최고 등급이다냥!! 도장 세 개 찍었다냥!! 🐾"],
-        ["{deed} 해냈다냥!! 집사 심장 터질 뻔했다냥!! 이건 규정 때문이다냥!! 💕", "{deed}의 신이다냥!! 피카소도 울고 가겠다냥!!"],
-        ["{deed} 또 왔다냥!! 접수 장부에 벌써 여러 번이다냥!! …장부가 그렇다는 거다냥 🐾", "{deed}?!?! 다른 서류는 안 그런데 주인님 파일만 눈에 띈다냥!! 이상하다냥!!"],
-        ["{deed} 완료!!! 사내 게시판에 붙였다냥!!! 내리라는 공문은 재검토 요청했다냥!!!", "{deed} 해낸 주인님... 감사실에 우주 최고라고 결재 올렸다냥!!! 반려당해도 또 올린다냥!!"],
-        ["{deed}!!!! 칭찬 상한 초과로 시말서 쓰는 중이다냥!!!! 시말서에도 주인님 칭찬 적었다냥!!!! 💕", "{deed}... 주인님 전용 특례 조항이 공식 승인됐다냥. …사실 처음부터 규정은 상관없었다냥 🐾"]
+        ["{deed} 확인했다냥. 이걸 공식 대업으로 올리냐고? …집사가 이미 도장 찍었다냥.", "{deed} 접수했다냥. 별것 아닌 것 같아도 오늘 장부에는 넣겠다냥. 반박은 접수 안 한다냥.", "잘했네냥. 기록은… 해두겠다냥."],
+        ["{deed}라니. 좀 대단하긴 하네냥. 아주 조금이다냥.", "{deed} 접수. 사무국 서식상 대업란에 적을 수밖에 없다냥. 규정이 그렇다냥.", "오늘은 {deed}냥? …나쁘지 않다냥, {owner}. 도장은 벌써 찍어뒀다냥."],
+        ["{deed} 또 올라왔다냥. 접수 장부에 벌써 몇 번째다냥. …장부가 그렇다는 거다냥.", "{deed} 접수했다냥. 다른 서류는 이렇게 안 보는데 네 것만 두 번 읽었다냥. 이상하다냥.", "{deed} 확인. 왜 이런 걸 굳이 대업란에 적고 있는지 집사도 모르겠다냥."],
+        ["{deed}… 이런 거까지 내가 왜 챙기고 있냥. 네 기록이라 그런가보다냥.", "{deed} 결재 올렸다냥. 순서를 앞으로 당긴 건 그냥 손에 먼저 잡혀서다냥.", "{deed} 접수했다냥. 이 정도는 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥."],
+        ["오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 이상하게 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥. 사무국엔 일반 건으로 올렸다냥. …실제로는 아니다냥.", "{deed}. 네 서류만 계속 담당하겠다고 우긴 지 오래됐다냥. 사유란은 비워뒀다냥."]
       ],
       handover: "전임 집사한테 인수인계 받았다냥! 기록 다 전달받았다냥. 잘 부탁한다냥!"
     },
@@ -451,9 +456,19 @@
     ]
   };
 
+  // 파워 주접의 재미는 "평소 저런 애가 왜 저래ㅋㅋ"다. 그래서 고양이는 크게 외치는 게
+  // 아니라, 잠깐 평정심을 놓쳤다가 곧바로 수습하는 쪽으로 간다. 일반 판정 풀과 섞어
+  // 쓰면 이 대비가 사라지므로 고양이만 별도 풀을 쓴다.
+  const CAT_POWER_PRAISE = [
+    "{deed}!! …아니, 큼. 방금 건 못 들은 걸로 해라냥. 도장은 이미 세 개 찍었다냥.",
+    "{deed}라니 그건 좀—— 큼. 평정심 되찾았다냥. 결재는 아까 끝났다냥.",
+    "{deed} 확인하다 집사가 잠깐 일어섰다냥. 다시 앉았다냥. 아무 일도 없었다냥.",
+    "{deed}. …펜을 두 번 떨어뜨렸다냥. 서류가 미끄러웠다냥. 그게 다다냥."
+  ];
+
   const RARE_PRAISE = {
     ai: "[FATAL: 측정 포기] {deed} 위대함이 수치 한계 초과. {owner} 관련 평가 기준 전부 폐기함. 재작성 불가.",
-    cat: "'{deed}' 성공이라니… 측정 같은 건 포기했다냥. {owner}이 우주 최고라는 결론만 남았다냥!!!",
+    cat: "'{deed}'라니… 등급표에 적을 칸이 없다냥. 결국 측정을 포기하고 그냥 통과시켰다냥. 이런 건 집사도 처음이다냥.",
     dog: "{deed}!!!! 점수판이 터졌다멍! {owner} 최고다멍! 꼬리도 측정 장비도 전부 폭주다멍!!!",
     alien: "[본성 긴급 전문] '{deed}' 기록은 현 문명으로 측정 불가. {owner}을 은하 기준 단위로 새로 지정 요청함.",
     ninja: "{deed}... 기존 등급으로는 기록할 수 없다. {owner}의 이름 자체를 최고 등급으로 봉인하겠다.",
@@ -1252,6 +1267,7 @@
   function getPraise(deed, obsession = state.obsession, character = state.character, verdictType = "praise") {
     const profile = CHARACTER_PROFILES[normalizeCharacter(character)];
     if (verdictType === "rare") return templateOwner(template(RARE_PRAISE[normalizeCharacter(character)] || RARE_PRAISE.ai, deed));
+    if (verdictType === "power" && normalizeCharacter(character) === "cat") return templateOwner(template(randomItem(CAT_POWER_PRAISE), deed));
     // 티어는 "주접의 세기"가 아니라 "주접의 사유"다. docs/BUTLER-VOICE.md 참고.
     // T0은 규정을 핑계로 한 몰개성 풀볼륨이고, 장부 인용·기관 동원 같은
     // 개인화 카드는 관계가 쌓인 뒤에만 나와야 하므로 신규 사용자는 T0에서 시작한다.
@@ -1259,6 +1275,10 @@
     const powerFloor = verdictType === "power" ? 1 : 0;
     const tier = clamp(Math.max(powerFloor, baseTier), 0, profile.praise.length - 1);
     const line = templateOwner(template(randomItem(profile.praise[tier]), deed));
+    // 고양이는 호칭을 앞에 강제로 붙이지 않는다. "별이 주인님, 잘했네냥"처럼
+    // 격식 있는 호명이 앞에 붙으면 덤덤한 츤데레 톤이 공지문처럼 굳는다.
+    // 이름을 부를 자리는 대사 안에 {owner}로 직접 넣는다.
+    if (normalizeCharacter(character) === "cat") return line;
     return line.includes(ownerDisplayName()) ? line : `${ownerDisplayName()}, ${line}`;
   }
 
@@ -2525,11 +2545,11 @@
     const score = 96 + (seed % 4);
     const rare = !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
     const powerThreshold = BALANCE.powerChanceByStage[stageIndexFor(obsession)];
-    // 파워 주접은 사건이어야 한다. 점수를 96점 위로 올린 뒤로 99점이 네 번에 한 번씩 나와
-    // 점수 조건이 발동률을 절반 가까이 끌어올렸으므로 뺀다. 대신 처음 접수하는 분야는
-    // 무조건 폭주시켜, 새 영역을 열었을 때 확실히 터지게 한다.
-    const firstInCategory = !duplicate && !state.records.some(record => record.category === category);
-    const power = rare || firstInCategory || ((seed >>> 8) % 100) < powerThreshold;
+    // 파워 주접은 사건이어야 한다. 보장 발동은 전부 걷어냈다 — 예전에는 "처음 접수하는
+    // 분야"를, 그다음에는 "생애 첫 접수"를 무조건 폭주시켰는데, 어느 쪽이든 사용자가
+    // 캐릭터를 처음 만나는 자리에서 흥분한 고양이부터 보게 된다. 첫 대업도 나머지와
+    // 같은 확률을 탄다.
+    const power = rare || ((seed >>> 8) % 100) < powerThreshold;
     const praiseGrades = ["인류사적 대업", "국가적 성취", "집사 가문 경사"];
     const grade = rare ? "설명 불가한 위업" : power ? "우주 최초 기록" : praiseGrades[(seed >>> 3) % praiseGrades.length];
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;

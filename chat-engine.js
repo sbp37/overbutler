@@ -399,6 +399,45 @@
     // 계획 언급 없이 그냥 뒤에서 톤만 풀린 경우.
     general: mood => `${toneShiftOpener(mood)}. 근데 뒷말 들어보니 지금은 다시 좀 풀린 거 같다냥 ㅋㅋ 그럼 됐다냥.`
   };
+  // 분류에 안 걸리는 이야기(STORY)가 전부 "응, 듣고 있다냥" 한 줄로 떨어지면
+  // 답이 즉시 보여도 "듣긴 들은 건가?" 싶어진다. 입력 분류는 그대로 두고,
+  // 사용자가 실제로 쓴 것(애썼다 / 바란다)만 가볍게 되받는 고양이 답변을 고른다.
+  // 사용자가 안 쓴 사실은 만들지 않고, 결과를 낙관해서 단정하지도 않는다.
+  const CAT_EFFORT_CUE = /열심|애썼|애쓰|최선|노력|빡세|바빴|바쁘|달렸|버텼|해냈|끝냈|마무리|매달렸/;
+  const CAT_HOPE_CUE = /좋겠|됐으면|되면\s*좋|잘\s*됐|바란다|바래|바라고|기대|기원|붙었으면|성공했으면/;
+  const CAT_STORY_FALLBACK = {
+    // 애쓴 것 + 아직 모르는 결과를 둘 다 언급한 경우. 결과는 절대 단정하지 않는다.
+    effortHope: [
+      "오늘 꽤 열심히 했구냥. 결과는 아직 모르겠지만 네가 애쓴 건 집사가 들었다냥. 좋은 소식 생기면 와서 말해라냥.",
+      "고생한 건 알겠다냥. 결과가 어떻게 될지는 집사도 모른다냥. 다만 오늘 몫은 네가 이미 다 했다냥.",
+      "애쓴 이야기는 접수했다냥. 결과란은 아직 비워뒀다냥. 나오면 그때 채우러 와라냥."
+    ],
+    effort: [
+      "오늘 꽤 달렸구냥. 그 정도면 충분하다냥. 기록은 해두겠다냥.",
+      "애쓴 티가 나는 하루다냥. 집사는 다 들었다냥. 이제 좀 앉아라냥.",
+      "그렇게까지 했냥? …수고했다냥. 딱히 걱정한 건 아니다냥."
+    ],
+    hope: [
+      "그렇게 됐으면 좋겠다는 거구냥. 집사가 장담할 수 있는 건 없지만, 그 말은 적어뒀다냥.",
+      "바라는 게 있구냥. 되면 제일 먼저 와서 말해라냥. …기다린다는 뜻은 아니다냥.",
+      "결과는 집사 소관이 아니다냥. 그래도 그 얘긴 접수해두겠다냥."
+    ],
+    plain: [
+      "그런 하루였구냥. 집사는 다 들었다냥. 더 있으면 마저 말해라냥.",
+      "듣고 있다냥. 별거 아닌 것 같아도 접수는 해둔다냥.",
+      "그렇구냥. 오늘 이야기는 여기 적어두겠다냥."
+    ]
+  };
+  function catStoryFallback(text) {
+    const value = String(text || "");
+    const effort = CAT_EFFORT_CUE.test(value);
+    const hope = CAT_HOPE_CUE.test(value);
+    if (effort && hope) return CAT_STORY_FALLBACK.effortHope;
+    if (effort) return CAT_STORY_FALLBACK.effort;
+    if (hope) return CAT_STORY_FALLBACK.hope;
+    return CAT_STORY_FALLBACK.plain;
+  }
+
   // 완료 행동 없이 계획만 있는 문장. 대업으로 올리지 않는다는 걸 직접 말해준다.
   const CAT_FUTURE_PLAN_ONLY = snippet => `‘${snippet}’ 소리 접수했다냥. 아직 안 한 건 대업으로 안 올린다냥. 하고 나서 다시 알려달라냥.`;
   // 완료 행동이 여러 개 잡힌 경우(ACTION_LIST). 하나만 조용히 뽑아가지 않고
@@ -525,6 +564,9 @@
     const toneShiftOverride = key === "cat" && result.toneShift;
     const futurePlanOverride = key === "cat" && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
     const multiActivityOverride = key === "cat" && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
+    const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
+      && result.intent === "fallback" && !result.achievementCandidate
+      ? catStoryFallback(result.text || message) : null;
     let base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
     if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
     else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.mood, result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general(result.mood);
@@ -533,7 +575,7 @@
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
     const bypassPools = toneShiftOverride || futurePlanOverride || multiActivityOverride;
     const endings = ENDINGS[key] || ENDINGS.cat;
-    const extra = bypassPools ? [] : [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
+    const extra = bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${tail}`])
