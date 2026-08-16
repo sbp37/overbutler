@@ -28,7 +28,11 @@ assert.equal(analyzed["결혼식 다녀왔는데 너무 힘들었어"].achieveme
 assert.equal(analyzed["오늘 결혼식 갔는데 생각보다 안 힘들었어"].mood, null);
 assert.equal(analyzed["오늘 결혼식 갔는데 생각보다 안 힘들었어"].responseMode, "achievement");
 assert.equal(analyzed["회사 개힘들었다"].mood, "tired");
-assert.equal(analyzed["회사 개힘들었다"].achievementCandidate, true);
+// "회사 업무를 해냄" 규칙이 예전엔 "힘들"만 보고도 완료 활동으로 잡아서, 완료 행동이
+// 하나도 없는 순수 감정 토로("힘들었다")까지 achievementCandidate=true로 새는 버그가
+// 있었다(EMOTION_ONLY가 대업 판정으로 흘러들어감). "일/업무/발표/회의/야근/버텼/칭찬"처럼
+// 실제로 뭔가 했다는 서술이 없으면 완료로 보지 않는 게 맞는 동작이다.
+assert.equal(analyzed["회사 개힘들었다"].achievementCandidate, false);
 assert.equal(analyzed["나 이제 집왔어"].achievementCandidate, false);
 assert.ok(analyzed["나 이제 집왔어"].intents.includes("commute"));
 assert.ok(analyzed["씻었다"].intents.includes("hygiene"));
@@ -58,5 +62,26 @@ for (const quickInput of ["침대에서 일어남", "물 한 잔 마심", "미�
 for (const negatedActivity of ["오늘 운동은 안 했어", "결혼식 안 갔어", "밥 못 먹었어"]) {
   assert.equal(analyzeUserMessage(negatedActivity).achievementCandidate, false, negatedActivity);
 }
+
+// 완료 행동 + 같은 행동의 미래 계획이 한 문장에 같이 있는 경우. 완료 절과 미래 절이
+// 뒤섞여 하나로 뭉개지면 안 된다 — 완료는 completedActions(activities)에,
+// 계획은 futurePlans에 각각 남아야 한다.
+const exerciseMix = analyzeUserMessage("오늘 운동했고 내일 또 운동할 거야");
+assert.deepEqual(exerciseMix.activities, ["운동 완료"]);
+assert.equal(exerciseMix.achievementCandidate, true);
+assert.equal(exerciseMix.futurePlans.length, 1);
+assert.equal(exerciseMix.futurePlans[0].label, "운동 완료");
+
+const mealMix = analyzeUserMessage("밥 먹었고 저녁엔 치킨 먹을 거야");
+assert.deepEqual(mealMix.activities, ["식사 챙김"]);
+assert.equal(mealMix.achievementCandidate, true);
+assert.equal(mealMix.futurePlans.length, 1);
+assert.equal(mealMix.futurePlans[0].label, "식사 챙김");
+
+const hygieneMix = analyzeUserMessage("씻었고 내일도 씻을 거야");
+assert.deepEqual(hygieneMix.activities, ["씻기 완료"]);
+assert.equal(hygieneMix.achievementCandidate, true);
+assert.equal(hygieneMix.futurePlans.length, 1);
+assert.equal(hygieneMix.futurePlans[0].label, "씻기 완료");
 
 console.log("message-interpreter: all scenarios passed");

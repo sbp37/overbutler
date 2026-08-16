@@ -865,6 +865,7 @@
   let focusReturnTarget = null;
   let catHomeOffsetX = 0;
   let catHomeDrag = null;
+  let catHomeDragged = false;
   let catHomeInitialized = false;
   let catHomeSpeechTimer = null;
   let catHomeBlinkTimer = null;
@@ -1377,6 +1378,8 @@
     const returned = returnVisitLine();
     returnVisitContext.consumed = true;
     typeMessage($("#briefing-message"), returned ? `${greeting}\n${returned}` : greeting);
+    // 홈 상단은 접수대 방 하나로 정리했다. 인사는 카드가 아니라 집사 말풍선으로 나간다.
+    window.setTimeout(() => showCatHomeSpeech(returned || greeting, 4200), 420);
   }
 
   function cycleBriefing() {
@@ -1636,10 +1639,7 @@
     });
     $("#main-screen").classList.toggle("home-active", name === "home");
     $("#main-screen").dataset.currentView = name;
-    if (name === "manager" && state.character === "cat") {
-      closeManagerDetails(false);
-      window.requestAnimationFrame(configureCatHome);
-    }
+    if (name === "home" && state.character === "cat") window.requestAnimationFrame(configureCatHome);
     if (name === "archive" && ["records", "diary", "certificates"].includes(navKey)) showArchiveTab(navKey);
     trackEvent("view_change", { view: name, tab: navKey });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1720,7 +1720,7 @@
     const entry = $("#view-home .entry-form");
     $("#first-deed-guide").hidden = !pending;
     entry.classList.toggle("first-run-entry", pending);
-    $("#entry-kicker").textContent = pending ? "첫 이야기 접수 · FORM 01" : "오늘 이야기 접수처 · FORM 01";
+    $("#entry-kicker").textContent = pending ? "첫 이야기 접수 · 창구 01" : "오늘 이야기 접수처 · 창구 01";
     $("#entry-description").textContent = pending
       ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 괜찮아요.`
       : "잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.";
@@ -2229,7 +2229,7 @@
 
   function scheduleCatHomeBlink() {
     window.clearTimeout(catHomeBlinkTimer);
-    if (state.character !== "cat" || $("#manager-cat-home")?.hidden) return;
+    if (state.character !== "cat" || $("#home-butler-room")?.hidden) return;
     catHomeBlinkTimer = window.setTimeout(() => {
       if (state.character !== "cat" || catHomeDrag) return;
       const image = $("#cat-home-character-image");
@@ -2239,36 +2239,19 @@
     }, 6500 + Math.floor(Math.random() * 4500));
   }
 
-  // 방을 열자마자 관계가 어디쯤인지 보이게 한다. 이 탭에서 제일 궁금한 값인데
-  // 지금까지는 "집사 정보" 칩을 눌러야만 나왔다.
-  function renderCatHomeStatus() {
-    const strip = $("#cat-home-status");
-    if (!strip) return;
-    const stage = relationshipStageFor(state.obsession);
-    const next = RELATIONSHIP_STAGES[stageIndexFor(state.obsession) + 1];
-    const remaining = pointsToNextStage(state.obsession);
-    $("#cat-home-status-stage").textContent = stage.name;
-    $("#cat-home-status-value").textContent = state.obsession;
-    $("#cat-home-status-fill").style.width = `${clamp(state.obsession, 0, 100)}%`;
-    $("#cat-home-status-next").textContent = next
-      ? `다음 관계 · ${next.name}까지 과몰입 ${remaining}`
-      : "전담 확정 · 더 오를 단계 없음";
-    // 한 번이라도 만져본 사람에게는 조작 힌트를 더 보여주지 않는다.
-    const hint = $("#cat-home-hint");
-    if (hint) hint.hidden = Boolean(state.catHomeHintDone);
-  }
-
   function configureCatHome() {
+    // 접수대 방은 홈 맨 위에 상주한다. 집사 탭은 어느 집사든 상세 기록카드를 바로 연다.
     const isCat = state.character === "cat";
-    $("#manager-cat-home").hidden = !isCat;
-    if (isCat) renderCatHomeStatus();
-    $("#view-manager").classList.toggle("cat-home-active", isCat);
+    const room = $("#home-butler-room");
+    if (room) room.hidden = !isCat;
+    $("#manager-details").classList.add("is-open");
+    $("#view-manager").classList.remove("cat-home-active", "details-open");
     if (!isCat) {
-      $("#manager-details").classList.add("is-open");
-      $("#view-manager").classList.remove("details-open");
       window.clearTimeout(catHomeBlinkTimer);
       return;
     }
+    const panHint = $("#room-pan-hint");
+    if (panHint) panHint.hidden = Boolean(state.catHomeHintDone);
     window.requestAnimationFrame(() => {
       const room = $("#cat-home-room");
       if (!room?.clientWidth) return;
@@ -2294,11 +2277,12 @@
     return stageLines[stat.interactions % stageLines.length];
   }
 
-  function showCatHomeSpeech(message) {
+  function showCatHomeSpeech(message, holdFor = 2800) {
     const speech = $("#cat-home-speech");
     const character = $("#cat-home-character");
     const image = $("#cat-home-character-image");
     if (!speech || !character || state.character !== "cat") return;
+    if ($("#home-butler-room")?.hidden) return;
     window.clearTimeout(catHomeSpeechTimer);
     speech.textContent = message;
     positionCatHomeSpeech();
@@ -2311,11 +2295,11 @@
     catHomeSpeechTimer = window.setTimeout(() => {
       speech.classList.remove("is-visible");
       character.classList.remove("is-reacting");
-    }, 2800);
+    }, holdFor);
   }
 
   function dismissCatHomeHint() {
-    const hint = $("#cat-home-hint");
+    const hint = $("#room-pan-hint");
     if (hint) hint.hidden = true;
     if (state.catHomeHintDone) return;
     state.catHomeHintDone = true;
@@ -2333,8 +2317,13 @@
   }
 
   function startCatHomeDrag(event) {
-    if (state.character !== "cat" || event.button > 0 || event.target.closest("button")) return;
-    catHomeDrag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startOffset: catHomeOffsetX, moved: false };
+    if (state.character !== "cat" || event.button > 0) return;
+    catHomeDragged = false;
+    catHomeDrag = {
+      pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+      startOffset: catHomeOffsetX, moved: false,
+      onCharacter: Boolean(event.target.closest("#cat-home-character"))
+    };
     $("#cat-home-room").classList.add("is-dragging");
     $("#cat-home-world").classList.remove("is-settling");
     $("#cat-home-world").setPointerCapture?.(event.pointerId);
@@ -2356,9 +2345,14 @@
 
   function endCatHomeDrag(event) {
     if (!catHomeDrag || event.pointerId !== catHomeDrag.pointerId) return;
+    const { moved, onCharacter } = catHomeDrag;
+    catHomeDragged = moved;
     catHomeDrag = null;
     $("#cat-home-room").classList.remove("is-dragging");
     setCatHomeOffset(catHomeOffsetX, true);
+    // 방을 잡아 끌 수 있게 하려고 포인터를 월드에 캡처하는 탓에 집사 버튼의 click이
+    // 오지 않는다. 밀지 않고 뗀 경우는 여기서 직접 말을 건다.
+    if (!moved && onCharacter) interactWithCatHome();
   }
 
   function openManagerDetails(target = "info") {
@@ -2591,6 +2585,7 @@
       $("#char-count").textContent = "0";
       hideGentleNote();
       typeMessage($("#briefing-message"), interpreted.reply, 18);
+      showCatHomeSpeech(interpreted.reply, 5200);
       achievementSubmissionActive = false;
       reportButton.disabled = false;
       reportButton.removeAttribute("aria-busy");
@@ -2658,7 +2653,9 @@
     pendingEvaluation = null;
     const messageAnalysis = pendingMessageAnalysis;
     pendingMessageAnalysis = null;
-    const pose = quiet ? (options.mode === "comfort" ? "base" : "analysis") : evaluation.power ? "power" : "praise";
+    // 하트눈(power 아트)은 부담스럽다는 피드백에 따라 측정 포기급 희귀 판정에만 쓴다.
+    // 파워 주접도 결과서 서식(FORM 05-P)은 유지하되 표정은 차분한 칭찬 포즈로 간다.
+    const pose = quiet ? (options.mode === "comfort" ? "base" : "analysis") : evaluation.rare ? "power" : "praise";
     const butler = snapshotButler();
     const report = getPraise(deed, nextObsession, butler.character, evaluation.verdictType);
     const reactionLines = normalizeReactionLines(quiet ? options.reply : report, report);
@@ -2742,20 +2739,22 @@
     });
     $("#achievement-input").value = "";
     $("#char-count").textContent = "0";
-    $("#analysis-overlay").hidden = true;
-    document.body.style.overflow = "";
     achievementSubmissionActive = false;
     $("#report-button").disabled = false;
     $("#report-button").removeAttribute("aria-busy");
     if (!quiet) $("#briefing-message").textContent = record.report;
     render({ animateStamp: !duplicate });
     if (quiet) {
+      $("#analysis-overlay").hidden = true;
+      document.body.style.overflow = "";
       showGentleNote(record, options.mode, duplicate);
       return;
     }
     if (duplicate) showToast("같은 행동이라 도장은 제외하고 칭찬만 지급했습니다.");
-    if (duplicate) openPraiseResult(record);
-    else window.setTimeout(() => openPraiseResult(record), 720);
+    // 결과서를 먼저 열고 나서 심사창을 걷는다. 예전에는 심사창을 닫고 0.7초 뒤에
+    // 결과서를 열어서, 그 사이 칭찬 문구가 박힌 홈이 번쩍 나타났다 사라졌다.
+    openPraiseResult(record);
+    $("#analysis-overlay").hidden = true;
   }
 
   function hideGentleNote() {
@@ -2947,7 +2946,8 @@
       relationshipGain,
       "deed"
     );
-    setPoseImage($("#result-butler-image"), butler.character, power ? "power" : "praise");
+    // 히어로 아트는 기록에 저장된 포즈를 따른다. 하트눈은 희귀 판정에만 남긴다.
+    setPoseImage($("#result-butler-image"), butler.character, record.pose === "power" ? "power" : "praise");
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
     window.setTimeout(() => typeMessage($("#result-report"), record.report, rare ? 22 : 27), 240);
@@ -3792,7 +3792,11 @@
     });
     $("#manager-change-button").addEventListener("click", renderPersonnelPool);
     $("#give-gift-button").addEventListener("click", openGiftDesk);
-    $("#cat-home-character").addEventListener("click", interactWithCatHome);
+    $("#cat-home-character").addEventListener("click", () => {
+      // 방을 밀고 손을 뗀 직후의 클릭은 말 걸기가 아니다.
+      if (catHomeDragged) { catHomeDragged = false; return; }
+      interactWithCatHome();
+    });
     $("#butler-chat-form").addEventListener("submit", submitButlerChat);
     $("#butler-chat-close").addEventListener("click", closeButlerChat);
     $("#butler-chat-overlay").addEventListener("click", event => { if (event.target.id === "butler-chat-overlay") closeButlerChat(); });
@@ -3801,7 +3805,7 @@
     window.addEventListener("pointerup", endCatHomeDrag);
     window.addEventListener("pointercancel", endCatHomeDrag);
     window.addEventListener("resize", () => setCatHomeOffset(catHomeOffsetX));
-    $("#manager-cat-home").addEventListener("click", event => {
+    $("#view-manager").addEventListener("click", event => {
       const trigger = event.target.closest("[data-cat-home-action]");
       if (trigger) handleCatHomeAction(trigger.dataset.catHomeAction);
     });

@@ -23,6 +23,9 @@
 .archive-title-row>div>span{display:block;color:#8b2639;font-size:9px;font-weight:850;letter-spacing:.12em}
 .archive-title-row h1{margin:5px 0 0;color:#392e2d;font:850 27px/1.08 "Noto Serif KR",serif;letter-spacing:-.055em}
 .archive-title-row time{padding:7px 9px;border:1px solid #d5c5b2;border-radius:99px;background:#faf4eb;color:#6f6159;font-size:11px;font-weight:750;white-space:nowrap}
+/* 주간 보고서는 홈 하단 카드 더미에서 여기로 옮겨왔다. 기록 화면의 유일한 추가 요소. */
+.archive-title-aside{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.archive-report-link{min-height:32px;padding:0 2px;border:0;background:transparent;color:#7f2637;font-size:11px;font-weight:850;white-space:nowrap}
 #view-archive .archive-tabs{display:grid;grid-template-columns:repeat(3,1fr);margin:13px 0 14px;border:1px solid #cdbda9;border-radius:8px;overflow:hidden}
 #view-archive .archive-tabs button{min-height:44px;border:0;border-right:1px solid #d6c8b7;background:#f5eee5;color:#776a62;font-size:13px;font-weight:800}
 #view-archive .archive-tabs button:last-child{border-right:0}
