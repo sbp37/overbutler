@@ -2545,11 +2545,11 @@
     const score = 96 + (seed % 4);
     const rare = !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
     const powerThreshold = BALANCE.powerChanceByStage[stageIndexFor(obsession)];
-    // 파워 주접은 사건이어야 한다. 예전에는 "처음 접수하는 분야"를 전부 폭주시켰는데,
-    // 분야가 8개뿐이라 신규 사용자의 첫 주가 파워로 도배됐다. 캐릭터의 첫인상이
-    // 만들어지는 구간에서 정확히 반대 효과가 났으므로, 보장은 생애 첫 접수 한 번만 남긴다.
-    const firstEverRecord = !duplicate && state.records.length === 0;
-    const power = rare || firstEverRecord || ((seed >>> 8) % 100) < powerThreshold;
+    // 파워 주접은 사건이어야 한다. 보장 발동은 전부 걷어냈다 — 예전에는 "처음 접수하는
+    // 분야"를, 그다음에는 "생애 첫 접수"를 무조건 폭주시켰는데, 어느 쪽이든 사용자가
+    // 캐릭터를 처음 만나는 자리에서 흥분한 고양이부터 보게 된다. 첫 대업도 나머지와
+    // 같은 확률을 탄다.
+    const power = rare || ((seed >>> 8) % 100) < powerThreshold;
     const praiseGrades = ["인류사적 대업", "국가적 성취", "집사 가문 경사"];
     const grade = rare ? "설명 불가한 위업" : power ? "우주 최초 기록" : praiseGrades[(seed >>> 3) % praiseGrades.length];
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
