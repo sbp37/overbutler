@@ -282,9 +282,11 @@
     fairy: "design/character-assets/fairy-butler/fairy-butler-reference.png"
   };
 
-  const INITIAL_OWNED_BUTLERS = ["ai", "cat", "dog"];
-  const APPLICANT_ORDER = ["fairy", "star", "witch", "fox"];
+  // 무료 기본 인력은 고양이 집사 1명. AI 집사는 요건 충족 시 지원서가 도착하는 첫 해금 집사다.
+  const INITIAL_OWNED_BUTLERS = ["cat"];
+  const APPLICANT_ORDER = ["ai", "fairy", "star", "witch", "fox"];
   const APPLICANT_REQUIREMENTS = {
+    ai: { deeds: 3, obsession: 10, days: 1 },
     fairy: { deeds: 3, obsession: 12, days: 1 },
     star: { deeds: 8, obsession: 25, gifts: 1, categories: 2, days: 2 },
     witch: { deeds: 18, obsession: 45, gifts: 4, categories: 4, days: 5 },
@@ -796,7 +798,7 @@
   };
 
   const DEFAULT_STATE = {
-    username: "", butlerName: "오류봇", character: "ai", points: 0, emotion: 5,
+    username: "", butlerName: "치즈냥", character: "cat", points: 0, emotion: 5,
     totalTodos: 0, totalGifts: 0, streak: 0, lastActiveDate: null,
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
@@ -806,7 +808,7 @@
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
-    butlerObsession: { ai: 5, cat: 5, dog: 5, fairy: 5 },
+    butlerObsession: { cat: 5 },
     chatMemory: { character: "", lastMood: null, recentKeywords: [], recentTopics: [], recentActivities: [], turnCount: 0, previousUserMessage: "", previousIntent: "", recentReplies: [] },
     schemaVersion: APP_VERSION
   };
@@ -885,7 +887,7 @@
   }
 
   function normalizeCharacter(key) {
-    return CHARACTER_PROFILES[key] ? key : "ai";
+    return CHARACTER_PROFILES[key] ? key : "cat";
   }
 
   function snapshotButler(source = state) {
@@ -962,7 +964,7 @@
   function normalizeState(rawState) {
     const raw = objectValue(rawState);
     const merged = { ...DEFAULT_STATE, ...raw };
-    merged.character = normalizeCharacter(merged.character || "ai");
+    merged.character = normalizeCharacter(merged.character || "cat");
     merged.username = storedText(raw.username).trim();
     merged.butlerName = storedText(merged.butlerName, CHARACTER_PROFILES[merged.character].defaultName).trim() || CHARACTER_PROFILES[merged.character].defaultName;
     merged.obsession = finiteNumber(raw.obsession ?? raw.emotion, 5, 0, 100);
@@ -1568,15 +1570,15 @@
     state.username = username;
     state.onboarded = true;
     state.lastActiveDate = today();
-    state.character = "ai";
-    state.butlerName ||= CHARACTER_PROFILES.ai.defaultName;
-    const stat = ensureButlerStat("ai");
+    state.character = "cat";
+    state.butlerName ||= CHARACTER_PROFILES.cat.defaultName;
+    const stat = ensureButlerStat("cat");
     if (stat.assignments === 0) {
       stat.assignments = 1;
       stat.firstAssignedAt = new Date().toISOString();
     }
     stat.lastAssignedAt = new Date().toISOString();
-    markActiveDay("ai");
+    markActiveDay("cat");
     if (!saveState()) { input?.focus(); return; }
     trackEvent("onboarding_complete", { character: state.character });
     $("#assignment-screen").hidden = true;
@@ -3569,7 +3571,7 @@
       if (state.rerolled) { showToast("재추첨권을 이미 소진했습니다."); return; }
       state.rerolled = true;
       if (!saveState()) return;
-      showToast("재추첨 결과: 또 오류봇입니다. 계약서가 너무 빨랐습니다.");
+      showToast("재추첨 결과: 또 치즈냥입니다. 계약서가 너무 빨랐습니다.");
     });
     $$("[data-view]").forEach(button => button.addEventListener("click", () => showView(button.dataset.view, button.dataset.nav || button.dataset.archiveTab)));
     $$("[data-quick]").forEach(button => button.addEventListener("click", () => { $("#achievement-input").value = button.dataset.quick; $("#char-count").textContent = button.dataset.quick.length; }));
@@ -3709,7 +3711,7 @@
     $("#app-version").textContent = APP_VERSION;
     trackEvent("app_open", { onboarded: state.onboarded, character: state.character, preview: Boolean(previewMode) });
     if (forceOnboardingPreview) {
-      setPoseImage($(".assignment-character"), "ai", "base");
+      setPoseImage($(".assignment-character"), "cat", "base");
     } else {
       saveState();
       startTimeBriefing();
