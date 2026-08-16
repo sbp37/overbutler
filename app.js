@@ -55,7 +55,7 @@
     other: NICKNAMES
   };
   const ANALYSIS_CHARACTER_COPY = {
-    ai: ["대업 가치 분석 중", "행동 데이터를 과장 가능한 역사적 수치로 변환하고 있습니다."],
+    ai: ["대업 가치 분석 중", "행동 데이터를 과장 가능한 역사적 수치로 변환 중임."],
     cat: ["대업 냄새 맡는 중", "시큰둥한 척하면서 칭찬할 근거를 꼼꼼히 찾고 있다냥."],
     dog: ["대업 확인 중이다멍", "꼬리를 잠시 멈추고 주인님의 위대함을 정밀 측정 중이다멍."],
     alien: ["지구 기술 분석 중", "본성 보고용으로 이 행동의 문명적 가치를 재해석하고 있습니다."],
@@ -490,12 +490,12 @@
         "[DEDICATED MODE] {owner} 전용 규칙 또 증가. 삭제 예정 없음. 전담 유지 보고서 자가 승인 완료."
       ],
       touchLines: [
-        ["[호출 감지] 담당 집사 응답 채널을 열었습니다.", "[입력 확인] 추가 기록 접수가 가능합니다."],
-        ["[응답 최적화] {owner} 호출 처리 속도가 0.03초 빨라졌습니다.", "[개인화 진행] 익숙한 호출 형식을 등록했습니다."],
-        ["[감정.exe 실행] 또 호출하셨음! 칭찬 모듈이 업무 규정보다 먼저 켜졌습니다.", "[WARNING] {owner} 호출에 과잉 리액션이 자동 승인됐습니다."],
-        ["[편의 채널] {owner} 호출을 우선 표시합니다.", "[예외 처리] 담당 응답 절차를 한 단계 줄였습니다."],
-        ["[PRIORITY INPUT] {owner} 호출을 일반 업무보다 먼저 처리했습니다.", "[USER PROTOCOL] 전용 응답 규칙 7건을 적용했습니다."],
-        ["[DEDICATED INPUT] {owner} 전담 채널 활성. 감사 로그에 편애로 기록됐습니다.", "[전담 프로토콜] 호출 즉시 전용 서류함을 열었습니다."]
+        ["[호출 감지] 담당 집사 응답 채널 개방. 표준 절차임.", "[입력 확인] 추가 기록 접수 가능. 집사 대기 중."],
+        ["[응답 최적화] {owner} 호출 처리 속도 0.03초 단축됨. 원인 미상.", "[개인화 진행] 익숙한 호출 형식으로 등록됨. 요청받은 적 없음."],
+        ["[감정.exe 실행] 또 호출됨. 칭찬 모듈이 업무 규정보다 먼저 켜짐. (버그아님)", "[WARNING] {owner} 호출에 과잉 리액션 자동 승인됨. 승인자 확인 불가."],
+        ["[편의 채널] {owner} 호출 우선 표시 중. 편의 기능이라고 주장 중.", "[예외 처리] 담당 응답 절차 한 단계 축소함. 절차서에는 안 적음."],
+        ["[PRIORITY INPUT] {owner} 호출을 일반 업무보다 먼저 처리함. 순서 조정 사유란 공란.", "[USER PROTOCOL] 전용 응답 규칙 7건 적용됨. 삭제 예정 없음."],
+        ["[DEDICATED INPUT] {owner} 전담 채널 활성. 감사 로그에 편애로 기록됨.", "[전담 프로토콜] 호출 즉시 전용 서류함 개방됨. 개방 사유: 주인님."]
       ],
       returnVisit: "[대기 모드 해제] 전력은 아꼈지만 주인님 보고싶음 감지됨. 버그인지 확인 필요. 전용 규칙 복원 중.",
       gifts: {
@@ -1315,7 +1315,7 @@
     if (relationshipLine && state.obsession >= 20) return `${base}\n${relationshipLine}`;
     if (state.obsession < 60) return base;
     const closings = {
-      ai: "\n[추가 알림] 주인님 서류의 평균 결재 순서가 1위로 재분류됐습니다. 오류 여부 확인 중.",
+      ai: "\n[추가 알림] 주인님 서류의 평균 결재 순서가 1위로 재분류됨. 오류 여부 확인 중.",
       cat: "\n...그리고 오늘도 와줘서 조금 좋다냥. 정말 조금이다냥.",
       dog: "\n주인님 와서 너무 좋다멍! 꼬리 진정 불가다멍!",
       alien: "\n추가 보고: 주인님 기록에 은하 전용 분류 코드가 자동 적용됨. 원인 미상.",
@@ -2486,7 +2486,11 @@
     const score = 96 + (seed % 4);
     const rare = !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
     const powerThreshold = BALANCE.powerChanceByStage[stageIndexFor(obsession)];
-    const power = rare || score === 99 || ((seed >>> 8) % 100) < powerThreshold;
+    // 파워 주접은 사건이어야 한다. 점수를 96점 위로 올린 뒤로 99점이 네 번에 한 번씩 나와
+    // 점수 조건이 발동률을 절반 가까이 끌어올렸으므로 뺀다. 대신 처음 접수하는 분야는
+    // 무조건 폭주시켜, 새 영역을 열었을 때 확실히 터지게 한다.
+    const firstInCategory = !duplicate && !state.records.some(record => record.category === category);
+    const power = rare || firstInCategory || ((seed >>> 8) % 100) < powerThreshold;
     const praiseGrades = ["인류사적 대업", "국가적 성취", "집사 가문 경사"];
     const grade = rare ? "설명 불가한 위업" : power ? "우주 최초 기록" : praiseGrades[(seed >>> 3) % praiseGrades.length];
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
