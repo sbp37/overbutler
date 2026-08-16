@@ -216,6 +216,17 @@ select { font-size: max(16px, 1em); }
   min-height: 104px;
 }
 
+/* 인증서가 길어서 저장·공유 버튼이 화면 밖에 묻혀 있었다. 스크롤 위치와 상관없이
+   손에 닿도록 아래에 고정한다. 이 앱이 밖으로 퍼지는 유일한 통로다. */
+.certificate-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: 4px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(239, 227, 212, 0) 0%, #efe3d4 20%, #efe3d4 100%);
+}
+
 .office-record-card::after { display: none; }
 /* 날짜 한 줄이 들어갈 만큼만 번호 칸을 넓힌다. */
 .office-record-card { grid-template-columns: 62px minmax(0, 1fr) 76px; }

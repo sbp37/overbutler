@@ -1705,10 +1705,8 @@
 
   function render(options = {}) {
     const status = certificationStatus();
+    // 홈의 3칸 통계는 헤더의 명성/과몰입과 입력칸 아래 도장 진행바가 이미 같은 숫자를 보여줘 걷어냈다.
     $("#fame-count").textContent = state.fame;
-    $("#home-fame-count").textContent = state.fame;
-    $("#home-certificate-count").textContent = state.certificates.length;
-    $("#home-today-count").textContent = state.records.filter(record => record.date === today()).length;
     $("#header-level").textContent = `과몰입 ${state.obsession}`;
     $("#stamp-count").textContent = status.progress;
     $("#stamp-target").textContent = status.target;
@@ -1723,7 +1721,6 @@
     applyCurrentButlerToUI();
     renderFirstRunGuidance();
     renderRelationshipStatus();
-    renderRecords();
     renderArchive();
     renderManager();
     renderWeeklyReport();
@@ -1732,15 +1729,6 @@
   function recordPortrait(record, pose = "base") {
     const butler = record.butler || snapshotButler(record);
     return assetFor(butler.character, pose);
-  }
-
-  function renderRecords() {
-    const list = $("#today-list");
-    if (!state.records.length) {
-      list.innerHTML = '<div class="empty-record">아직 접수된 대업이 없습니다.<br>물 한 잔 정도부터 거창하게 시작해보세요.</div>';
-      return;
-    }
-    list.innerHTML = state.records.slice(-4).reverse().map(record => `<article class="record-row"><img src="${recordPortrait(record)}" alt=""><div><strong>${escapeHtml(record.deed)}</strong><small>${escapeHtml(record.grade)} · ${escapeHtml(scoreText(record))}</small></div><span class="record-stamp">${record.stampEligible === false ? "칭찬" : "도장 +1"}</span></article>`).join("");
   }
 
   function renderArchive() {
