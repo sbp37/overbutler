@@ -63,4 +63,25 @@ for (const negatedActivity of ["오늘 운동은 안 했어", "결혼식 안 갔
   assert.equal(analyzeUserMessage(negatedActivity).achievementCandidate, false, negatedActivity);
 }
 
+// 완료 행동 + 같은 행동의 미래 계획이 한 문장에 같이 있는 경우. 완료 절과 미래 절이
+// 뒤섞여 하나로 뭉개지면 안 된다 — 완료는 completedActions(activities)에,
+// 계획은 futurePlans에 각각 남아야 한다.
+const exerciseMix = analyzeUserMessage("오늘 운동했고 내일 또 운동할 거야");
+assert.deepEqual(exerciseMix.activities, ["운동 완료"]);
+assert.equal(exerciseMix.achievementCandidate, true);
+assert.equal(exerciseMix.futurePlans.length, 1);
+assert.equal(exerciseMix.futurePlans[0].label, "운동 완료");
+
+const mealMix = analyzeUserMessage("밥 먹었고 저녁엔 치킨 먹을 거야");
+assert.deepEqual(mealMix.activities, ["식사 챙김"]);
+assert.equal(mealMix.achievementCandidate, true);
+assert.equal(mealMix.futurePlans.length, 1);
+assert.equal(mealMix.futurePlans[0].label, "식사 챙김");
+
+const hygieneMix = analyzeUserMessage("씻었고 내일도 씻을 거야");
+assert.deepEqual(hygieneMix.activities, ["씻기 완료"]);
+assert.equal(hygieneMix.achievementCandidate, true);
+assert.equal(hygieneMix.futurePlans.length, 1);
+assert.equal(hygieneMix.futurePlans[0].label, "씻기 완료");
+
 console.log("message-interpreter: all scenarios passed");

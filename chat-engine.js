@@ -386,11 +386,18 @@
 
   // 문장 전체를 읽었다는 티를 내기 위한 고양이 전용 반응. 다른 캐릭터는 기존 로직을
   // 그대로 쓴다 (docs/INPUT-ROUTING.md §15 — 이번 패스 품질 기준은 고양이 하나).
+  // toneShift 첫 문장은 실제 mood를 그대로 반영한다. "힘들었구냥"으로 뭉뚱그리면
+  // 짜증/서운함/걱정처럼 다른 감정도 전부 "힘들었다"로 읽혀버린다.
+  const TONE_SHIFT_OPENER = {
+    tired: "많이 피곤했구냥", sad: "속상했었구냥", angry: "아까는 화났었구냥",
+    worried: "고민이 있었구냥", bored: "심심했었구냥", hungry: "배고팠었구냥"
+  };
+  function toneShiftOpener(mood) { return TONE_SHIFT_OPENER[mood] || "아까는 좀 그랬구냥"; }
   const CAT_TONE_SHIFT = {
     // 앞이 부정이었다가 뒤에서 (아직 하지 않은) 계획 얘기로 살아난 경우.
-    withPlan: snippet => `오늘 좀 힘들었구냥. 근데 ‘${snippet}’ 얘기 나오는 거 보니 벌써 좀 살아난 거 같다냥 ㅋㅋ 그건 그때 가서 확실히 해내라냥.`,
+    withPlan: (mood, snippet) => `${toneShiftOpener(mood)}. 근데 ‘${snippet}’ 얘기 나오는 거 보니 벌써 좀 살아난 거 같다냥 ㅋㅋ 그건 그때 가서 확실히 해내라냥.`,
     // 계획 언급 없이 그냥 뒤에서 톤만 풀린 경우.
-    general: "힘들었다더니 뒷말은 완전 딴사람이다냥. 그래도 다시 괜찮아진 거면 됐다냥 ㅋㅋ"
+    general: mood => `${toneShiftOpener(mood)}. 근데 뒷말 들어보니 지금은 다시 좀 풀린 거 같다냥 ㅋㅋ 그럼 됐다냥.`
   };
   // 완료 행동 없이 계획만 있는 문장. 대업으로 올리지 않는다는 걸 직접 말해준다.
   const CAT_FUTURE_PLAN_ONLY = snippet => `‘${snippet}’ 소리 접수했다냥. 아직 안 한 건 대업으로 안 올린다냥. 하고 나서 다시 알려달라냥.`;
@@ -520,7 +527,7 @@
     const multiActivityOverride = key === "cat" && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
     let base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
     if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
-    else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general;
+    else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.mood, result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general(result.mood);
     else if (futurePlanOverride) base = CAT_FUTURE_PLAN_ONLY(result.futurePlans[0].snippet);
     else if (multiActivityOverride) base = CAT_MULTI_ACTIVITY(result.activities, result.achievementTitle);
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
