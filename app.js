@@ -865,6 +865,7 @@
   let focusReturnTarget = null;
   let catHomeOffsetX = 0;
   let catHomeDrag = null;
+  let catHomeDragged = false;
   let catHomeInitialized = false;
   let catHomeSpeechTimer = null;
   let catHomeBlinkTimer = null;
@@ -1636,10 +1637,7 @@
     });
     $("#main-screen").classList.toggle("home-active", name === "home");
     $("#main-screen").dataset.currentView = name;
-    if (name === "manager" && state.character === "cat") {
-      closeManagerDetails(false);
-      window.requestAnimationFrame(configureCatHome);
-    }
+    if (name === "home" && state.character === "cat") window.requestAnimationFrame(configureCatHome);
     if (name === "archive" && ["records", "diary", "certificates"].includes(navKey)) showArchiveTab(navKey);
     trackEvent("view_change", { view: name, tab: navKey });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2229,7 +2227,7 @@
 
   function scheduleCatHomeBlink() {
     window.clearTimeout(catHomeBlinkTimer);
-    if (state.character !== "cat" || $("#manager-cat-home")?.hidden) return;
+    if (state.character !== "cat" || $("#home-butler-room")?.hidden) return;
     catHomeBlinkTimer = window.setTimeout(() => {
       if (state.character !== "cat" || catHomeDrag) return;
       const image = $("#cat-home-character-image");
@@ -2239,36 +2237,19 @@
     }, 6500 + Math.floor(Math.random() * 4500));
   }
 
-  // 방을 열자마자 관계가 어디쯤인지 보이게 한다. 이 탭에서 제일 궁금한 값인데
-  // 지금까지는 "집사 정보" 칩을 눌러야만 나왔다.
-  function renderCatHomeStatus() {
-    const strip = $("#cat-home-status");
-    if (!strip) return;
-    const stage = relationshipStageFor(state.obsession);
-    const next = RELATIONSHIP_STAGES[stageIndexFor(state.obsession) + 1];
-    const remaining = pointsToNextStage(state.obsession);
-    $("#cat-home-status-stage").textContent = stage.name;
-    $("#cat-home-status-value").textContent = state.obsession;
-    $("#cat-home-status-fill").style.width = `${clamp(state.obsession, 0, 100)}%`;
-    $("#cat-home-status-next").textContent = next
-      ? `다음 관계 · ${next.name}까지 과몰입 ${remaining}`
-      : "전담 확정 · 더 오를 단계 없음";
-    // 한 번이라도 만져본 사람에게는 조작 힌트를 더 보여주지 않는다.
-    const hint = $("#cat-home-hint");
-    if (hint) hint.hidden = Boolean(state.catHomeHintDone);
-  }
-
   function configureCatHome() {
+    // 접수대 방은 홈 맨 위에 상주한다. 집사 탭은 어느 집사든 상세 기록카드를 바로 연다.
     const isCat = state.character === "cat";
-    $("#manager-cat-home").hidden = !isCat;
-    if (isCat) renderCatHomeStatus();
-    $("#view-manager").classList.toggle("cat-home-active", isCat);
+    const room = $("#home-butler-room");
+    if (room) room.hidden = !isCat;
+    $("#manager-details").classList.add("is-open");
+    $("#view-manager").classList.remove("cat-home-active", "details-open");
     if (!isCat) {
-      $("#manager-details").classList.add("is-open");
-      $("#view-manager").classList.remove("details-open");
       window.clearTimeout(catHomeBlinkTimer);
       return;
     }
+    const panHint = $("#room-pan-hint");
+    if (panHint) panHint.hidden = Boolean(state.catHomeHintDone);
     window.requestAnimationFrame(() => {
       const room = $("#cat-home-room");
       if (!room?.clientWidth) return;
@@ -2315,7 +2296,7 @@
   }
 
   function dismissCatHomeHint() {
-    const hint = $("#cat-home-hint");
+    const hint = $("#room-pan-hint");
     if (hint) hint.hidden = true;
     if (state.catHomeHintDone) return;
     state.catHomeHintDone = true;
@@ -2333,8 +2314,13 @@
   }
 
   function startCatHomeDrag(event) {
-    if (state.character !== "cat" || event.button > 0 || event.target.closest("button")) return;
-    catHomeDrag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startOffset: catHomeOffsetX, moved: false };
+    if (state.character !== "cat" || event.button > 0) return;
+    catHomeDragged = false;
+    catHomeDrag = {
+      pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+      startOffset: catHomeOffsetX, moved: false,
+      onCharacter: Boolean(event.target.closest("#cat-home-character"))
+    };
     $("#cat-home-room").classList.add("is-dragging");
     $("#cat-home-world").classList.remove("is-settling");
     $("#cat-home-world").setPointerCapture?.(event.pointerId);
@@ -2356,9 +2342,14 @@
 
   function endCatHomeDrag(event) {
     if (!catHomeDrag || event.pointerId !== catHomeDrag.pointerId) return;
+    const { moved, onCharacter } = catHomeDrag;
+    catHomeDragged = moved;
     catHomeDrag = null;
     $("#cat-home-room").classList.remove("is-dragging");
     setCatHomeOffset(catHomeOffsetX, true);
+    // 방을 잡아 끌 수 있게 하려고 포인터를 월드에 캡처하는 탓에 집사 버튼의 click이
+    // 오지 않는다. 밀지 않고 뗀 경우는 여기서 직접 말을 건다.
+    if (!moved && onCharacter) interactWithCatHome();
   }
 
   function openManagerDetails(target = "info") {
@@ -3797,7 +3788,11 @@
     });
     $("#manager-change-button").addEventListener("click", renderPersonnelPool);
     $("#give-gift-button").addEventListener("click", openGiftDesk);
-    $("#cat-home-character").addEventListener("click", interactWithCatHome);
+    $("#cat-home-character").addEventListener("click", () => {
+      // 방을 밀고 손을 뗀 직후의 클릭은 말 걸기가 아니다.
+      if (catHomeDragged) { catHomeDragged = false; return; }
+      interactWithCatHome();
+    });
     $("#butler-chat-form").addEventListener("submit", submitButlerChat);
     $("#butler-chat-close").addEventListener("click", closeButlerChat);
     $("#butler-chat-overlay").addEventListener("click", event => { if (event.target.id === "butler-chat-overlay") closeButlerChat(); });
@@ -3806,7 +3801,7 @@
     window.addEventListener("pointerup", endCatHomeDrag);
     window.addEventListener("pointercancel", endCatHomeDrag);
     window.addEventListener("resize", () => setCatHomeOffset(catHomeOffsetX));
-    $("#manager-cat-home").addEventListener("click", event => {
+    $("#view-manager").addEventListener("click", event => {
       const trigger = event.target.closest("[data-cat-home-action]");
       if (trigger) handleCatHomeAction(trigger.dataset.catHomeAction);
     });

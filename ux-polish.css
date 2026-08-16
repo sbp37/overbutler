@@ -759,25 +759,95 @@ select { font-size: max(16px, 1em); }
   #analysis-overlay .scan-beam, #analysis-overlay .analysis-top b i { animation: none; }
 }
 
-/* ───────── 집사방을 카드 크기로 ─────────
-   방이 화면 전체(100dvh)를 차지해 "대따만하게" 뜨던 것을, 구버전 홈 카드처럼
-   한눈에 들어오는 액자 크기로 줄인다. 아트와 드래그·말풍선 동작은 그대로다. */
-#view-manager.cat-home-active { background: #f5ede2; overflow: visible; }
-.manager-cat-home {
-  height: auto;
-  padding: 14px 14px 0;
-  background: transparent;
-}
-.cat-home-room {
-  height: clamp(300px, 46vh, 400px);
+/* ───────── 접수대(집사방)를 홈 맨 위로 ─────────
+   집사방이 별도 탭에 갇혀 있으면 앱을 열었을 때 집사가 보이지 않는다. 홈 최상단에
+   액자 카드로 두어, 앱을 켜자마자 자기 자리에 앉아 있는 집사를 만나게 한다.
+   칩 메뉴와 상세 기록카드는 집사 탭이 그대로 갖는다. */
+.home-butler-room { margin: 0 0 12px; }
+.home-butler-room[hidden] { display: none !important; }
+
+.home-butler-room .cat-home-room {
+  position: relative;
+  width: 100%;
+  height: clamp(238px, 33vh, 306px);
   border: 1px solid #c9b69e;
   border-radius: 16px;
+  overflow: hidden;
+  background: #d9c6ae;
   box-shadow: 0 8px 22px rgba(74, 51, 40, .13);
+  isolation: isolate;
+  touch-action: pan-y;
 }
-.cat-home-actions {
-  margin-top: 10px;
-  padding: 0 0 12px;
-  border-top: 0;
-  background: transparent;
-  box-shadow: none;
+
+/* 집사가 방 안에 있으므로 홈 카드의 서 있는 초상은 감춘다. 같은 집사가 두 번 나오는 셈이라. */
+#view-home:has(.home-butler-room:not([hidden])) .briefing-stage {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  padding: 34px 14px 12px;
 }
+#view-home:has(.home-butler-room:not([hidden])) .briefing-character { display: none; }
+
+/* 좌우로 밀 수 있다는 표시: 양쪽 가장자리 그라데이션 + 화살표. */
+.room-pan-cue {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  width: 34px;
+  color: rgba(255, 250, 240, .92);
+  font-size: 22px;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(60, 38, 22, .6);
+  pointer-events: none;
+}
+.room-pan-cue-left {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: 6px;
+  background: linear-gradient(90deg, rgba(58, 38, 22, .34), transparent);
+  animation: room-pan-left 2.4s ease-in-out infinite;
+}
+.room-pan-cue-right {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: 6px;
+  background: linear-gradient(270deg, rgba(58, 38, 22, .34), transparent);
+  animation: room-pan-right 2.4s ease-in-out infinite;
+}
+.cat-home-room.is-dragging .room-pan-cue { opacity: .25; }
+
+.room-pan-hint {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 9px;
+  margin: 0;
+  padding: 5px 11px;
+  transform: translateX(-50%);
+  border-radius: 99px;
+  background: rgba(40, 26, 16, .56);
+  color: #fdf3e6;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.room-pan-hint[hidden] { display: none; }
+
+@keyframes room-pan-left {
+  0%, 100% { transform: translateX(0); opacity: .75; }
+  50% { transform: translateX(-3px); opacity: 1; }
+}
+@keyframes room-pan-right {
+  0%, 100% { transform: translateX(0); opacity: .75; }
+  50% { transform: translateX(3px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-pan-cue { animation: none; }
+}
+
+/* 집사 탭은 이제 어느 집사든 기록카드를 바로 연다. */
+#view-manager .manager-details-back { display: none !important; }
