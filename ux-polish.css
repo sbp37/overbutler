@@ -592,3 +592,192 @@ select { font-size: max(16px, 1em); }
   .gift-reaction-hero .gift-character-stage img { width: 108px; }
   .gift-reaction-copy h1 { font-size: 20px; }
 }
+
+/* ───────── FORM 04 → 다크 분석 랩 ─────────
+   초기 릴리스(dist)의 OVERBUTLER ANALYSIS LAB 팝업을 복원. 밝은 전면 서류 화면은
+   글이 많아 정신없다는 피드백로 폐기하고, 어두운 카드 + 원형 스캐너로 되돌린다. */
+#analysis-overlay.analysis-lab { padding: calc(24px + var(--safe-top)) 18px calc(24px + var(--safe-bottom)); }
+#analysis-overlay .analysis-sheet {
+  width: min(100%, 400px);
+  min-height: 0;
+  padding: 18px 18px 20px;
+  border: 0;
+  border-radius: 26px;
+  background: #272023;
+  color: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .4);
+}
+#analysis-overlay .analysis-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+#analysis-overlay .analysis-top span { color: #d2c7c8; }
+#analysis-overlay .analysis-top b { display: flex; align-items: center; gap: 5px; color: #ef9cad; }
+#analysis-overlay .analysis-top b i { width: 7px; height: 7px; border-radius: 50%; background: #ef7f96; animation: lab-blink 1.1s ease-in-out infinite; }
+
+#analysis-overlay .scanner {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin: 14px auto 4px;
+  border: 1px solid #6d5961;
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, #42343a 0 35%, transparent 36%),
+    linear-gradient(transparent 49.5%, #a54b60 50%, transparent 50.5%),
+    linear-gradient(90deg, transparent 49.5%, #a54b60 50%, transparent 50.5%);
+}
+#analysis-overlay .scanner::before,
+#analysis-overlay .scanner::after {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  border: 1px solid #69545c;
+  border-radius: 50%;
+  pointer-events: none;
+}
+#analysis-overlay .scanner::after { inset: 52px; }
+#analysis-overlay .scanner img {
+  position: absolute;
+  inset: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  object-fit: contain;
+}
+/* 캐릭터 위를 훑고 지나가는 스캔 광선 — 사용자가 기억하는 "라인이 움직이는" 재미. */
+#analysis-overlay .scan-beam {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: -8%;
+  height: 34px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, transparent, rgba(239, 156, 173, .38) 45%, rgba(255, 214, 224, .8) 50%, rgba(239, 156, 173, .38) 55%, transparent);
+  filter: blur(.4px);
+  animation: lab-scan 2s cubic-bezier(.45, 0, .55, 1) infinite;
+  pointer-events: none;
+}
+
+#analysis-overlay h2 {
+  margin: 12px 0 4px;
+  text-align: center;
+  color: #fff;
+  font: 850 26px/1.2 Paperlogy, sans-serif;
+  letter-spacing: -.045em;
+}
+#analysis-overlay .analysis-deed {
+  margin: 0 0 16px;
+  text-align: center;
+  color: #e9a7b4;
+  font-size: 13px;
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+#analysis-overlay .analysis-steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#analysis-overlay .analysis-steps li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 0;
+  padding: 12px 13px;
+  border: 1px solid #4d4044;
+  border-radius: 9px;
+  background: #392f33;
+  color: #9e9195;
+  font-size: 13px;
+  font-weight: 700;
+}
+#analysis-overlay .analysis-steps li b { font-weight: 750; }
+#analysis-overlay .analysis-steps li span { flex: none; color: inherit; font-size: 11px; }
+#analysis-overlay .analysis-steps li.active { border-color: #8b3d50; background: #53313b; color: #fff; }
+#analysis-overlay .analysis-steps li.done { color: #e8dfe1; }
+
+#analysis-overlay .analysis-progress {
+  position: static;
+  height: auto;
+  margin-top: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+#analysis-overlay .analysis-progress > div strong { color: #cfc3c6; }
+#analysis-overlay .analysis-progress > div span { color: #ef9cad; font-size: 12px; }
+#analysis-overlay .analysis-progress > div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: #cfc3c6;
+  font-size: 10px;
+  font-weight: 800;
+}
+#analysis-overlay .analysis-progress > div span { color: #ef9cad; }
+#analysis-overlay .analysis-progress > b {
+  display: block;
+  height: 5px;
+  border-radius: 99px;
+  background: #4a3d41;
+  overflow: hidden;
+}
+#analysis-overlay .analysis-progress i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 99px;
+  background: #ef9cad;
+  transition: width .35s;
+}
+#analysis-overlay .analysis-footnote {
+  margin: 13px 0 0;
+  text-align: center;
+  color: #9e9195;
+  font-size: 11px;
+}
+
+@keyframes lab-scan {
+  0% { top: -12%; opacity: 0; }
+  8% { opacity: 1; }
+  46% { top: 96%; opacity: 1; }
+  54% { opacity: 0; }
+  100% { top: -12%; opacity: 0; }
+}
+@keyframes lab-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) {
+  #analysis-overlay .scan-beam, #analysis-overlay .analysis-top b i { animation: none; }
+}
+
+/* ───────── 집사방을 카드 크기로 ─────────
+   방이 화면 전체(100dvh)를 차지해 "대따만하게" 뜨던 것을, 구버전 홈 카드처럼
+   한눈에 들어오는 액자 크기로 줄인다. 아트와 드래그·말풍선 동작은 그대로다. */
+#view-manager.cat-home-active { background: #f5ede2; overflow: visible; }
+.manager-cat-home {
+  height: auto;
+  padding: 14px 14px 0;
+  background: transparent;
+}
+.cat-home-room {
+  height: clamp(300px, 46vh, 400px);
+  border: 1px solid #c9b69e;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(74, 51, 40, .13);
+}
+.cat-home-actions {
+  margin-top: 10px;
+  padding: 0 0 12px;
+  border-top: 0;
+  background: transparent;
+  box-shadow: none;
+}

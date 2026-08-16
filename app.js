@@ -2658,7 +2658,9 @@
     pendingEvaluation = null;
     const messageAnalysis = pendingMessageAnalysis;
     pendingMessageAnalysis = null;
-    const pose = quiet ? (options.mode === "comfort" ? "base" : "analysis") : evaluation.power ? "power" : "praise";
+    // 하트눈(power 아트)은 부담스럽다는 피드백에 따라 측정 포기급 희귀 판정에만 쓴다.
+    // 파워 주접도 결과서 서식(FORM 05-P)은 유지하되 표정은 차분한 칭찬 포즈로 간다.
+    const pose = quiet ? (options.mode === "comfort" ? "base" : "analysis") : evaluation.rare ? "power" : "praise";
     const butler = snapshotButler();
     const report = getPraise(deed, nextObsession, butler.character, evaluation.verdictType);
     const reactionLines = normalizeReactionLines(quiet ? options.reply : report, report);
@@ -2742,20 +2744,22 @@
     });
     $("#achievement-input").value = "";
     $("#char-count").textContent = "0";
-    $("#analysis-overlay").hidden = true;
-    document.body.style.overflow = "";
     achievementSubmissionActive = false;
     $("#report-button").disabled = false;
     $("#report-button").removeAttribute("aria-busy");
     if (!quiet) $("#briefing-message").textContent = record.report;
     render({ animateStamp: !duplicate });
     if (quiet) {
+      $("#analysis-overlay").hidden = true;
+      document.body.style.overflow = "";
       showGentleNote(record, options.mode, duplicate);
       return;
     }
     if (duplicate) showToast("같은 행동이라 도장은 제외하고 칭찬만 지급했습니다.");
-    if (duplicate) openPraiseResult(record);
-    else window.setTimeout(() => openPraiseResult(record), 720);
+    // 결과서를 먼저 열고 나서 심사창을 걷는다. 예전에는 심사창을 닫고 0.7초 뒤에
+    // 결과서를 열어서, 그 사이 칭찬 문구가 박힌 홈이 번쩍 나타났다 사라졌다.
+    openPraiseResult(record);
+    $("#analysis-overlay").hidden = true;
   }
 
   function hideGentleNote() {
@@ -2947,7 +2951,8 @@
       relationshipGain,
       "deed"
     );
-    setPoseImage($("#result-butler-image"), butler.character, power ? "power" : "praise");
+    // 히어로 아트는 기록에 저장된 포즈를 따른다. 하트눈은 희귀 판정에만 남긴다.
+    setPoseImage($("#result-butler-image"), butler.character, record.pose === "power" ? "power" : "praise");
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
     window.setTimeout(() => typeMessage($("#result-report"), record.report, rare ? 22 : 27), 240);
