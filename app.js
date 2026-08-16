@@ -1341,7 +1341,7 @@
     const name = String(state.username || "").trim();
     if (!name) return "주인님";
     if (name.endsWith("주인님") || name.endsWith("님") || name.endsWith("씨")) return name;
-    return `${name}주인님`;
+    return `${name} 주인님`;
   }
 
   function templateOwner(message) {
