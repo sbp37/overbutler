@@ -809,7 +809,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, absenceNoteDate: null,
+    records: [], achievements: [], certificates: [], rerolled: false, absenceNoteDate: null, catHomeHintDone: false,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -992,6 +992,7 @@
     merged.startDate = storedText(raw.startDate, DEFAULT_STATE.startDate);
     merged.lastActiveDate = storedText(raw.lastActiveDate) || null;
     merged.absenceNoteDate = storedText(raw.absenceNoteDate) || null;
+    merged.catHomeHintDone = Boolean(raw.catHomeHintDone);
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
     const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : legacyAchievements;
     const certificateSource = Array.isArray(raw.certificates)
@@ -1372,8 +1373,11 @@
   function startTimeBriefing() {
     setPoseImage($("#briefing-butler-image"), state.character, rememberedPoseFor());
     const greeting = getHomeGreeting();
+    // 집사 열 명 몫으로 쓰인 복귀 인사가 화면에 나온 적이 없었다. 여기서 소비 표시만 하고
+    // 정작 붙이지 않아, 나중에 대화창이 꺼내려 할 때는 이미 비어 있었다.
+    const returned = returnVisitLine();
     returnVisitContext.consumed = true;
-    typeMessage($("#briefing-message"), greeting);
+    typeMessage($("#briefing-message"), returned ? `${greeting}\n${returned}` : greeting);
   }
 
   function cycleBriefing() {
@@ -2245,7 +2249,7 @@
       : "전담 확정 · 더 오를 단계 없음";
     // 한 번이라도 만져본 사람에게는 조작 힌트를 더 보여주지 않는다.
     const hint = $("#cat-home-hint");
-    if (hint) hint.hidden = ensureButlerStat("cat").interactions > 0;
+    if (hint) hint.hidden = Boolean(state.catHomeHintDone);
   }
 
   function configureCatHome() {
@@ -2304,10 +2308,17 @@
     }, 2800);
   }
 
-  function interactWithCatHome() {
-    const stat = ensureButlerStat("cat");
+  function dismissCatHomeHint() {
     const hint = $("#cat-home-hint");
     if (hint) hint.hidden = true;
+    if (state.catHomeHintDone) return;
+    state.catHomeHintDone = true;
+    saveState();
+  }
+
+  function interactWithCatHome() {
+    const stat = ensureButlerStat("cat");
+    dismissCatHomeHint();
     showCatHomeSpeech(catHomeLine());
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
@@ -2331,6 +2342,7 @@
       if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6) return;
       if (Math.abs(dx) < 5) return;
       catHomeDrag.moved = true;
+      dismissCatHomeHint();
     }
     event.preventDefault();
     setCatHomeOffset(catHomeDrag.startOffset + dx);
