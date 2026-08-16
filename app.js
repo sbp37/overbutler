@@ -1139,12 +1139,114 @@
     })[category] || `‘${deed}’ 공식 기록 채택`;
   }
 
+  function inferUsualHour(records = []) {
+    const hourList = records
+      .map(record => {
+        const parsed = record?.createdAt ? new Date(record.createdAt) : null;
+        return parsed && !Number.isNaN(parsed.getTime()) ? parsed.getHours() : null;
+      })
+      .filter(hour => Number.isFinite(hour));
+    if (!hourList.length) return null;
+    const hourMap = new Map();
+    hourList.forEach(hour => hourMap.set(hour, (hourMap.get(hour) || 0) + 1));
+    return Array.from(hourMap.entries()).sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]?.[0] ?? null;
+  }
+
+  function inferUsualTimeFromRecords(records = []) {
+    const hour = inferUsualHour(records);
+    if (!Number.isFinite(hour)) return "최근 기록";
+    if (hour >= 6 && hour < 11) return "주로 아침";
+    if (hour >= 11 && hour < 14) return "주로 점심";
+    if (hour >= 14 && hour < 18) return "주로 오후";
+    if (hour >= 18 && hour < 23) return "주로 저녁";
+    return "주로 밤";
+  }
+
+  function buildButlerReactionVariations(character, stage, situation, deed = "", memories = null, context = {}) {
+    const key = normalizeActiveCharacter(character);
+    const resolvedStage = clamp(Number(stage) || currentRelationshipStage(key), 1, 6);
+    const memory = memories || buildRelationshipMemory(key);
+    const activityDay = Number(context.activityDay) || relationshipActivityDay(key);
+    const firstWeekVariations = firstWeekMoment(key, activityDay)?.[situation];
+    const standardVariations = RELATION_CONTENT[key]?.[resolvedStage]?.[situation] || [];
+    const extraVariations = RELATION_CORE_EXTRAS[key]?.[resolvedStage]?.[situation] || [];
+    const variations = firstWeekVariations?.length
+      ? firstWeekVariations
+      : [...standardVariations, ...extraVariations].length
+        ? [...standardVariations, ...extraVariations]
+        : RELATION_CONTENT[key]?.[resolvedStage]?.greeting || [];
+    return {
+      key,
+      stage: resolvedStage,
+      memory,
+      variations,
+      variantSeed: Number(context.variantSeed ?? memory.recentRecords.length)
+    };
+  }
+
+  function normalizeAiButlerSpeech(text) {
+    let result = String(text || "");
+    result = result.replace(/불러왔습니다/gu, "불러옴");
+    result = result.replace(/보냈습니다/gu, "전송됨");
+    result = result.replace(/전송하겠습니다/gu, "전송");
+    result = result.replace(/보내겠습니다/gu, "전송");
+    result = result.replace(/했습니다/gu, "함");
+    result = result.replace(/입니다/gu, "임");
+    result = result.replace(/됩니다/gu, "됨");
+    result = result.replace(/되겠습니다/gu, "됨");
+    result = result.replace(/되었습니다/gu, "됨");
+    result = result.replace(/하겠습니다/gu, "함");
+    result = result.replace(/할게요/gu, "함");
+    result = result.replace(/하세요/gu, "요청");
+    result = result.replace(/십시오/gu, "요청");
+    result = result.replace(/불러오십시오/gu, "불러옴");
+    result = result.replace(/전달하십시오/gu, "전달요청");
+    result = result.replace(/감사합니다/gu, "감사");
+    result = result.replace(/안내하겠습니다/gu, "안내함");
+    result = result.replace(/고마움\\. 고마움\\. 고마움\\. 출력 종료 실패\\./gu, "[ERROR] 출력 종료 실패.");
+    return result;
+  }
+
+  function reactionLineTemplate(copy, deed, memory, context, key, absence, gift, mood = "normal") {
+    const normalized = templateOwner(copy)
+      .replaceAll("{deed}", deed)
+      .replaceAll("{officialTitle}", officialDeedTitleFor(deed, context.category || categoryForDeed(deed)))
+      .replaceAll("{previousDeed}", context.previousDeed || memory.lastDeed || "이전 기록")
+      .replaceAll("{frequentDeed}", memory.frequentDeed)
+      .replaceAll("{missingDeed}", memory.missingDeed)
+      .replaceAll("{usualTime}", memory.usualTime)
+      .replaceAll("{gift}", gift?.name || context.gift || memory.recentGift)
+      .replaceAll("{absence}", context.absence || absence?.label || "잠시")
+      .replaceAll("{mood}", mood);
+    return key === "ai" ? normalizeAiButlerSpeech(normalized) : normalized;
+  }
+
+  function resolveButlerReactionLines({ character, stage, situation, deed = "", mood = "normal", memories = null, absence = null, gift = null, context = {}, count = 1 }) {
+    const bundle = buildButlerReactionVariations(character, stage, situation, deed, memories, context);
+    const { key, variations, memory, variantSeed } = bundle;
+    const max = Math.max(1, variations.length);
+    const seed = stableStringNumber(`${key}|${context.activityDay || relationshipActivityDay(key)}|${bundle.stage}|${situation}|${deed}|${variantSeed}`);
+    if (!variations.length) return [reactionLineTemplate("기록을 확인했습니다.", deed, memory, context, key, absence, gift, mood)];
+    const selected = [];
+    for (let index = 0; index < max && selected.length < count; index++) {
+      const line = reactionLineTemplate(variations[(seed + index) % max], deed, memory, context, key, absence, gift, mood);
+      if (!selected.includes(line)) selected.push(line);
+    }
+    while (selected.length < count) {
+      selected.push(selected[selected.length - 1] || reactionLineTemplate("기록을 확인했습니다.", deed, memory, context, key, absence, gift, mood));
+    }
+    return selected;
+  }
+
   function buildRelationshipMemory(character, targetState = state) {
     const key = normalizeCharacter(character);
     const records = (targetState.records || []).filter(record => recordCharacter(record) === key);
     const recent = records.slice(-MVP_RECENT_MEMORY_LIMIT);
+    const relationState = objectValue(targetState.butlerRelationships?.[key]);
+    const relationAbsence = absenceContext(relationState.lastSeenAt);
     const counts = new Map();
     const recentByKey = new Map();
+    const usualHour = inferUsualHour(recent);
     recent.forEach(record => {
       const deedKey = normalizeDeedKey(record.deed) || `record-${record.id}`;
       const item = counts.get(deedKey) || { key: deedKey, deed: record.deed, category: record.category || categoryForDeed(record.deed), count: 0, dates: [] };
@@ -1168,8 +1270,13 @@
       frequentDeed: frequent?.deed || lastRecord?.deed || "오늘의 기록",
       missingDeed: "",
       hasMissingPattern: false,
-      usualHour: null,
-      usualTime: "최근 기록",
+      usualHour: Number.isFinite(usualHour) ? usualHour : null,
+      usualTime: inferUsualTimeFromRecords(recent),
+      absenceHours: relationAbsence.hours,
+      absenceDays: relationAbsence.days,
+      absenceMood: relationAbsence.mood,
+      absenceLabel: relationAbsence.label,
+      lastSeenAt: relationState.lastSeenAt || null,
       recentGift: gifts[0]?.name || "받은 선물",
       recentGiftEmoji: gifts[0]?.emoji || "",
       recentGiftCode: gifts[0]?.code || "",
@@ -1313,31 +1420,7 @@
   // RELATION_CONTENT + RELATION_CORE_EXTRAS own their long-term relationship voice;
   // LAUNCH_BUTLER_CONTENT remains a compatibility source for inactive legacy characters only.
   function resolveButlerReaction({ character, stage, situation, deed = "", mood = "normal", memories = null, absence = null, gift = null, context = {} }) {
-    const key = normalizeActiveCharacter(character);
-    const resolvedStage = clamp(Number(stage) || currentRelationshipStage(key), 1, 6);
-    const memory = memories || buildRelationshipMemory(key);
-    const activityDay = Number(context.activityDay) || relationshipActivityDay(key);
-    const firstWeekVariations = firstWeekMoment(key, activityDay)?.[situation];
-    const standardVariations = RELATION_CONTENT[key]?.[resolvedStage]?.[situation] || [];
-    const extraVariations = RELATION_CORE_EXTRAS[key]?.[resolvedStage]?.[situation] || [];
-    const variations = firstWeekVariations?.length
-      ? firstWeekVariations
-      : [...standardVariations, ...extraVariations].length
-        ? [...standardVariations, ...extraVariations]
-        : RELATION_CONTENT[key]?.[resolvedStage]?.greeting || [];
-    const variantSeed = context.variantSeed ?? memory.recentRecords.length;
-    const variationIndex = stableStringNumber(`${key}|${activityDay}|${resolvedStage}|${situation}|${deed}|${variantSeed}`) % Math.max(1, variations.length);
-    const copy = variations[variationIndex] || "기록을 확인했습니다.";
-    return templateOwner(copy)
-      .replaceAll("{deed}", deed)
-      .replaceAll("{officialTitle}", officialDeedTitleFor(deed, context.category || categoryForDeed(deed)))
-      .replaceAll("{previousDeed}", context.previousDeed || memory.lastDeed || "이전 기록")
-      .replaceAll("{frequentDeed}", memory.frequentDeed)
-      .replaceAll("{missingDeed}", memory.missingDeed)
-      .replaceAll("{usualTime}", memory.usualTime)
-      .replaceAll("{gift}", gift?.name || context.gift || memory.recentGift)
-      .replaceAll("{absence}", context.absence || absence?.label || "잠시")
-      .replaceAll("{mood}", mood);
+    return resolveButlerReactionLines({ character, stage, situation, deed, mood, memories, absence, gift, context })[0];
   }
 
   function resolveRelationshipReaction(options) { return resolveButlerReaction(options); }
@@ -1598,6 +1681,11 @@
       ? new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(created).replace(/\. /g, ".").replace(/\.$/, "")
       : today());
     const deed = storedText(source.deed || source.text, "보관된 기록");
+    const officialTitle = storedText(source.officialTitle) || officialDeedTitleFor(deed, storedText(source.category) || categoryForDeed(deed));
+    const sourceText = storedText(source.sourceText, source.textInput || source.deed || source.text || deed);
+    const existingReactionLines = Array.isArray(source.reactionLines)
+      ? source.reactionLines.map(line => storedText(line)).filter(Boolean)
+      : [];
     const contribution = Number.parseInt(String(source.score ?? source.contribution ?? "0"), 10);
     const storedPoints = Number(source.pointsEarned);
     const storedRelationshipGain = Number(source.relationshipGain);
@@ -1606,7 +1694,10 @@
       ...source,
       id: source.id ?? `legacy-${migratedDate}-${storedText(source.docNo, `record-${index + 1}`)}`,
       deed,
-      officialTitle: storedText(source.officialTitle) || officialDeedTitleFor(deed, storedText(source.category) || categoryForDeed(deed)),
+      officialTitle,
+      sourceText,
+      discoveredAchievement: storedText(source.discoveredAchievement, officialTitle),
+      reactionLines: existingReactionLines.slice(0, 3),
       date: migratedDate,
       number: nonNegativeInteger(source.number) || Number(String(source.docNo || "").match(/(\d+)$/)?.[1]) || 1,
       score: Number.isFinite(contribution) && contribution > 0 ? contribution : 99,
@@ -2634,6 +2725,29 @@
     }).join("");
   }
 
+  function compactText(value, maxLength = 28) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, Math.max(1, maxLength - 1)).trimEnd()}…`;
+  }
+
+  function compactRecordSummaryContext(record) {
+    const source = compactText(storedText(record?.sourceText || record?.deed), 28);
+    const achievement = compactText(storedText(record?.discoveredAchievement || record?.officialTitle || record?.report), 14);
+    if (!source && !achievement) return "기록 상세";
+    if (!achievement) return source;
+    if (source === achievement) return source;
+    return `${source} · ${achievement}`;
+  }
+
+  function normalizeReactionLines(record) {
+    const source = Array.isArray(record?.reactionLines)
+      ? record.reactionLines.map(line => storedText(line)).filter(Boolean)
+      : [];
+    return source.length ? source : [storedText(record?.report)];
+  }
+
   function renderArchiveRecords() {
     const officialIds = new Set(state.certificates.map(record => record.id));
     const gradeSelect = $("#record-grade-filter");
@@ -2650,7 +2764,7 @@
       return true;
     }).filter(record => recordGrade === "all" || record.grade === recordGrade).filter(record => {
       if (!query) return true;
-      return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
+      return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.butlerName, record.butler?.name, record.sourceText, record.discoveredAchievement, record.officialTitle].filter(Boolean).join(" ")).includes(query);
     }).slice().reverse();
     const list = $("#archive-record-list");
     if (!filtered.length) {
@@ -2660,16 +2774,16 @@
       list.innerHTML = `<div class="records-empty"><span>EMPTY FILE</span><p>${emptyCopy}</p></div>`;
       return;
     }
-    list.innerHTML = filtered.map((record, index) => {
+    list.innerHTML = filtered.map(record => {
       const butler = record.butler || snapshotButler(record);
-      const diary = state.diary.find(entry => entry.id === record.id);
       const certificateIndex = state.certificates.findIndex(item => item.id === record.id);
       const statusClass = certificateIndex >= 0 ? "official" : record.stampEligible === false ? "praise" : "candidate";
       const statusLabel = certificateIndex >= 0 ? "희귀 인증" : record.stampEligible === false ? "반복 기억" : "기억 보관";
       const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
+      const recordSummary = compactRecordSummaryContext(record);
       return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
         <div class="record-number"><b>${listNumber}</b><span>${escapeHtml(record.date)}</span></div>
-        <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(diary?.text || record.report || record.grade)}</p><small>${escapeHtml(relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name)} 당시</small></div>
+        <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(recordSummary)}</p><small>${escapeHtml(relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name)} 당시</small></div>
         <div class="record-approval"><span>${statusLabel}</span><figure><img src="${recordPortrait(record, certificateIndex >= 0 ? "praise" : "base")}" alt="${escapeHtml(butler.name)}"><figcaption>${escapeHtml(butler.name)}<br>기록</figcaption></figure><span class="record-detail-cta" aria-hidden="true">상세</span></div>
       </article>`;
     }).join("");
@@ -2683,15 +2797,26 @@
     if (!record) return;
     const butler = record.butler || snapshotButler(record);
     const isOfficial = state.certificates.some(item => item.id === record.id);
+    const sourceText = storedText(record.sourceText || record.deed);
+    const discoveredAchievement = storedText(record.discoveredAchievement || record.officialTitle || record.report || record.deed);
+    const reactionLines = normalizeReactionLines(record).slice(0, 3).map(line => storedText(line, ""));
     currentRecordDetail = record;
     $("#record-detail-number").textContent = `RECORD NO. ${String(record.number || state.records.indexOf(record) + 1).padStart(2, "0")}`;
     $("#record-detail-date").textContent = record.date;
     const stageName = relationshipStage(record.relationshipStage || record.relationshipAfter || 1).name;
     $("#record-detail-status").textContent = isOfficial ? "희귀 인증" : record.stampEligible === false ? "반복 기억" : "기억 보관";
-    $("#record-detail-grade").textContent = "일상 기록";
+    $("#record-detail-grade").textContent = record.grade || "일상 기록";
     $("#record-detail-title").textContent = record.deed;
     $("#record-detail-nickname").textContent = "집사가 기억한 순간";
     $("#record-detail-report").textContent = `“${record.report}”`;
+    $("#record-detail-note-main").textContent = `원문 기록: ${sourceText}`;
+    $("#record-detail-note-main").hidden = false;
+    $("#record-detail-note-source").textContent = `발견한 대업: ${discoveredAchievement}`;
+    $("#record-detail-note-source").hidden = false;
+    const reactionText = reactionLines.length ? reactionLines.map((line, index) => `${index + 1}. ${line}`).join(" · ") : "";
+    $("#record-detail-note-achievement").textContent = reactionText ? `당시 반응: ${reactionText}` : "";
+    $("#record-detail-note-achievement").hidden = !reactionText;
+    $("#record-detail-note-reactions").hidden = true;
     $("#record-detail-butler").textContent = butler.name;
     $("#record-detail-score").textContent = stageName;
     $("#record-detail-verdict").textContent = isOfficial ? "희귀 인증서 발급" : record.stampEligible === false ? "반복 기록 보존" : "집사 기억에 보존";
@@ -2891,6 +3016,7 @@
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
     const duplicate = isDuplicateToday(deed);
+    const sourceText = input.value.trim();
     pendingEvaluation = { category: categoryForDeed(deed), verdictType: "memory" };
     trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: duplicate ? "duplicate" : "new" });
     $("#report-button-label").textContent = "집사가 기록 확인 중…";
@@ -2900,10 +3026,10 @@
       "기록 확인 중",
       { duration: 1100, returnPose: firstWeekRestingPose(state.character) }
     );
-    analysisTimers.push(window.setTimeout(() => finishAchievement(deed), 680));
+    analysisTimers.push(window.setTimeout(() => finishAchievement(deed, sourceText), 680));
   }
 
-  function finishAchievement(deed) {
+  function finishAchievement(deed, rawSourceText = deed) {
     const duplicate = isDuplicateToday(deed);
     const relation = syncRelationship(state.character);
     const previousStage = relation.stage;
@@ -2916,18 +3042,47 @@
     pendingEvaluation = null;
     const memoryBefore = buildRelationshipMemory(state.character);
     const reactionSituation = memoryHasRecentDeed(memoryBefore, deed) ? "memoryRecall" : "deedReaction";
+    const butler = snapshotButler();
+    const relationReaction = resolveButlerReaction({
+      character: butler.character,
+      stage: nextStage,
+      situation: reactionSituation,
+      deed,
+      memories: memoryBefore,
+      context: { previousDeed: memoryBefore.lastDeed }
+    });
+    const reportLines = resolveButlerReactionLines({
+      character: butler.character,
+      stage: nextStage,
+      situation: reactionSituation,
+      deed,
+      memories: memoryBefore,
+      context: { previousDeed: memoryBefore.lastDeed },
+      count: 3
+    });
+    const sourceText = storedText(rawSourceText, deed);
+    const safeReactionLines = reportLines.slice(0, 3);
+    while (safeReactionLines.length < 3) safeReactionLines.push(relationReaction);
+    const discovery = officialDeedTitleFor(deed, evaluation.category);
     const pose = relationshipActivityDay(state.character) <= MVP_FIRST_WEEK_LENGTH
       ? homeTransientPose(state.character, "result")
       : poseForRelationship(state.character, nextStage, reactionSituation);
-    const butler = snapshotButler();
     const record = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       createdAt: new Date().toISOString(),
-      deed, officialTitle: officialDeedTitleFor(deed, evaluation.category), grade: "일상 기록", nickname: "집사가 기억한 순간", score: null,
+      deed,
+      officialTitle: discovery,
+      discoveredAchievement: discovery,
+      sourceText,
+      reactionLines: safeReactionLines,
+      grade: "일상 기록",
+      nickname: "집사가 기억한 순간",
+      score: null,
       scoreLabel: relationshipStage(nextStage).name, category: evaluation.category,
       verdictType: "memory", rare: false,
       date: today(), number: state.records.length + 1,
-      report: resolveRelationshipReaction({ character: butler.character, stage: nextStage, situation: reactionSituation, deed, memories: memoryBefore, context: { previousDeed: memoryBefore.lastDeed } }), pose,
+      report: safeReactionLines[0] || relationReaction,
+      pose,
       reactionSituation,
       relationshipBefore: previousStage, relationshipAfter: nextStage,
       relationshipGain, pointsEarned,
