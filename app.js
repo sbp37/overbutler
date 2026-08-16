@@ -847,6 +847,7 @@
   let currentRecordDetail = null;
   let currentCertificateImagePromise = null;
   let pendingEvaluation = null;
+  let pendingAnalysisDeed = null;
   let pendingMessageAnalysis = null;
   let typingTimer = null;
   let activeGiftDrag = null;
@@ -1512,6 +1513,7 @@
     if ($("#analysis-overlay").hidden) return false;
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
+    pendingAnalysisDeed = null;
     pendingEvaluation = null;
     achievementSubmissionActive = false;
     const reportButton = $("#report-button");
@@ -2479,11 +2481,14 @@
   function judgeAchievement(deed, obsession = state.obsession, duplicate = false, sourceText = "") {
     const seed = stableDeedNumber(deed);
     const category = categoryForDeed(deed, sourceText);
-    const score = 87 + (seed % 13);
+    // 이 사무국은 모든 서류에 말도 안 되는 점수를 매기는 곳이다. 87점짜리 "소소한 기적"은
+    // 격상 개그를 스스로 깎아먹으므로, 기본 점수를 96점 위로 올리고 등급은 판정 종류에서 뽑는다.
+    const score = 96 + (seed % 4);
     const rare = !duplicate && (seed % BALANCE.rareRollDivisor === 0 || validRecordsSinceRare() >= BALANCE.rarePityAfter);
     const powerThreshold = BALANCE.powerChanceByStage[stageIndexFor(obsession)];
     const power = rare || score === 99 || ((seed >>> 8) % 100) < powerThreshold;
-    const grade = rare ? "설명 불가한 위업" : score >= 99 ? "우주 최초 기록" : score >= 96 ? "인류사적 대업" : score >= 93 ? "집사 가문 경사" : score >= 90 ? "국가적 성취" : "소소한 기적";
+    const praiseGrades = ["인류사적 대업", "국가적 성취", "집사 가문 경사"];
+    const grade = rare ? "설명 불가한 위업" : power ? "우주 최초 기록" : praiseGrades[(seed >>> 3) % praiseGrades.length];
     const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
     const nickname = rare ? "통계청이 포기한 자" : freshNickname(nicknamePool, seed);
     return { seed, category, score: rare ? 100 : score, scoreLabel: rare ? "측정 불가" : `${score}점`, grade, nickname, rare, power, verdictType: rare ? "rare" : power ? "power" : "praise" };
@@ -2574,11 +2579,23 @@
       $("#analysis-percent").textContent = `${percent}%`;
       $("#analysis-fill").style.width = `${percent}%`;
     }, index * 520)));
-    analysisTimers.push(window.setTimeout(() => {
-      steps.at(-1).className = "done";
-      steps.at(-1).querySelector("span").textContent = "과열";
-      finishAchievement(deed);
-    }, 2400));
+    pendingAnalysisDeed = deed;
+    analysisTimers.push(window.setTimeout(() => finishAnalysisNow(), 2400));
+  }
+
+  // FORM 04 심사 연출은 처음에만 즐겁다. 화면을 누르면 바로 결재로 넘어간다.
+  function finishAnalysisNow() {
+    if (!pendingAnalysisDeed) return;
+    const deed = pendingAnalysisDeed;
+    pendingAnalysisDeed = null;
+    analysisTimers.forEach(clearTimeout);
+    analysisTimers = [];
+    const steps = $$("#analysis-steps li");
+    steps.forEach(step => { step.className = "done"; step.querySelector("span").textContent = "완료"; });
+    steps.at(-1).querySelector("span").textContent = "과열";
+    $("#analysis-percent").textContent = "100%";
+    $("#analysis-fill").style.width = "100%";
+    finishAchievement(deed);
   }
 
   function finishAchievement(deed, options = {}) {
@@ -3786,6 +3803,10 @@
     $("[data-certificate-close]").addEventListener("click", closeCertificate);
     $("#share-certificate").addEventListener("click", shareCertificate);
     $("#absence-note-close").addEventListener("click", dismissAbsenceNote);
+    $("#analysis-overlay").addEventListener("click", finishAnalysisNow);
+    $("#analysis-overlay").addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); finishAnalysisNow(); }
+    });
     $("#save-certificate").addEventListener("click", saveCertificateImage);
     $("#certificate-overlay").addEventListener("click", event => { if (event.target.id === "certificate-overlay") closeCertificate(); });
     $("#recruit-note").addEventListener("click", openRecruitment);
