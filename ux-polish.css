@@ -227,6 +227,10 @@ select { font-size: max(16px, 1em); }
   background: linear-gradient(180deg, rgba(239, 227, 212, 0) 0%, #efe3d4 20%, #efe3d4 100%);
 }
 
+/* 토스트가 하단 네비 바로 위에 떠서 "집사에게 들려주기" 버튼을 정면으로 가렸다.
+   신규 사용자가 처음 보는 화면에서 제일 눌러야 할 버튼이라 위로 비켜준다. */
+.toast { bottom: calc(150px + var(--safe-bottom)); }
+
 .office-record-card::after { display: none; }
 /* 날짜 한 줄이 들어갈 만큼만 번호 칸을 넓힌다. */
 .office-record-card { grid-template-columns: 62px minmax(0, 1fr) 76px; }

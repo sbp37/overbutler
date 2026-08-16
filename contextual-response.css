@@ -167,3 +167,48 @@ blockquote.diary-sealed{
   color:#7a6a58 !important;
   font-style:italic;
 }
+
+/* 선물 접수처는 집사 탭 칩 안에만 있어서 홈에서는 존재 자체가 보이지 않았다.
+   집사에게 하는 일이니 집사 카드 바로 아래에 두고, 어디에도 안 보이던 선물 포인트도 함께 노출한다. */
+.home-gift-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  margin-top:12px;
+  padding:12px 14px;
+  border:1px solid #d9cbb6;
+  border-radius:11px;
+  background:linear-gradient(180deg,#fffdf7,#f9f2e5);
+  box-shadow:0 3px 9px rgba(80,55,38,.06);
+  color:#4e4038;
+  font:inherit;
+  text-align:left;
+}
+.home-gift-link>span{
+  flex:1 1 auto;
+  min-width:0;
+  font-size:14px;
+  font-weight:850;
+  letter-spacing:-.01em;
+}
+.home-gift-link>span::before{content:"🎁";margin-right:7px}
+.home-gift-link>b{
+  flex:none;
+  padding:4px 9px;
+  border:1px solid #d3c0a4;
+  border-radius:99px;
+  background:#fffaf0;
+  color:#7c6446;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.home-gift-link>b i{font-style:normal;color:#8b2639;font-size:12px}
+.home-gift-link>em{flex:none;color:#a08a6e;font-style:normal;font-size:15px}
+.home-gift-link:active{transform:translateY(1px)}
+
+@media(max-width:300px){
+  .home-gift-link{padding:11px}
+  .home-gift-link>span{font-size:13px}
+}

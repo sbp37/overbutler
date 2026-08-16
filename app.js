@@ -1728,6 +1728,7 @@
     const status = certificationStatus();
     // 홈의 3칸 통계는 헤더의 명성/과몰입과 입력칸 아래 도장 진행바가 이미 같은 숫자를 보여줘 걷어냈다.
     $("#fame-count").textContent = state.fame;
+    $("#home-gift-points").textContent = state.points;
     $("#header-level").textContent = `과몰입 ${state.obsession}`;
     $("#stamp-count").textContent = status.progress;
     $("#stamp-target").textContent = status.target;
@@ -2224,9 +2225,29 @@
     }, 6500 + Math.floor(Math.random() * 4500));
   }
 
+  // 방을 열자마자 관계가 어디쯤인지 보이게 한다. 이 탭에서 제일 궁금한 값인데
+  // 지금까지는 "집사 정보" 칩을 눌러야만 나왔다.
+  function renderCatHomeStatus() {
+    const strip = $("#cat-home-status");
+    if (!strip) return;
+    const stage = relationshipStageFor(state.obsession);
+    const next = RELATIONSHIP_STAGES[stageIndexFor(state.obsession) + 1];
+    const remaining = pointsToNextStage(state.obsession);
+    $("#cat-home-status-stage").textContent = stage.name;
+    $("#cat-home-status-value").textContent = state.obsession;
+    $("#cat-home-status-fill").style.width = `${clamp(state.obsession, 0, 100)}%`;
+    $("#cat-home-status-next").textContent = next
+      ? `다음 관계 · ${next.name}까지 과몰입 ${remaining}`
+      : "전담 확정 · 더 오를 단계 없음";
+    // 한 번이라도 만져본 사람에게는 조작 힌트를 더 보여주지 않는다.
+    const hint = $("#cat-home-hint");
+    if (hint) hint.hidden = ensureButlerStat("cat").interactions > 0;
+  }
+
   function configureCatHome() {
     const isCat = state.character === "cat";
     $("#manager-cat-home").hidden = !isCat;
+    if (isCat) renderCatHomeStatus();
     $("#view-manager").classList.toggle("cat-home-active", isCat);
     if (!isCat) {
       $("#manager-details").classList.add("is-open");
@@ -2281,6 +2302,8 @@
 
   function interactWithCatHome() {
     const stat = ensureButlerStat("cat");
+    const hint = $("#cat-home-hint");
+    if (hint) hint.hidden = true;
     showCatHomeSpeech(catHomeLine());
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
@@ -3807,6 +3830,7 @@
     $("[data-certificate-close]").addEventListener("click", closeCertificate);
     $("#share-certificate").addEventListener("click", shareCertificate);
     $("#absence-note-close").addEventListener("click", dismissAbsenceNote);
+    $("#home-gift-link").addEventListener("click", openGiftDesk);
     $("#analysis-overlay").addEventListener("click", finishAnalysisNow);
     $("#analysis-overlay").addEventListener("keydown", event => {
       if (event.key === "Enter" || event.key === " ") { event.preventDefault(); finishAnalysisNow(); }
