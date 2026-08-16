@@ -43,6 +43,7 @@
   <link rel="stylesheet" href="relationship-final.css">
   <link rel="stylesheet" href="ux-polish.css">
   <link rel="stylesheet" href="contextual-response.css">
+  <link rel="stylesheet" href="home-office.css">
 </head>
 <body>
   <div class="app-shell" id="app-shell">
@@ -118,6 +119,8 @@
           </div>
         </header>
 
+        <p class="english-label home-reception-label">RECEPTION DESK · FORM 01</p>
+
         <section class="home-butler-room" id="home-butler-room" aria-label="집사 사무국 접수대" hidden>
   <div class="cat-home-room" id="cat-home-room">
               <div class="cat-home-world" id="cat-home-world">
@@ -134,8 +137,9 @@
             </div>
         </section>
 
-        <section class="briefing-card briefing-stage document-card">
-          <span class="briefing-index">담당 집사</span>
+        <section class="briefing-card briefing-stage document-card home-briefing-slip">
+          <span class="file-tab burgundy">담당 집사 응답</span>
+          <span class="briefing-index" hidden>담당 집사</span>
           <span class="hero-paperclip" aria-hidden="true"></span>
           <button class="briefing-character" id="briefing-character-action" type="button" aria-label="요정 집사에게 말 걸기" aria-describedby="briefing-message">
             <img id="briefing-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" data-butler-pose="base" alt="요정 집사">
@@ -143,7 +147,7 @@
           </button>
           <div class="briefing-panel">
             <small id="home-butler-role-title" hidden>기록·판단·과잉 칭찬 담당</small>
-            <h1 id="home-butler-name">요정 집사</h1>
+            <h1 id="home-butler-name" hidden>요정 집사</h1>
             <p class="butler-role" id="home-butler-desc" hidden>사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
             <div class="home-relationship-status" hidden><span id="home-relationship-stage">첫 만남</span><small id="home-relationship-next">다음 관계까지 15</small></div>
             <div class="briefing-speech" id="briefing-message" aria-live="polite">작은 일도 반짝이는 대업으로 만들어드릴게요!</div>
@@ -153,22 +157,19 @@
           </div>
         </section>
 
-        <button class="home-gift-link" id="home-gift-link" type="button">
-          <span>집사에게 선물하기</span>
-          <b><i id="home-gift-points">0</i>P 보유</b>
-          <em aria-hidden="true">→</em>
-        </button>
+        <section class="home-hero">
+          <span id="entry-kicker">오늘 이야기 접수처 · 창구 01</span>
+          <i>금일 접수</i>
+          <h1 id="home-title">오늘은 어떻게 보내셨어요?</h1>
+          <p id="entry-description">잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.</p>
+        </section>
 
         <section class="entry-form document-card">
-          <div class="entry-heading">
-            <span id="entry-kicker">오늘 이야기 접수처 · FORM 01</span>
-            <h2 id="home-title">오늘은 어떻게 보내셨어요?</h2>
-            <p id="entry-description">잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.</p>
-          </div>
+          <span class="file-tab burgundy">대업 접수서 · FORM 01</span>
+          <div class="field-heading"><strong>오늘 이야기</strong><span><b id="char-count">0</b>/160자</span></div>
           <div class="achievement-field">
             <label class="visually-hidden" for="achievement-input">오늘 이야기 입력</label>
             <textarea id="achievement-input" maxlength="160" rows="3" placeholder="예: 결혼식 다녀왔는데 너무 힘들었어"></textarea>
-            <span><b id="char-count">0</b>/160</span>
           </div>
           <div class="quick-actions" aria-label="빠른 입력">
             <button type="button" data-quick="침대에서 일어남"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>일어남</span></button>
@@ -177,23 +178,28 @@
             <button type="button" data-quick="씻음"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14M8 11V7a4 4 0 0 1 7-2"/><path d="M8 15v1M12 15v2M16 15v1"/></svg><span>씻음</span></button>
             <button type="button" data-quick-focus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>추가</span></button>
           </div>
+          <div class="entry-footnote">
+            <div class="stamp-progress">
+              <div class="progress-heading"><strong>공식 인증 도장</strong><b><span id="stamp-count">0</span> / <span id="stamp-target">5</span></b></div>
+              <div class="stamp-circles" id="stamp-circles" aria-label="공식 인증 진행도"></div>
+              <p id="stamp-copy">첫 공식 인증은 유효 대업 5개 이후 발급됩니다.</p>
+            </div>
+            <div class="absurd-status"><span>집사 과몰입 심사</span><strong id="urgency-copy">이유 없이 최상</strong></div>
+          </div>
           <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 들려주기</b><span>→</span></button>
+          <p class="form-note">비슷한 행동은 하루 한 번만 도장에 반영됩니다. 칭찬은 매번 정상 지급됩니다.</p>
           <section class="gentle-note" id="gentle-note" aria-live="polite" hidden>
             <header><span id="gentle-note-kicker">집사가 발견한 오늘의 대업</span><b id="gentle-note-badge">기록 보관</b></header>
             <p class="gentle-note-title" id="gentle-note-title"></p>
             <p class="gentle-note-copy" id="gentle-note-copy"></p>
           </section>
-
-          <div class="entry-footnote">
-          <div class="stamp-progress">
-            <div class="progress-heading"><strong>접수 도장 진행</strong><b><span id="stamp-count">0</span>/<span id="stamp-target">5</span></b></div>
-            <div class="stamp-circles" id="stamp-circles" aria-label="공식 인증 진행도"></div>
-            <p id="stamp-copy">첫 공식 인증은 유효 대업 5개 이후 발급됩니다.</p>
-          </div>
-          <div class="absurd-status"><span>집사 과몰입 심사</span><strong id="urgency-copy">이유 없이 최상</strong></div>
-          <p class="form-note">비슷한 행동은 하루 한 번만 도장에 반영됩니다. 칭찬은 매번 정상 지급됩니다.</p>
-          </div>
         </section>
+
+        <button class="home-gift-link" id="home-gift-link" type="button">
+          <span>집사에게 선물하기</span>
+          <b><i id="home-gift-points">0</i>P 보유</b>
+          <em aria-hidden="true">→</em>
+        </button>
 
         <section class="today-section">
           <div class="section-heading"><h2>기록 열람</h2><button type="button" data-view="report" data-nav="home">주간 보고서 →</button></div>

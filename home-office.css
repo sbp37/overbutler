@@ -1,0 +1,427 @@
+/* ───────── HOME 서류과 복원 ─────────
+   donor a25aedaf의 파일철/접수서 조형 언어를 현재 HOME DOM에 다시 입힌다.
+   기능·문구는 현재 버전 그대로. 바뀌는 것은 재질과 위계뿐이다.
+   범위는 #view-home 한정 — 다른 화면의 공용 규칙은 건드리지 않는다. */
+
+#view-home {
+  padding: 20px 15px 34px;
+  background: #f3ebe0;
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+}
+
+/* ── 사무국 머리글: 이중선으로 서류 상단부를 만든다 ── */
+#view-home .home-office-header {
+  margin: 0 1px 12px;
+  padding-bottom: 11px;
+  border-bottom: 3px double #b49b83;
+}
+#view-home .home-logo-lockup span { color: #7c4a4f; letter-spacing: .2em; }
+#view-home .office-running {
+  border: 1px solid #c2ac93;
+  border-radius: 2px;
+  background: #f7efe3;
+  box-shadow: 2px 2px 0 rgba(67, 48, 45, .07);
+  letter-spacing: .02em;
+}
+#view-home .home-header-actions button {
+  border: 1px solid #c2ac93;
+  border-radius: 3px;
+  background: var(--paper-light);
+  box-shadow: 2px 2px 0 rgba(67, 48, 45, .07);
+}
+
+/* ── A. 영문 행정 라벨 ── */
+#view-home .home-reception-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 1px 11px;
+  color: #86243a;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .17em;
+}
+#view-home .home-reception-label::before {
+  content: "";
+  flex: none;
+  width: 17px;
+  border-top: 3px solid var(--burgundy);
+}
+#view-home .home-reception-label::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed #c0ab95;
+}
+
+/* ── 접수대(집사방): 액자가 아니라 창구 서류함처럼 ── */
+.home-butler-room { margin: 0 0 15px; }
+.home-butler-room .cat-home-room {
+  border: 1px solid #b7a189;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+.room-pan-hint {
+  border-radius: 2px;
+  border: 1px solid rgba(112, 26, 42, .4);
+  padding: 4px 10px;
+  background: rgba(255, 250, 242, .93);
+  color: #7a1e30;
+  font-weight: 850;
+  letter-spacing: .01em;
+}
+
+/* ── 담당 집사 응답 슬립: 큰 말풍선이 아니라 접수 메모 ── */
+#view-home .briefing-stage,
+#view-home:has(.home-butler-room:not([hidden])) .briefing-stage {
+  margin: 0;
+  border: 1px solid #c3b2a1;
+  border-radius: 5px;
+  background: var(--paper-light);
+  background-image: none;
+  box-shadow: var(--shadow);
+  overflow: visible;
+}
+#view-home:has(.home-butler-room:not([hidden])) .briefing-stage {
+  display: block;
+  min-height: 0;
+  padding: 23px 14px 14px;
+}
+#view-home .home-briefing-slip .file-tab {
+  position: absolute;
+  top: -11px;
+  left: 13px;
+  padding: 6px 11px;
+  border-radius: 3px 3px 0 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .02em;
+}
+#view-home .briefing-panel {
+  margin: 0;
+  padding: 0;
+}
+#view-home .briefing-speech {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #3b3130;
+  font: 700 16px/1.55 var(--ui-font);
+  word-break: keep-all;
+}
+#view-home .briefing-speech::before { display: none; }
+
+/* ── B/D. 접수처 제목 + 기울어진 금일 접수 도장 ── */
+#view-home .home-hero {
+  position: relative;
+  padding: 30px 2px 4px;
+}
+#view-home .home-hero > span {
+  display: inline-block;
+  padding-left: 8px;
+  border-left: 4px solid var(--burgundy);
+  color: var(--burgundy);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: -.01em;
+}
+#view-home .home-hero i {
+  position: absolute;
+  right: 1px;
+  top: 17px;
+  padding: 6px 9px;
+  border: 1.5px solid var(--burgundy);
+  border-radius: 2px;
+  background: rgba(255, 250, 242, .82);
+  color: var(--burgundy);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: .02em;
+  transform: rotate(4deg);
+}
+#view-home .home-hero h1 {
+  max-width: 360px;
+  margin: 13px 0 0;
+  color: #2c2528;
+  font: 850 40px/1.06 Paperlogy, "Noto Serif KR", sans-serif;
+  letter-spacing: -.07em;
+  word-break: keep-all;
+}
+#view-home .home-hero p {
+  margin: 10px 0 0;
+  max-width: 330px;
+  color: #7a6d6a;
+  font-size: 14px;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+/* ── C. 대업 접수서 파일철 ── */
+#view-home .entry-form {
+  margin-top: 22px;
+  padding: 27px 15px 15px;
+  border: 1px solid #c3b2a1;
+  border-radius: 5px;
+  background: var(--paper-light);
+  box-shadow: var(--shadow);
+  overflow: visible;
+}
+#view-home .entry-form.first-run-entry {
+  border-color: #ab8087;
+  box-shadow: var(--shadow), 0 0 0 2px rgba(164, 64, 84, .1);
+}
+#view-home .entry-form > .file-tab {
+  position: absolute;
+  top: -11px;
+  left: 13px;
+  padding: 6px 11px;
+  border-radius: 3px 3px 0 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .02em;
+}
+#view-home .field-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--line);
+}
+#view-home .field-heading strong { font-size: 15px; letter-spacing: -.02em; }
+#view-home .field-heading span { color: #998a80; font-size: 12px; font-weight: 700; }
+#view-home .field-heading b { color: #7a6055; font-style: normal; }
+
+#view-home .achievement-field { margin-top: 12px; }
+#view-home .entry-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 112px;
+  margin: 0;
+  padding: 15px 14px;
+  border: 1px solid #c9b6a2;
+  border-radius: 3px;
+  background-color: #f7eee3;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0 25px,
+    rgba(148, 121, 96, .26) 25px 26px
+  );
+  background-position: 0 15px;
+  background-attachment: local;
+  box-shadow: none;
+  color: #33292b;
+  font: 650 17px/26px var(--ui-font);
+  resize: none;
+}
+#view-home .entry-form textarea::placeholder { color: #a4917f; font-weight: 600; }
+#view-home .entry-form textarea:focus {
+  border-color: #a86572;
+  box-shadow: 0 0 0 3px rgba(150, 63, 80, .09);
+}
+
+/* ── 빠른 입력: 앱 칩이 아니라 서류 체크란 ── */
+#view-home .quick-actions {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 11px 0 13px;
+}
+#view-home .quick-actions button {
+  min-height: 62px;
+  padding: 7px 1px;
+  border: 1px solid #c6b09a;
+  border-radius: 2px;
+  background: #efe5d8 !important;
+  color: #5c4d49;
+  font-size: 10px;
+  font-weight: 850;
+}
+#view-home .quick-actions button span {
+  display: block;
+  margin: 0;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -.04em;
+  white-space: nowrap;
+}
+#view-home .quick-actions svg { margin-bottom: 7px; stroke: #8d5b64; }
+#view-home .quick-actions button:active { background: #e5d8c8 !important; transform: translateY(1px); }
+
+/* ── E. 공식 인증 도장 ── */
+#view-home .entry-footnote {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+#view-home .stamp-progress {
+  position: relative;
+  display: block;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #ece1d4;
+  overflow: hidden;
+}
+#view-home .progress-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+#view-home .progress-heading strong {
+  display: block;
+  color: #4a3d3c;
+  font-size: 14px;
+  letter-spacing: -.02em;
+}
+#view-home .progress-heading b {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--burgundy);
+  font-size: 18px;
+  font-weight: 850;
+}
+#view-home .stamp-circles {
+  display: flex;
+  gap: 9px;
+  margin: 12px 0 11px;
+}
+#view-home .stamp-circles i {
+  width: 40px;
+  height: 40px;
+  border: 1px dashed #b6a396;
+  background: rgba(255, 250, 242, .74);
+  font-size: 11px;
+}
+#view-home .stamp-circles i.filled:before { font-size: 11px; }
+#view-home .stamp-progress p {
+  margin: 0;
+  color: #857569;
+  font-size: 11px;
+  line-height: 1.5;
+}
+#view-home .stamp-progress:after {
+  display: block;
+  right: 15px;
+  top: 40px;
+  font-size: 11px;
+}
+
+/* 집사 과몰입 심사: 사무국이 스스로를 감시하는 한 줄 */
+#view-home .absurd-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 9px 0 0;
+  padding: 9px 11px;
+  border: 1px dashed #c6b6a7;
+  border-radius: 2px;
+  background: #f3ebe0;
+  color: #746762;
+  font-size: 11px;
+  font-weight: 750;
+}
+#view-home .absurd-status strong { color: var(--burgundy); font-size: 12px; }
+
+/* ── F. 결재 버튼 ── */
+#view-home .report-button {
+  width: 100%;
+  min-height: 60px;
+  margin: 14px 0 0;
+  border: 1px solid var(--ink);
+  border-radius: 5px;
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 850;
+  letter-spacing: -.02em;
+}
+#view-home .report-button b { font: inherit; }
+#view-home .report-button span {
+  float: right;
+  margin-right: 4px;
+  color: #e5a1ad;
+  font-size: 19px;
+  font-weight: 400;
+}
+#view-home .report-button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(67, 48, 45, .16); }
+
+#view-home .form-note {
+  margin: 9px 0 0;
+  color: #8c7d74;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 집사 회신 카드도 같은 서류 재질로 */
+#view-home .gentle-note {
+  margin-top: 13px;
+  border-radius: 3px;
+  border: 1px solid #c3b2a1;
+  background: var(--paper-light);
+  box-shadow: none;
+}
+#view-home .gentle-note > header {
+  border-bottom: 1px dashed var(--line);
+}
+
+/* 선물 창구도 종이 전표로 */
+#view-home .home-gift-link {
+  margin-top: 15px;
+  border: 1px solid #c3b2a1;
+  border-radius: 3px;
+  background: var(--paper-light);
+  box-shadow: var(--shadow);
+}
+
+/* ── 기록 열람 구획 ── */
+#view-home .today-section { margin-top: 24px; }
+#view-home .section-heading {
+  align-items: flex-end;
+  padding: 0 1px 8px;
+  border-bottom: 2px solid var(--ink);
+}
+#view-home .section-heading h2 {
+  color: #2c2528;
+  font: 900 20px/1.2 "Noto Serif KR", serif;
+  letter-spacing: -.05em;
+}
+#view-home .section-heading button { color: var(--burgundy); font-size: 11px; font-weight: 850; }
+#view-home .home-desk-links button {
+  border: 1px solid #c3b2a1;
+  border-radius: 4px;
+  background: var(--paper-light);
+  box-shadow: var(--shadow);
+}
+#view-home .home-desk-links u { color: var(--burgundy); }
+
+/* ── 좁은 화면 ── */
+@media (max-width: 392px) {
+  #view-home .home-hero h1 { font-size: 36px; }
+  #view-home .stamp-circles { gap: 7px; }
+  #view-home .stamp-circles i { width: 37px; height: 37px; }
+}
+@media (max-width: 372px) {
+  #view-home { padding-right: 12px; padding-left: 12px; }
+  #view-home .home-hero { padding-top: 32px; }
+  #view-home .home-hero h1 { font-size: 32px; }
+  #view-home .home-hero p { font-size: 13px; }
+  #view-home .quick-actions { gap: 4px; }
+  #view-home .quick-actions button { font-size: 9px; }
+  #view-home .stamp-circles { gap: 5px; }
+  #view-home .stamp-circles i { width: 34px; height: 34px; font-size: 10px; }
+  #view-home .stamp-circles i.filled:before { font-size: 10px; }
+  #view-home .report-button { font-size: 16px; }
+}

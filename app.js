@@ -1718,7 +1718,7 @@
     const entry = $("#view-home .entry-form");
     $("#first-deed-guide").hidden = !pending;
     entry.classList.toggle("first-run-entry", pending);
-    $("#entry-kicker").textContent = pending ? "첫 이야기 접수 · FORM 01" : "오늘 이야기 접수처 · FORM 01";
+    $("#entry-kicker").textContent = pending ? "첫 이야기 접수 · 창구 01" : "오늘 이야기 접수처 · 창구 01";
     $("#entry-description").textContent = pending
       ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 괜찮아요.`
       : "잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.";
