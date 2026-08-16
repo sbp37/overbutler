@@ -1378,6 +1378,8 @@
     const returned = returnVisitLine();
     returnVisitContext.consumed = true;
     typeMessage($("#briefing-message"), returned ? `${greeting}\n${returned}` : greeting);
+    // 홈 상단은 접수대 방 하나로 정리했다. 인사는 카드가 아니라 집사 말풍선으로 나간다.
+    window.setTimeout(() => showCatHomeSpeech(returned || greeting, 4200), 420);
   }
 
   function cycleBriefing() {
@@ -2275,11 +2277,12 @@
     return stageLines[stat.interactions % stageLines.length];
   }
 
-  function showCatHomeSpeech(message) {
+  function showCatHomeSpeech(message, holdFor = 2800) {
     const speech = $("#cat-home-speech");
     const character = $("#cat-home-character");
     const image = $("#cat-home-character-image");
     if (!speech || !character || state.character !== "cat") return;
+    if ($("#home-butler-room")?.hidden) return;
     window.clearTimeout(catHomeSpeechTimer);
     speech.textContent = message;
     positionCatHomeSpeech();
@@ -2292,7 +2295,7 @@
     catHomeSpeechTimer = window.setTimeout(() => {
       speech.classList.remove("is-visible");
       character.classList.remove("is-reacting");
-    }, 2800);
+    }, holdFor);
   }
 
   function dismissCatHomeHint() {
@@ -2582,6 +2585,7 @@
       $("#char-count").textContent = "0";
       hideGentleNote();
       typeMessage($("#briefing-message"), interpreted.reply, 18);
+      showCatHomeSpeech(interpreted.reply, 5200);
       achievementSubmissionActive = false;
       reportButton.disabled = false;
       reportButton.removeAttribute("aria-busy");

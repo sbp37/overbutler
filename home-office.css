@@ -12,13 +12,18 @@
   background-size: 23px 23px;
 }
 
-/* ── 사무국 머리글: 이중선으로 서류 상단부를 만든다 ── */
+/* ── 사무국 머리글: 이중선으로 서류 상단부를 만든다 ──
+   기록/집사 바로가기 아이콘은 하단 nav와 완전히 같은 곳으로 가서 걷어냈다.
+   헤더에는 이름표와 운영 상태만 남긴다. */
 #view-home .home-office-header {
-  margin: 0 1px 12px;
-  padding-bottom: 11px;
+  align-items: center;
+  min-height: 0;
+  margin: 0 1px 11px;
+  padding-bottom: 10px;
   border-bottom: 3px double #b49b83;
 }
 #view-home .home-logo-lockup span { color: #7c4a4f; letter-spacing: .2em; }
+#view-home .home-logo-lockup small { margin-top: 6px; }
 #view-home .office-running {
   border: 1px solid #c2ac93;
   border-radius: 2px;
@@ -26,12 +31,21 @@
   box-shadow: 2px 2px 0 rgba(67, 48, 45, .07);
   letter-spacing: .02em;
 }
-#view-home .home-header-actions button {
-  border: 1px solid #c2ac93;
-  border-radius: 3px;
-  background: var(--paper-light);
-  box-shadow: 2px 2px 0 rgba(67, 48, 45, .07);
-}
+
+/* ── 홈에서 걷어낸 것들 ──────────────────────────────
+   전부 DOM은 남긴다. app.js가 #briefing-message / #urgency-copy /
+   #home-gift-points 를 직접 참조해서, 지우면 렌더가 죽는다.
+   기능은 그대로 두고 홈 첫 화면에서만 자리를 비운다. */
+
+/* 접수대 방이 이미 집사의 존재를 보여준다. 같은 집사가 카드로 한 번 더
+   상주할 이유가 없다. 반응은 방 말풍선과 접수서 안 gentle-note로 나간다.
+   방이 없는 집사(고양이 외)에게는 이 카드가 유일한 창구라 그대로 둔다. */
+#view-home:has(.home-butler-room:not([hidden])) .home-briefing-slip { display: none; }
+
+/* 과몰입 심사와 선물 창구는 입력이라는 본 행동보다 앞에 설 이유가 없다.
+   심사값은 결과/관계 화면에, 선물은 집사 탭 안에 그대로 있다. */
+#view-home .absurd-status { display: none; }
+#view-home .home-gift-link { display: none; }
 
 /* ── A. 영문 행정 라벨 ── */
 #view-home .home-reception-label {
@@ -73,21 +87,15 @@
   letter-spacing: .01em;
 }
 
-/* ── 담당 집사 응답 슬립: 큰 말풍선이 아니라 접수 메모 ── */
-#view-home .briefing-stage,
-#view-home:has(.home-butler-room:not([hidden])) .briefing-stage {
-  margin: 0;
+/* 방이 없는 집사(고양이 외)에게는 이 카드가 홈의 유일한 창구라, 그때만 남긴다.
+   문서 재질만 맞춰 두고 레이아웃은 기존 규칙에 맡긴다. */
+#view-home .briefing-stage {
   border: 1px solid #c3b2a1;
   border-radius: 5px;
   background: var(--paper-light);
   background-image: none;
   box-shadow: var(--shadow);
   overflow: visible;
-}
-#view-home:has(.home-butler-room:not([hidden])) .briefing-stage {
-  display: block;
-  min-height: 0;
-  padding: 23px 14px 14px;
 }
 #view-home .home-briefing-slip .file-tab {
   position: absolute;
@@ -100,22 +108,6 @@
   font-weight: 850;
   letter-spacing: .02em;
 }
-#view-home .briefing-panel {
-  margin: 0;
-  padding: 0;
-}
-#view-home .briefing-speech {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: #3b3130;
-  font: 700 16px/1.55 var(--ui-font);
-  word-break: keep-all;
-}
-#view-home .briefing-speech::before { display: none; }
 
 /* ── B/D. 접수처 제목 + 기울어진 금일 접수 도장 ── */
 #view-home .home-hero {
@@ -317,22 +309,6 @@
   font-size: 11px;
 }
 
-/* 집사 과몰입 심사: 사무국이 스스로를 감시하는 한 줄 */
-#view-home .absurd-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 9px 0 0;
-  padding: 9px 11px;
-  border: 1px dashed #c6b6a7;
-  border-radius: 2px;
-  background: #f3ebe0;
-  color: #746762;
-  font-size: 11px;
-  font-weight: 750;
-}
-#view-home .absurd-status strong { color: var(--burgundy); font-size: 12px; }
-
 /* ── F. 결재 버튼 ── */
 #view-home .report-button {
   width: 100%;
@@ -365,7 +341,7 @@
   text-align: center;
 }
 
-/* 집사 회신 카드도 같은 서류 재질로 */
+/* 집사 회신 카드도 같은 서류 재질로 — 반응은 여기 아니면 방 말풍선에 나온다 */
 #view-home .gentle-note {
   margin-top: 13px;
   border-radius: 3px;
@@ -376,36 +352,6 @@
 #view-home .gentle-note > header {
   border-bottom: 1px dashed var(--line);
 }
-
-/* 선물 창구도 종이 전표로 */
-#view-home .home-gift-link {
-  margin-top: 15px;
-  border: 1px solid #c3b2a1;
-  border-radius: 3px;
-  background: var(--paper-light);
-  box-shadow: var(--shadow);
-}
-
-/* ── 기록 열람 구획 ── */
-#view-home .today-section { margin-top: 24px; }
-#view-home .section-heading {
-  align-items: flex-end;
-  padding: 0 1px 8px;
-  border-bottom: 2px solid var(--ink);
-}
-#view-home .section-heading h2 {
-  color: #2c2528;
-  font: 900 20px/1.2 "Noto Serif KR", serif;
-  letter-spacing: -.05em;
-}
-#view-home .section-heading button { color: var(--burgundy); font-size: 11px; font-weight: 850; }
-#view-home .home-desk-links button {
-  border: 1px solid #c3b2a1;
-  border-radius: 4px;
-  background: var(--paper-light);
-  box-shadow: var(--shadow);
-}
-#view-home .home-desk-links u { color: var(--burgundy); }
 
 /* ── 좁은 화면 ── */
 @media (max-width: 392px) {

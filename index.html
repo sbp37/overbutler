@@ -106,15 +106,6 @@
             <small>집사 사무국</small>
           </div>
           <div class="home-header-right">
-            <div class="home-header-actions">
-              <button type="button" data-view="archive" data-archive-tab="records" aria-label="오늘의 기록 보기">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-                <i></i>
-              </button>
-              <button type="button" data-view="manager" aria-label="담당 집사 관리">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c.8-5 3.3-7 7.5-7s6.7 2 7.5 7"/></svg>
-              </button>
-            </div>
             <div class="office-running"><i></i> 사무국 정상 운영 중</div>
           </div>
         </header>
@@ -201,13 +192,6 @@
           <em aria-hidden="true">→</em>
         </button>
 
-        <section class="today-section">
-          <div class="section-heading"><h2>기록 열람</h2><button type="button" data-view="report" data-nav="home">주간 보고서 →</button></div>
-          <div class="home-desk-links">
-            <button type="button" data-view="archive" data-archive-tab="certificates"><span>인증서</span><strong>공식 대업 인증서</strong><small>당신의 대업을 확인하세요.</small><i class="mini-certificate" aria-hidden="true"><b>대업<br>인증서</b><em></em></i><u>인증서 보기 →</u></button>
-            <button type="button" data-view="archive" data-archive-tab="records"><span>서고</span><strong>기록 보관 서고</strong><small>지금까지의 모든 기록을 안전하게 보관합니다.</small><i class="mini-archive" aria-hidden="true"><b></b><b></b><b></b><em>ARCHIVE</em></i><u>기록 보러 가기 →</u></button>
-          </div>
-        </section>
       </section>
 
       <section class="app-view" id="view-report" aria-labelledby="weekly-report-title">
@@ -269,7 +253,10 @@
               <span id="archive-kicker">RECORD DESK · FILE 02</span>
               <h1 id="archive-view-title">오늘의 기록</h1>
             </div>
-            <time id="archive-date"></time>
+            <div class="archive-title-aside">
+              <time id="archive-date"></time>
+              <button class="archive-report-link" type="button" data-view="report" data-nav="records">주간 보고서 →</button>
+            </div>
           </div>
           <div class="archive-tabs" role="tablist" aria-label="기록 분류">
             <button type="button" id="archive-tab-records" role="tab" aria-selected="false" aria-controls="archive-records" tabindex="-1" data-archive-tab="records">기록</button>
