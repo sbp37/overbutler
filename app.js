@@ -1759,6 +1759,10 @@
     $("#records-official-count").textContent = state.certificates.length;
     $("#records-fame-count").textContent = state.fame;
     const status = certificationStatus();
+    // 카드마다 "대업 후보"와 "공식 인정"이 붙는데 무엇이 둘을 가르는지는 어디에도 없었다.
+    $("#record-legend").textContent = status.first
+      ? `모든 기록은 대업 후보로 접수됩니다. ${status.target}건이 모이면 사무국이 공식 인정 인증서를 발급합니다. (${status.remaining}건 남음)`
+      : `대업 후보 ${status.target}건마다 공식 인정 인증서가 한 장 발급됩니다. 다음 발급까지 ${status.remaining}건 남았습니다.`;
     const certificateFiles = state.certificates.slice().reverse().map((certificate, index) => {
       const sourceIndex = state.certificates.length - 1 - index;
       return `<article class="archive-cabinet-row">

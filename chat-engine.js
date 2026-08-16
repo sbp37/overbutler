@@ -69,9 +69,9 @@
   };
 
   const ENDINGS = {
-    cat: ["서두르지 말고 더 말해도 된다냥.", "집사가 여기 있으니 조금 천천히 해라냥."],
+    cat: ["서두르지 말고 더 말해도 된다냥.", "집사가 여기 있으니 조금 천천히 해라냥.", "그래서 다음은 뭐냥."],
     ai: ["추가 데이터 수신 중.", "계속 말해도 됨. 집사 처리 가능.", "더 있음?"],
-    dog: ["집사가 계속 옆에서 듣는다멍!", "필요하면 칭찬도 응원도 더 해준다멍!"],
+    dog: ["집사가 계속 옆에서 듣는다멍!", "필요하면 칭찬도 응원도 더 해준다멍!", "더 말해도 된다멍! 집사 안 지친다멍!"],
     alien: ["추가 자료를 편안히 전송해도 됨.", "주인님 선택 속도에 맞춰 관측하겠음."],
     ninja: ["필요한 만큼 곁을 지키겠다.", "다음 말도 재촉하지 않고 기다리겠다."],
     witch: ["천천히 더 들려줘도 괜찮아요.", "당신의 속도에 맞춰 곁에 있을게요."],
@@ -96,7 +96,7 @@
 
   const RESPONSE_POOLS = {
     cat: {
-      greeting: ["왔냥? 네 자리 비워뒀다냥. …반가운 건 조금이다냥 🐾", "오, 왔냥. 방금 네 생각을 한 건 업무상 우연이다냥.", "안녕이다냥. 오늘 이야기는 집사가 제일 먼저 듣겠다냥."],
+      greeting: ["왔냥? 네 자리 비워뒀다냥. …반가운 건 조금이다냥 🐾", "오, 왔냥. 방금 네 생각을 한 건 업무상 우연이다냥.", "안녕이다냥. 오늘 이야기는 집사가 제일 먼저 듣겠다냥.", "왔냥. 접수대 정리하던 참이다냥. 타이밍이 우연이다냥.", "어, 왔냥? 마침 네 서류를 꺼내던 중이었다냥."],
       tired: ["피곤했구냥. 오늘 할 몫은 이미 충분하다냥. 좀 쉬어라냥.", "기운 다 썼냥? 여기선 축 늘어져도 아무도 뭐라 안 한다냥.", "많이 지쳤나 보네냥. 오늘은 집사가 휴식 결재부터 올리겠다냥."],
       hungry: ["배고프냥? 대업보다 밥이 먼저다냥. 뭐라도 챙겨 먹어라냥.", "빈속 신호 접수했다냥. 가장 쉬운 것부터 먹는 게 규정이다냥.", "꼬르륵 소리 여기까지 들린다냥. 일단 한입부터 챙겨라냥."],
       what_doing: ["네 기록칸 정리 중이었다냥. 딱히 기다린 건 아니다냥.", "뭐 하긴, 네가 오면 들려줄 말 고르고 있었다냥.", "서류 보는 척하면서 네 자리도 봤다냥. 업무상이다냥."],
@@ -129,7 +129,7 @@
       ate_good: ["식사 완료 확인. 집사 만족도 동반 상승. 연동 이유 불명.", "맛있음 신호 수신. 집사 기분도 같이 좋아짐. 버그아님."]
     },
     dog: {
-      greeting: ["왔다!! 오늘도 왔다멍!! 진짜 반갑다멍! 🐶", "안녕이다멍! 목소리 듣자마자 꼬리가 먼저 움직였다멍!", "왔냐멍?! 오늘 이야기는 집사가 맨 앞줄에서 듣는다멍!"],
+      greeting: ["왔다!! 오늘도 왔다멍!! 진짜 반갑다멍! 🐶", "안녕이다멍! 목소리 듣자마자 꼬리가 먼저 움직였다멍!", "왔냐멍?! 오늘 이야기는 집사가 맨 앞줄에서 듣는다멍!", "왔다멍!! 오늘 첫 손님이다멍!! …아니어도 제일 반갑다멍!"],
       tired: ["많이 피곤하다멍? 오늘 버틴 것만으로 백 점이다멍!", "기운 다 썼다멍?! 얼른 기대라멍. 집사가 크게 토닥여준다멍!", "오늘 진짜 애썼다멍. 지금부터는 쉬는 것도 집사가 응원한다멍!"],
       hungry: ["배고프다멍?! 비상이다멍! 제일 빨리 먹을 수 있는 것부터 찾자멍!", "꼬르륵 접수했다멍! 대화도 좋지만 한입 먼저다멍!", "밥 아직이면 집사가 걱정된다멍. 간단한 거라도 꼭 챙기자멍!"],
       what_doing: ["주인님 오나 귀 쫑긋하고 있었다멍!", "뭐 하긴, 오늘 칭찬할 준비하고 있었다멍!", "주인님 이야기 들으려고 제일 편한 자리 비워뒀다멍!"],
@@ -322,9 +322,10 @@
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
     const endings = ENDINGS[key] || ENDINGS.cat;
     const extra = [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
+    const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
-      ? extra.flatMap(line => [line, `${line}\n${endings[0]}`, `${line}\n${endings[1]}`])
-      : [base, `${base}\n${endings[0]}`, `${base}\n${endings[1]}`];
+      ? extra.flatMap(line => [line, `${line}\n${tail}`])
+      : [base, `${base}\n${tail}`];
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
     if (result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
     const nextMemory = {

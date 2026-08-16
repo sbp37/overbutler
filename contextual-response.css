@@ -212,3 +212,17 @@ blockquote.diary-sealed{
   .home-gift-link{padding:11px}
   .home-gift-link>span{font-size:13px}
 }
+
+/* 기록 카드의 "대업 후보 / 공식 인정" 배지가 무엇으로 갈리는지 알려주는 안내. */
+.record-legend{
+  margin:0 0 10px;
+  padding:9px 11px;
+  border:1px dashed #d3c4ae;
+  border-radius:9px;
+  background:rgba(255,252,245,.72);
+  color:#7d6c62;
+  font-size:11px;
+  line-height:1.55;
+  word-break:keep-all;
+}
+.record-legend:empty{display:none}
