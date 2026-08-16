@@ -809,7 +809,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false,
+    records: [], achievements: [], certificates: [], rerolled: false, absenceNoteDate: null,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -990,6 +990,7 @@
     merged.fame = nonNegativeInteger(raw.fame);
     merged.startDate = storedText(raw.startDate, DEFAULT_STATE.startDate);
     merged.lastActiveDate = storedText(raw.lastActiveDate) || null;
+    merged.absenceNoteDate = storedText(raw.absenceNoteDate) || null;
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
     const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : legacyAchievements;
     const certificateSource = Array.isArray(raw.certificates)
@@ -1272,9 +1273,27 @@
     return content?.stageLines?.[stageIndexFor(obsession)] ? templateOwner(content.stageLines[stageIndexFor(obsession)]) : "";
   }
 
+  // "2026.08.16" 형식의 저장값을 날짜로 되돌린다. 형식이 다르면(구버전) Date에 맡긴다.
+  function parseStoredDate(value) {
+    const text = String(value || "").trim();
+    if (!text) return null;
+    const parts = text.match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
+    const date = parts ? new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])) : new Date(text);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function daysSince(lastActiveDate) {
+    const past = parseStoredDate(lastActiveDate);
+    const now = parseStoredDate(today());
+    if (!past || !now) return 0;
+    return Math.max(0, Math.round((now - past) / 86400000));
+  }
+
+  // 같은 날 새로고침은 재방문이 아니다. 날짜가 실제로 바뀌었을 때만 복귀로 친다.
   function returnVisitFor(lastActiveDate) {
-    const returning = Boolean(String(lastActiveDate || "").trim());
-    return { returning, consumed: !returning };
+    const stored = String(lastActiveDate || "").trim();
+    const returning = Boolean(stored) && stored !== today();
+    return { returning, consumed: !returning, daysAway: returning ? daysSince(stored) : 0 };
   }
 
   function returnVisitLine(character = state.character) {
@@ -1909,6 +1928,49 @@
     ]
   });
 
+  // 부재중 서류: 주인님이 없던 동안 집사가 저지른 일. 사무국 소식과 같은 원칙으로,
+  // 시선은 언제나 집사를 향한다. 사용자가 뭘 했는지는 절대 추측하지 않는다.
+  const ABSENCE_MEMOS = Object.freeze({
+    low: [
+      "부재중 접수 0건. {butler} 집사는 규정대로 자리를 지켰다.",
+      "{butler} 집사가 접수창을 정시에 열고 정시에 닫았다. 특이사항 없음.",
+      "{butler} 집사의 어제 근무일지에는 '대기'라고만 적혀 있었다."
+    ],
+    mid: [
+      "{butler} 집사가 접수창을 세 번 열었다 닫았다. 본인은 환기라고 했다.",
+      "사무국 메모: {butler} 집사 책상에서 서류함 한 칸만 비어 있었다. 주인님 칸이었다.",
+      "{butler} 집사가 결재 도장을 미리 꺼내뒀다. 접수될 서류는 없었다."
+    ],
+    high: [
+      "{butler} 집사가 퇴근 시간을 넘겨 남아 있었다. 사유란은 비어 있었다.",
+      "{butler} 집사가 빈 접수대 앞에서 서류 정리를 네 번 반복했다.",
+      "옆자리 집사가 물었다. \"오늘 접수 없잖아?\" {butler} 집사는 대답하지 않았다."
+    ],
+    max: [
+      "{butler} 집사가 빈 서류함에 결재란을 미리 그려뒀다. 감사실이 사유를 물었다.",
+      "{butler} 집사가 접수도 안 된 서류에 도장을 찍어뒀다. 회수 조치됐다.",
+      "사무국이 {butler} 집사에게 대기 시간 초과를 통보했다. 집사는 통보서를 접어 서랍에 넣었다."
+    ]
+  });
+
+  const LONG_ABSENCE_MEMOS = Object.freeze([
+    "{days}일간 접수 없음. {butler} 집사가 그동안 주인님 서류함만 반복해서 열어봤다는 기록이 남았다.",
+    "{days}일치 결재란이 비어 있다. {butler} 집사는 그 칸을 지우지 않고 그대로 뒀다.",
+    "{days}일 동안 {butler} 집사의 근무일지 사유란이 전부 공란이었다. 사무국은 재작성을 요구했다."
+  ]);
+
+  function absenceMemoFor(daysAway, butlerName, obsession = state.obsession, seed = daysSince(state.startDate)) {
+    if (!daysAway) return "";
+    const name = butlerName || "담당";
+    if (daysAway >= 3) {
+      return LONG_ABSENCE_MEMOS[seed % LONG_ABSENCE_MEMOS.length]
+        .replaceAll("{days}", String(daysAway)).replaceAll("{butler}", name);
+    }
+    const level = Number(obsession) || 0;
+    const pool = level >= 60 ? ABSENCE_MEMOS.max : level >= 40 ? ABSENCE_MEMOS.high : level >= 20 ? ABSENCE_MEMOS.mid : ABSENCE_MEMOS.low;
+    return pool[seed % pool.length].replaceAll("{butler}", name);
+  }
+
   function officeNewsFor(entries, butlerName, seed) {
     const level = entries.map(entry => Number(entry.obsession) || 0).reduce((a, b) => Math.max(a, b), 0);
     const pool = level >= 60 ? OFFICE_NEWS.max : level >= 40 ? OFFICE_NEWS.high : level >= 20 ? OFFICE_NEWS.mid : null;
@@ -1987,6 +2049,24 @@
     return changed;
   }
 
+  // 봉인 안내도 집사 말투로 나간다. AI는 로그체, 나머지는 각자의 어미.
+  const SEALED_DIARY_NOTES = Object.freeze({
+    ai: "[작성 중] 금일 관찰 일지 미완료. 봉인 해제 예정 시각: 내일. 미리 열람 요청은 반려됨.",
+    cat: "오늘 일지는 아직 안 보여준다냥. 내일 사무국이 봉인을 푼다냥. 미리 보려고 하지 말라냥.",
+    dog: "오늘 일지는 아직 비밀이다멍! 내일 열어준다멍! 그때까지 꾹 참는다멍!",
+    alien: "금일 관찰 일지 작성 중. 봉인 해제는 다음 주기로 예정함.",
+    ninja: "오늘의 일지는 아직 봉인 중이다. 내일 그대에게 열어 보이겠다.",
+    witch: "오늘 일지에는 아직 봉인 주문이 걸려 있어요. 내일 아침에 풀린답니다.",
+    zombie: "오늘 일지는... 아직 안 끝났어... 내일 보여줄게...",
+    girlidol: "오늘 분량은 아직 편집 중이야. 공개는 내일. 스포는 없어.",
+    elf: "오늘의 기록은 아직 여미는 중이에요. 내일 조용히 펼쳐 보일게요.",
+    fairy: "오늘 일지는 아직 별가루로 덮여 있어요! 내일 아침에 반짝 열릴 거예요!"
+  });
+
+  function sealedDiaryNote(character) {
+    return SEALED_DIARY_NOTES[normalizeCharacter(character)] || SEALED_DIARY_NOTES.cat;
+  }
+
   function renderButlerDiary() {
     const list = $("#butler-diary-list");
     if (!list) return;
@@ -2009,10 +2089,15 @@
       const butler = sample.butler || snapshotButler(sample);
       const deeds = entries.map(entry => entry.deed || entry.todos?.[0]).filter(Boolean);
       const reflection = [...entries].reverse().find(entry => entry.reflection)?.reflection || diaryReflection(butler.character, entries, sample.ownerName);
-      return `<article class="butler-diary-page">
+      // 오늘치 일지는 아직 봉인 상태다. 속마음은 다음 날 열어야 내일 올 이유가 된다.
+      const sealed = sample.date === today();
+      const body = sealed
+        ? `<blockquote class="diary-sealed">${escapeHtml(sealedDiaryNote(butler.character))}</blockquote>`
+        : `<blockquote>${escapeHtml(reflection)}</blockquote>`;
+      return `<article class="butler-diary-page${sealed ? " sealed" : ""}">
         <header><div><img src="${recordPortrait(sample, "base")}" alt="${escapeHtml(butler.name)}"><span><b>${escapeHtml(butler.name)}</b><small>${escapeHtml(sample.date || "")}</small></span></div><em>${String(entries.length).padStart(2, "0")} DEEDS</em></header>
-        <div class="diary-paper-lines"><p><strong>${escapeHtml(sample.ownerName || ownerDisplayName())}의 오늘 기록</strong></p><ul>${deeds.map(deed => `<li>${escapeHtml(deed)}</li>`).join("")}</ul><blockquote>${escapeHtml(reflection)}</blockquote></div>
-        <footer><span>${escapeHtml(CHARACTER_PROFILES[butler.character].name)} 관찰 일지</span><b>기록 완료</b></footer>
+        <div class="diary-paper-lines"><p><strong>${escapeHtml(sample.ownerName || ownerDisplayName())}의 오늘 기록</strong></p><ul>${deeds.map(deed => `<li>${escapeHtml(deed)}</li>`).join("")}</ul>${body}</div>
+        <footer><span>${escapeHtml(CHARACTER_PROFILES[butler.character].name)} 관찰 일지</span><b>${sealed ? "작성 중 · 봉인" : "기록 완료"}</b></footer>
       </article>`;
     }).join("");
   }
@@ -2606,6 +2691,29 @@
   function hideGentleNote() {
     const note = $("#gentle-note");
     if (note) note.hidden = true;
+  }
+
+  // 하루 이상 만에 돌아오면 집사가 부재중에 저지른 일을 서류 한 장으로 알린다.
+  // 하루에 한 번만 뜨고, 확인하면 그날은 다시 뜨지 않는다.
+  function showAbsenceNote() {
+    const note = $("#absence-note");
+    if (!note || !returnVisitContext.returning) return;
+    if (state.absenceNoteDate === today()) return;
+    const stat = ensureButlerStat(state.character);
+    const butlerName = stat.customName || CHARACTER_PROFILES[state.character].defaultName;
+    const days = Math.max(1, returnVisitContext.daysAway || 1);
+    const memo = absenceMemoFor(days, butlerName, state.obsession, state.records.length + days);
+    if (!memo) return;
+    $("#absence-note-days").textContent = days >= 2 ? `${days}일치 미결` : "어제 접수분";
+    $("#absence-note-copy").textContent = memo;
+    note.hidden = false;
+  }
+
+  function dismissAbsenceNote() {
+    const note = $("#absence-note");
+    if (note) note.hidden = true;
+    state.absenceNoteDate = today();
+    saveState();
   }
 
   // 위로/일상 기록 전용의 조용한 접수 알림. FORM 05를 대신한다.
@@ -3677,6 +3785,7 @@
     $("#close-certificate").addEventListener("click", closeCertificate);
     $("[data-certificate-close]").addEventListener("click", closeCertificate);
     $("#share-certificate").addEventListener("click", shareCertificate);
+    $("#absence-note-close").addEventListener("click", dismissAbsenceNote);
     $("#save-certificate").addEventListener("click", saveCertificateImage);
     $("#certificate-overlay").addEventListener("click", event => { if (event.target.id === "certificate-overlay") closeCertificate(); });
     $("#recruit-note").addEventListener("click", openRecruitment);
@@ -3731,6 +3840,7 @@
       // 현재 캐릭터를 ownedButlers에 편입시키므로, 여기서 저장했다간
       // ?preview=idol 같은 링크 하나로 유료 집사가 그대로 무료 지급된다.
       if (!previewMode) saveState();
+      showAbsenceNote();
       startTimeBriefing();
       if (state.onboarded && !state.username && !previewMode) {
         $("#owner-name-overlay").hidden = false;
