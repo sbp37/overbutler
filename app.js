@@ -208,7 +208,7 @@
 
   const CHARACTER_UI_IDENTITY = Object.freeze({
     ai: { roleTitle: "대업 분석 담당", statusLabel: "감정 회로 가동 중" },
-    cat: { roleTitle: "기록 감찰 담당", statusLabel: "시큰둥 근무 중" },
+    cat: { roleTitle: "오늘 기록 담당", statusLabel: "시큰둥 근무 중" },
     dog: { roleTitle: "응원 지원 담당", statusLabel: "꼬리 가동 중" },
     alien: { roleTitle: "지구 관측 담당", statusLabel: "관측 보고 중" },
     ninja: { roleTitle: "비밀 임무 담당", statusLabel: "은밀 근무 중" },
@@ -2506,6 +2506,38 @@
     if (action === "handover") renderPersonnelPool();
   }
 
+  // 아직 못 만난 집사는 이름도 얼굴도 내보내지 않는다. 밀랍으로 봉인된 인사 서류
+  // 한 장으로만 두면 실루엣을 미리 흘리지 않고도 다음 목표가 보인다.
+  function sealedApplicantMarkup() {
+    const locked = APPLICANT_ORDER.filter(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
+    const rows = locked.map(key => {
+      const status = applicantStatus(key);
+      const short = status.rows
+        .filter(row => row.current < row.required)
+        .map(row => `${row.label} ${row.required - row.current} 남음`)[0] || "개봉 준비 완료";
+      return `<div class="sealed-doc${status.ready ? " near" : ""}">
+        <span class="sealed-band">봉인</span>
+        <span class="sealed-envelope" aria-hidden="true"><i>封</i></span>
+        <span class="sealed-copy">
+          <b>인사 서류 · 미개봉</b>
+          <small>${escapeHtml(CHARACTER_PROFILES[key].name)} · 지원 서류 도착</small>
+          <em>개봉 조건 · ${escapeHtml(short)}</em>
+        </span>
+      </div>`;
+    });
+    // 마지막 한 장은 조건도 발신인도 밝히지 않는다. 사무국에도 모르는 서류가 있다.
+    rows.push(`<div class="sealed-doc">
+      <span class="sealed-band">봉인</span>
+      <span class="sealed-envelope" aria-hidden="true"><i>封</i></span>
+      <span class="sealed-copy">
+        <b>인사 서류 · 미개봉</b>
+        <small>발신인 불명 · 봉투가 가끔 움직임</small>
+        <em>개봉 조건 · ???</em>
+      </span>
+    </div>`);
+    return rows.join("");
+  }
+
   function renderManager() {
     const stat = ensureButlerStat(state.character);
     const profile = CHARACTER_PROFILES[state.character];
@@ -2522,25 +2554,36 @@
     $("#manager-handnote").textContent = profile.briefings[0];
     $("#obsession-value").textContent = state.obsession;
     $("#obsession-fill").style.width = `${state.obsession}%`;
-    $("#obsession-label").textContent = `과몰입도 · ${STAGES[stageIndex]}`;
+    $("#obsession-label").textContent = "관계 결재란";
+    const posted = [...stat.activeDates].sort()[0] || today();
+    $("#manager-posted-stamp").textContent = posted.slice(5).replace("-", ". ");
+    $("#manager-status-label").textContent = profile.statusLabel;
     $("#stat-deeds").textContent = stat.achievements;
     $("#stat-gifts").textContent = stat.gifts;
     $("#stat-days").textContent = days;
     $("#manager-gift-points").textContent = state.points;
     $("#manager-roster-count").textContent = rosterKeys.length;
-    $("#manager-roster").innerHTML = rosterKeys.map((key, index) => {
+    $("#manager-roster").innerHTML = rosterKeys.map(key => {
       const rosterProfile = CHARACTER_PROFILES[key];
       const rosterStat = ensureButlerStat(key);
       const current = key === state.character;
       return `<button class="manager-roster-person ${current ? "active" : ""}" type="button" data-manager-butler="${key}" ${current ? "aria-current=\"true\"" : ""}>
-        <span><img src="${personnelPortraitFor(key)}" alt="${escapeHtml(rosterProfile.name)}"></span>
-        <b>${String(index + 1).padStart(2, "0")} ${escapeHtml(rosterStat.customName || rosterProfile.defaultName)}</b>
-        <small>${current ? "현 담당" : "인수인계"}</small>
+        <img src="${personnelPortraitFor(key)}" alt="${escapeHtml(rosterProfile.name)}">
+        <span class="roster-person-copy">
+          <b>${escapeHtml(rosterProfile.name)} · ${escapeHtml(rosterStat.customName || rosterProfile.defaultName)}</b>
+          <small>${escapeHtml(rosterProfile.personality || rosterProfile.desc || "")} · 근무 ${Math.max(1, rosterStat.activeDates.length)}일차 · 대업 ${rosterStat.achievements}건 처리</small>
+        </span>
+        <span class="roster-person-seal">${current ? "현재<br>담당" : "인계<br>가능"}</span>
       </button>`;
-    }).join("");
+    }).join("") + sealedApplicantMarkup();
     const recentDuties = state.diary.filter(entry => normalizeCharacter(entry.butler?.character || entry.character) === state.character).slice(-3).reverse();
     $("#manager-duty-list").innerHTML = recentDuties.length ? recentDuties.map((entry, index) => `<div><i>${index === 0 ? "오늘 담당" : "기록"}</i><span>${escapeHtml(entry.deed || entry.todos?.[0] || "대업 기록")}</span><time>${escapeHtml(entry.date || "")}</time></div>`).join("") : '<div class="manager-duty-empty">아직 이 집사의 근무 기록이 없습니다.</div>';
-    $("#stage-list").innerHTML = RELATIONSHIP_STAGES.map((stage, index) => `<span class="${index === stageIndex ? "active" : index < stageIndex ? "done" : "locked"}"><i>0${index + 1}</i><b>${stage.name}</b></span>`).join("");
+    // 관계는 막대가 아니라 결재란이다 — 지나온 칸에는 도장이 찍혀 있고, 지금 칸은
+    // 아직 점선이다. 다음 칸이 비어 있다는 사실 자체가 다음에 올 것을 말한다.
+    $("#stage-list").innerHTML = RELATIONSHIP_STAGES.map((stage, index) => {
+      const state_ = index < stageIndex ? "done" : index === stageIndex ? "now" : "locked";
+      return `<span class="${state_}"><i>${state_ === "done" ? "印" : "·"}</i><b>${escapeHtml(stage.name)}</b></span>`;
+    }).join("");
     const next = APPLICANT_ORDER.find(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
     const requirement = next ? applicantStatus(next) : null;
     if (state.pendingApplicants.length) {
@@ -3642,17 +3685,35 @@
     const returning = nextStat.assignments > 0;
     const sheet = $("#recruitment-sheet");
     sheet.dataset.mode = "handover";
+    // 시안 v4-7 — 확인 다이얼로그가 아니라 철끈으로 묶인 인계 확인서다.
+    // 무엇이 넘어가고 무엇이 남는지를 항목으로 못 박아야 유저가 오해하지 않는다.
+    const previousAlias = ensureButlerStat(previousKey).customName || previousProfile.defaultName;
     sheet.innerHTML = `
-      <div class="personnel-document-meta"><span>담당 변경 승인서 · HANDOVER</span><b>결재 대기</b></div>
-      <div class="handover-heading"><small>과잉집사 중앙인사국</small><h2 id="applicant-name">${returning ? "기존 집사를 다시 호출할까요?" : "담당 집사를 변경할까요?"}</h2><p>전임 기록을 그대로 넘기고 새 담당의 관계 기록을 불러옵니다.</p></div>
+      <div class="of-fastener" aria-hidden="true"><i></i><i></i></div>
+      <div class="of-datestamp" aria-hidden="true">신청<b>${today().slice(5).replace("-", ". ")}</b></div>
+      <span class="handover-doclabel">OVERBUTLER · TRANSFER FORM</span>
+      <h2 id="applicant-name">담당 인계 확인서</h2>
       <div class="handover-route">
-        <div><span>현재 담당</span><img src="${personnelPortraitFor(previousKey)}" alt=""><b>${escapeHtml(ensureButlerStat(previousKey).customName)}</b><p>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</p></div>
-        <i><b>인계</b>→</i>
-        <div><span>새 담당</span><img src="${personnelPortraitFor(key)}" alt=""><b>${escapeHtml(nextStat.customName)}</b><p>${escapeHtml(RELATION_LINES[key]?.[returning ? "return" : "welcome"] || nextProfile.handover)}</p></div>
+        <div><img src="${personnelPortraitFor(previousKey)}" alt=""><b>${escapeHtml(previousAlias)} (현 담당)</b></div>
+        <i aria-hidden="true">⟶</i>
+        <div><img src="${personnelPortraitFor(key)}" alt=""><b>${escapeHtml(nextStat.customName || nextProfile.defaultName)}</b></div>
       </div>
-      <p class="personnel-policy-note">대업·인증서·일지는 그대로 유지됩니다. 각 집사의 과몰입도와 선물 기록도 섞이지 않아요.</p>
-      <div class="personnel-actions"><button class="primary-button" data-personnel-action="switch" data-character="${key}" type="button">${returning ? "복귀 승인 · 다시 담당 맡기기" : "인수인계 승인"} <span>→</span></button>
-      <button class="secondary-button" data-personnel-action="pool" type="button">다른 집사도 검토하기</button></div>`;
+      <div class="handover-items">
+        <p class="handover-section-label">인 계 항 목</p>
+        <div><span><b>주인님 파일 전체</b> — 기록 ${state.records.length}건이 새 담당에게 전달됩니다</span></div>
+        <div><span><b>도장과 인증서</b> — 모은 그대로 유지됩니다</span></div>
+        <div><span><b>${escapeHtml(previousAlias)}의 일기</b> — ${escapeHtml(previousAlias)}의 것으로 남습니다</span></div>
+        <div><span><b>관계 결재란</b> — ${returning ? "복귀하는 담당의 결재란을 그대로 이어받습니다" : "새 담당과는 첫 칸부터 다시 시작합니다"}</span></div>
+      </div>
+      <div class="handover-signs">
+        <div><dt>전임 확인</dt><span class="handover-autograph">${escapeHtml(previousAlias)} 印</span></div>
+        <div><dt>후임 확인</dt><span class="handover-blank"></span></div>
+      </div>
+      <button class="primary-button handover-go" data-personnel-action="switch" data-character="${key}" type="button">
+        <span class="handover-go-copy"><b>${returning ? "복귀를 진행합니다" : "인계를 진행합니다"}</b><small>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</small></span>
+        <span class="of-roundstamp" aria-hidden="true">인계<small>TRANSFER</small></span>
+      </button>
+      <button class="secondary-button" data-personnel-action="pool" type="button">다른 집사도 검토하기</button>`;
     showRecruitmentOverlay();
   }
 

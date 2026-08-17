@@ -315,38 +315,48 @@
           <button class="manager-details-back" id="manager-details-back" type="button">← CAT HOME으로</button>
         <header class="manager-office-header">
           <div class="manager-logo-lockup"><strong>과잉집사</strong><span>OVERBUTLER DUTY OFFICE</span></div>
-          <div class="manager-office-running"><i></i> 사무국 정상 운영 중</div>
+          <div class="office-regno">인사 기록<b>NO. <span id="manager-file-number">01</span></b></div>
         </header>
 
         <section class="personnel-card document-card">
-          <div class="personnel-heading"><span>담당 집사 기록카드</span><small>PERSONNEL NO.<b id="manager-file-number">01</b></small></div>
-          <span class="personnel-paperclip" aria-hidden="true"></span>
+          <div class="personnel-heading"><span>인 사 기 록 카 드</span><small id="manager-status-label">전담 근무 중</small></div>
+          <span class="of-clip" aria-hidden="true"></span>
+          <div class="of-punch" aria-hidden="true"><i></i><i></i></div>
+          <div class="of-datestamp" aria-hidden="true">발령<b id="manager-posted-stamp">08. 17</b></div>
           <div class="personnel-grid">
             <div class="manager-character-stage">
+              <i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i>
               <img src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사">
-              <div class="manager-nameplate">현 담당 · 과잉 칭찬 근무 중</div>
             </div>
             <div class="manager-profile-copy">
-              <div class="manager-status-line"><span id="manager-role-title">현 담당 집사</span><b id="manager-status-label">전담 중</b></div>
-              <h1 id="manager-title"><span id="manager-butler-name">오류 난 AI 집사</span><small id="manager-butler-symbol">✦</small></h1>
+              <div class="manager-status-line"><span id="manager-role-title">현 담당 집사</span></div>
+              <h1 id="manager-title"><span id="manager-butler-name">오류 난 AI 집사</span><small id="manager-butler-symbol" hidden>✦</small></h1>
               <p id="manager-butler-desc">감정이 없어야 하는데 주인님 일에는 자꾸 과열됨</p>
-              <dl class="manager-facts">
-                <div><dt>호칭</dt><dd id="manager-butler-alias">오류봇</dd></div>
-                <div><dt>성격</dt><dd id="manager-butler-personality">허술한 과몰입형</dd></div>
-                <div><dt>특기</dt><dd id="manager-butler-specialty">작은 일을 대업으로 판정</dd></div>
-              </dl>
+              <p class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</p>
             </div>
           </div>
-          <div class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</div>
+          <p class="manager-section-label">기 본 정 보</p>
+          <dl class="manager-facts">
+            <div><dt>호칭</dt><dd><span class="of-script" id="manager-butler-alias">오류봇</span></dd></div>
+            <div><dt>성격</dt><dd id="manager-butler-personality">허술한 과몰입형</dd></div>
+            <div><dt>특기</dt><dd id="manager-butler-specialty">작은 일을 대업으로 판정</dd></div>
+          </dl>
+          <p class="manager-section-label">근 무 현 황</p>
+          <dl class="manager-stats">
+            <div><dt id="stat-deeds">0</dt><dd>처리 대업</dd></div>
+            <div><dt id="stat-gifts">0</dt><dd>받은 선물</dd></div>
+            <div><dt id="stat-days">1</dt><dd>근무 일차</dd></div>
+          </dl>
           <div class="manager-obsession">
-            <div class="obsession-heading"><span id="obsession-label">과몰입도 · 첫 만남</span><b><span id="obsession-value">5</span> / 100</b></div>
-            <div class="obsession-track"><i id="obsession-fill"></i></div>
+            <div class="obsession-heading"><span id="obsession-label">관계 결재란</span><b class="of-script" id="relationship-next-copy">다음 관계까지 과몰입 15</b></div>
+            <div class="stage-list" id="stage-list"></div>
             <div class="relationship-summary">
               <span id="relationship-stage-badge">반가운 시작</span>
               <strong id="relationship-stage-title">첫 만남</strong>
               <p id="relationship-stage-summary">처음부터 다정한 집사가 작은 이야기도 귀 기울여 듣습니다.</p>
-              <small id="relationship-next-copy">다음 관계까지 과몰입 15</small>
+              <small><span id="obsession-value">5</span> / 100</small>
             </div>
+            <div class="obsession-track"><i id="obsession-fill"></i></div>
           </div>
         </section>
 
@@ -359,21 +369,12 @@
         <section class="butler-roster-card document-card">
           <div class="manager-section-title"><h2>우리 집사들 <span id="manager-roster-count">0</span>명</h2><small>담당을 눌러 인수인계할 수 있어요.</small></div>
           <div class="manager-roster" id="manager-roster"></div>
+          <p class="roster-note of-script">✎ 봉인된 서류는 사무국 금고에 보관 중입니다. 열어보고 싶으면 대업을 모으세요.</p>
         </section>
 
         <section class="manager-work-card document-card">
           <div class="manager-section-title"><h2>근무 기록</h2><small>담당 집사별 기록은 따로 보존됩니다.</small></div>
-          <dl class="manager-stats">
-            <div><dt id="stat-deeds">0</dt><dd>세운 대업</dd></div>
-            <div><dt id="stat-gifts">0</dt><dd>받은 선물</dd></div>
-            <div><dt id="stat-days">1</dt><dd>함께한 날</dd></div>
-          </dl>
           <div class="manager-duty-list" id="manager-duty-list"></div>
-        </section>
-
-        <section class="stages-card document-card">
-          <div class="manager-section-title"><h2>과몰입 진행 기록</h2><small>관계가 깊어질수록 숨기던 마음이 조금씩 들킵니다.</small></div>
-          <div class="stage-list" id="stage-list"></div>
         </section>
         <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 신규 지원 조건 확인</strong><span id="recruit-description">주인님의 명성이 업계에 퍼지고 있습니다.</span></button>
         <button class="manager-change-button" id="manager-change-button" type="button">담당 변경 및 인수인계 <span>›</span></button>
@@ -526,7 +527,7 @@
       <header class="recruitment-office-header">
         <button type="button" data-personnel-action="close" aria-label="중앙인사국 닫기">←</button>
         <div><strong>과잉집사</strong><span>CENTRAL PERSONNEL OFFICE</span></div>
-        <small><i></i> 인사 결재 중</small>
+        <div class="office-regno">인계 서류<b>FORM T-01</b></div>
       </header>
       <div class="recruitment-sheet document-card" id="recruitment-sheet" data-mode="application">
         <div class="personnel-document-meta"><span>신규 지원서 · PERSONNEL</span><b>접수 완료</b></div>

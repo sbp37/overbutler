@@ -1492,3 +1492,557 @@
   font: 700 9px/1.4 var(--disp);
   letter-spacing: .06em;
 }
+
+/* ═══════════ 인사기록카드 · 집사 명부 (MANAGER) ═══════════
+   시안 v4-5 · v4-6. 집사 화면은 "프로필"이 아니라 인사국이 보관하는 서류다.
+   사진은 액자가 아니라 크라프트 모서리 마운트로 붙어 있고, 관계는 진행바가 아니라
+   결재란이며, 아직 못 만난 집사는 밀랍으로 봉인된 서류 한 장으로만 존재한다. */
+
+#manager-details .personnel-card {
+  position: relative;
+  margin-top: 24px;
+  padding: 0 0 15px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .11);
+}
+#manager-details .personnel-card .of-clip { top: -11px; right: 12px; transform: rotate(6deg); }
+#manager-details .personnel-card .of-punch i:nth-child(1) { top: 22%; }
+#manager-details .personnel-card .of-punch i:nth-child(2) { top: 64%; }
+#manager-details .personnel-card .of-datestamp { right: 14px; bottom: 14px; opacity: .65; }
+
+/* 표제란 — 문서 맨 위를 가로지르는 굵은 선. 탭이 아니라 서류의 머리다. */
+#manager-details .personnel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 11px 34px 10px 15px;
+  border-bottom: 1.5px solid var(--ink);
+}
+#manager-details .personnel-heading > span {
+  color: var(--ink);
+  font: 900 13.5px/1 var(--serif);
+  letter-spacing: .2em;
+}
+#manager-details .personnel-heading small {
+  position: static;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--stamp-red);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .1em;
+}
+
+#manager-details .personnel-grid {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  min-height: 0;
+  padding: 15px 15px 0 32px;
+}
+/* 사진 — 대지에 네 모서리 마운트로 끼워 붙인 인사 사진. */
+#manager-details .manager-character-stage {
+  position: relative;
+  flex: 0 0 96px;
+  width: 96px;
+  padding: 7px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+#manager-details .manager-character-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--paper);
+}
+#manager-details .photo-mount { position: absolute; width: 14px; height: 14px; background: var(--kraft-deep); }
+#manager-details .photo-mount:nth-of-type(1) { top: 0; left: 0; clip-path: polygon(0 0, 100% 0, 0 100%); }
+#manager-details .photo-mount:nth-of-type(2) { top: 0; right: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+#manager-details .photo-mount:nth-of-type(3) { bottom: 0; left: 0; clip-path: polygon(0 0, 0 100%, 100% 100%); }
+#manager-details .photo-mount:nth-of-type(4) { bottom: 0; right: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+
+#manager-details .manager-profile-copy { min-width: 0; }
+#manager-details .manager-status-line { display: block; margin: 0 0 7px; padding: 0; border: 0; }
+#manager-details .manager-status-line > span {
+  color: var(--stamp-red);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .13em;
+}
+#manager-details #manager-title {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.2 var(--serif);
+  letter-spacing: 0;
+}
+#manager-details #manager-butler-desc {
+  margin: 7px 0 0;
+  color: var(--ink-soft);
+  font: 500 12px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+/* 집사 본인의 한마디만 육필. 나머지 기재란은 인사국이 타자로 쳤다. */
+#manager-details .manager-handnote {
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #4c4234;
+  font: 700 15px/1.35 var(--hand);
+  transform: rotate(-.5deg);
+}
+
+#manager-details .manager-section-label {
+  margin: 13px 15px 0 32px;
+  padding: 8px 0 2px;
+  border-top: 1.5px solid var(--ink);
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .2em;
+}
+#manager-details .manager-facts {
+  margin: 0 15px 0 32px;
+  border: 0;
+  background: none;
+}
+#manager-details .manager-facts > div {
+  display: flex;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  font: 600 12px/1.35 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#manager-details .manager-facts dt { flex: 0 0 62px; color: var(--ink-faint); font-weight: 600; }
+#manager-details .manager-facts dd { margin: 0; color: var(--ink); }
+#manager-details .manager-facts .of-script { color: #4c4234; font: 700 15px/1 var(--hand); }
+
+/* 근무 현황 3단 */
+#manager-details .manager-stats {
+  display: flex;
+  margin: 10px 15px 0 32px;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--doc-line-soft);
+  background: none;
+}
+#manager-details .manager-stats > div {
+  flex: 1;
+  padding: 10px 0 2px;
+  border: 0;
+  text-align: center;
+}
+#manager-details .manager-stats > div + div { border-left: 1px solid var(--doc-line-soft); }
+#manager-details .manager-stats dt { color: var(--ink); font: 800 15px/1 var(--disp); }
+#manager-details .manager-stats dd { margin: 6px 0 0; color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+
+/* 관계 결재란 */
+#manager-details .manager-obsession {
+  margin: 14px 15px 0 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#manager-details .obsession-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+#manager-details #obsession-label {
+  color: var(--ink-soft);
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#manager-details #relationship-next-copy { color: var(--ink-faint); font: 700 13px/1 var(--hand); }
+#manager-details .stage-list {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+}
+#manager-details .stage-list > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 2px 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ivory);
+  color: var(--ink-faint);
+  font: 600 8.5px/1.1 var(--disp);
+  text-align: center;
+}
+#manager-details .stage-list > span + span { border-left: 1px solid var(--doc-line-soft); }
+#manager-details .stage-list > span b { font: inherit; color: inherit; }
+#manager-details .stage-list > span i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px dashed var(--doc-line);
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font: 800 9px/1 var(--disp);
+  font-style: normal;
+}
+#manager-details .stage-list > span.done i {
+  border: 2px solid var(--stamp-red);
+  background: rgba(157, 47, 58, .06);
+  color: var(--stamp-red);
+}
+#manager-details .stage-list > span.done:nth-child(1) i { transform: rotate(-10deg); }
+#manager-details .stage-list > span.done:nth-child(2) i { transform: rotate(7deg); }
+#manager-details .stage-list > span.done:nth-child(3) i { transform: rotate(-5deg); }
+#manager-details .stage-list > span.now i { border: 1.5px dashed var(--stamp-red); color: var(--stamp-red); }
+#manager-details .stage-list > span.now { color: var(--stamp-red); }
+#manager-details .relationship-summary {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#manager-details .obsession-track { margin-top: 8px; }
+
+/* 선물 전달 줄 */
+#manager-details .manager-gift-button {
+  margin: 14px 0 0;
+  padding: 13px 15px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .08);
+}
+#manager-details .manager-gift-button b { color: var(--ink); font: 700 13.5px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+#manager-details .manager-gift-button small { color: var(--ink-soft); font: 600 11px/1 var(--disp); }
+
+/* ── 집사 명부 (v4-6) ── */
+#manager-details .butler-roster-card { border: 0; background: none; box-shadow: none; padding: 0; }
+#manager-details .manager-roster { display: block; }
+#manager-details .manager-roster-person {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 13px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 3px 3px 0 rgba(45, 35, 22, .11);
+  text-align: left;
+}
+#manager-details .manager-roster-person img { flex: 0 0 58px; width: 58px; height: auto; object-fit: contain; }
+#manager-details .roster-person-copy { flex: 1; min-width: 0; }
+#manager-details .roster-person-copy b {
+  display: block;
+  color: var(--ink);
+  font: 900 15px/1.2 var(--serif);
+}
+#manager-details .roster-person-copy small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink-soft);
+  font: 600 10px/1.6 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#manager-details .roster-person-seal {
+  display: flex;
+  flex: 0 0 46px;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  color: var(--stamp-red);
+  font: 800 8.5px/1.2 var(--disp);
+  text-align: center;
+  transform: rotate(-8deg);
+}
+#manager-details .manager-roster-person:not(.active) .roster-person-seal {
+  border-color: var(--doc-line);
+  background: transparent;
+  color: var(--ink-faint);
+  transform: rotate(3deg);
+}
+
+/* 봉인된 인사 서류 — 얼굴도 이름도 나오지 않는다. 봉투와 조건 한 줄뿐. */
+#manager-details .sealed-doc {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  margin: 0 0 10px;
+  padding: 13px 14px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  overflow: hidden;
+}
+#manager-details .sealed-doc.near {
+  background: var(--ivory);
+  box-shadow: 2px 2.5px 0 rgba(45, 35, 22, .09);
+}
+#manager-details .sealed-band {
+  position: absolute;
+  top: 9px;
+  right: -34px;
+  padding: 5px 38px 5px 42px;
+  background: var(--stamp-red);
+  box-shadow: 0 1px 2px rgba(45, 35, 22, .2);
+  color: #f6dfe1;
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .34em;
+  transform: rotate(35deg);
+}
+#manager-details .sealed-envelope {
+  position: relative;
+  flex: 0 0 58px;
+  height: 66px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 2px;
+  background: var(--kraft);
+}
+#manager-details .sealed-envelope:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 30px;
+  border-bottom: 1px solid rgba(138, 100, 32, .3);
+  background: linear-gradient(rgba(255, 255, 255, .28), rgba(184, 147, 92, .15));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+#manager-details .sealed-envelope i {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #c9505c, var(--stamp-red) 55%, #6f1e26);
+  box-shadow: 0 1.5px 3px rgba(90, 20, 26, .4), inset 0 1px 1px rgba(255, 200, 205, .4);
+  color: #ffe9ec;
+  font: 900 10px/1 var(--serif);
+  font-style: normal;
+  transform: translateX(-50%) rotate(-6deg);
+}
+#manager-details .sealed-copy { flex: 1; min-width: 0; }
+#manager-details .sealed-copy b {
+  display: block;
+  color: var(--ink-soft);
+  font: 900 14px/1.2 var(--serif);
+  letter-spacing: .04em;
+}
+#manager-details .sealed-copy small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink-faint);
+  font: 600 10px/1.7 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#manager-details .sealed-copy em {
+  display: inline-block;
+  margin-top: 5px;
+  padding-bottom: 2px;
+  border-bottom: 1.5px dotted var(--stamp-red);
+  color: var(--stamp-red);
+  font: 700 11px/1 var(--disp);
+  font-style: normal;
+}
+#manager-details .roster-note {
+  margin: 12px 2px 0;
+  color: var(--ink-faint);
+  font: 700 14px/1.6 var(--hand);
+  transform: rotate(-.4deg);
+}
+
+/* ── v4-5 보정 : 앞선 패스가 만든 액자·타일 조형을 걷어낸다 ── */
+/* 사진은 원형 액자가 아니라 대지에 붙인 인사 사진이다 — 워터마크 도장과 명패를 뺀다. */
+#manager-details .manager-character-stage { height: auto; align-self: flex-start; display: block; }
+#manager-details .manager-character-stage:before { content: none; }
+#manager-details .manager-character-stage img { width: 100%; height: auto; filter: none; }
+#manager-details .manager-nameplate { display: none; }
+/* 관계 블록의 "비 고 · 관 찰 기 록" 라벨은 결재란 제목이 대신한다. 감시 어휘도 함께 걷힌다. */
+#manager-details .manager-obsession:before { content: none; }
+#manager-details .manager-obsession { padding-top: 0; background: none; }
+#manager-details #view-manager .manager-obsession,
+#view-manager .manager-obsession { display: block; padding: 0; }
+#view-manager .manager-obsession .relationship-summary { order: 0; margin-top: 10px; }
+#view-manager .manager-obsession .obsession-heading { order: 0; margin-top: 0; padding-top: 0; border-top: 0; }
+#view-manager .manager-obsession .obsession-track { order: 0; margin-top: 8px; }
+#manager-details .relationship-summary > strong { display: block; margin-top: 4px; }
+
+/* 명부는 타일이 아니라 서류 한 장씩 쌓인 목록이다. */
+#manager-details .manager-roster { display: block; }
+#manager-details .manager-roster-person { flex: none; min-height: 0; }
+#manager-details .manager-roster-person > .roster-person-copy {
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+  text-align: left;
+}
+#manager-details .manager-roster-person img { width: 58px; height: auto; background: none; }
+#manager-details .manager-roster-person b { margin-top: 0; white-space: normal; overflow: visible; }
+#manager-details .manager-roster-person small { margin-top: 3px; }
+#manager-details .manager-roster-person.active:before { content: none; }
+#manager-details .manager-roster-person.active small { color: var(--ink-soft); font-weight: 600; }
+
+/* ── 담당 인계 확인서 (v4-7) ──
+   확인 다이얼로그는 "정말 하시겠습니까?"만 묻고 무엇을 잃는지는 말하지 않는다.
+   확인서는 넘어가는 것과 남는 것을 항목으로 못 박고, 서명란 한 칸을 비워 둔다. */
+.recruitment-sheet[data-mode="handover"] {
+  position: relative;
+  padding: 0 0 16px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .11);
+  text-align: center;
+}
+.recruitment-sheet[data-mode="handover"] .of-fastener { top: -8px; }
+.recruitment-sheet[data-mode="handover"] .of-datestamp { top: 16px; right: 14px; opacity: .7; }
+.handover-doclabel {
+  display: block;
+  margin: 20px 0 8px;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .26em;
+}
+.recruitment-sheet[data-mode="handover"] h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.35 var(--serif);
+  letter-spacing: .08em;
+  text-align: center;
+}
+.recruitment-sheet[data-mode="handover"] .handover-route {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.recruitment-sheet[data-mode="handover"] .handover-route > div {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.recruitment-sheet[data-mode="handover"] .handover-route img { width: 62px; height: auto; object-fit: contain; }
+.recruitment-sheet[data-mode="handover"] .handover-route b {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-soft);
+  font: 700 11px/1 var(--disp);
+}
+.recruitment-sheet[data-mode="handover"] .handover-route > i {
+  color: var(--ink-soft);
+  font: 400 20px/1 var(--disp);
+  font-style: normal;
+}
+.handover-items { margin: 0 17px; border-top: 1.5px solid var(--ink); text-align: left; }
+.handover-section-label {
+  margin: 0;
+  padding: 9px 0 3px;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .2em;
+}
+.handover-items > div {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  padding: 7.5px 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  color: var(--ink-soft);
+  font: 500 12px/1.55 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+.handover-items > div:before { content: "✓"; flex: none; color: var(--stamp-red); font-weight: 800; }
+.handover-items b { color: var(--ink); }
+/* 서명 2칸 — 전임은 이미 찍었고 후임 칸은 비어 있다. 그 빈칸이 지금 하려는 일이다. */
+.handover-signs { display: flex; gap: 11px; margin: 14px 17px 0; text-align: left; }
+.handover-signs > div {
+  flex: 1;
+  padding: 9px 11px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+}
+.handover-signs dt {
+  margin-bottom: 8px;
+  color: var(--ink-faint);
+  font: 600 9px/1 var(--disp);
+  letter-spacing: .12em;
+}
+.handover-autograph {
+  display: inline-block;
+  color: var(--stamp-red);
+  font: 700 19px/1 var(--hand);
+  transform: rotate(-3deg);
+}
+.handover-blank { position: relative; display: block; height: 21px; border-bottom: 1.5px dotted var(--doc-line); }
+.handover-blank:after {
+  content: "인";
+  position: absolute;
+  top: -4px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px dashed var(--ink-faint);
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+}
+.recruitment-sheet[data-mode="handover"] .handover-go {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  width: calc(100% - 34px);
+  margin: 16px 17px 0;
+  padding: 11px 4px;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.handover-go-copy { flex: 1; text-align: left; }
+.recruitment-sheet[data-mode="handover"] .handover-go-copy b { display: block; color: var(--ink); font: 800 15.5px/1.25 var(--disp); }
+.recruitment-sheet[data-mode="handover"] .handover-go-copy small {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-faint);
+  font: 700 12.5px/1.35 var(--hand);
+}
+.recruitment-sheet[data-mode="handover"] .handover-go .of-roundstamp { flex: 0 0 56px; width: 56px; height: 56px; font-size: 13px; }
+.recruitment-sheet[data-mode="handover"] .secondary-button {
+  width: calc(100% - 34px);
+  margin: 12px 17px 0;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+}
