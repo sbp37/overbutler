@@ -289,6 +289,115 @@
   word-break: keep-all;
 }
 
+/* ═══════════ 주인님 파일 본문 ═══════════
+   기록 카드 · 여백 메모 · 인증서 도장이 한 스트림 안에 날짜순으로 공존한다. */
+
+#view-archive .file-date-group { display: grid; gap: 10px; }
+#view-archive .file-date-group + .file-date-group { margin-top: 16px; }
+/* 날짜 구분선은 서류철 간지처럼 얇게 */
+#view-archive .file-date-divider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 1px 0;
+}
+#view-archive .file-date-divider > span {
+  flex: none;
+  color: var(--tab-records);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .04em;
+}
+#view-archive .file-date-divider:after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed #d8c9b6;
+}
+
+/* 여백 메모 — 카드가 아니다. 본문 옆에 집사가 손으로 적어둔 쪽지다. */
+#view-archive .file-margin-note {
+  position: relative;
+  margin: 2px 2px 0 22px;
+  padding: 10px 12px;
+  border: 0;
+  border-left: 2px solid #c6b89a;
+  border-radius: 0;
+  background: transparent;
+}
+#view-archive .file-margin-note:before {
+  content: "✎";
+  position: absolute;
+  left: -19px;
+  top: 9px;
+  color: #b3a288;
+  font-size: 12px;
+}
+#view-archive .file-margin-note > p {
+  margin: 0;
+  color: #5c5049;
+  font: 700 14px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#view-archive .file-margin-note > small {
+  display: block;
+  margin-top: 6px;
+  color: #9a8879;
+  font-size: 10px;
+  font-weight: 800;
+}
+/* 오늘 것은 봉인 상태 — 기존 teaser 조판을 그대로 쓰되 여백 자리에 앉힌다 */
+#view-archive .file-margin-note.diary-teaser {
+  padding: 12px 13px;
+  border: 1px dashed #c2ab8e;
+  border-left: 2px solid #8f2f34;
+  background: #f9f4e8;
+}
+#view-archive .file-margin-note.diary-teaser:before { content: "✉"; color: #8f2f34; }
+#view-archive .file-margin-note.diary-teaser > span { color: var(--tab-diary); }
+
+/* 공식 인정 건의 도장 — 장식이 아니라 버튼이다. 눌러서 인증서를 연다.
+   도장이 이 자리로 오면서 카드 본문에 찍히던 :after 도장은 거둔다. 한 건에 도장 하나. */
+#view-archive .record-cert-stamp {
+  position: relative;
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  background: var(--stamp-red);
+  -webkit-mask-image: url("design/paper-assets/stamp-approved.png");
+  mask-image: url("design/paper-assets/stamp-approved.png");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: .85;
+  font-size: 0;
+  transform: rotate(-7deg);
+}
+#view-archive .record-cert-stamp:active { opacity: 1; }
+#view-archive #archive-record-list .office-record-card.official:after { display: none; }
+
+/* 이전 기록 펼치기 */
+#view-archive .file-expand-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 16px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: #f7efe3;
+  color: #6d5c53;
+  font-size: 12px;
+  font-weight: 850;
+}
+#view-archive .file-expand-button span { color: var(--tab-records); }
+
 /* 필터 칩이 탭 자리를 물려받았다 — 표지 바로 아래 맨 위로 올린다.
    검색은 기존 order 원칙대로 하단에 그대로 둔다(설계: 검색 하단 유지). */
 #view-archive[data-archive-mode="records"] #archive-records > .record-filters {
@@ -305,21 +414,11 @@
 }
 /* 하단에 남는 검색에는 제 이름표를 붙여준다 — 분류 칩이 위로 갔으니 여기는 찾기다. */
 #view-archive[data-archive-mode="records"] #archive-records > .record-find-tools {
-  position: relative;
   margin: 18px 0 4px;
-  padding-top: 26px;
+  padding-top: 16px;
   border-top: 1px dashed #d8c9b6;
 }
-#view-archive[data-archive-mode="records"] #archive-records > .record-find-tools:before {
-  content: "기록 찾기";
-  position: absolute;
-  left: 1px;
-  top: 9px;
-  color: #9a8879;
-  font-size: 10px;
-  font-weight: 850;
-  letter-spacing: .04em;
-}
+/* 검색 입력에는 이미 제 이름표가 붙어 있다. 구분선만 두고 라벨은 겹쳐 넣지 않는다. */
 
 /* 파일탭이 표지로 올라가면서 작업 영역은 탭 없이 본문만 담는다.
    남은 머리줄은 일부인과 주간 보고서 링크 한 줄로 눕힌다 — 세로로 세우면

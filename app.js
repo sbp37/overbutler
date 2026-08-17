@@ -1791,7 +1791,6 @@
     <div class="archive-cabinet-list">${certificateFiles || '<div class="records-empty certificate-empty"><i aria-hidden="true"></i><span>인증서 보관 대기</span><p>아직 발급된 공식 인증서가 없습니다.<br>대업 도장을 모으면 이곳에 첫 문서가 보관됩니다.</p></div>'}</div>
     <div class="archive-security-note"><span aria-hidden="true">▣</span><p>모든 공식 인증서는 기기 안에 안전하게 보관되며<br>언제든 다시 열람할 수 있습니다.</p></div>`;
     renderArchiveRecords();
-    renderButlerDiary();
     $$('[data-cert-index]').forEach(button => button.addEventListener("click", () => openCertificate(state.certificates[Number(button.dataset.certIndex)])));
   }
 
@@ -2159,43 +2158,79 @@
     return [...groups.values()].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
   }
 
-  function renderButlerDiary() {
-    const list = $("#butler-diary-list");
-    if (!list) return;
+  // 최근 14일 그룹만 먼저 그린다. 기록이 쌓여도 진입 시 한 번에 다 그리지 않는다.
+  const OWNER_FILE_RECENT_GROUPS = 14;
+  let ownerFileExpanded = false;
+
+  function ownerFileDateLabel(date) {
+    const parts = String(date).split(".");
+    if (parts.length < 3) return date;
+    return `${Number(parts[1])}월 ${Number(parts[2])}일`;
+  }
+
+  // 하루치 일지를 작성 집사 단위로 묶는다. 같은 날 담당이 바뀌었으면 각자 한 장씩 남는다.
+  function diaryPagesForDate(entries) {
     const groups = new Map();
-    state.diary.forEach(entry => {
+    entries.forEach(entry => {
       const character = normalizeCharacter(entry.butler?.character || entry.character);
-      const key = `${entry.date || "날짜 미상"}::${character}::${entry.butler?.name || entry.butlerName || ""}`;
+      const key = `${character}::${entry.butler?.name || entry.butlerName || ""}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(entry);
     });
-    const pages = Array.from(groups.values()).reverse();
-    if (!pages.length) {
-      // 빈 화면을 "일기 없음"으로 끝내지 않는다. 무엇을 하면 일기가 생기는지 알려주고
-      // 그 자리에서 홈으로 돌아갈 수 있게 한다(기존 [data-view] 위임을 그대로 쓴다).
-      list.innerHTML = '<div class="diary-empty-page"><span>EMPTY DIARY</span><p>집사는 그날 들은 이야기를 바탕으로<br>혼자 일지를 적어둡니다.<br>오늘 이야기를 하나 들려주면 첫 장이 열립니다.</p><button type="button" data-view="home" data-nav="home">오늘 이야기 들려주러 가기 →</button></div>';
-      return;
+    return [...groups.values()];
+  }
+
+  // 여백 메모 — 카드가 아니라 본문 옆에 적힌 손글씨다. 오늘 것은 봉인되어 teaser만 보인다.
+  // 봉인 판정은 기존 규칙 그대로: 오늘 날짜이고 아직 공개 전이면 teaser.
+  function ownerFileMarginNote(pageEntries) {
+    const sample = pageEntries.at(-1);
+    const butler = sample.butler || snapshotButler(sample);
+    const sealed = nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
+    if (sealed) {
+      const teaser = diaryTeaser(butler.character, pageEntries);
+      return `<section class="diary-teaser file-margin-note sealed">
+        <span>${escapeHtml(teaser.kicker)}</span>
+        <strong>${escapeHtml(teaser.count)}</strong>
+        <blockquote>${escapeHtml(teaser.quote)}</blockquote>
+        <small>${escapeHtml(teaser.release)}</small>
+      </section>`;
     }
-    const butlerCount = new Set(pages.map(entries => normalizeCharacter(entries.at(-1)?.butler?.character || entries.at(-1)?.character))).size;
-    const deedCount = pages.reduce((total, entries) => total + entries.length, 0);
-    list.innerHTML = `<section class="diary-ledger-summary" aria-label="집사 일지 보관 현황"><div><span>보관된 하루</span><strong>${pages.length}<small>일</small></strong></div><div><span>관찰 대업</span><strong>${deedCount}<small>건</small></strong></div><div><span>기록 집사</span><strong>${butlerCount}<small>명</small></strong></div></section>` + pages.map(entries => {
-      const sample = entries.at(-1);
-      const butler = sample.butler || snapshotButler(sample);
-      const deeds = entries.map(entry => entry.deed || entry.todos?.[0]).filter(Boolean);
-      const reflection = [...entries].reverse().find(entry => entry.reflection)?.reflection || diaryReflection(butler.character, entries, sample.ownerName);
-      // 당일 혼합 그룹은 기존 공개 상태를 보존한다. 신규 항목만 있는 그룹부터 봉인한다.
-      const hasLegacyEntry = entries.some(entry => nonNegativeInteger(entry.diaryRevealVersion) === 0);
-      const sealed = !hasLegacyEntry && nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
-      const teaser = sealed ? diaryTeaser(butler.character, entries) : null;
-      const body = sealed
-        ? `<section class="diary-teaser"><span>${escapeHtml(teaser.kicker)}</span><strong>${escapeHtml(teaser.count)}</strong><blockquote>${escapeHtml(teaser.quote)}</blockquote><small>${escapeHtml(teaser.release)}</small></section>`
-        : `<ul>${deeds.map(deed => `<li>${escapeHtml(deed)}</li>`).join("")}</ul><blockquote>${escapeHtml(reflection)}</blockquote>`;
-      return `<article class="butler-diary-page${sealed ? " sealed" : ""}">
-        <header><div><img src="${recordPortrait(sample, "base")}" alt="${escapeHtml(butler.name)}"><span><b>${escapeHtml(butler.name)}</b><small>${escapeHtml(sample.date || "")}</small></span></div><em>${String(entries.length).padStart(2, "0")} DEEDS</em></header>
-        <div class="diary-paper-lines"><p><strong>${escapeHtml(sample.ownerName || ownerDisplayName())}의 오늘 기록</strong></p>${body}</div>
-        <footer><span>${escapeHtml(CHARACTER_PROFILES[butler.character].name)} 관찰 일지</span><b>${sealed ? "다음 날짜 공개" : "기록 완료"}</b></footer>
-      </article>`;
-    }).join("");
+    const reflection = [...pageEntries].reverse().find(entry => entry.reflection)?.reflection
+      || diaryReflection(butler.character, pageEntries, sample.ownerName);
+    return `<aside class="file-margin-note">
+      <p>${escapeHtml(reflection)}</p>
+      <small>${escapeHtml(butler.name)} 관찰 기록</small>
+    </aside>`;
+  }
+
+  function ownerFileRecordCard(record, officialIds) {
+    const butler = record.butler || snapshotButler(record);
+    const official = officialIds.has(record.id);
+    const statusClass = official ? "official" : record.stampEligible === false ? "praise" : "candidate";
+    const statusLabel = official ? "공식 인정" : record.stampEligible === false ? "반복 접수" : "대업 후보";
+    const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
+    const sourceText = storedText(record.sourceText).trim();
+    const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
+      ? sourceText
+      : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
+    // 공식 인정 건은 도장 자체가 인증서 진입로다(진입로 2). 카드 상세와 겹치지 않게 버튼으로 둔다.
+    const approvalAction = official
+      ? `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">인증서</button>`
+      : `<span class="record-detail-cta" aria-hidden="true">상세</span>`;
+    return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
+      <div class="record-number"><b>${listNumber}</b><span>${escapeHtml(record.date)}</span></div>
+      <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p><small>#${escapeHtml(record.nickname || record.grade)}</small></div>
+      <div class="record-approval"><span>${statusLabel}</span><figure><img src="${recordPortrait(record, official ? "praise" : "base")}" alt="${escapeHtml(butler.name)}"><figcaption>${escapeHtml(butler.name)}<br>기록</figcaption></figure>${approvalAction}</div>
+    </article>`;
+  }
+
+  function ownerFileGroupMarkup(group, officialIds) {
+    const cards = group.records.map(record => ownerFileRecordCard(record, officialIds)).join("");
+    const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
+    return `<section class="file-date-group" aria-label="${escapeHtml(group.date)} 기록">
+      <div class="file-date-divider"><span>${escapeHtml(ownerFileDateLabel(group.date))}</span></div>
+      ${cards}${notes}
+    </section>`;
   }
 
   function renderArchiveRecords() {
@@ -2207,39 +2242,39 @@
     if (!grades.includes(recordGrade)) recordGrade = "all";
     gradeSelect.value = recordGrade;
     const query = normalizeDeed(recordSearch);
-    const filtered = state.records.filter(record => {
-      if (recordFilter === "today") return record.date === today();
-      if (recordFilter === "official") return officialIds.has(record.id);
-      if (recordFilter === "praise") return record.stampEligible === false;
-      return true;
-    }).filter(record => recordGrade === "all" || record.grade === recordGrade).filter(record => {
+    const keep = record => {
+      if (recordFilter === "today" && record.date !== today()) return false;
+      if (recordFilter === "official" && !officialIds.has(record.id)) return false;
+      if (recordFilter === "praise" && record.stampEligible !== false) return false;
+      if (recordGrade !== "all" && record.grade !== recordGrade) return false;
       if (!query) return true;
       return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
-    }).slice().reverse();
+    };
+    // 필터·검색 중에는 일지를 붙이지 않는다. 찾는 기록만 보여주는 게 그 화면의 일이다.
+    const narrowed = recordFilter !== "all" || recordGrade !== "all" || Boolean(query);
+    const groups = groupRecordsByDate()
+      .map(group => ({
+        ...group,
+        records: group.records.filter(keep).slice().reverse(),
+        diaryEntries: narrowed ? [] : group.diaryEntries
+      }))
+      .filter(group => group.records.length || group.diaryEntries.length);
+
     const list = $("#archive-record-list");
-    if (!filtered.length) {
+    if (!groups.length) {
       const emptyCopy = state.records.length
         ? "이 분류에 해당하는 기록이 아직 없습니다."
-        : "아직 접수된 대업이 없습니다.<br>홈에서 사소한 일 하나를 보고해보세요.";
-      list.innerHTML = `<div class="records-empty"><span>EMPTY FILE</span><p>${emptyCopy}</p></div>`;
+        : "파일이 아직 얇습니다.<br>첫 기록이 접수되면 이 파일이 시작됩니다.";
+      const action = state.records.length
+        ? ""
+        : '<button type="button" data-view="home" data-nav="home">첫 기록 접수하러 가기 →</button>';
+      list.innerHTML = `<div class="records-empty"><span>EMPTY FILE</span><p>${emptyCopy}</p>${action}</div>`;
       return;
     }
-    list.innerHTML = filtered.map(record => {
-      const butler = record.butler || snapshotButler(record);
-      const certificateIndex = state.certificates.findIndex(item => item.id === record.id);
-      const statusClass = certificateIndex >= 0 ? "official" : record.stampEligible === false ? "praise" : "candidate";
-      const statusLabel = certificateIndex >= 0 ? "공식 인정" : record.stampEligible === false ? "칭찬 완료" : "대업 후보";
-      const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
-      const sourceText = storedText(record.sourceText).trim();
-      const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
-        ? sourceText
-        : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
-      return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
-        <div class="record-number"><b>${listNumber}</b><span>${escapeHtml(record.date)}</span></div>
-        <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p><small>#${escapeHtml(record.nickname || record.grade)}</small></div>
-        <div class="record-approval"><span>${statusLabel}</span><figure><img src="${recordPortrait(record, certificateIndex >= 0 ? "praise" : "base")}" alt="${escapeHtml(butler.name)}"><figcaption>${escapeHtml(butler.name)}<br>기록</figcaption></figure><span class="record-detail-cta" aria-hidden="true">상세</span></div>
-      </article>`;
-    }).join("");
+    const shown = ownerFileExpanded ? groups : groups.slice(0, OWNER_FILE_RECENT_GROUPS);
+    const hidden = groups.length - shown.length;
+    list.innerHTML = shown.map(group => ownerFileGroupMarkup(group, officialIds)).join("")
+      + (hidden > 0 ? `<button class="file-expand-button" type="button" data-owner-file-expand>이전 기록 펼치기 <span>${hidden}일</span></button>` : "");
   }
 
   function findRecordById(id) {
@@ -2282,6 +2317,7 @@
     if (!currentRecordDetail) return;
     const record = currentRecordDetail;
     closeRecordDetail();
+    certificateOpenedFromFile = true;
     openCertificate(record);
   }
 
@@ -2993,6 +3029,10 @@
     return String(record?.ownerName || ownerDisplayName() || "주인님").trim() || "주인님";
   }
 
+  // 인증서를 어디서 열었는지 기억한다. FORM 05 발급 흐름은 닫으면 홈으로 가지만,
+  // 파일에서 도장이나 상세로 열어본 것은 보던 자리로 그대로 돌아와야 한다.
+  let certificateOpenedFromFile = false;
+
   function openCertificate(record) {
     const butler = record.butler || snapshotButler(record);
     const rare = record.verdictType === "rare" || record.rare;
@@ -3117,11 +3157,14 @@
   function closeCertificate() {
     const firstRecord = isFirstRecord(currentCertificate);
     const official = isOfficialCertificate(currentCertificate);
+    const fromFile = certificateOpenedFromFile;
+    certificateOpenedFromFile = false;
     $("#certificate-overlay").hidden = true;
     document.body.style.overflow = "";
     currentCertificate = null;
     currentCertificateImagePromise = null;
-    showView("home");
+    // 파일에서 열었으면 화면 전환 없이 오버레이만 닫는다 — showView는 스크롤을 맨 위로 올린다.
+    if (!fromFile) showView("home");
     if (firstRecord && !official) showToast(`첫 대업 기념 완료 · 공식 인증까지 ${certificationStatus().remaining}건`);
   }
 
@@ -3861,7 +3904,6 @@
     $("#owner-name-overlay").hidden = true;
     document.body.style.overflow = "";
     startTimeBriefing();
-    renderButlerDiary();
     showToast(`${ownerDisplayName()} 호칭 등록 완료`);
     return true;
   }
@@ -3915,17 +3957,31 @@
     $("#record-search").addEventListener("input", event => { recordSearch = event.target.value; renderArchiveRecords(); });
     $("#record-grade-filter").addEventListener("change", event => { recordGrade = event.target.value; renderArchiveRecords(); });
     $("#archive-record-list").addEventListener("click", event => {
+      // 도장은 카드 안에 있지만 카드 상세가 아니라 인증서를 연다(진입로 2). 먼저 가로챈다.
+      const stamp = event.target.closest("[data-cert-id]");
+      if (stamp) {
+        event.stopPropagation();
+        certificateOpenedFromFile = true;
+        openCertificate(findRecordById(stamp.dataset.certId));
+        return;
+      }
+      // 빈 파일의 "첫 기록 접수하러" 버튼은 렌더할 때마다 새로 만들어져서, 초기화 때
+      // 한 번 도는 $$("[data-view]") 바인딩에 걸리지 않는다. 여기서 위임한다.
+      const jump = event.target.closest("[data-view]");
+      if (jump) {
+        showView(jump.dataset.view, jump.dataset.nav || jump.dataset.view);
+        return;
+      }
+      if (event.target.closest("[data-owner-file-expand]")) {
+        ownerFileExpanded = true;
+        renderArchiveRecords();
+        return;
+      }
       const trigger = event.target.closest("[data-record-open], [data-record-id]");
       if (trigger) openRecordDetail(findRecordById(trigger.dataset.recordOpen || trigger.dataset.recordId));
     });
     $("#archive-record-list").addEventListener("keydown", event => {
       if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-record-id]")) { event.preventDefault(); openRecordDetail(findRecordById(event.target.dataset.recordId)); }
-    });
-    // 일기 빈 화면의 "홈으로" 버튼은 렌더할 때마다 새로 만들어져서, 초기화 시점에
-    // 한 번 도는 $$("[data-view]") 바인딩에 걸리지 않는다. 기록 목록과 같은 방식으로 위임한다.
-    $("#butler-diary-list").addEventListener("click", event => {
-      const trigger = event.target.closest("[data-view]");
-      if (trigger) showView(trigger.dataset.view, trigger.dataset.nav || trigger.dataset.view);
     });
     $("#record-detail-close").addEventListener("click", closeRecordDetail);
     $("#record-detail-back").addEventListener("click", closeRecordDetail);
