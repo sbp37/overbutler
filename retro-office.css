@@ -189,7 +189,6 @@
 }
 
 /* 큰 서류 카드: 재질을 하나로. 흐린 blur 그림자를 잉크 오프셋으로 바꾼다. */
-#view-archive .owner-file-cover,
 #view-archive .archive-workspace,
 #manager-details .personnel-card,
 #manager-details .butler-roster-card,
@@ -248,7 +247,6 @@
    HOME의 .file-tab(대업 접수서 · FORM 01)과 같은 조형이다.
    이미 있는 영문 행정 라벨을 그 자리로 올려서 쓴다 — DOM은 그대로다. */
 
-#view-archive .owner-file-cover,
 #view-archive .archive-workspace,
 #manager-details .personnel-card,
 #view-report .weekly-report-sheet,
@@ -261,7 +259,6 @@
 #view-report .report-title-block,
 .reaction-document-meta { position: static; }
 
-#view-archive #archive-kicker,
 #manager-details .personnel-heading small,
 #view-report .report-title-block:before,
 .reaction-document-meta > span {
@@ -279,85 +276,207 @@
 }
 
 /* ═══════════ 주인님 파일 표지 ═══════════
-   기록·일지·인증서가 한 문서로 접히면서 표지가 이 화면의 첫 장이 됐다.
-   파일탭은 작업 영역이 아니라 표지에 걸린다. accent는 기존 RECORDS를 승계한다. */
-#view-archive .owner-file-cover {
+   시안 v4-2. 표지는 카드가 아니라 서류철이다 — 크라프트 겉장이 아이보리 문서를
+   물고 있고, 상단은 철끈이, 오른쪽은 인덱스 탭이 잡는다. 재질이 두 겹이라야
+   "파일을 펼쳐 첫 장을 보는 중"으로 읽힌다. */
+#view-archive .owner-file-folder {
   position: relative;
-  margin-top: 11px;
-  padding: 26px 14px 14px;
-  overflow: visible;
+  margin: 34px 0 0;
+  padding: 16px 26px 16px 12px;
+  border-radius: 6px 10px 6px 6px;
+  background: var(--kraft);
+  box-shadow: 4px 5px 0 rgba(45, 35, 22, .14), inset 0 1px 0 rgba(255, 255, 255, .35);
 }
-#view-archive .owner-file-cover > .file-tab {
-  top: -11px;
-  left: 13px;
-  border-radius: 4px 4px 0 0;
-  background: var(--tab-records);
-  font-size: 11px;
-  letter-spacing: .1em;
-}
-#view-archive .owner-file-identity {
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-}
-#view-archive .owner-file-portrait { display: flex; align-items: flex-end; justify-content: center; }
-#view-archive .owner-file-portrait img { width: 88px; height: 106px; object-fit: contain; }
-#view-archive .owner-file-headline { min-width: 0; }
-#view-archive .owner-file-headline small { color: #8a7b71; font-size: 10px; font-weight: 800; }
-#view-archive .owner-file-headline h1 {
-  margin: 3px 0 2px;
+/* 권 라벨 — 겉장에서 튀어나온 탭. 파일이 1권으로 끝나지 않는다는 예고이기도 하다. */
+#view-archive .owner-file-folder:before {
+  content: "주인님 파일 제1권";
+  position: absolute;
+  top: -21px;
+  left: 14px;
+  padding: 7px 16px 6px;
+  border-radius: 6px 6px 0 0;
+  background: var(--kraft);
   color: var(--ink);
-  font: 850 26px/1.1 "Noto Serif KR", serif;
-  letter-spacing: -.055em;
+  font: 800 11px/1 var(--disp);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
 }
-#view-archive .owner-file-headline p { margin: 0; color: #7a6b62; font-size: 12px; font-weight: 750; }
 
-/* 수치 4개는 서식의 기재란처럼. 360px에서도 2×2로 접혀 표지가 한 화면에 들어간다. */
-#view-archive .owner-file-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 12px 0 0;
-  border: 1px solid var(--doc-line-soft);
-  background: #f9f2e8;
+/* 분류 필터는 칩이 아니라 서류철 옆면의 인덱스 탭이다. */
+#view-archive .record-filters {
+  position: absolute;
+  z-index: 6;
+  top: 24px;
+  right: -1px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
 }
-#view-archive .owner-file-stats > div {
+#view-archive .record-filters button {
   min-width: 0;
-  padding: 8px 10px;
-  border-right: 1px solid var(--doc-line-soft);
-  border-bottom: 1px solid var(--doc-line-soft);
+  padding: 11px 5px;
+  border: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--kraft-deep);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .15);
+  color: #f6ecd9;
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .14em;
+  writing-mode: vertical-rl;
 }
-#view-archive .owner-file-stats > div:nth-child(2n) { border-right: 0; }
-#view-archive .owner-file-stats > div:nth-last-child(-n+2) { border-bottom: 0; }
-#view-archive .owner-file-stats dt { color: #8a7b71; font-size: 10px; font-weight: 800; }
-#view-archive .owner-file-stats dd {
-  margin: 3px 0 0;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 800;
+#view-archive .record-filters button.active {
+  padding-right: 8px;
+  background: var(--stamp-red);
+  color: #f9e9ea;
+}
+
+/* 첫 장 */
+#view-archive .owner-file-doc {
+  position: relative;
+  padding: 22px 17px 16px 34px;
+  border: 1px solid var(--doc-line);
+  background: var(--ivory);
+  box-shadow: 0 1px 0 rgba(45, 35, 22, .06);
+}
+#view-archive .owner-file-doc .of-clip { top: -10px; right: 22px; transform: rotate(5deg); }
+#view-archive .owner-file-doc .of-punch i:nth-child(1) { top: 14%; }
+#view-archive .owner-file-doc .of-punch i:nth-child(2) { top: 58%; }
+#view-archive .owner-file-doc .of-datestamp { right: 12px; bottom: 44px; opacity: .75; }
+#view-archive .owner-file-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+#view-archive .owner-file-head img { flex: 0 0 58px; width: 58px; height: auto; object-fit: contain; }
+#view-archive .owner-file-head > div { min-width: 0; }
+#view-archive .owner-file-role {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--stamp-red);
+  font: 600 9.5px/1.4 var(--disp);
+  letter-spacing: .13em;
   word-break: keep-all;
 }
-#view-archive .owner-file-stats dd b { margin-right: 1px; color: var(--tab-records); font: 850 19px Paperlogy, sans-serif; }
-
-/* 소견은 표지 아래쪽 결재란처럼 얇은 이중선으로 끊는다 */
-#view-archive .owner-file-remark {
-  margin: 11px 0 0;
-  padding: 10px 0 0;
-  border-top: 3px double var(--doc-line);
+@media (max-width: 385px) {
+  #view-archive .owner-file-role { font-size: 8.5px; letter-spacing: .08em; }
 }
+#view-archive .owner-file-doc h1 {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.2 var(--serif);
+  letter-spacing: 0;
+}
+#view-archive .owner-file-by {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-soft);
+  font: 500 11px/1 var(--disp);
+}
+
+/* 목차 — 점선 리더가 값을 오른쪽 끝으로 끌고 간다. 서류의 기재란은 이렇게 읽힌다. */
+#view-archive .owner-file-toc {
+  margin: 0;
+  padding-top: 3px;
+  border-top: 1.5px solid var(--ink);
+}
+#view-archive .owner-file-toc > div {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8.5px 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  font: 600 12.5px/1 var(--disp);
+}
+#view-archive .owner-file-toc dt { flex: none; margin: 0; color: var(--ink-soft); }
+#view-archive .owner-file-toc .dots {
+  flex: 1;
+  border-bottom: 2px dotted var(--doc-line);
+  transform: translateY(-3px);
+}
+#view-archive .owner-file-toc dd {
+  margin: 0;
+  color: var(--ink);
+  font: 800 15px/1 var(--disp);
+  white-space: nowrap;
+}
+#view-archive .owner-file-toc dd em {
+  margin-left: 2px;
+  color: var(--ink-soft);
+  font: 600 10.5px/1 var(--disp);
+  font-style: normal;
+}
+
+/* 소견은 집사가 직접 적어 스테이플로 박아 둔 쪽지다. 여기만 육필. */
+#view-archive .owner-file-remark {
+  position: relative;
+  margin: 13px 0 0;
+  padding: 10px 13px 9px;
+  border: 0;
+  border-left: 3px solid var(--kraft-deep);
+  background: var(--memo);
+}
+#view-archive .owner-file-remark .of-staple { top: -3px; left: 18px; transform: rotate(-2deg); }
 #view-archive .owner-file-remark > span {
   display: block;
-  margin-bottom: 5px;
-  color: var(--tab-records);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: .12em;
+  margin-bottom: 4px;
+  color: #a8913e;
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .16em;
 }
 #view-archive .owner-file-remark > p {
   margin: 0;
-  color: #4a3f3c;
-  font: 700 15px/1.45 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  color: #4c4234;
+  font: 700 17px/1.45 var(--hand);
   word-break: keep-all;
+}
+
+/* 인증 도장 줄 — 서류철 밖, 종이 위에 바로 찍힌다. */
+#view-archive .owner-file-stamps {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 18px 4px 0;
+}
+#view-archive .owner-file-stamps-label {
+  flex: 0 0 52px;
+  color: var(--ink-soft);
+  font: 700 10px/1.5 var(--disp);
+  letter-spacing: .1em;
+}
+#view-archive .owner-file-stamp-row { display: flex; flex: 1; gap: 7px; }
+#view-archive .owner-file-stamp {
+  /* 칸은 줄어들 수 있어야 한다 — 7칸이 360px에서도 한 줄에 들어와야
+     "다음 인증까지 몇 칸"이 한눈에 읽힌다. */
+  display: flex;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px dashed var(--doc-line);
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+}
+#view-archive .owner-file-stamp.on {
+  border: 2px solid var(--stamp-red);
+  background: rgba(157, 47, 58, .06);
+  color: var(--stamp-red);
+  font: 800 9.5px/1 var(--disp);
+}
+#view-archive .owner-file-stamp.on:nth-child(1) { transform: rotate(-11deg); }
+#view-archive .owner-file-stamp.on:nth-child(2) { transform: rotate(6deg); }
+#view-archive .owner-file-stamp.on:nth-child(3) { transform: rotate(-4deg); }
+#view-archive .owner-file-stamp.on:nth-child(4) { transform: rotate(9deg); }
+#view-archive .owner-file-stamp.on:nth-child(5) { transform: rotate(-7deg); }
+/* 좁은 화면에서도 7칸이 한 줄에 남아야 "몇 칸 남았는지"가 한눈에 읽힌다. */
+@media (max-width: 385px) {
+  #view-archive .owner-file-stamp-row { gap: 5px; }
+  #view-archive .owner-file-stamp { flex-basis: 31px; width: 31px; height: 31px; font-size: 8px; }
 }
 
 /* ═══════════ 주인님 파일 본문 ═══════════
@@ -447,28 +566,27 @@
 #view-archive .file-margin-note.diary-teaser > small { color: #6b5d4d; }
 
 /* 공식 인정 건의 도장 — 장식이 아니라 버튼이다. 눌러서 인증서를 연다.
-   도장이 이 자리로 오면서 카드 본문에 찍히던 :after 도장은 거둔다. 한 건에 도장 하나. */
+   시안 v4-2를 따라 CSS 원형 도장으로 그린다. 이미지 도장은 담당 집사가 바뀌면
+   함께 바뀌어야 할 것처럼 보이는데, 이 도장을 찍는 주체는 집사가 아니라 사무국이다. */
 #view-archive .record-cert-stamp {
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 46px;
   height: 46px;
   padding: 0;
-  border: 0;
-  background: var(--stamp-red);
+  border: 2px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  box-shadow: inset 0 0 0 1px rgba(157, 47, 58, .3);
+  color: var(--stamp-red);
+  font: 800 8.5px/1.2 var(--disp);
+  text-align: center;
   transform: rotate(8deg);
-  -webkit-mask-image: url("design/paper-assets/stamp-approved.png");
-  mask-image: url("design/paper-assets/stamp-approved.png");
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  opacity: .85;
-  font-size: 0;
 }
-#view-archive .record-cert-stamp:active { opacity: 1; }
+#view-archive .record-cert-stamp:active { background: rgba(157, 47, 58, .12); }
 #view-archive #archive-record-list .office-record-card.official:after { display: none; }
 
 /* 이전 기록 펼치기 */
@@ -547,38 +665,19 @@
 /* ═══════════ 4. 소형 태그 · 소형 포인트 ═══════════
    알약을 걷어내고, 색은 테두리와 글자에만 남긴다. */
 
-/* ── 종이 에셋 : DATE 클립보드 라벨 ──
-   날짜 칩을 실물 서식으로 바꾼다. 인쇄된 밑줄 자리에 오늘 날짜가 적힌 것처럼
-   글자를 앉힌다. 기록·일기·보관함이 같은 부품을 공유해 통일감을 만든다. */
-#view-archive .archive-title-row time {
-  display: grid;
-  place-items: center;
-  width: 116px;
-  /* 인쇄된 밑줄(원본 265px 중 y=181)에 글자를 앉히려고 위아래 여백을 비대칭으로 준다 */
-  padding: 28px 11px 5px 6px;
+/* 날짜 클립보드 라벨은 걷어낸다 — 시안 v4-2는 날짜를 그룹 간지(크라프트 칩)로만
+   말한다. 상단에 오늘 날짜를 한 번 더 붙이면 같은 말을 두 번 하는 셈이다. */
+#view-archive .archive-title-row time { display: none; }
+#view-archive .archive-title-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
   border: 0;
-  border-radius: 0;
-  background: url("design/paper-assets/label-date.png") no-repeat center / 100% auto;
-  color: #6b5b4e;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0;
-  aspect-ratio: 480 / 265;
 }
+#view-archive .archive-title-aside { display: flex; justify-content: flex-end; margin: 0; padding: 0; }
 #view-archive .archive-report-link { color: var(--tab-records); }
 
-#view-archive .record-filters button {
-  border-radius: 2px;
-  border-color: var(--doc-line);
-  background: var(--paper);
-  color: #7a6b62;
-}
-#view-archive .record-filters button.active {
-  border-color: var(--tab-records);
-  background: #eef1f3;
-  color: var(--tab-records);
-  font-weight: 850;
-}
 #view-archive .record-search input,
 #view-archive .record-grade-filter select,
 #view-archive .record-find-tools input,
@@ -629,9 +728,7 @@
    피하려고 알파만 마스크로 쓰고 색은 사무국 도장색으로 직접 칠한다.
    가운데가 비어 있어 아래 글자가 그대로 읽힌다. */
 #view-archive .office-record-card.official:after {
-  /* ux-polish.css가 장식용 "인정됨" 글자 도장을 껐던 자리다. 이제 실제 도장이
-     들어오므로 승인된 카드에서만 다시 켠다. */
-  display: block;
+  display: none;
   content: "";
   /* 담당 집사 얼굴을 덮지 않도록 본문 칸 오른쪽 아래 빈 자리에 찍는다 */
   right: 66px;
@@ -1335,3 +1432,63 @@
 #view-home .stamp-circles i:nth-child(5).filled { transform: rotate(-7deg); }
 #view-home .stamp-progress p { color: var(--ink-faint); font-size: 11px; }
 #view-home .home-hero i.of-datestamp { top: 40px; }
+
+/* ═══════════ 주인님 파일 본문 — 시안 v4-2 보정 ═══════════ */
+
+/* 기록은 서류철 밖 책상 위에 그대로 놓인다. 한 번 더 카드로 감싸면
+   "파일 안의 파일"이 되어 층이 하나 늘어난다. */
+#view-archive .archive-workspace {
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#view-archive .archive-panel { padding: 0; }
+
+/* 칭호는 수여된 이름이다 — 공문 서체에 결재 잉크색. */
+#view-archive .record-main small {
+  display: block;
+  margin-top: 7px;
+  color: var(--burgundy);
+  font: 800 13.5px/1.2 var(--serif);
+  letter-spacing: .01em;
+}
+#view-archive .record-main strong { color: var(--ink); font: 700 14.5px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+#view-archive .record-main p { color: var(--ink-soft); font: 500 11.5px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+
+/* 등록 도장은 제목 오른쪽 빈 자리에 찍는다. 시안 좌표(bottom:44px)는 손글씨 소견을
+   가로질러 마지막 줄을 읽기 어렵게 만드는데, 소견은 이 화면에서 가장 사람 손에
+   가까운 문장이라 가려서는 안 된다. */
+#view-archive .owner-file-doc .of-datestamp { top: 34px; right: 14px; bottom: auto; opacity: .7; }
+
+/* 여백 메모 — 테이프 대신 스테이플로 박고, 본문은 집사 육필로. */
+#view-archive .file-margin-note:before { content: none; }
+#view-archive .file-margin-note .of-staple { top: -3px; right: 20px; transform: rotate(3deg); }
+#view-archive .file-margin-note > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--kraft-deep);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .12em;
+}
+#view-archive .file-margin-note > p,
+#view-archive .file-margin-note.diary-teaser > blockquote {
+  margin: 0;
+  color: #4c4234;
+  font: 700 17px/1.5 var(--hand);
+  word-break: keep-all;
+}
+#view-archive .file-margin-note.diary-teaser > strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #4c4234;
+  font: 700 16px/1.5 var(--hand);
+}
+#view-archive .file-margin-note.diary-teaser > small {
+  display: block;
+  margin-top: 6px;
+  color: var(--kraft-deep);
+  font: 700 9px/1.4 var(--disp);
+  letter-spacing: .06em;
+}

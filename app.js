@@ -1264,7 +1264,6 @@
     const slipSign = $("#cat-home-speech-sign");
     if (slipSign) slipSign.textContent = `${onDutyAlias} 씀`;
     setPoseImage($("#archive-butler-image"), state.character, "base");
-    $("#archive-butler-name").textContent = profile.displayName;
     setPoseImage($("#report-butler-image"), state.character, "base");
     $("#report-butler-name").textContent = profile.displayName;
     $("#manager-role-title").textContent = profile.roleTitle;
@@ -1684,7 +1683,23 @@
       : "아직 없음";
     $("#owner-file-official").textContent = cover.officialCount;
     $("#owner-file-remark").textContent = cover.remark;
-    $("#archive-butler-role").textContent = `${CHARACTER_PROFILES[state.character].name} 담당`;
+    $("#archive-butler-role").textContent = `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
+
+    // 표지에는 누가 언제 연 파일인지가 적힌다. 개설일은 가장 오래된 기록의 날짜다.
+    const opened = [...state.records].map(record => record.date).filter(Boolean).sort()[0] || today();
+    const alias = ensureButlerStat(state.character).customName || CHARACTER_PROFILES[state.character].defaultName;
+    $("#archive-butler-name").textContent = `담당 ${alias} · ${opened.replace(/-/g, ". ")} 개설`;
+    const openedStamp = $("#owner-file-opened-stamp");
+    if (openedStamp) openedStamp.textContent = opened.slice(5).replace("-", ". ");
+
+    // 인증 도장 줄 — 찍힌 칸은 "대업", 남은 칸은 번호. 다음 인증까지 몇 칸인지가 한눈에 보인다.
+    const status = certificationStatus();
+    const row = $("#owner-file-stamp-row");
+    if (row) {
+      row.innerHTML = Array.from({ length: status.target }, (_, index) => (index < status.progress
+        ? `<span class="owner-file-stamp on">대업</span>`
+        : `<span class="owner-file-stamp">${index + 1}</span>`)).join("");
+    }
   }
 
   function renderRelationshipStatus() {
@@ -2192,7 +2207,8 @@
     if (sealed) {
       const teaser = diaryTeaser(butler.character, pageEntries);
       return `<section class="diary-teaser file-margin-note sealed">
-        <span>${escapeHtml(teaser.kicker)}</span>
+        <span class="of-staple" aria-hidden="true"></span>
+        <span>✎ ${escapeHtml(butler.name)}의 오늘 일기</span>
         <strong>${escapeHtml(teaser.count)}</strong>
         <blockquote>${escapeHtml(teaser.quote)}</blockquote>
         <small>${escapeHtml(teaser.release)}</small>
@@ -2201,8 +2217,9 @@
     const reflection = [...pageEntries].reverse().find(entry => entry.reflection)?.reflection
       || diaryReflection(butler.character, pageEntries, sample.ownerName);
     return `<aside class="file-margin-note">
+      <span class="of-staple" aria-hidden="true"></span>
+      <span>✎ ${escapeHtml(butler.name)}의 일기</span>
       <p>${escapeHtml(reflection)}</p>
-      <small>${escapeHtml(butler.name)} 관찰 기록</small>
     </aside>`;
   }
 
@@ -2215,10 +2232,12 @@
       ? sourceText
       : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
     // 공식 인정 건은 도장 자체가 인증서 진입로다(진입로 2). 카드 상세와 겹치지 않게 버튼으로 둔다.
-    const approvalAction = `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">공식 인정</button>`;
+    const approvalAction = `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">공식<br>인정</button>`;
+    // 칭호는 해시태그가 아니라 수여된 이름이다. 공문 서체로 적어야 그 무게가 산다.
+    const appellation = record.nickname || record.grade;
     return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
       <div class="record-number"><b>${listNumber}</b><span>NO.</span></div>
-      <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p><small>#${escapeHtml(record.nickname || record.grade)}</small></div>
+      <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p>${appellation ? `<small>칭호 · ${escapeHtml(appellation)}</small>` : ""}</div>
       ${official ? `<div class="record-approval">${approvalAction}</div>` : ""}
     </article>`;
   }

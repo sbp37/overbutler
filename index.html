@@ -241,30 +241,47 @@
             <strong>과잉집사</strong>
             <span>OVERBUTLER DUTY OFFICE</span>
           </div>
-          <div class="archive-office-running"><i></i> 사무국 정상 운영 중</div>
+          <div class="office-regno">보관 문서<b id="archive-regno">총 0건</b></div>
         </header>
 
-        <section class="owner-file-cover document-card">
-          <span class="archive-paperclip" aria-hidden="true"></span>
-          <span class="file-tab" id="archive-kicker">PERSONNEL FILE · 주인님 파일</span>
-          <div class="owner-file-identity">
-            <div class="owner-file-portrait">
+        <section class="owner-file-folder">
+          <div class="record-filters" id="record-filters" role="group" aria-label="기록 분류">
+            <button class="active" type="button" data-record-filter="all">전체</button>
+            <button type="button" data-record-filter="today">오늘</button>
+            <button type="button" data-record-filter="official">공식</button>
+            <button type="button" data-record-filter="praise">반복</button>
+          </div>
+          <div class="of-fastener" aria-hidden="true"><i></i><i></i></div>
+          <div class="owner-file-doc">
+            <div class="of-punch" aria-hidden="true"><i></i><i></i></div>
+            <span class="of-clip" aria-hidden="true"></span>
+            <div class="of-datestamp" aria-hidden="true">등록<b id="owner-file-opened-stamp">08. 17</b></div>
+            <div class="owner-file-head">
               <img id="archive-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" alt="요정 집사">
+              <div>
+                <span class="owner-file-role" id="archive-butler-role">담당 집사 작성 · 언제든 열람 가능</span>
+                <h1 id="archive-view-title">주인님 파일</h1>
+                <span class="owner-file-by" id="archive-butler-name">담당 집사</span>
+              </div>
             </div>
-            <div class="owner-file-headline">
-              <small id="archive-butler-role">담당 집사</small>
-              <h1 id="archive-view-title">주인님 파일</h1>
-              <p id="archive-butler-name">요정 집사</p>
+            <dl class="owner-file-toc">
+              <div><dt>파일 두께</dt><span class="dots" aria-hidden="true"></span><dd><b id="owner-file-thickness">0</b><em>건</em></dd></div>
+              <div><dt>함께한 날</dt><span class="dots" aria-hidden="true"></span><dd><b id="owner-file-days">0</b><em>일</em></dd></div>
+              <div><dt>최다 대업</dt><span class="dots" aria-hidden="true"></span><dd id="owner-file-top">아직 없음</dd></div>
+              <div><dt>공식 인정</dt><span class="dots" aria-hidden="true"></span><dd><b id="owner-file-official">0</b><em>건</em></dd></div>
+            </dl>
+            <div class="owner-file-remark">
+              <span class="of-staple" aria-hidden="true"></span>
+              <span>집사 소견</span>
+              <p id="owner-file-remark"></p>
             </div>
           </div>
-          <dl class="owner-file-stats">
-            <div><dt>파일 두께</dt><dd><b id="owner-file-thickness">0</b>건</dd></div>
-            <div><dt>함께한 날</dt><dd><b id="owner-file-days">0</b>일</dd></div>
-            <div><dt>최다 대업</dt><dd id="owner-file-top">—</dd></div>
-            <div><dt>공식 인정</dt><dd><b id="owner-file-official">0</b>건</dd></div>
-          </dl>
-          <blockquote class="owner-file-remark"><span>집사 소견</span><p id="owner-file-remark"></p></blockquote>
         </section>
+
+        <div class="owner-file-stamps">
+          <span class="owner-file-stamps-label">공식 인증<br>도장</span>
+          <div class="owner-file-stamp-row" id="owner-file-stamp-row"></div>
+        </div>
 
         <section class="archive-workspace">
           <div class="archive-title-row">
@@ -274,12 +291,6 @@
             </div>
           </div>
           <div class="archive-panel active" id="archive-records" role="region" aria-label="주인님 파일 본문">
-            <div class="record-filters" id="record-filters" role="group" aria-label="기록 분류">
-              <button class="active" type="button" data-record-filter="all">전체</button>
-              <button type="button" data-record-filter="today">오늘</button>
-              <button type="button" data-record-filter="official">공식 인정</button>
-              <button type="button" data-record-filter="praise">반복</button>
-            </div>
             <div class="record-find-tools">
               <label class="record-search"><span>기록 찾기</span><input id="record-search" type="search" maxlength="40" placeholder="대업명·칭호 검색" autocomplete="off"></label>
               <label class="record-grade-filter"><span>등급</span><select id="record-grade-filter"><option value="all">전체 등급</option></select></label>
