@@ -1720,7 +1720,9 @@
     $("#home-relationship-next").textContent = remaining ? `다음 관계까지 ${remaining}` : "최고 관계 도달";
     $("#relationship-stage-badge").textContent = stage.badge;
     $("#relationship-stage-title").textContent = stage.name;
-    $("#relationship-stage-summary").textContent = stage.summary;
+    // 관계 칸의 주인공은 숫자가 아니라 집사의 말이다. 캐릭터 대사가 있으면 그걸 쓰고,
+    // 없는 캐릭터에서만 시스템 설명문으로 떨어진다.
+    $("#relationship-stage-summary").textContent = relationshipStageLine() || stage.summary;
     $("#relationship-next-copy").textContent = remaining ? `다음 관계까지 과몰입 ${remaining}` : "집사 과몰입이 최고 단계에 도달했습니다.";
   }
 
