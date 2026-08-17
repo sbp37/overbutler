@@ -21,7 +21,8 @@
      FORM 05  burgundy   (HOME 접수의 결과서라 접수처 색을 그대로 쓴다)
      GIFT     slate navy (인사국이 발행한다)
 
-   FORM 04(분석실)는 제외한다. 어두운 실험실로 튀는 게 정체성이다. */
+   FORM 04(심사표)도 이제 같은 종이 위에 있다 — 어두운 실험실이던 시절의 결정은
+   2026-08-17 사용자 승인으로 대체됐다(docs/CURRENT.md). */
 
 /* ── 재질 위계 ──
    배경 격자지 < 크라프트(서류철·날짜칩) < 아이보리(문서) < 노랑(메모) < 금박(축하 전용)
@@ -2045,4 +2046,672 @@
   border: 1px solid var(--doc-line);
   border-radius: 2px;
   background: var(--ivory);
+}
+
+/* ═══════════ 공식 인정 증서 (v4-3) ═══════════
+   금박은 이 화면에서만 쓴다. 평상 화면에 금색이 돌면 인증서가 특별해지지 않는다.
+   별점과 점수는 넣지 않는다 — 사무국은 등급을 매기는 곳이 아니라 인정하는 곳이다.
+   대신 기록 요지 4행이 여백을 공식적으로 채운다. */
+
+.certificate-modal .certframe {
+  position: relative;
+  margin: 20px 0 0;
+  padding: 9px;
+  border: 1.5px solid var(--gold);
+  background:
+    repeating-linear-gradient(45deg, rgba(185, 138, 46, .5) 0 1.5px, transparent 1.5px 5px),
+    linear-gradient(var(--ivory), var(--ivory));
+  box-shadow: 6px 7px 0 rgba(45, 35, 22, .13);
+}
+#certificate-card.certpaper {
+  position: relative;
+  margin: 0;
+  padding: 22px 26px 18px;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(-45deg, rgba(185, 138, 46, .025) 0 1px, transparent 1px 7px),
+    radial-gradient(ellipse 90% 55% at 50% -6%, rgba(185, 138, 46, .08), transparent 55%),
+    var(--ivory);
+  box-shadow: none;
+  text-align: center;
+}
+#certificate-card.certpaper:before,
+#certificate-card.certpaper:after { content: none; }
+
+/* 배경 워터마크 — 종이 안쪽에서 비쳐 나오는 정도로만. */
+.cert-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.cert-watermark b {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 240px;
+  height: 240px;
+  border: 9px solid rgba(51, 42, 32, .033);
+  border-radius: 50%;
+  color: rgba(51, 42, 32, .033);
+  font: 900 100px/1 var(--serif);
+}
+/* 좌우 세로 마이크로텍스트 — 위조 방지 인쇄의 문법. */
+.cert-sidetext {
+  position: absolute;
+  top: 50%;
+  color: rgba(185, 138, 46, .55);
+  font: 700 7.5px/1 var(--disp);
+  letter-spacing: .42em;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.cert-sidetext.left { left: 8px; transform: translateY(-50%) rotate(180deg); }
+.cert-sidetext.right { right: 8px; }
+.cert-corner { position: absolute; width: 30px; height: 30px; color: var(--gold); opacity: .8; }
+.cert-corner svg { width: 100%; height: 100%; }
+.cert-corner.tl { top: 7px; left: 7px; }
+.cert-corner.tr { top: 7px; right: 7px; transform: scaleX(-1); }
+.cert-corner.bl { bottom: 7px; left: 7px; transform: scaleY(-1); }
+.cert-corner.br { bottom: 7px; right: 7px; transform: scale(-1); }
+
+/* 메달 — 리본 두 갈래가 아래로 빠지고 금화가 그 위에 얹힌다. */
+#certificate-card.certpaper .certificate-crest {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  display: block;
+  z-index: 2;
+  width: 72px;
+  height: auto;
+  margin: 0 auto 2px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.cert-coin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, var(--gold-hi) 0%, var(--gold) 46%, var(--gold-dp) 100%);
+  box-shadow: 0 2px 4px rgba(90, 64, 20, .35), inset 0 1px 2px rgba(255, 244, 210, .8), inset 0 -2px 3px rgba(90, 64, 20, .4);
+}
+.cert-coin i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border: 1.5px solid rgba(255, 244, 210, .55);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(90, 64, 20, .3);
+  color: #fdf3d5;
+  font: 900 17px/1 var(--serif);
+  font-style: normal;
+  text-shadow: 0 1px 1px rgba(90, 64, 20, .5);
+}
+.cert-ribbon {
+  position: absolute;
+  top: 44px;
+  width: 15px;
+  height: 27px;
+  background: linear-gradient(var(--stamp-red), #6f2027);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+}
+.cert-ribbon.left { left: 13px; transform: rotate(14deg); }
+.cert-ribbon.right { right: 13px; transform: rotate(-14deg); }
+
+#certificate-card.certpaper .certificate-overline {
+  display: block;
+  margin: 20px 0 10px;
+  color: var(--gold-dp);
+  font: 800 8px/1 var(--disp);
+  letter-spacing: .32em;
+}
+#certificate-card.certpaper #certificate-title {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: var(--ink);
+  font: 900 26px/1.2 var(--serif);
+  letter-spacing: .12em;
+}
+.cert-rule { display: flex; gap: 9px; align-items: center; margin: 11px 24px 0; }
+.cert-rule:before,
+.cert-rule:after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
+.cert-rule:after { background: linear-gradient(90deg, var(--gold), transparent); }
+.cert-rule i { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); }
+#certificate-card.certpaper .certificate-declaration {
+  position: relative;
+  z-index: 2;
+  margin: 12px 0 2px;
+  color: var(--ink-soft);
+  font: 500 11px/1.8 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  white-space: pre-line;
+}
+#certificate-card.certpaper .certificate-recipient {
+  position: relative;
+  z-index: 2;
+  margin: 10px 0 3px;
+  color: var(--ink);
+  font: 800 15px/1 var(--serif);
+}
+#certificate-card.certpaper .certificate-recipient strong { color: var(--stamp-red); font: inherit; }
+#certificate-card.certpaper .certificate-grade.goldchip {
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--gold);
+  border-radius: 20px;
+  background: linear-gradient(rgba(232, 205, 122, .16), rgba(232, 205, 122, .05));
+  color: var(--gold-dp);
+  font: 800 11px/1 var(--disp);
+  letter-spacing: .03em;
+}
+/* 낫표는 수여된 이름을 감싸는 괄호다 — 제목이 아니라 이름이라는 표시. */
+#certificate-card.certpaper #certificate-deed {
+  position: relative;
+  z-index: 2;
+  margin: 11px 2px 0;
+  color: var(--ink);
+  font: 900 21px/1.45 var(--serif);
+  letter-spacing: .01em;
+  word-break: keep-all;
+}
+#certificate-card.certpaper #certificate-deed:before { content: "「"; }
+#certificate-card.certpaper #certificate-deed:after { content: "」"; }
+
+/* 기록 요지 4행 */
+.certificate-brief {
+  position: relative;
+  z-index: 2;
+  margin: 13px 2px 0;
+  padding: 3px 2px;
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+  text-align: left;
+}
+.certificate-brief > div {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  padding: 5.5px 0;
+  font: 600 10.5px/1 var(--disp);
+}
+.certificate-brief > div + div { border-top: 1px dotted rgba(185, 138, 46, .4); }
+.certificate-brief dt { flex: none; margin: 0; color: var(--ink-faint); letter-spacing: .05em; }
+.certificate-brief .dots {
+  flex: 1;
+  border-bottom: 1.5px dotted rgba(185, 138, 46, .45);
+  transform: translateY(-2px);
+}
+.certificate-brief dd { margin: 0; color: var(--ink); font: 700 11px/1 var(--disp); white-space: nowrap; }
+
+/* 서명란 — 발급자 이름은 인쇄, 낙관은 육필. */
+#certificate-card.certpaper .certificate-signoff {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  margin: 13px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--doc-line-soft);
+  text-align: left;
+}
+#certificate-card.certpaper .certificate-signoff img {
+  flex: 0 0 50px;
+  width: 50px;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+  object-fit: contain;
+}
+#certificate-card.certpaper .certificate-signoff:before,
+#certificate-card.certpaper .certificate-signoff:after { content: none; }
+#certificate-card.certpaper .certificate-signoff p {
+  flex: 1;
+  margin: 0;
+  color: var(--ink-soft);
+  font: 500 9.5px/1.6 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#certificate-card.certpaper .certificate-signoff p strong {
+  display: block;
+  color: var(--ink);
+  font: 800 13px/1.4 var(--disp);
+}
+#certificate-card.certpaper .certificate-signoff p span { font-size: inherit; }
+#certificate-card.certpaper .certificate-autograph {
+  display: inline-block;
+  margin-top: 2px;
+  padding-top: 0;
+  border-top: 0;
+  color: var(--stamp-red);
+  font: 700 17px/1 var(--hand);
+  font-style: normal;
+  letter-spacing: 0;
+  transform: rotate(-3deg);
+}
+.certificate-autograph {
+  display: inline-block;
+  margin-top: 2px;
+  color: var(--stamp-red);
+  font: 700 17px/1 var(--hand);
+  font-style: normal;
+  transform: rotate(-3deg);
+}
+/* 밀랍 인장 — 도장이 아니라 봉인이다. 그래서 입체로 찍힌다. */
+#certificate-card.certpaper .official-stamp {
+  position: relative;
+  flex: 0 0 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  margin-right: -8px;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #c9505c 0%, var(--stamp-red) 52%, #6f1e26 100%);
+  box-shadow: 0 2px 5px rgba(90, 20, 26, .4), inset 0 1px 2px rgba(255, 200, 205, .45), inset 0 -2px 3px rgba(60, 12, 17, .5);
+  transform: rotate(-9deg);
+}
+#certificate-card.certpaper .official-stamp:before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1.5px dashed rgba(255, 220, 224, .5);
+  border-radius: 50%;
+}
+#certificate-card.certpaper .official-stamp span {
+  color: #ffe9ec;
+  font: 900 10.5px/1.3 var(--serif);
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(60, 12, 17, .6);
+}
+
+/* 일련번호 밴드 — 종이 아래 끝까지 밀어붙여 서류의 마감선을 만든다. */
+.certificate-serialband {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+  margin: 12px -26px -18px;
+  padding: 8px 26px 9px;
+  border-top: 1px dashed rgba(185, 138, 46, .5);
+  background: rgba(185, 138, 46, .05);
+  color: var(--ink-faint);
+  font: 700 7.5px/1.5 var(--disp);
+  letter-spacing: .04em;
+  text-align: left;
+}
+.certificate-serialband > span { flex: 1; }
+.certificate-serialband > span:last-child { text-align: right; }
+.certificate-serialband b { color: var(--gold-dp); font: 800 10px/1 var(--disp); letter-spacing: .22em; }
+
+.certificate-modal .certificate-page-title { padding: 16px 0 6px; }
+.certificate-modal .certificate-page-title h1 { font: 900 25px/1.2 var(--serif); letter-spacing: .04em; }
+
+/* ═══════════ 대업 심사 결과서 (v4-4) ═══════════
+   승인은 도장이 말한다. 그래서 제목 자리는 수여된 칭호가 가져간다 —
+   유저가 이 화면에서 가져가는 것은 "승인됨"이 아니라 이름이다. */
+.praise-result-document {
+  position: relative;
+  padding: 0 0 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .1);
+}
+.praise-result-document > .of-clip { top: -11px; left: 9px; transform: rotate(-5deg); }
+.praise-result-document .reaction-document-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 11px 15px 11px 32px;
+  border-bottom: 1.5px solid var(--ink);
+}
+.praise-result-document #result-form-label {
+  position: static;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+  font: 900 13px/1 var(--serif);
+  letter-spacing: .14em;
+}
+.praise-result-document #result-mode-badge {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--stamp-red);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .1em;
+}
+/* 큰 승인 도장 — 이 화면의 주인공이라 문서 위에 비뚤게 얹힌다. */
+.praise-result-document .reaction-stamp {
+  position: absolute;
+  z-index: 3;
+  top: 50px;
+  right: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  width: 82px;
+  height: 82px;
+  margin: 0;
+  padding: 0;
+  border: 3px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  box-shadow: inset 0 0 0 2px rgba(157, 47, 58, .35);
+  color: var(--stamp-red);
+  font: 900 18px/1.15 var(--serif);
+  text-align: center;
+  opacity: .92;
+  transform: rotate(11deg);
+}
+.praise-result-hero {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin: 0;
+  padding: 17px 96px 0 16px;
+  border: 0;
+  background: none;
+}
+.praise-result-character-stage {
+  flex: 0 0 88px;
+  align-self: center;
+  width: 88px;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.praise-result-character-stage img { width: 88px; height: auto; object-fit: contain; }
+.praise-result-summary { min-width: 0; padding: 0; }
+.praise-result-summary #result-butler-name {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--kraft-deep);
+  font: 600 10px/1.4 var(--disp);
+  letter-spacing: .06em;
+  word-break: keep-all;
+}
+/* 칭호는 낫표 안에 든다 — 판정 결과가 아니라 수여된 이름이라는 표시. */
+.praise-result-summary #result-title {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.4 var(--serif);
+  word-break: keep-all;
+}
+.praise-result-summary #result-title:before { content: "「"; }
+.praise-result-summary #result-title:after { content: "」"; }
+.praise-result-deedline {
+  margin: 7px 0 0;
+  color: var(--ink-soft);
+  font: 500 12px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+/* 집사 코멘트 — 결재선 밖에서 손으로 적어 스테이플로 박은 쪽지. */
+.praise-result-line {
+  position: relative;
+  margin: 15px 16px 0;
+  padding: 11px 14px 9px;
+  border-left: 3px solid var(--kraft-deep);
+  background: var(--memo);
+}
+.praise-result-line .of-staple { top: -3px; left: 16px; }
+.praise-result-document #result-report {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #4c4234;
+  font: 700 17.5px/1.5 var(--hand);
+  word-break: keep-all;
+}
+.praise-result-document #result-report:before,
+.praise-result-document #result-report:after { content: none; }
+.praise-result-metrics {
+  display: flex;
+  margin: 13px 16px 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--doc-line-soft);
+  background: none;
+}
+.praise-result-metrics > div {
+  flex: 1;
+  padding: 10px 0 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.praise-result-metrics > div + div { border-left: 1px solid var(--doc-line-soft); }
+.praise-result-metrics dt { margin-bottom: 6px; color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+.praise-result-metrics dd { margin: 0; color: var(--ink); font: 800 13px/1 var(--disp); }
+/* 주 행동은 색면 버튼이 아니라 이중선 결재란이다 — 홈의 날인선과 같은 조형. */
+.praise-result-document > .primary-button {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 18px 16px 0;
+  padding: 13px 0;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+  font: 800 15px/1 var(--disp);
+}
+.praise-result-document > .primary-button span { color: var(--stamp-red); }
+.praise-result-document > .text-button {
+  display: block;
+  margin: 9px auto 0;
+  color: var(--ink-faint);
+  font: 600 12px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.praise-result-document .relationship-result { margin: 13px 16px 0; }
+
+/* ── v4-4 보정 : 앞선 패스가 남긴 겹치는 도장·클립·후광을 걷어낸다 ── */
+/* 승인 도장이 실물로 찍히므로 배경 워터마크 도장은 중복이다. */
+.praise-result-document:before,
+.praise-result-document:after { content: none; }
+.praise-result-character-stage:before { content: none; }
+.praise-result-document blockquote:before,
+.praise-result-document blockquote:after { content: none; }
+.praise-result-character-stage img { height: auto; filter: none; }
+.praise-result-hero,
+.praise-result-line { background: var(--memo); }
+.praise-result-hero { background: none; }
+.praise-result-metrics > div:nth-child(2) dd { color: var(--stamp-red); font-size: 13px; }
+
+/* ═══════════ 대업 심사표 (v4-8) ═══════════
+   기다림을 어두운 실험실 연출로 채우던 화면이다. 사용자 승인 변경으로 낮 종이 톤의
+   심사표가 됐다 — 기다리는 동안 읽을 것이 생기고, 심사 항목에 도장이 차례로 찍히면서
+   "무엇을 보고 판단했는지"가 남는다. 어두운 화면은 두 번째부터는 관문일 뿐이었다. */
+#analysis-overlay.analysis-lab {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+}
+#analysis-overlay .analysis-sheet {
+  position: relative;
+  width: min(100%, 400px);
+  padding: 0 0 17px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .11);
+  color: var(--ink);
+}
+#analysis-overlay .of-clip { top: -11px; left: 9px; transform: rotate(-4deg); }
+#analysis-overlay .analysis-top {
+  padding: 11px 15px 11px 32px;
+  border-bottom: 1.5px solid var(--ink);
+}
+#analysis-overlay .analysis-top span { color: var(--ink); font: 900 13px/1 var(--serif); letter-spacing: .18em; }
+#analysis-overlay .analysis-top b { color: var(--stamp-red); font: 700 9px/1 var(--disp); letter-spacing: .08em; }
+#analysis-overlay .analysis-top b i { width: 6px; height: 6px; background: var(--stamp-red); }
+#analysis-overlay .scanner,
+#analysis-overlay .scanner[hidden] { display: none; }
+
+/* 접수 내용 — 심사관이 읽고 있는 그 문장을 그대로 인용해 둔다. */
+#analysis-overlay .analysis-deed {
+  position: relative;
+  margin: 15px 16px 0;
+  padding: 11px 13px;
+  border: 1px solid var(--doc-line-soft);
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+}
+#analysis-overlay .analysis-deed dt {
+  margin-bottom: 6px;
+  color: var(--ink-faint);
+  font: 600 9px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#analysis-overlay .analysis-deed dd {
+  margin: 0;
+  color: var(--ink);
+  font: 600 14.5px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#analysis-overlay .analysis-deed .of-staple { top: -3px; left: 16px; }
+
+/* 심사 항목 — 위에서부터 차례로 도장이 찍힌다. */
+#analysis-overlay .analysis-steps {
+  display: block;
+  margin: 14px 16px 0;
+  padding: 0;
+  border-top: 1.5px solid var(--ink);
+}
+#analysis-overlay .analysis-steps li {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 0;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+}
+#analysis-overlay .analysis-steps li b {
+  flex: 1;
+  color: var(--ink);
+  font: 600 12.5px/1.45 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#analysis-overlay .analysis-steps li span {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px dashed var(--ink-faint);
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font: 700 8.5px/1.2 var(--disp);
+  text-align: center;
+}
+/* 심사 중인 칸만 천천히 돈다 — 기다림이 멈춰 있지 않다는 유일한 신호. */
+#analysis-overlay .analysis-steps li.active span {
+  border-color: var(--stamp-red);
+  color: var(--stamp-red);
+  animation: office-review-spin 7s linear infinite;
+}
+#analysis-overlay .analysis-steps li.active { border-color: var(--doc-line-soft); background: none; color: var(--ink); }
+#analysis-overlay .analysis-steps li.done { color: var(--ink); }
+#analysis-overlay .analysis-steps li.done span {
+  border: 2px solid var(--stamp-red);
+  background: rgba(157, 47, 58, .05);
+  color: var(--stamp-red);
+  font: 800 9px/1.2 var(--disp);
+  animation: none;
+}
+#analysis-overlay .analysis-steps li.done:nth-child(1) span { transform: rotate(-9deg); }
+#analysis-overlay .analysis-steps li.done:nth-child(2) span { transform: rotate(6deg); }
+#analysis-overlay .analysis-steps li.done:nth-child(3) span { transform: rotate(-4deg); }
+#analysis-overlay .analysis-steps li.done:nth-child(4) span { transform: rotate(8deg); }
+@keyframes office-review-spin { to { transform: rotate(360deg); } }
+
+/* 심사 중 혼잣말 — 유저가 방금 쓴 문장에 반응하는 담당자의 육필. */
+#analysis-overlay .analysis-note {
+  position: relative;
+  margin: 14px 16px 0;
+  padding: 10px 13px 9px;
+  border-left: 3px solid var(--kraft-deep);
+  background: var(--memo);
+  text-align: left;
+}
+#analysis-overlay .analysis-note .of-staple { top: -3px; right: 18px; }
+#analysis-overlay .analysis-note > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #a8913e;
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .14em;
+}
+#analysis-overlay .analysis-note p {
+  margin: 0;
+  color: #4c4234;
+  font: 700 16.5px/1.5 var(--hand);
+  word-break: keep-all;
+}
+#analysis-overlay .analysis-note p:empty { display: none; }
+
+#analysis-overlay .analysis-progress {
+  margin: 15px 16px 0;
+  padding: 11px 12px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: none;
+  text-align: center;
+}
+#analysis-overlay .analysis-progress > div { justify-content: center; gap: 8px; margin-bottom: 7px; }
+#analysis-overlay .analysis-progress > div strong { color: var(--ink-soft); font: 800 12px/1 var(--disp); letter-spacing: .06em; }
+#analysis-overlay .analysis-progress > div span { color: var(--ink-faint); font: 600 11px/1 var(--disp); }
+#analysis-overlay .analysis-progress > b { height: 5px; border-radius: 0; background: var(--doc-line-soft); }
+#analysis-overlay .analysis-progress i { border-radius: 0; background: var(--stamp-red); }
+#analysis-overlay .analysis-footnote { color: var(--ink-faint); font: 500 11px/1.7 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+@media (prefers-reduced-motion: reduce) {
+  #analysis-overlay .analysis-steps li.active span { animation: none; }
 }

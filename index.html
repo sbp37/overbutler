@@ -425,18 +425,27 @@
 
   <div class="overlay analysis-lab" id="analysis-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-title" hidden>
     <div class="analysis-sheet">
-      <div class="analysis-top"><span>OVERBUTLER ANALYSIS LAB</span><b><i></i> 긴급 분석 중</b></div>
-      <div class="scanner"><img id="analysis-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-analysis.png" alt="클립보드를 분석하는 AI 집사"><span class="scan-beam" aria-hidden="true"></span></div>
-      <h2 id="analysis-title">대업 가치 분석 중</h2>
-      <p class="analysis-deed">“<b id="analysis-target"></b>”</p>
-      <p id="analysis-description" hidden></p>
+      <span class="of-clip" aria-hidden="true"></span>
+      <div class="analysis-top"><span>대 업 심 사 표</span><b><i></i> 심사 진행 중</b></div>
+      <div class="scanner" hidden><img id="analysis-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-analysis.png" alt=""><span class="scan-beam" aria-hidden="true"></span></div>
+      <h2 id="analysis-title" class="visually-hidden">대업 가치 분석 중</h2>
+      <dl class="analysis-deed">
+        <span class="of-staple" aria-hidden="true"></span>
+        <dt>접 수 내 용</dt>
+        <dd>“<b id="analysis-target"></b>”</dd>
+      </dl>
       <ol class="analysis-steps" id="analysis-steps">
         <li><b>행동 완료 여부 확인</b><span>대기</span></li>
         <li><b>국가 기여도 과장</b><span>대기</span></li>
         <li><b>역사적 의미 억지로 찾기</b><span>대기</span></li>
         <li><b>담당 집사 감정 회로 과열</b><span>대기</span></li>
       </ol>
-      <div class="analysis-progress"><div><strong>집사 과몰입 심사 진행</strong><span id="analysis-percent">0%</span></div><b><i id="analysis-fill"></i></b></div>
+      <div class="analysis-note">
+        <span class="of-staple" aria-hidden="true"></span>
+        <span>✎ 심사 중 혼잣말</span>
+        <p id="analysis-description"></p>
+      </div>
+      <div class="analysis-progress"><div><strong>결과서 작성 중</strong><span id="analysis-percent">0%</span></div><b><i id="analysis-fill"></i></b></div>
       <p class="analysis-footnote">화면을 누르면 즉시 결재됩니다.</p>
     </div>
   </div>
@@ -448,22 +457,23 @@
         <small><i></i> 집사 결재 완료</small>
       </header>
       <article class="praise-result-document">
-        <div class="reaction-document-meta"><span id="result-form-label">대업 심사 결과서 · FORM 05</span><b id="result-mode-badge">일반 주접</b></div>
+        <span class="of-clip" aria-hidden="true"></span>
+        <div class="reaction-document-meta"><span id="result-form-label">대 업 심 사 결 과 서</span><b id="result-mode-badge">금일 발행</b></div>
+        <div class="reaction-stamp" id="result-stamp" aria-label="심사 결과 도장">칭찬<br>승인</div>
         <div class="praise-result-hero">
           <div class="praise-result-character-stage">
-            <span class="reaction-spark spark-one" aria-hidden="true">✦</span>
-            <span class="reaction-spark spark-two" aria-hidden="true">✧</span>
             <img id="result-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-praise.png" alt="칭찬하는 AI 집사">
           </div>
           <div class="praise-result-summary">
-            <small id="result-butler-name">오류봇 담당 집사</small>
-            <h1 id="result-title">집사 주접<br>승인</h1>
-            <p id="result-verdict">검토 결과, 공식적으로 떠받들기로 결정했습니다.</p>
-            <div class="reaction-stamp" id="result-stamp" aria-label="칭찬 승인">칭찬<br>승인</div>
+            <small id="result-butler-name">일상 대업</small>
+            <h1 id="result-title">중력을 이겨낸 자</h1>
+            <p class="praise-result-deedline" id="result-deed">“침대에서 일어남”</p>
           </div>
         </div>
-        <div class="praise-result-deed"><small>접수된 대업</small><strong id="result-deed">침대에서 일어남</strong><span id="result-record-status">도장 +1</span></div>
-        <blockquote id="result-report">주인님께서 무려 침대에서 일어나셨습니다. 집사 감정 회로가 과열되었습니다.</blockquote>
+        <div class="praise-result-line">
+          <span class="of-staple" aria-hidden="true"></span>
+          <blockquote id="result-report">주인님께서 무려 침대에서 일어나셨습니다. 집사 감정 회로가 과열되었습니다.</blockquote>
+        </div>
         <div class="rare-verdict-note" id="result-rare-note" hidden><span>RARE VERDICT</span><strong>사무국 최초 측정 포기</strong><p>너무 위대하여 통상적인 점수 체계 적용을 중단했습니다.</p></div>
         <section class="relationship-result" id="result-relationship-result" aria-live="polite">
           <span id="result-relationship-kicker">관계 기록 업데이트 · +3</span>
@@ -472,9 +482,9 @@
           <p id="result-relationship-message">집사가 이번 대업을 관계 기록에 추가했습니다.</p>
         </section>
         <dl class="praise-result-metrics">
-          <div><dt>대업 등급</dt><dd id="result-grade">국가적 성취</dd></div>
-          <div><dt>인류 기여도</dt><dd id="result-score">98점</dd></div>
-          <div><dt>획득 칭호</dt><dd id="result-nickname">중력을 이겨낸 자</dd></div>
+          <div><dt>접수 번호</dt><dd id="result-intake">NO. 1</dd></div>
+          <div><dt>판정</dt><dd id="result-verdict">칭찬 지급</dd></div>
+          <div><dt>도장</dt><dd id="result-record-status">1 / 5</dd></div>
         </dl>
         <button class="primary-button" id="result-certificate-button" type="button">공식 인증서 발급 <span>→</span></button>
         <button class="text-button" id="result-close" type="button">기록만 하고 홈으로</button>
@@ -488,31 +498,44 @@
       <header class="certificate-screen-header">
         <button type="button" data-certificate-close aria-label="인증서 닫기">←</button>
         <div><strong>과잉집사</strong><span>OVERBUTLER DUTY OFFICE</span></div>
-        <small><i></i> 사무국 정상 운영 중</small>
+        <div class="office-regno">공식 문서<b id="certificate-regno">제 2026-000001호</b></div>
       </header>
-      <div class="certificate-page-title"><span>✦</span><div><h1 id="certificate-screen-title">공식 대업 인증서</h1><p id="certificate-screen-copy">당신의 대업을 공식적으로 인증합니다.</p></div><span>✦</span></div>
-      <article class="certificate" id="certificate-card">
-        <div class="certificate-crest" aria-hidden="true"><span>OB</span></div>
+      <div class="certificate-page-title"><div><h1 id="certificate-screen-title">공식 인정 증서</h1><p id="certificate-screen-copy">당신의 대업을 공식적으로 인증합니다.</p></div></div>
+      <div class="certframe">
+      <article class="certificate certpaper" id="certificate-card">
+        <div class="cert-watermark" aria-hidden="true"><b>OB</b></div>
+        <span class="cert-sidetext left" aria-hidden="true">OVERBUTLER DUTY OFFICE · OFFICIAL</span>
+        <span class="cert-sidetext right" aria-hidden="true">OVERBUTLER DUTY OFFICE · OFFICIAL</span>
+        <span class="cert-corner tl" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <span class="cert-corner tr" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <span class="cert-corner bl" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <span class="cert-corner br" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <div class="certificate-crest" aria-hidden="true"><span class="cert-ribbon left"></span><span class="cert-ribbon right"></span><div class="cert-coin"><i>OB</i></div></div>
         <p class="certificate-overline">OVERBUTLER DUTY OFFICE</p>
-        <h2 id="certificate-title">공식 대업 인증서</h2>
-        <p class="certificate-declaration" id="certificate-declaration">이 증서는 아래의 대업 달성을 엄숙하게 인증합니다</p>
+        <h2 id="certificate-title">공식 인정 증서</h2>
+        <div class="cert-rule" aria-hidden="true"><i></i></div>
+        <p class="certificate-declaration" id="certificate-declaration">아래의 기록이 사무국의 공식 인정을 받았음을 기쁘게 증명합니다</p>
         <p class="certificate-recipient"><strong id="certificate-owner-name">주인님</strong> 귀하</p>
-        <small id="certificate-number">문서번호 대업-2026-000001</small>
-        <hr>
-        <p class="certificate-grade" id="certificate-grade">인류사적 대업</p>
+        <div><span class="certificate-grade goldchip" id="certificate-grade">이번 인정 사유 · 인류사적 대업</span></div>
         <h3 id="certificate-deed">침대에서 일어남</h3>
-        <p class="certificate-nickname" id="certificate-nickname">― 중력을 이겨낸 자 ―</p>
-        <dl class="certificate-metrics">
-          <div><dt>공식 난이도</dt><dd id="certificate-difficulty">★★★★★</dd></div>
-          <div><dt>인류 기여도</dt><dd id="certificate-score">98점</dd></div>
+        <dl class="certificate-brief">
+          <div><dt>수여 칭호</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-nickname">중력을 이겨낸 자</dd></div>
+          <div><dt>분야</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-field">일상 대업</dd></div>
+          <div><dt>접수 번호</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-intake">NO. 1</dd></div>
+          <div><dt>발급 차수</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-issue">제 1차 공식 인정</dd></div>
         </dl>
         <div class="certificate-signoff">
           <img id="certificate-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-praise.png" alt="감격한 AI 집사">
-          <p><small>발급 담당 집사</small><br><strong id="certificate-butler-name">오류봇</strong><br><span id="certificate-date"></span><i>OVERBUTLER SIGNATURE</i></p>
-          <div class="official-stamp" aria-label="공식 대업 인증"><span>공식<br>대업<br>인증</span></div>
+          <p><strong id="certificate-butler-name">오류봇</strong><span id="certificate-date"></span> · <i class="certificate-autograph" id="certificate-autograph">오류봇 印</i></p>
+          <div class="official-stamp" aria-label="공식 대업 인증"><span>공식<br>인정</span></div>
         </div>
-        <blockquote id="certificate-report">“긴급 알림: 주인님께서 침대에서 일어남에 성공했습니다.”</blockquote>
+        <div class="certificate-serialband">
+          <span id="certificate-number">SERIAL · 대업-2026-000001</span>
+          <b aria-hidden="true">✦ ✦ ✦</b>
+          <span>본 증서는 재발급되지 않습니다 · 아마도</span>
+        </div>
       </article>
+      </div>
       <div class="certificate-actions">
         <button class="secondary-button" id="save-certificate" type="button">⇩ 인증서 저장하기</button>
         <button class="primary-button" id="share-certificate" type="button">↗ 인증서 공유하기</button>

@@ -2792,15 +2792,15 @@
     const pacing = analysisPacingFor(pendingEvaluation.verdictType);
     analysisRunsThisSession += 1;
     steps.forEach((step, index) => analysisTimers.push(window.setTimeout(() => {
-      if (index > 0) { steps[index - 1].className = "done"; steps[index - 1].querySelector("span").textContent = "완료"; }
+      if (index > 0) { steps[index - 1].className = "done"; steps[index - 1].querySelector("span").textContent = "통과"; }
       step.className = "active";
       const label = step.querySelector("span");
-      label.textContent = "진행 중";
+      label.innerHTML = "심사<br>중";
       // 파워·희귀는 중간에 한 번 멈칫한다. 새 UI 없이 기존 단계 상태 문구만 바꾼다.
       if (pacing.recheck === index) {
-        label.textContent = pacing.recheckLabel;
+        label.innerHTML = pacing.recheckLabel;
         analysisTimers.push(window.setTimeout(() => {
-          if (step.className === "active") label.textContent = pacing.settleLabel;
+          if (step.className === "active") label.innerHTML = pacing.settleLabel;
         }, Math.round(pacing.gap * 0.55)));
       }
       const percent = (index + 1) * 25;
@@ -2816,8 +2816,8 @@
   // 일반 판정은 "집사가 굳이 분석한다"는 개그만 남기고 빠르게 지나가고,
   // 길이는 파워·희귀에만 쓴다. 희소한 판정에만 시간을 쓰는 게 연출의 값어치를 지킨다.
   function analysisPacingFor(verdictType) {
-    if (verdictType === "rare") return { gap: 470, finish: 2500, recheck: 2, recheckLabel: "측정 실패", settleLabel: "재계산" };
-    if (verdictType === "power") return { gap: 360, finish: 1700, recheck: 1, recheckLabel: "재검토", settleLabel: "진행 중" };
+    if (verdictType === "rare") return { gap: 470, finish: 2500, recheck: 2, recheckLabel: "측정<br>실패", settleLabel: "재계산" };
+    if (verdictType === "power") return { gap: 360, finish: 1700, recheck: 1, recheckLabel: "재검토", settleLabel: "심사<br>중" };
     // 같은 세션에서 이미 여러 번 본 사용자는 더 빠르게. 저장하지 않는 단순 카운터다.
     const seen = analysisRunsThisSession;
     return seen >= 3 ? { gap: 185, finish: 820 } : { gap: 250, finish: 1080 };
@@ -2831,8 +2831,8 @@
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
     const steps = $$("#analysis-steps li");
-    steps.forEach(step => { step.className = "done"; step.querySelector("span").textContent = "완료"; });
-    steps.at(-1).querySelector("span").textContent = "과열";
+    steps.forEach(step => { step.className = "done"; step.querySelector("span").textContent = "통과"; });
+    steps.at(-1).querySelector("span").textContent = "가산";
     $("#analysis-percent").textContent = "100%";
     $("#analysis-fill").style.width = "100%";
     finishAchievement(deed);
@@ -3093,31 +3093,33 @@
     $("#certificate-card").dataset.verdict = rare ? "rare" : "official";
     $("#certificate-card").dataset.certification = official ? "official" : "commemorative";
     $("#certificate-card").dataset.deedLength = deedLength > 42 ? "extra-long" : deedLength > 24 ? "long" : "normal";
-    $("#certificate-screen-title").textContent = official ? "공식 대업 인증서" : "대업 기념 인증서";
+    $("#certificate-screen-title").textContent = official ? "공식 인정 증서" : "대업 기념 증서";
     $("#certificate-screen-copy").textContent = official
       ? "당신의 대업을 공식적으로 인증합니다."
       : firstRecord ? "첫 대업을 집사가 특별히 기념합니다." : "오늘의 대업을 집사가 특별히 기념합니다.";
-    $("#certificate-title").textContent = official ? "공식 대업 인증서" : "대업 기념 인증서";
+    $("#certificate-title").textContent = official ? "공식 인정 증서" : "대업 기념 증서";
     $("#certificate-declaration").textContent = official
-      ? "이 증서는 아래의 대업 달성을 엄숙하게 인증합니다"
-      : "이 증서는 오늘의 대업을 집사 사무국이 기쁘게 기념합니다";
-    $("#certificate-number").textContent = `문서번호 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
-    $("#certificate-grade").textContent = record.grade;
+      ? `아래의 기록이 ${certificationStatus().target}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`
+      : "아래의 기록을 집사 사무국이 기쁘게 기념합니다";
+    const serial = `${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
+    $("#certificate-number").textContent = `SERIAL · 대업-${serial}`;
+    const certRegno = $("#certificate-regno");
+    if (certRegno) certRegno.textContent = `제 ${serial}호`;
+    $("#certificate-grade").textContent = `이번 인정 사유 · ${record.grade}`;
     $("#certificate-deed").textContent = record.deed;
-    $("#certificate-nickname").textContent = `― ${record.nickname} ―`;
+    // 기록 요지 4행 — 별점·점수 대신 사무국이 실제로 기재하는 항목만 남긴다.
+    $("#certificate-nickname").textContent = record.nickname;
+    $("#certificate-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업";
+    $("#certificate-intake").textContent = `NO. ${record.number} / 누적 ${state.records.length}건`;
+    const issueIndex = Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1);
+    $("#certificate-issue").textContent = official ? `제 ${issueIndex}차 공식 인정` : "기념 발급";
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
-    $("#certificate-difficulty").textContent = rare ? "판정 불가" : "★★★★★";
-    $("#certificate-score").textContent = scoreText(record);
-    // 인증서에는 집사 한마디 + 관계가 깊어졌을 때만 사무국 뒷이야기 한 줄을 덧붙인다.
-    const certNews = officeNewsFor([{ obsession: Number(record.relationshipAfter) || 0 }], butler.name, stableDeedNumber(record.deed || ""));
-    $("#certificate-report").textContent = certNews
-      ? `“${record.report}”\n— ${certNews}`
-      : `“${record.report}”`;
-    $("#certificate-butler-name").textContent = butler.name;
+    $("#certificate-butler-name").textContent = `발급 담당 ${butler.name}`;
     $("#certificate-date").textContent = record.date;
+    $("#certificate-autograph").textContent = `${butler.name} 印`;
     $("#certificate-card .official-stamp span").innerHTML = official
-      ? rare ? "희귀<br>위업<br>인증" : "공식<br>대업<br>인증"
-      : rare ? "희귀<br>위업<br>기념" : "오늘의<br>대업<br>기념";
+      ? rare ? "희귀<br>인정" : "공식<br>인정"
+      : rare ? "희귀<br>기념" : "오늘<br>기념";
     $("#certificate-footnote").textContent = official
       ? "✦ 인증서는 기록 보관함에서 다시 확인할 수 있어요. ✦"
       : status.first
@@ -3140,27 +3142,25 @@
     const overlay = $("#praise-result-overlay");
     overlay.dataset.mode = mode;
     overlay.dataset.firstRecord = String(firstRecord);
-    $("#result-form-label").textContent = rare ? "희귀 대업 판정서 · FORM 05-R" : power ? "긴급 과몰입 결과서 · FORM 05-P" : "대업 심사 결과서 · FORM 05";
-    $("#result-mode-badge").textContent = rare ? "희귀 판정" : power ? "파워 주접" : "일반 주접";
-    $("#result-title").innerHTML = rare ? "측정 불가<br>위업" : power ? "파워 주접<br>발동" : "집사 주접<br>승인";
-    $("#result-verdict").textContent = rare
-      ? "통상적인 평가 기준으로는 위대함을 측정할 수 없어 사무국이 판정을 포기했습니다."
-      : power
-      ? "집사 감정 회로가 허용 범위를 넘어 긴급 과몰입으로 전환되었습니다."
-      : "검토 결과, 공식적으로 떠받들기로 결정했습니다.";
-    $("#result-stamp").innerHTML = rare ? "희귀<br>채택" : power ? "과몰입<br>폭주" : "칭찬<br>승인";
-    $("#result-butler-name").textContent = `${butler.name} 담당 집사`;
-    $("#result-deed").textContent = record.deed;
+    // 결과서의 주인공은 수여된 칭호다. "승인"은 도장이 이미 말하고 있으므로
+    // 제목에서 한 번 더 외치지 않는다(시안 v4-4).
+    $("#result-form-label").textContent = rare ? "희 귀 대 업 판 정 서" : power ? "긴 급 과 몰 입 결 과 서" : "대 업 심 사 결 과 서";
+    $("#result-mode-badge").textContent = rare ? "FORM 05-R · 금일 발행" : power ? "FORM 05-P · 금일 발행" : "FORM 05 · 금일 발행";
+    $("#result-title").textContent = record.nickname;
+    $("#result-verdict").textContent = rare ? "희귀 채택" : power ? "과몰입 폭주" : "칭찬 지급";
+    $("#result-stamp").innerHTML = rare ? "희귀<br>채택" : power ? "과몰입<br>폭주" : "승인";
+    const fieldLabel = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
+    $("#result-butler-name").textContent = `${fieldLabel} 분야 · ${record.grade}`;
+    $("#result-deed").textContent = `“${record.deed}”`;
     const pointsEarned = Number(record.pointsEarned) || 0;
     const relationshipGain = Number(record.relationshipGain) || 0;
+    $("#result-intake").textContent = `NO. ${record.number}`;
+    const stampStatus = certificationStatus();
     $("#result-record-status").textContent = record.stampEligible === false
       ? `칭찬 · +${pointsEarned}P`
-      : rare ? `희귀 도장 +1 · ${pointsEarned}P` : `도장 +1 · ${pointsEarned}P`;
+      : `${stampStatus.progress} / ${stampStatus.target}`;
     $("#result-report").textContent = "";
     $("#result-rare-note").hidden = !rare;
-    $("#result-grade").textContent = record.grade;
-    $("#result-score").textContent = scoreText(record);
-    $("#result-nickname").textContent = record.nickname;
     $("#result-certificate-button").innerHTML = official
       ? "공식 인증서 발급 <span>→</span>"
       : firstRecord ? "첫 대업 기념 인증서 <span>→</span>" : "대업 기념 인증서 보기 <span>→</span>";
@@ -3401,14 +3401,15 @@
     ctx.moveTo(540, metricsY);
     ctx.lineTo(540, metricsY + 126);
     ctx.stroke();
+    // 공유 이미지도 화면과 같은 항목을 기재한다 — 별점·점수는 인증서에 쓰지 않는다.
     ctx.fillStyle = "#8b776b";
     ctx.font = '750 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "공식 난이도" : "집사 판정 난이도", 333, metricsY + 38);
-    ctx.fillText("인류 기여도", 747, metricsY + 38);
+    ctx.fillText("분야", 333, metricsY + 38);
+    ctx.fillText("접수 번호", 747, metricsY + 38);
     ctx.fillStyle = "#711b2c";
-    ctx.font = '900 39px "Noto Serif KR", serif';
-    ctx.fillText(rare ? "판정 불가" : "★★★★★", 333, metricsY + 91);
-    ctx.fillText(scoreText(record), 747, metricsY + 91);
+    ctx.font = '900 33px "Noto Serif KR", serif';
+    ctx.fillText(OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업", 333, metricsY + 91);
+    ctx.fillText(`NO. ${record.number}`, 747, metricsY + 91);
 
     const portraitY = metricsY + 143;
     const quoteY = 1120;
@@ -3503,7 +3504,7 @@
 
   function certificateShareText(record) {
     const result = isOfficialCertificate(record) ? "공식 인증됐습니다." : "집사에게 거창하게 기념됐습니다.";
-    return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · 인류 기여도 ${scoreText(record)}\n#과잉집사 #오늘의대업`;
+    return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · ${record.nickname}\n#과잉집사 #오늘의대업`;
   }
 
   async function copyCertificateText(text) {
