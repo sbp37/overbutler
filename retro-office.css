@@ -2715,3 +2715,102 @@
 @media (prefers-reduced-motion: reduce) {
   #analysis-overlay .analysis-steps li.active span { animation: none; }
 }
+
+/* ═══════════ v4.1 수정 — 홈 ═══════════ */
+
+/* 슬립은 인사 한 줄이면 된다. 발행 푸터는 종이를 두껍게만 만들었다. */
+#view-home .reception-slip { margin-top: -22px; padding: 13px 15px 12px; }
+#view-home .reception-slip p { font-size: 15px; }
+
+/* 제목 — 공문 서체는 문서 안쪽에서 쓰고, 화면 제목은 앱의 목소리로 돌린다. */
+#view-home .home-hero { padding-top: 38px; }
+#view-home .home-hero h1 { font: 800 24px/1.32 var(--disp); letter-spacing: -.02em; }
+#view-home .home-hero i.of-datestamp { top: 30px; }
+
+/* 퀵칩 — 한 줄 소형. 카드가 아니라 견출지 조각이다. */
+#view-home .quick-actions button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 9px 12px 8px;
+  gap: 0;
+}
+#view-home .quick-actions button span { display: block; margin: 0; }
+
+/* 접수 버튼 — 창구에서 뽑는 붉은 티켓. 눌리는 감각이 있어야 버튼으로 읽힌다.
+   점선 내곽은 border가 아니라 outline이다 — border로 만들면 다른 규칙의
+   테두리와 겹칠 때 점선이 문서 밖으로 새어 나온다. */
+#view-home .report-button {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  padding: 4px;
+  border: 1.5px solid #6e1f27;
+  border-top: 1.5px solid #6e1f27;
+  border-bottom: 1.5px solid #6e1f27;
+  border-radius: 4px;
+  background: var(--stamp-red);
+  box-shadow: 3px 3px 0 rgba(45, 35, 22, .2);
+}
+#view-home .report-button .report-ticket-inner {
+  display: block;
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 13px 0 14px;
+  border-radius: 2px;
+  outline: 1.5px dashed rgba(255, 236, 232, .55);
+  outline-offset: -6px;
+  text-align: center;
+}
+#view-home .report-button b {
+  display: block;
+  color: #fdf1ec;
+  font: 800 17px/1 var(--disp);
+  letter-spacing: .01em;
+}
+#view-home .report-button small {
+  display: block;
+  margin-top: 6px;
+  color: rgba(253, 241, 236, .7);
+  font: 600 9px/1 var(--disp);
+  letter-spacing: .18em;
+}
+#view-home .report-button:active {
+  box-shadow: 1px 1px 0 rgba(45, 35, 22, .2);
+  transform: translate(2px, 2px);
+}
+
+/* 도장 진행 — 한 줄로 접는다. 홈의 주인공은 접수지, 진행률이 아니다. */
+#view-home .stamp-progress {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+  padding: 10px 13px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: none;
+  box-shadow: none;
+}
+#view-home .progress-heading { flex: 0 0 auto; gap: 5px; }
+#view-home .progress-heading strong { font: 700 10px/1.4 var(--disp); letter-spacing: .08em; }
+#view-home .progress-heading b { font: 700 10px/1.4 var(--disp); }
+#view-home .stamp-circles { flex: 1 1 0; min-width: 0; justify-content: flex-end; gap: 6px; margin: 0; }
+/* 7칸까지 늘어나므로 좁은 화면에서는 칸이 줄어들 수 있어야 한 줄이 유지된다.
+   높이는 폭을 따라가게 둬야 줄어드는 동안에도 도장이 타원이 되지 않는다. */
+#view-home .stamp-circles i { flex: 0 1 32px; width: auto; height: auto; min-width: 0; aspect-ratio: 1; }
+@media (max-width: 400px) {
+  #view-home .stamp-progress { padding: 9px 10px; }
+  #view-home .progress-heading strong { font-size: 9px; letter-spacing: 0; }
+  #view-home .progress-heading b { font-size: 9px; }
+  #view-home .stamp-circles { gap: 4px; }
+  #view-home .stamp-circles i { flex-basis: 26px; font-size: 8px; }
+}
+#view-home .stamp-progress p { display: none; }
+#view-home .stamp-progress:after { display: none; }

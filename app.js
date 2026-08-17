@@ -1261,8 +1261,6 @@
     const onDutyAlias = ensureButlerStat(state.character).customName || profile.defaultName;
     const counterPlate = $("#home-counter-plate");
     if (counterPlate) counterPlate.textContent = `창구 01 · 전담 ${onDutyAlias}`;
-    const slipSign = $("#cat-home-speech-sign");
-    if (slipSign) slipSign.textContent = `${onDutyAlias} 씀`;
     setPoseImage($("#archive-butler-image"), state.character, "base");
     setPoseImage($("#report-butler-image"), state.character, "base");
     $("#report-butler-name").textContent = profile.displayName;
@@ -1461,7 +1459,8 @@
       trigger.classList.remove("is-reacting");
       $("#briefing-butler-label").textContent = `${CHARACTER_PROFILES[state.character].shortName || CHARACTER_PROFILES[state.character].name} · 업무 중`;
     }, 1800);
-    window.setTimeout(openButlerChat, 260);
+    // 집사 응답은 별도 창이 아니라 접수 슬립 위에서 이뤄지는 방향으로 간다.
+    // 창을 지우기 전 단계라 진입만 끊어 둔다(기능·핸들러는 그대로).
   }
 
   function appendChatMessage(role, message) {
@@ -1751,7 +1750,7 @@
     $("#entry-description").textContent = pending
       ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.`
       : "잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.";
-    $("#report-button-label").textContent = "오늘을 접수합니다";
+    $("#report-button-label").textContent = "오늘 기록하기";
   }
 
   // 사무국 문서는 번호를 달고 나간다. 화면마다 다른 번호를 머리글 오른쪽에 두면
@@ -2442,7 +2441,6 @@
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
     saveState();
-    window.setTimeout(openButlerChat, 420);
   }
 
   function startCatHomeDrag(event) {
