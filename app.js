@@ -863,6 +863,10 @@
   let currentCertificateImagePromise = null;
   let pendingEvaluation = null;
   let pendingAnalysisDeed = null;
+  // 이번 세션에서 심사 연출을 몇 번 봤는지. 메모리에만 두고 저장하지 않는다 —
+  // 새로고침하면 다시 처음 속도로 돌아가도 상관없는 값이고, 이거 하나 때문에
+  // localStorage 구조를 늘릴 이유가 없다.
+  let analysisRunsThisSession = 0;
   let pendingMessageAnalysis = null;
   let typingTimer = null;
   let activeGiftDrag = null;
@@ -2637,16 +2641,38 @@
     steps.forEach(step => { step.className = ""; step.querySelector("span").textContent = "대기"; });
     $("#analysis-percent").textContent = "0%";
     $("#analysis-fill").style.width = "0%";
+    const pacing = analysisPacingFor(pendingEvaluation.verdictType);
+    analysisRunsThisSession += 1;
     steps.forEach((step, index) => analysisTimers.push(window.setTimeout(() => {
       if (index > 0) { steps[index - 1].className = "done"; steps[index - 1].querySelector("span").textContent = "완료"; }
       step.className = "active";
-      step.querySelector("span").textContent = "진행 중";
+      const label = step.querySelector("span");
+      label.textContent = "진행 중";
+      // 파워·희귀는 중간에 한 번 멈칫한다. 새 UI 없이 기존 단계 상태 문구만 바꾼다.
+      if (pacing.recheck === index) {
+        label.textContent = pacing.recheckLabel;
+        analysisTimers.push(window.setTimeout(() => {
+          if (step.className === "active") label.textContent = pacing.settleLabel;
+        }, Math.round(pacing.gap * 0.55)));
+      }
       const percent = (index + 1) * 25;
       $("#analysis-percent").textContent = `${percent}%`;
       $("#analysis-fill").style.width = `${percent}%`;
-    }, index * 520)));
+    }, index * pacing.gap)));
     pendingAnalysisDeed = deed;
-    analysisTimers.push(window.setTimeout(() => finishAnalysisNow(), 2400));
+    analysisTimers.push(window.setTimeout(() => finishAnalysisNow(), pacing.finish));
+  }
+
+  // FORM 04 심사 연출은 처음 한두 번만 즐겁다. 예전에는 판정 종류와 무관하게 전부
+  // 2.4초짜리 같은 연출이라, 매일 쓰는 사용자에게는 대업마다 통과해야 하는 관문이 됐다.
+  // 일반 판정은 "집사가 굳이 분석한다"는 개그만 남기고 빠르게 지나가고,
+  // 길이는 파워·희귀에만 쓴다. 희소한 판정에만 시간을 쓰는 게 연출의 값어치를 지킨다.
+  function analysisPacingFor(verdictType) {
+    if (verdictType === "rare") return { gap: 470, finish: 2500, recheck: 2, recheckLabel: "측정 실패", settleLabel: "재계산" };
+    if (verdictType === "power") return { gap: 360, finish: 1700, recheck: 1, recheckLabel: "재검토", settleLabel: "진행 중" };
+    // 같은 세션에서 이미 여러 번 본 사용자는 더 빠르게. 저장하지 않는 단순 카운터다.
+    const seen = analysisRunsThisSession;
+    return seen >= 3 ? { gap: 185, finish: 820 } : { gap: 250, finish: 1080 };
   }
 
   // FORM 04 심사 연출은 처음에만 즐겁다. 화면을 누르면 바로 결재로 넘어간다.
