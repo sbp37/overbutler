@@ -1257,6 +1257,12 @@
     $("#home-butler-role-title").textContent = profile.roleTitle;
     $("#home-butler-name").textContent = profile.displayName;
     $("#home-butler-desc").textContent = profile.tagline;
+    // 접수대 명패와 슬립 서명은 "지금 창구에 앉아 있는 사람"이라 별명을 쓴다.
+    const onDutyAlias = ensureButlerStat(state.character).customName || profile.defaultName;
+    const counterPlate = $("#home-counter-plate");
+    if (counterPlate) counterPlate.textContent = `창구 01 · 전담 ${onDutyAlias}`;
+    const slipSign = $("#cat-home-speech-sign");
+    if (slipSign) slipSign.textContent = `${onDutyAlias} 씀`;
     setPoseImage($("#archive-butler-image"), state.character, "base");
     $("#archive-butler-name").textContent = profile.displayName;
     setPoseImage($("#report-butler-image"), state.character, "base");
@@ -1728,9 +1734,22 @@
     entry.classList.toggle("first-run-entry", pending);
     $("#entry-kicker").textContent = pending ? "첫 이야기 접수 · 창구 01" : "오늘 이야기 접수처 · 창구 01";
     $("#entry-description").textContent = pending
-      ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 괜찮아요.`
-      : "잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.";
-    $("#report-button-label").textContent = "집사에게 들려주기";
+      ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.`
+      : "잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.";
+    $("#report-button-label").textContent = "오늘을 접수합니다";
+  }
+
+  // 사무국 문서는 번호를 달고 나간다. 화면마다 다른 번호를 머리글 오른쪽에 두면
+  // "운영 중" 배지 하나를 세 화면에 돌려쓰던 것보다 어느 서류를 보고 있는지가 분명해진다.
+  function renderOfficeDocumentNumbers() {
+    const now = new Date();
+    const pad = value => String(value).padStart(2, "0");
+    const homeNo = $("#home-regno");
+    if (homeNo) homeNo.textContent = `제 ${now.getFullYear()}-${pad(now.getMonth() + 1)}${pad(now.getDate())}호`;
+    const homeStamp = $("#home-datestamp");
+    if (homeStamp) homeStamp.textContent = `${pad(now.getMonth() + 1)}. ${pad(now.getDate())}`;
+    const archiveNo = $("#archive-regno");
+    if (archiveNo) archiveNo.textContent = `총 ${state.records.length}건`;
   }
 
   function render(options = {}) {
@@ -1739,6 +1758,7 @@
     $("#fame-count").textContent = state.fame;
     $("#home-gift-points").textContent = state.points;
     $("#header-level").textContent = `과몰입 ${state.obsession}`;
+    renderOfficeDocumentNumbers();
     $("#stamp-count").textContent = status.progress;
     $("#stamp-target").textContent = status.target;
     $("#stamp-copy").textContent = status.first
@@ -2308,17 +2328,6 @@
     return { min, max: 0, center: min / 2 };
   }
 
-  function positionCatHomeSpeech() {
-    const room = $("#cat-home-room");
-    const world = $("#cat-home-world");
-    const speech = $("#cat-home-speech");
-    if (!room || !world || !speech) return;
-    const catScreenX = world.offsetWidth / 2 + catHomeOffsetX;
-    const screenLeft = clamp(catScreenX + 38, 8, Math.max(8, room.clientWidth - 138));
-    speech.style.left = `${screenLeft - catHomeOffsetX}px`;
-    speech.style.top = `${Math.max(14, room.clientHeight - 228)}px`;
-  }
-
   function setCatHomeOffset(value, settle = false) {
     const world = $("#cat-home-world");
     if (!world) return;
@@ -2326,7 +2335,6 @@
     catHomeOffsetX = clamp(Number(value) || 0, bounds.min, bounds.max);
     world.classList.toggle("is-settling", settle);
     world.style.transform = `translate3d(${catHomeOffsetX}px,0,0)`;
-    positionCatHomeSpeech();
   }
 
   function scheduleCatHomeBlink() {
@@ -2386,16 +2394,16 @@
     if (!speech || !character || state.character !== "cat") return;
     if ($("#home-butler-room")?.hidden) return;
     window.clearTimeout(catHomeSpeechTimer);
-    speech.textContent = message;
-    positionCatHomeSpeech();
+    // 말풍선이 아니라 접수 슬립이다 — 본문만 갈아끼우고 클립·발행자 서명은 그대로 둔다.
+    $("#cat-home-speech-text").textContent = message;
     speech.classList.add("is-visible");
     character.classList.remove("is-reacting");
     void character.offsetWidth;
     character.classList.add("is-reacting");
     image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
     window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 190);
+    // 슬립은 발행되면 책상에 남는다. 사라지면 접수대 아래가 빈 칸으로 덜컥 내려앉는다.
     catHomeSpeechTimer = window.setTimeout(() => {
-      speech.classList.remove("is-visible");
       character.classList.remove("is-reacting");
     }, holdFor);
   }

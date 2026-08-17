@@ -1022,3 +1022,316 @@
   box-shadow: var(--doc-shadow-sm);
 }
 #view-report .report-intro { padding-bottom: 4px; }
+
+/* ═══════════ 접수 창구 (HOME) ═══════════
+   시안 v4-1. 창구 하나가 그대로 보이는 화면이다 —
+   접수대(스테이지) → 자동 발행된 접수 슬립 → 접수서 작성 → 날인.
+   "사무국 정상 운영 중" 배지는 문서 번호로 바꾼다. 배지는 상태를 말할 뿐이지만
+   번호는 지금 손에 든 서류가 무엇인지를 말한다. */
+
+.office-regno {
+  color: var(--ink-soft);
+  font: 700 9.5px/1.6 var(--disp);
+  letter-spacing: .06em;
+  text-align: right;
+}
+.office-regno b { display: block; color: var(--stamp-red); }
+
+#view-home .home-office-header { align-items: baseline; }
+#view-home .home-header-right { display: block; }
+#view-home .home-reception-label { display: none; }
+
+/* 접수대는 화면 폭을 꽉 채운다. 창구는 액자가 아니라 벽이다.
+   좌우 여백은 화면 폭에 따라 달라지므로 변수로 받아 그만큼만 되민다. */
+#view-home { --view-pad: 14px; }
+@media (max-width: 372px) { #view-home { --view-pad: 12px; } }
+@media (max-width: 370px) { #view-home { --view-pad: 11px; } }
+#view-home .home-butler-room {
+  margin: 0 calc(-1 * var(--view-pad));
+  overflow: visible;
+}
+#view-home .home-butler-room .cat-home-room {
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+}
+/* 창구 명패 — 접수대 위쪽 중앙에 걸린 팻말. */
+#view-home .office-counter {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  left: 50%;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 2px;
+  background: var(--ink);
+  color: #efe5d2;
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .2em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .25);
+}
+#view-home .room-pan-hint { bottom: 40px; }
+
+/* 접수 슬립 — 창구 아래로 반쯤 나온 종이. 클립으로 물려 있다. */
+#view-home .reception-slip {
+  position: relative;
+  z-index: 4;
+  display: block;
+  width: auto;
+  max-height: none;
+  margin: -30px 16px 0;
+  padding: 15px 16px 11px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .13);
+  opacity: 0;
+  visibility: hidden;
+  transform: rotate(-.6deg);
+  transition: opacity .2s ease, visibility 0s linear .2s;
+  pointer-events: none;
+}
+#view-home .reception-slip.is-visible { opacity: 1; visibility: visible; transition-delay: 0s; }
+#view-home .reception-slip:after { content: none; }
+#view-home .reception-slip .of-clip { top: -9px; left: 20px; transform: rotate(-4deg); }
+#view-home .reception-slip p {
+  margin: 0;
+  color: var(--ink);
+  font: 600 15.5px/1.55 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  letter-spacing: -.012em;
+  word-break: keep-all;
+}
+#view-home .reception-slip footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--doc-line);
+  color: var(--ink-faint);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .08em;
+}
+/* 서명만 육필이다. 발행 문구는 기계가 찍은 것이라 그대로 둔다. */
+#view-home .reception-slip .slip-sign {
+  color: var(--stamp-red);
+  font: 700 16px/1 var(--hand);
+  letter-spacing: 0;
+  transform: rotate(-2deg);
+}
+
+/* 접수처 제목 — 공문 서체. 옆에 잉크 마른 접수 도장. */
+#view-home .home-hero { padding-top: 44px; }
+#view-home .home-hero > span { display: none; }
+#view-home .home-hero h1 {
+  color: var(--ink);
+  font: 900 23px/1.42 var(--serif);
+  letter-spacing: -.01em;
+}
+#view-home .home-hero p { color: var(--ink-soft); font-size: 12.5px; }
+#view-home .home-hero i.of-datestamp {
+  top: 8px;
+  right: 2px;
+  border: 2px solid rgba(157, 47, 58, .5);
+  border-radius: 3px;
+  background: none;
+  opacity: 1;
+}
+
+/* 접수서 — 2공 펀치로 철해 둔 낱장. */
+#view-home .entry-form {
+  position: relative;
+  padding: 13px 15px 12px 34px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 2.5px 3px 0 rgba(45, 35, 22, .11);
+}
+#view-home .entry-form .of-punch i:nth-child(1) { top: 34px; }
+#view-home .entry-form .of-punch i:nth-child(2) { top: 128px; }
+#view-home .field-heading {
+  margin-bottom: 8px;
+  padding: 0;
+  border: 0;
+}
+#view-home .field-heading strong {
+  color: var(--ink-soft);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#view-home .field-heading span { color: var(--ink-soft); font: 600 9.5px/1 var(--disp); letter-spacing: .16em; }
+#view-home .field-heading b { color: var(--ink-soft); }
+
+/* 罫線 노트 — 붉은 여백선 왼쪽은 비워 두는 서식지의 규칙 그대로. */
+#view-home .achievement-field {
+  position: relative;
+  margin-top: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 31px, var(--doc-line-soft) 31px 32px);
+}
+#view-home .achievement-field:before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 16px;
+  border-left: 1.5px solid rgba(157, 47, 58, .4);
+}
+#view-home .entry-form textarea {
+  min-height: 96px;
+  margin-top: 0;
+  padding: 5px 2px 0 28px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 500 15px/32px "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#view-home .entry-form textarea::placeholder { color: var(--ink-faint); font-weight: 500; }
+#view-home .entry-form textarea:focus { border: 0; box-shadow: none; }
+
+/* 빠른 입력 — 견출지 대신 상단 색띠만. 아이콘은 걷어낸다. */
+#view-home .quick-actions { gap: 6px; margin-top: 12px; }
+#view-home .quick-actions svg { display: none; }
+#view-home .quick-actions button {
+  position: relative;
+  overflow: hidden;
+  padding: 9px 12px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .08);
+}
+#view-home .quick-actions button:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--kraft);
+}
+#view-home .quick-actions button:nth-child(2):before { background: #8ea3bc; }
+#view-home .quick-actions button:nth-child(3):before { background: #9cb08e; }
+#view-home .quick-actions button:nth-child(4):before { background: var(--burgundy); }
+#view-home .quick-actions button:last-child {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+}
+#view-home .quick-actions button:last-child:before { display: none; }
+#view-home .quick-actions button span {
+  color: var(--ink-soft);
+  font: 600 12px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#view-home .quick-actions button:last-child span { color: var(--ink-faint); }
+
+/* 날인선 — 버튼이 아니라 서명란이다. 오른쪽 원형 도장이 진짜 행동이다. */
+#view-home .report-button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px 4px 12px 6px;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#view-home .report-button:active { transform: none; box-shadow: none; }
+#view-home .report-button .report-button-copy { flex: 1; text-align: left; }
+#view-home .report-button b {
+  display: block;
+  color: var(--ink);
+  font: 800 16.5px/1.25 var(--disp);
+  letter-spacing: -.01em;
+}
+#view-home .report-button small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-faint);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#view-home .report-button .of-roundstamp,
+.of-roundstamp {
+  flex: 0 0 62px;
+  width: 62px;
+  height: 62px;
+  float: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2.5px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  box-shadow: inset 0 0 0 1.5px rgba(157, 47, 58, .35);
+  color: var(--stamp-red);
+  font: 800 15px/1 var(--disp);
+  letter-spacing: 0;
+  transform: rotate(-7deg);
+}
+#view-home .report-button .of-roundstamp small,
+.of-roundstamp small { color: var(--stamp-red); font: 700 6.5px/1 var(--disp); letter-spacing: .1em; }
+
+#view-home .form-note {
+  margin-top: 10px;
+  color: var(--ink-faint);
+  font: 500 11px/1.6 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  text-align: center;
+}
+/* 도장 진행칸은 접수 흐름(작성 → 날인)을 끊지 않게 날인선 뒤로 보낸다. */
+#view-home .entry-form { display: flex; flex-direction: column; }
+#view-home .entry-form > .of-punch { position: absolute; }
+#view-home .field-heading { order: 1; }
+#view-home .achievement-field { order: 2; }
+#view-home .quick-actions { order: 3; }
+#view-home .report-button { order: 4; }
+#view-home .form-note { order: 5; }
+#view-home .entry-footnote { order: 6; margin-top: 14px; }
+#view-home .gentle-note { order: 7; }
+
+/* 도장칸 — 빈 칸은 점선, 찍힌 칸은 붉은 실선에 살짝 비뚤게.
+   시안 v4-2의 인증 도장 줄과 같은 조형이라 홈과 파일이 같은 물건으로 읽힌다. */
+#view-home .stamp-progress {
+  padding: 12px 13px 11px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: var(--doc-shadow-sm);
+}
+#view-home .progress-heading strong { color: var(--ink-soft); font: 700 10px/1.5 var(--disp); letter-spacing: .1em; }
+#view-home .progress-heading b { color: var(--stamp-red); font: 800 15px/1 var(--disp); }
+#view-home .stamp-circles { gap: 7px; margin: 10px 0 9px; }
+#view-home .stamp-circles i {
+  width: 36px;
+  height: 36px;
+  border: 1.5px dashed var(--doc-line);
+  background: transparent;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+}
+#view-home .stamp-circles i:after { content: none; }
+#view-home .stamp-circles i.filled {
+  border: 2px solid var(--stamp-red);
+  background: rgba(157, 47, 58, .06);
+  color: var(--stamp-red);
+}
+#view-home .stamp-circles i.filled:before { font: 800 9.5px/1 var(--disp); letter-spacing: -.02em; text-shadow: none; }
+#view-home .stamp-circles i:nth-child(1).filled { transform: rotate(-11deg); }
+#view-home .stamp-circles i:nth-child(2).filled { transform: rotate(6deg); }
+#view-home .stamp-circles i:nth-child(3).filled { transform: rotate(-4deg); }
+#view-home .stamp-circles i:nth-child(4).filled { transform: rotate(9deg); }
+#view-home .stamp-circles i:nth-child(5).filled { transform: rotate(-7deg); }
+#view-home .stamp-progress p { color: var(--ink-faint); font-size: 11px; }
+#view-home .home-hero i.of-datestamp { top: 40px; }

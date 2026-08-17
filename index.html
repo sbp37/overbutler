@@ -110,25 +110,28 @@
             <small>집사 사무국</small>
           </div>
           <div class="home-header-right">
-            <div class="office-running"><i></i> 사무국 정상 운영 중</div>
+            <div class="office-regno">금일 접수<b id="home-regno">제 2026-0000호</b></div>
           </div>
         </header>
 
-        <p class="english-label home-reception-label">RECEPTION DESK · FORM 01</p>
-
         <section class="home-butler-room" id="home-butler-room" aria-label="집사 사무국 접수대" hidden>
   <div class="cat-home-room" id="cat-home-room">
+              <p class="office-counter" id="home-counter-plate">창구 01 · 접수 진행 중</p>
               <div class="cat-home-world" id="cat-home-world">
                 <div class="cat-home-background" aria-hidden="true"></div>
                 <button class="cat-home-character" id="cat-home-character" type="button" aria-label="고양이 집사에게 말 걸기">
                   <img id="cat-home-character-image" src="design/character-assets/cat-butler/desk-poses/cat-desk-base.png" alt="책상 뒤에 앉아 있는 고양이 집사">
                 </button>
                 <div class="cat-home-foreground" aria-hidden="true"></div>
-                <p class="cat-home-speech" id="cat-home-speech" role="status" aria-live="polite"></p>
               </div>
               <span class="room-pan-cue room-pan-cue-left" aria-hidden="true">‹</span>
               <span class="room-pan-cue room-pan-cue-right" aria-hidden="true">›</span>
               <p class="room-pan-hint" id="room-pan-hint">좌우로 밀어 사무국을 둘러보세요</p>
+            </div>
+            <div class="reception-slip" id="cat-home-speech" role="status" aria-live="polite">
+              <span class="of-clip" aria-hidden="true"></span>
+              <p id="cat-home-speech-text"></p>
+              <footer><span>접수 슬립 · 자동 발행</span><span class="slip-sign" id="cat-home-speech-sign">치즈냥 씀</span></footer>
             </div>
         </section>
 
@@ -154,14 +157,14 @@
 
         <section class="home-hero">
           <span id="entry-kicker">오늘 이야기 접수처 · 창구 01</span>
-          <i>금일 접수</i>
-          <h1 id="home-title">오늘은 어떻게 보내셨어요?</h1>
-          <p id="entry-description">잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.</p>
+          <i class="of-datestamp" aria-hidden="true">접수<b id="home-datestamp">08. 17</b></i>
+          <h1 id="home-title">오늘은 어떻게<br>보내셨습니까?</h1>
+          <p id="entry-description">잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.</p>
         </section>
 
         <section class="entry-form document-card">
-          <span class="file-tab burgundy">대업 접수서 · FORM 01</span>
-          <div class="field-heading"><strong>오늘 이야기</strong><span><b id="char-count">0</b>/160자</span></div>
+          <div class="of-punch" aria-hidden="true"><i></i><i></i></div>
+          <div class="field-heading"><strong>대업 접수서 · FORM 01</strong><span><b id="char-count">0</b>/160자</span></div>
           <div class="achievement-field">
             <label class="visually-hidden" for="achievement-input">오늘 이야기 입력</label>
             <textarea id="achievement-input" maxlength="160" rows="3" placeholder="예: 씻었어 / 오늘 좀 힘들었는데 집 와서 씻었어"></textarea>
@@ -181,7 +184,7 @@
             </div>
             <div class="absurd-status"><span>집사 과몰입 심사</span><strong id="urgency-copy">이유 없이 최상</strong></div>
           </div>
-          <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 들려주기</b><span>→</span></button>
+          <button class="report-button" id="report-button" type="button"><span class="report-button-copy"><b id="report-button-label">오늘을 접수합니다</b><small>탭하여 날인 · FORM 01</small></span><span class="of-roundstamp" aria-hidden="true">접수<small>OVERBUTLER</small></span></button>
           <p class="form-note">비슷한 행동은 하루 한 번만 도장에 반영됩니다. 칭찬은 매번 정상 지급됩니다.</p>
           <section class="gentle-note" id="gentle-note" aria-live="polite" hidden>
             <header><span id="gentle-note-kicker">고양이 집사</span></header>
