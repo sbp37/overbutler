@@ -25,7 +25,7 @@
   const STAGES = RELATIONSHIP_STAGES.map(stage => stage.name);
   // 집사 대사 작성 규칙. 상세: docs/BUTLER-VOICE.md
   const BUTLER_CONTENT_RULES = Object.freeze({
-    volume: "주접 볼륨은 1일차부터 만렙. 관계가 올리는 것은 세기가 아니라 주접의 사유다.",
+    volume: "다정함은 1일차부터 충분히, 과장은 절제해서. 자라는 것은 볼륨이 아니라 새어나오는 마음이다.",
     knowledge: "집사는 사용자가 앱에 직접 남긴 기록과 거기서 계산 가능한 것만 안다.",
     gaze: "기억·패턴 대사의 시선은 사용자가 아니라 서류와 집사 자신을 향한다. 세는 주체는 집사가 아니라 접수 장부다.",
     audit: "감시당하는 쪽은 사용자가 아니라 집사다. 감사실이 적발하는 것은 언제나 집사의 편애다.",
@@ -1274,9 +1274,10 @@
     const profile = CHARACTER_PROFILES[normalizeCharacter(character)];
     if (verdictType === "rare") return templateOwner(template(RARE_PRAISE[normalizeCharacter(character)] || RARE_PRAISE.ai, deed));
     if (verdictType === "power" && normalizeCharacter(character) === "cat") return templateOwner(template(randomItem(CAT_POWER_PRAISE), deed));
-    // 티어는 "주접의 세기"가 아니라 "주접의 사유"다. docs/BUTLER-VOICE.md 참고.
-    // T0은 규정을 핑계로 한 몰개성 풀볼륨이고, 장부 인용·기관 동원 같은
-    // 개인화 카드는 관계가 쌓인 뒤에만 나와야 하므로 신규 사용자는 T0에서 시작한다.
+    // 티어가 올리는 것은 세기가 아니라 사유다 — 자라는 것은 볼륨이 아니라
+    // 새어나오는 마음이다(docs/BUTLER-VOICE.md §1). T0은 규정을 핑계로 삼는
+    // 몰개성한 칭찬이고, 장부 인용·기관 동원 같은 개인화 카드는 관계가 쌓인
+    // 뒤에만 나와야 하므로 신규 사용자는 T0에서 시작한다.
     const baseTier = stageIndexFor(obsession);
     const powerFloor = verdictType === "power" ? 1 : 0;
     const tier = clamp(Math.max(powerFloor, baseTier), 0, profile.praise.length - 1);
