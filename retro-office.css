@@ -4,9 +4,9 @@
    튀어나온 파일탭 라벨 색 하나로만 한다.
 
    공통 베이스 (HOME = home-office.css 를 기준으로 맞춘다)
-     배경    격자 종이 23px · #f3ebe0
+     배경    격자 종이 23px · var(--paper)
      제목    var(--ink)
-     카드    var(--paper-light) + 1px #c3b2a1 + var(--shadow) 하드 오프셋
+     카드    var(--ivory) + 1px var(--doc-line) + 잉크 오프셋 그림자
      머리글  3px double #b49b83 · 운영 상태 배지는 전 화면 동일
      버튼    주 행동은 var(--ink) 결재 버튼
 
@@ -23,13 +23,31 @@
 
    FORM 04(분석실)는 제외한다. 어두운 실험실로 튀는 게 정체성이다. */
 
+/* ── 재질 위계 ──
+   배경 격자지 < 크라프트(서류철·날짜칩) < 아이보리(문서) < 노랑(메모) < 금박(축하 전용)
+
+   누런기의 원인은 색 하나가 아니라 배경과 문서가 같은 톤이라 층이 없던 것이었다.
+   문서 표면만 아이보리로 올리면 "누런 책상 위에 아이보리 문서" 층이 생긴다.
+   금박은 인증서와 축하 순간에만 쓴다 — 평상 화면에 금색이 돌면 인증서가 안 특별해진다. */
 :root {
+  --paper: #efe8da;        /* 배경 격자지 */
+  --ivory: #faf7f0;        /* 문서 표면 */
+  --memo: #fbf2da;         /* 노트지 — 대비용 3번째 재질 */
+  --kraft: #d3b384;        /* 서류철·날짜칩 */
+  --kraft-deep: #b8935c;
+  --gold: #b98a2e;         /* 인증서 전용 */
+  --gold-hi: #e8cd7a;
+  --gold-dp: #8a6420;
+
   --tab-records: #5b7383;
   --tab-diary: #6b6d43;
   --tab-manager: #414f60;
-  --doc-line: #c3b2a1;
-  --doc-line-soft: #ded1c1;
-  --doc-paper: #fffaf2;
+  --doc-line: #cbbba6;
+  --doc-line-soft: #e3dacb;
+  --doc-paper: var(--ivory);
+  /* app.css·home-office.css가 문서 표면에 쓰던 토큰을 여기서 아이보리로 돌린다.
+     선언 위치만 옮기면 홈 접수서·발령장·인증서 파일까지 한 번에 같은 층으로 올라온다. */
+  --paper-light: var(--ivory);
   --doc-shadow: 5px 6px 0 rgba(67, 48, 45, .07);
   --doc-shadow-sm: 2px 2px 0 rgba(67, 48, 45, .07);
   --stamp-red: #9d2f3a;
@@ -38,10 +56,11 @@
 /* ═══════════ 1. 공통 베이스 ═══════════ */
 
 /* 같은 종이 위에 있다는 신호. 화면마다 다른 배경 패턴을 만들지 않는다. */
+#view-home,
 #view-archive,
 #view-manager,
 #view-report {
-  background-color: #f3ebe0;
+  background-color: var(--paper);
   background-image:
     linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
@@ -49,7 +68,7 @@
 }
 .praise-result-modal,
 .gift-modal {
-  background-color: #f3ebe0;
+  background-color: var(--paper);
   background-image:
     linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
@@ -81,14 +100,14 @@
 .reaction-office-header > small {
   border: 1px solid #c2ac93;
   border-radius: 2px;
-  background: #f7efe3;
+  background: var(--paper);
   box-shadow: var(--doc-shadow-sm);
   letter-spacing: .02em;
 }
 .report-header-actions button {
   border: 1px solid #c2ac93;
   border-radius: 3px;
-  background: #f7efe3;
+  background: var(--paper);
   box-shadow: var(--doc-shadow-sm);
 }
 
@@ -112,12 +131,12 @@
 #view-report .weekly-report-sheet:before { border-radius: 3px; }
 .praise-result-document {
   background: var(--doc-paper);
-  box-shadow: inset 0 0 0 6px #fffdf8, inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+  box-shadow: inset 0 0 0 6px var(--ivory), inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
 }
 .gift-receipt {
-  box-shadow: inset 0 0 0 6px #fffdf8, inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+  box-shadow: inset 0 0 0 6px var(--ivory), inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
 }
-#view-archive .office-record-card { background: #fffdf8; box-shadow: var(--doc-shadow-sm); }
+#view-archive .office-record-card { background: var(--ivory); box-shadow: var(--doc-shadow-sm); }
 
 /* 큰 제목은 공통 잉크 */
 #view-archive .archive-title-row h1,
@@ -366,7 +385,7 @@
   margin-top: 16px;
   border: 1px dashed var(--doc-line);
   border-radius: 3px;
-  background: #f7efe3;
+  background: var(--paper);
   color: #6d5c53;
   font-size: 12px;
   font-weight: 850;
@@ -454,7 +473,7 @@
 #view-archive .record-filters button {
   border-radius: 2px;
   border-color: var(--doc-line);
-  background: #f7efe3;
+  background: var(--paper);
   color: #7a6b62;
 }
 #view-archive .record-filters button.active {
@@ -480,7 +499,7 @@
 /* 접수 카드: 왼쪽 문서번호 칸이 이 카드의 성격이다 */
 #view-archive .record-number {
   border-right: 1px solid var(--doc-line-soft);
-  background: #f7efe3;
+  background: var(--paper);
 }
 #view-archive .record-number b { color: var(--tab-records); font-size: 21px; }
 #view-archive .record-number span { color: #8b7a6d; font-size: 9px; }
@@ -488,7 +507,7 @@
   padding: 4px 7px;
   border-radius: 2px;
   border: 1px solid var(--doc-line);
-  background: #f7efe3;
+  background: var(--paper);
   color: #7a6b62;
   letter-spacing: .02em;
 }
@@ -524,7 +543,7 @@
 /* 도장이 붉은 표시를 맡았으므로 상태 라벨은 다른 카드와 같은 서류 태그로 둔다 */
 #view-archive .office-record-card.official .record-approval > span {
   border-color: var(--doc-line);
-  background: #f7efe3;
+  background: var(--paper);
   color: #7a6b62;
 }
 #view-archive .record-detail-cta {
@@ -606,7 +625,7 @@
 #manager-details .manager-gift-button > span {
   border-radius: 2px;
   border: 1px solid var(--doc-line);
-  background: #f7efe3;
+  background: var(--paper);
   color: var(--tab-manager);
 }
 #manager-details .manager-gift-button b { color: var(--ink); }
@@ -675,7 +694,7 @@
   padding: 5px 8px;
   border-radius: 2px;
   border: 1px solid var(--doc-line);
-  background: #f7efe3;
+  background: var(--paper);
   color: #7a6b62;
 }
 .praise-result-hero { background: #f9f2e8; }
@@ -731,7 +750,7 @@
 .gift-reaction-badge {
   border-radius: 2px;
   border-color: var(--doc-line);
-  background: #f7efe3;
+  background: var(--paper);
   color: #7a6b62;
 }
 .gift-reaction-badge[data-reaction="favorite"] {
@@ -813,13 +832,13 @@
 .record-detail-header > button {
   border: 1px solid #c2ac93;
   border-radius: 3px;
-  background: #f7efe3;
+  background: var(--paper);
   box-shadow: var(--doc-shadow-sm);
 }
 .record-detail-header > small {
   border: 1px solid var(--doc-line);
   border-radius: 2px;
-  background: #f7efe3;
+  background: var(--paper);
   color: #7a6b62;
 }
 .record-detail-document {
@@ -838,7 +857,7 @@
 .record-detail-title-copy > small {
   border-radius: 2px;
   border-color: var(--doc-line);
-  background: #f7efe3;
+  background: var(--paper);
   color: #7a6b62;
 }
 .record-detail-title-copy p { color: var(--tab-records); }
@@ -858,13 +877,13 @@
 .certificate-screen-header > small {
   border: 1px solid #c2ac93;
   border-radius: 2px;
-  background: #f7efe3;
+  background: var(--paper);
   box-shadow: var(--doc-shadow-sm);
 }
 .certificate-screen-header > button {
   border: 1px solid #c2ac93;
   border-radius: 3px;
-  background: #f7efe3;
+  background: var(--paper);
   box-shadow: var(--doc-shadow-sm);
 }
 .certificate-actions button { border-radius: 3px; }
