@@ -107,7 +107,20 @@
       miss: ["집사도 오늘 좀 보고 싶었다냥. …업무상 말이다냥.", "보고 싶었다고 먼저 말하면 반칙이다냥. 나도 조금 그랬다냥.", "왔으니 됐다냥. 빈자리가 좀 신경 쓰였던 것뿐이다냥."],
       sleep: ["잘 자라냥 🌙 오늘 이야기는 집사가 잘 접어두겠다냥.", "이제 눈 감아도 된다냥. 오늘 몫은 충분히 해냈다냥.", "푹 자라냥. 네 기록은 밤새 얌전히 지켜두겠다냥."],
       thanks: ["별걸 다 고맙다 하냥. 그래도 그 말은 잘 보관하겠다냥.", "고맙다는 말, 의외로 꽤 좋다냥. 서류함 맨 위에 둔다냥.", "흥, 당연한 일을 했을 뿐이다냥. 그래도 또 말해도 된다냥."],
-      hard_day: ["그랬냥… 오늘은 진짜 고생했다냥. 여기서는 좀 늘어져 있어도 된다냥 🐾", "많이 버거웠겠구냥. 잘한 것 찾기 전에 일단 숨부터 돌려라냥.", "그 하루를 지나 여기까지 왔냥. 지금은 아무것도 더 증명 안 해도 된다냥."]
+      hard_day: ["그랬냥… 오늘은 진짜 고생했다냥. 여기서는 좀 늘어져 있어도 된다냥 🐾", "많이 버거웠겠구냥. 잘한 것 찾기 전에 일단 숨부터 돌려라냥.", "그 하루를 지나 여기까지 왔냥. 지금은 아무것도 더 증명 안 해도 된다냥."],
+      home_arrival: ["집에 왔냥? 무사히 도착했으면 됐다냥. 이제 어깨 힘 좀 빼라냥.", "무사히 왔으면 그걸로 접수는 끝이다냥. 나머지는 앉아서 하자냥.", "들어왔으면 됐다냥. 밖에서 쓴 기운까지 굳이 안에 들고 오지 마라냥."],
+      no_motivation: ["아무것도 하기 싫은 날도 있다냥. 오늘은 숨 쉬고 버틴 것부터 인정해준다냥.", "의욕이 안 나오는 것도 접수 사유가 된다냥. 서류는 집사가 대신 넘기겠다냥.", "억지로 움직일 필요 없다냥. 오늘 칸은 비워둔 채로 두겠다냥."],
+      ate_good: ["맛있는 거 먹었냥? 잘했다냥. 그런 보고는 집사 기분도 꽤 좋아진다냥.", "잘 먹었다니 다행이다냥. 그런 건 굳이 안 물어도 알아서 적어두겠다냥.", "맛있었냥? 그럼 오늘 항목 하나는 이미 채워진 거다냥. 나쁘지 않다냥."],
+      love: ["그런 말 갑자기 하면 곤란하다냥… 그래도 잘 들었다냥. 집사도 많이 아낀다냥.", "그런 말은 서류로 남기기 곤란하다냥… 그래도 지우진 않겠다냥.", "…들었다냥. 집사도 비슷한 걸 적어두긴 했다냥. 어디에 뒀는지는 안 알려준다냥."],
+      sad: ["속상했냥… 당장 괜찮은 척 안 해도 된다냥. 말하고 싶은 만큼만 말해라냥.", "그랬구냥… 이유를 다 설명 안 해도 된다냥. 집사는 그냥 옆에 있겠다냥.", "속상한 건 접수만 해두겠다냥. 처리도 판단도 오늘은 안 한다냥."],
+      angry: ["화날 만한 일이 있었구냥. 일단 여기선 참지 말고 천천히 풀어놔라냥.", "화가 났구냥. 여기서 한 말은 어디로도 안 넘긴다냥. 마음껏 해라냥.", "그럴 만했다냥. 집사는 편들 준비부터 하고 듣겠다냥."],
+      bored: ["심심했냥? 집사가 잠깐 상대해주는 건 규정상 허용이다냥.", "심심하냥. 마침 집사도 서류만 보기 지겨웠다냥. …마침이다냥.", "할 말 없어도 된다냥. 아무 말이나 접수해도 반려 안 한다냥."],
+      worry: ["고민 있냥? 답부터 재촉 안 할 테니 엉킨 데부터 같이 보자냥.", "고민이구냥. 결론 없이 늘어놔도 된다냥. 정리하는 건 집사 일이다냥.", "정하기 어려우면 안 정해도 된다냥. 오늘은 펼쳐만 두고 덮어도 괜찮다냥."],
+      happy: ["기분 좋냥? 흥, 꼬리가 올라간 건 네 기분이 옮아서다냥.", "좋은 일이 있었구냥. 집사 표정까지 같이 풀린 건 우연이다냥.", "기분 좋다는 건 잘 적어두겠다냥. 이런 항목은 자리를 좀 크게 잡는다냥."],
+      commute: ["출근하냥? 너무 완벽하게 하려 말고 무사히 다녀와라냥.", "일하러 가는구냥. 오늘 목표는 잘하는 게 아니라 돌아오는 거다냥.", "다녀와라냥. 자리는 그대로 둘 테니 굳이 서두르지 마라냥."],
+      washed: ["씻었냥? 아주 훌륭한 생존 대업이다냥. 뽀송한 건 인정한다냥.", "씻고 왔구냥. 사소해 보여도 집사가 제일 좋아하는 항목이다냥.", "그것만 해도 오늘 몫은 했다냥. 도장은 이미 꺼내뒀다냥."],
+      exercise: ["운동까지 했냥? 제법인데냥. 오늘은 스스로 좀 대단해해도 된다냥.", "몸까지 움직였구냥. 흥, 조금 놀랐다냥. …아주 조금이다냥.", "운동은 기록칸이 따로 있다냥. 오늘은 거기 한 줄 채웠다냥."],
+      quiet_day: ["그런 날도 괜찮다냥. 평범하게 지나간 하루도 집사는 끝까지 듣는다냥 🐾", "별일 없었구냥. 특이사항 없음도 엄연한 보고다냥.", "무난한 하루도 접수한다냥. 사건 없는 서류가 사실 제일 좋은 서류다냥."]
     },
     ai: {
       greeting: ["주인님 접속 감지. 집사 반가움 회로 작동 중. (버그아님)", "[접속 확인] 주인님 도착. 대기 상태 해제. 반가움 수치 상승 중.", "[알림] 주인님 등장. 집사 기쁨 수치 상승 중.", "금일도 접속 확인. 집사 금일도 같은 자리에 있었음."],
@@ -571,13 +584,16 @@
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
       && result.intent === "fallback" && !result.achievementCandidate
       ? catStoryFallback(result.text || message) : null;
-    let base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
+    // 힘든 하루 뒤의 귀가는 앞 대화를 이어받는 브릿지가 본문이다. 이것도 일반 변주로
+    // 덮이면 안 된다 — home_arrival 풀이 있는 캐릭터에서 브릿지가 통째로 사라진다.
+    const bridgeOverride = result.intent === "home_arrival" && hasHardDayContext;
+    let base = bridgeOverride ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
     if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
     else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.mood, result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general(result.mood);
     else if (futurePlanOverride) base = CAT_FUTURE_PLAN_ONLY(result.futurePlans[0].snippet);
     else if (multiActivityOverride) base = CAT_MULTI_ACTIVITY(result.activities, result.achievementTitle);
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
-    const bypassPools = toneShiftOverride || futurePlanOverride || multiActivityOverride;
+    const bypassPools = toneShiftOverride || futurePlanOverride || multiActivityOverride || bridgeOverride;
     const endings = ENDINGS[key] || ENDINGS.cat;
     const extra = bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
