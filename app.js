@@ -2552,6 +2552,9 @@
     $("#stat-gifts").textContent = stat.gifts;
     $("#stat-days").textContent = days;
     $("#manager-gift-points").textContent = state.points;
+    // 선물 칸의 한 줄은 담당 집사가 하는 말이라 이름이 따라간다.
+    const giftSay = $("#manager-gift-say");
+    if (giftSay) giftSay.textContent = `${stat.customName || profile.defaultName}이 안 기다리는 척 기다리는 중이다냥`;
     $("#manager-roster-count").textContent = rosterKeys.length;
     $("#manager-roster").innerHTML = rosterKeys.map(key => {
       const rosterProfile = CHARACTER_PROFILES[key];

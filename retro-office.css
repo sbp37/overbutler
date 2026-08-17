@@ -2809,3 +2809,100 @@
 #view-archive .record-find-tools { display: block; }
 #view-archive .record-search { display: grid; gap: 5px; margin-bottom: 10px; }
 #view-archive .record-grade-filter { flex-wrap: wrap; }
+
+/* ═══════════ v4.1 수정 — 선물 소포 카드 ═══════════
+   선물은 이 앱이 돈을 버는 자리인데 목록의 한 줄과 구분이 없었다.
+   크라프트 소포에 끈을 십자로 묶고, 집사가 직접 한 줄 붙여 놓는다 —
+   포인트 잔액이 아니라 "기다리는 사람이 있다"가 누를 이유가 된다. */
+#manager-details .gift-parcel-card {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: auto;
+  margin: 16px 2px 0;
+  padding: 14px 15px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  background: var(--kraft);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .16), inset 0 1px 0 rgba(255, 255, 255, .3);
+  text-align: left;
+}
+#manager-details .gift-parcel-card:active {
+  box-shadow: 1px 2px 0 rgba(45, 35, 22, .16), inset 0 1px 0 rgba(255, 255, 255, .3);
+  transform: translate(2px, 2px);
+}
+/* 이 카드의 자식은 전부 span이라, 아이콘 하나를 원형으로 만들던 예전 규칙이
+   제목·문구·잔액에까지 걸린다. 카드 안에서만 그 규칙을 되돌린다. */
+#manager-details .gift-parcel-card > span {
+  display: block;
+  place-items: initial;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+}
+/* 소포 — 끈 두 줄이 가운데서 만나 매듭 하나. */
+#manager-details .gift-parcel-card > .gift-parcel {
+  position: relative;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border: 1.5px solid var(--kraft-deep);
+  border-radius: 3px;
+  background: #c8a672;
+}
+#manager-details .gift-parcel:before,
+#manager-details .gift-parcel:after { content: ""; position: absolute; background: #8a6a3c; }
+#manager-details .gift-parcel:before { top: 0; bottom: 0; left: 50%; width: 5px; transform: translateX(-50%); }
+#manager-details .gift-parcel:after { top: 50%; right: 0; left: 0; height: 5px; transform: translateY(-50%); }
+#manager-details .gift-parcel i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 15px;
+  height: 15px;
+  border: 3px solid #8a6a3c;
+  border-radius: 50%;
+  background: #c8a672;
+  transform: translate(-50%, -50%);
+}
+#manager-details .gift-parcel-card > .gift-parcel-copy { flex: 1; min-width: 0; }
+#manager-details .gift-parcel-card b {
+  display: block;
+  color: var(--ink);
+  font: 800 16px/1.2 var(--disp);
+}
+#manager-details .gift-parcel-say {
+  display: block;
+  margin-top: 5px;
+  color: #5c4c36;
+  font: 700 13.5px/1.35 var(--hand);
+  word-break: keep-all;
+}
+#manager-details .gift-parcel-card > .gift-parcel-value { flex: 0 0 auto; text-align: right; }
+#manager-details .gift-parcel-value b { color: var(--stamp-red); font: 800 19px/1 var(--disp); }
+#manager-details .gift-parcel-value b:after { content: "P"; }
+#manager-details .gift-parcel-value small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font: 600 9.5px/1 var(--disp);
+}
+/* 기울어진 태그가 시선을 잡는다. 카드 위로 살짝 올라타 있어야 붙인 것으로 읽힌다. */
+#manager-details .gift-parcel-card > .gift-parcel-tag {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  padding: 5px 9px;
+  border: 1.3px solid #6e1f27;
+  border-radius: 2px;
+  background: var(--stamp-red);
+  color: #fdf1ec;
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .1em;
+  transform: rotate(2deg);
+}

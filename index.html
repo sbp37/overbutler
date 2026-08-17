@@ -354,11 +354,14 @@
           </div>
         </section>
 
-          <button class="manager-gift-button" id="give-gift-button" type="button">
-            <span aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 13h22v15H5zM3 9h26v6H3zM16 9v19M9 9c-3-2-3-6 0-6 4 0 7 6 7 6M23 9c3-2 3-6 0-6-4 0-7 6-7 6"/></svg></span>
-            <b>집사에게 선물 전달</b>
-            <small>보유 <b id="manager-gift-points">0</b>P</small>
-            <i aria-hidden="true">›</i>
+          <button class="manager-gift-button gift-parcel-card" id="give-gift-button" type="button">
+            <span class="gift-parcel-tag" aria-hidden="true">두근두근</span>
+            <span class="gift-parcel" aria-hidden="true"><i></i></span>
+            <span class="gift-parcel-copy">
+              <b>집사에게 선물 보내기</b>
+              <span class="gift-parcel-say" id="manager-gift-say">치즈냥이 안 기다리는 척 기다리는 중이다냥</span>
+            </span>
+            <span class="gift-parcel-value"><b id="manager-gift-points">0</b><small>보유 포인트 ›</small></span>
           </button>
         <section class="butler-roster-card document-card">
           <div class="manager-section-title"><h2>우리 집사들 <span id="manager-roster-count">0</span>명</h2><small>담당을 눌러 인수인계할 수 있어요.</small></div>
