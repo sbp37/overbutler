@@ -51,7 +51,84 @@
   --doc-shadow: 5px 6px 0 rgba(67, 48, 45, .07);
   --doc-shadow-sm: 2px 2px 0 rgba(67, 48, 45, .07);
   --stamp-red: #9d2f3a;
+
+  /* 잉크 3단 — 본문 / 부속 설명 / 라벨. 기존 --ink는 차가운 회갈색이라
+     종이 톤 위에서 층이 안 보였다. 따뜻한 쪽으로 옮겨 재질과 같은 계열로 만든다. */
+  --ink: #332a20;
+  --ink-soft: #7a6c5c;
+  --ink-faint: #a3927c;
+
+  /* 금속 — 클립·스테이플·철끈 전용. 종이 계열 밖의 유일한 색이라
+     사무용품이 "얹혀 있는 물건"으로 읽힌다. */
+  --metal: #9aa0a6;
+  --metal-dk: #6e747a;
+
+  /* 글자 역할 — 기계 인쇄 / 공문 / 집사 육필.
+     집사가 손으로 쓴 것에만 --hand를 쓴다. 시스템 문구에 쓰면 위계가 무너진다. */
+  --disp: Paperlogy, "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  --serif: "Song Myung", "Noto Serif KR", serif;
+  --hand: Gaegu, cursive;
 }
+
+/* ═══════════ 0. 사무용품 부품 ═══════════
+   전부 CSS만 쓴다. 이미지 에셋을 늘리지 않고, 캐릭터 중립이라
+   담당이 고양이든 아니든 같은 사무국 책상 위로 읽힌다.
+   부품은 위치를 스스로 정하지 않는다 — 붙이는 쪽에서 top/left만 준다. */
+
+/* 종이 클립 — 바깥 진한 철사 안에 밝은 철사 한 겹. */
+.of-clip {
+  position: absolute; z-index: 6; width: 15px; height: 34px;
+  border: 0; background: none; pointer-events: none;
+}
+.of-clip:before {
+  content: ""; position: absolute; inset: 0;
+  border: 2.3px solid var(--metal-dk); border-bottom: 0; border-radius: 8px 8px 4px 4px;
+}
+.of-clip:after {
+  content: ""; position: absolute; top: 5px; right: 3.5px; bottom: 6px; left: 3.5px;
+  border: 2px solid var(--metal); border-bottom: 0; border-radius: 5px 5px 3px 3px;
+}
+
+/* 스테이플 심 — 종이 위로 나온 두 다리만 보인다. */
+.of-staple {
+  position: absolute; z-index: 6; width: 16px; height: 5px;
+  border: 1.8px solid var(--metal-dk); border-bottom: 0;
+}
+
+/* 2공 펀치 — 배경 격자지가 구멍으로 비쳐 보이게 --paper를 채운다. */
+.of-punch { position: absolute; z-index: 5; top: 0; bottom: 0; left: 9px; width: 14px; pointer-events: none; }
+.of-punch i {
+  position: absolute; left: 0; width: 13px; height: 13px; border-radius: 50%;
+  background: var(--paper); box-shadow: inset 1px 1.5px 2px rgba(45, 35, 22, .28);
+}
+
+/* 파일 패스너(철끈) — 문서 상단을 물고 있는 금속 다리 두 개. */
+.of-fastener {
+  position: absolute; z-index: 7; top: -7px; left: 50%;
+  display: flex; gap: 34px; transform: translateX(-50%); pointer-events: none;
+}
+.of-fastener i {
+  position: relative; width: 8px; height: 24px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--metal-dk), var(--metal) 45%, var(--metal-dk));
+  box-shadow: 0 1.5px 2px rgba(45, 35, 22, .3);
+}
+.of-fastener i:before {
+  content: ""; position: absolute; top: 2px; left: 50%; width: 14px; height: 5px;
+  border-radius: 2px; background: var(--metal); transform: translateX(-50%);
+}
+
+/* 흐린 접수 도장 — 잉크가 마른 고무도장. 진하면 본문을 이기므로 반투명으로 둔다. */
+.of-datestamp {
+  position: absolute; z-index: 6; padding: 5px 9px;
+  border: 2px solid rgba(157, 47, 58, .5); border-radius: 3px;
+  color: rgba(157, 47, 58, .55);
+  font: 800 9.5px/1.35 var(--disp); letter-spacing: .1em; text-align: center;
+  transform: rotate(-7deg); pointer-events: none;
+}
+.of-datestamp b { display: block; font: 800 11.5px/1.1 var(--disp); }
+
+/* 집사가 손으로 쓴 것. 컨테이너 클래스와 겹치지 않게 이름을 분리해 둔다. */
+.of-script { font-family: var(--hand); }
 
 /* ═══════════ 1. 공통 베이스 ═══════════ */
 
