@@ -28,30 +28,39 @@
 
 ## CURRENT WORK
 
-**GLOBAL RETRO VISUAL UNIFICATION.** 화면을 하나의 세계로 묶는 것은 **같은 색이 아니라
-같은 시대의 종이**다. 부서마다 쓰는 서류와 문구류를 다르게 두고, 재질과 조판만 공유한다.
+**RETRO VISUAL CLEANUP.** 화면마다 다른 색 세계를 만드는 게 목적이 아니다.
+**하나의 서류 시스템 안에서, 작게 튀어나온 파일탭 라벨 색만 다르게 해서 화면을 구분한다.**
 기능·구조·문구는 건드리지 않는 외관 전용 패스다 (`retro-office.css` 한 파일).
 
-공유하는 것 — 낡은 종이, 얇은 괘선, 타자기 조판(자간 넓은 영문 행정 라벨), 각진 종이
-모서리, 잉크 오프셋 그림자, 종이클립, 문서번호, 살짝 어긋나게 찍힌 도장, 낮은 채도.
+앞선 패스는 화면마다 배경·카드·색면을 통째로 갈랐고, 그래서 앱이 여러 제품처럼 보였다.
+이번에는 베이스를 전부 HOME에 맞추고 차이를 라벨 하나로 줄인다.
 
-공유하지 **않는** 것 — 같은 버건디, 같은 격자 배경, 같은 카드 컴포넌트.
-**버건디는 HOME(접수처)의 색이다. 다른 화면에서 붉은색은 "승인"에만 쓴다.**
+공통 베이스 (기준 = `home-office.css`)
 
-| 화면 | 주 재질 | 강조색 | 시그니처 |
-|---|---|---|---|
-| HOME | 격자 접수 용지 (수정 금지) | burgundy | 접수 창구 |
-| RECORDS | 마닐라 서류철 + 색인 카드 | dusty blue + faded khaki | 캐비닛 색인 탭 |
-| DIARY | 누렇게 뜬 개인 노트 | faded olive | 접힌 종이 + 밀랍 인장 |
-| MANAGER | 인사기록 폴더 | navy gray + green gray | 증명사진 + 비고란 |
-| WEEKLY | 복사기 흑백 보고서 | off-white / black / deep navy | 문서번호 + 결재 도장 |
-| FORM05 | 거의 흑백인 심사 서식 | charcoal + ivory | 승인 도장 |
-| GIFT | 사내 전달표 (인사국 발행) | navy gray | 인수 도장 |
-| **FORM04** | **제외.** 어두운 분석실로 튀는 게 의도다 | | |
-| CERTIFICATE | 최소 조정만 (이미 공식 문서로 읽힘) | | |
+```
+배경   격자 종이 23px · #f3ebe0            제목   var(--ink)
+카드   var(--paper-light) + 1px #c3b2a1 + var(--shadow) 잉크 오프셋
+머리글 3px double #b49b83 · 운영 상태 배지 전 화면 동일
+탭     얇은 문서형 세그먼트 — 선택은 상단 색선 + 종이색 (색면 채우기 금지)
+버튼   주 행동은 var(--ink) 결재 버튼
+라벨   카드 위 가장자리에 걸리는 파일탭 (top:-11px, radius 4px 4px 0 0)
+```
 
-2초 안에 "아 기록보관실 / 아 비밀 일지 / 아 인사기록 / 아 주간 보고서"로 구분돼야 한다.
-박스를 전부 같은 카드 컴포넌트로 만들지 않는다.
+accent는 **파일탭 라벨 / 소형 태그 / 소형 포인트에만** 쓴다. 큰 박스 배경으로 쓰지 않는다.
+
+| 화면 | 파일탭 라벨 | accent |
+|---|---|---|
+| HOME | 대업 접수서 · FORM 01 (수정 금지) | burgundy |
+| RECORDS | RECORD DESK · FILE 02 | blue gray `#5b7383` |
+| DIARY | BUTLER DIARY · FILE 03 | olive `#6b6d43` |
+| CERTIFICATE | CERTIFICATE ARCHIVE · FILE 04 | blue gray (기록과 같은 캐비닛) |
+| WEEKLY | WEEKLY REPORT · FILE 05 | blue gray |
+| MANAGER | PERSONNEL NO. 02 | slate navy `#414f60` |
+| FORM 05 | 대업 심사 결과서 · FORM 05 | burgundy (HOME 접수의 결과서) |
+| GIFT | 집사 선물 인수증 · GIFT 02 | slate navy (인사국 발행) |
+| **FORM 04** | **제외.** 어두운 분석실로 튀는 게 의도다 | |
+
+붉은색은 승인에만 — 기록 공식 인정 도장, 일지 밀랍 인장, 보고서 결재 도장, 결과서 승인 도장.
 
 ---
 

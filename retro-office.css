@@ -1,312 +1,384 @@
-/* ═══════════ 같은 시대의 사무 서류 ═══════════
-   화면을 하나의 세계로 묶는 것은 "같은 색"이 아니라 "같은 시대의 종이"다.
-   그래서 공유하는 것은 재질과 조판이고, 부서마다 쓰는 서류는 다르다.
+/* ═══════════ 하나의 서류 시스템 ═══════════
+   앞선 패스는 화면마다 다른 색 세계를 만들었고, 그래서 앱이 여러 제품처럼 보였다.
+   이 파일은 반대로 간다 — 베이스를 전부 통일하고, 화면 구분은 카드 위로 살짝
+   튀어나온 파일탭 라벨 색 하나로만 한다.
 
-   공유하는 것
-     낡은 종이 · 얇은 괘선 · 타자기 조판(자간 넓은 영문 행정 라벨)
-     각진 종이 모서리 · 잉크 오프셋 그림자 · 종이클립 · 문서번호
-     살짝 어긋난 인쇄와 도장 · 낮은 채도
+   공통 베이스 (HOME = home-office.css 를 기준으로 맞춘다)
+     배경    격자 종이 23px · #f3ebe0
+     제목    var(--ink)
+     카드    var(--paper-light) + 1px #c3b2a1 + var(--shadow) 하드 오프셋
+     머리글  3px double #b49b83 · 운영 상태 배지는 전 화면 동일
+     버튼    주 행동은 var(--ink) 결재 버튼
 
-   공유하지 않는 것
-     같은 버건디 · 같은 격자 배경 · 같은 카드 컴포넌트
-       RECORDS  마닐라 서류철에서 뽑은 색인 카드
-       DIARY    누렇게 뜬 개인 관찰 노트, 접힌 종이
-       MANAGER  인사기록 폴더, 증명사진, 종이클립
-       WEEKLY   복사기에서 나온 흑백 주간 보고서
-       FORM 05  거의 흑백인 심사 결과서
+   화면 구분 (accent) — 파일탭 라벨 / 소형 태그 / 소형 포인트에만 쓴다.
+   큰 박스 배경으로는 절대 쓰지 않는다.
+     HOME     burgundy   (기준, 수정하지 않는다)
+     RECORDS  blue gray
+     ARCHIVE  blue gray  (기록과 같은 캐비닛의 다른 서랍)
+     WEEKLY   blue gray  (기록 데스크가 올리는 보고서)
+     DIARY    olive
+     MANAGER  slate navy
+     FORM 05  burgundy   (HOME 접수의 결과서라 접수처 색을 그대로 쓴다)
+     GIFT     slate navy (인사국이 발행한다)
 
-   HOME(접수처)은 확정된 기준이므로 이 파일에서 건드리지 않는다.
-   FORM 04(분석실)도 어두운 실험실이라는 정체성 그대로 제외한다. */
+   FORM 04(분석실)는 제외한다. 어두운 실험실로 튀는 게 정체성이다. */
 
-/* ── 시대 공통 토큰 ── */
 :root {
-  /* 잉크가 눌린 자국 같은 하드 오프셋. 부드러운 blur 그림자를 쓰지 않는다. */
-  --ink-hard: 3px 3px 0 rgba(60, 52, 44, .10);
-  --ink-hard-lg: 5px 6px 0 rgba(60, 52, 44, .09);
-  --paper-rule: rgba(94, 76, 58, .32);
-  /* 붉은색은 "승인"에만. 어느 화면에서도 장식으로 쓰지 않는다. */
+  --tab-records: #5b7383;
+  --tab-diary: #6b6d43;
+  --tab-manager: #414f60;
+  --doc-line: #c3b2a1;
+  --doc-line-soft: #ded1c1;
+  --doc-paper: #fffaf2;
+  --doc-shadow: 5px 6px 0 rgba(67, 48, 45, .07);
+  --doc-shadow-sm: 2px 2px 0 rgba(67, 48, 45, .07);
   --stamp-red: #9d2f3a;
-
-  /* 부서 색: 서로 다른 부서라는 신호 */
-  --dept-records: #55707f;      /* dusty blue */
-  --dept-records-2: #8a7a55;    /* faded khaki */
-  --dept-diary: #6a6b42;        /* faded olive */
-  --dept-manager: #3f4a5c;      /* navy gray */
-  --dept-manager-2: #6c7566;    /* green gray */
-  --dept-weekly: #26303c;       /* deep navy */
-  --dept-form05: #37312e;       /* charcoal */
 }
 
-/* ── 조판 공통: 영문 행정 라벨은 어느 부서든 같은 타자기에서 나온다 ──
-   색은 각 부서 블록에서 따로 준다. 여기서는 조판만 통일한다. */
-#view-archive #archive-kicker,
-#view-archive .diary-intro > span,
-#manager-details .personnel-heading > span,
-#view-report .report-logo-lockup span,
-.reaction-document-meta > span {
-  letter-spacing: .16em;
-  font-weight: 850;
+/* ═══════════ 1. 공통 베이스 ═══════════ */
+
+/* 같은 종이 위에 있다는 신호. 화면마다 다른 배경 패턴을 만들지 않는다. */
+#view-archive,
+#view-manager,
+#view-report {
+  background-color: #f3ebe0;
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+}
+.praise-result-modal,
+.gift-modal {
+  background-color: #f3ebe0;
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
 }
 
-/* 부서 머리글은 서류 상단부처럼 얇은 이중선으로 끊는다. */
+/* 사무국 머리글: HOME과 같은 이중선 */
 .archive-office-header,
 .manager-office-header,
 .report-office-header {
   align-items: center;
   margin-bottom: 13px;
   padding-bottom: 10px;
+  border-bottom: 3px double #b49b83;
 }
-.archive-office-header { border-bottom: 1px solid var(--paper-rule); }
-.manager-office-header { border-bottom: 1px solid var(--paper-rule); }
-.report-office-header { border-bottom: 3px double var(--dept-weekly); }
+.reaction-office-header {
+  align-items: center;
+  border-bottom: 3px double #b49b83;
+}
+/* 이름표는 전 화면 같은 잉크다. 여기가 갈리면 다른 앱처럼 보인다. */
+.archive-logo-lockup span,
+.manager-logo-lockup span,
+.report-logo-lockup span { color: #7c4a4f; letter-spacing: .2em; }
+.reaction-office-header > div span { color: #7c4a4f; letter-spacing: .18em; }
 
+/* 운영 상태 배지: 알약이 아니라 HOME의 각진 배지로 통일 */
 .archive-office-running,
 .manager-office-running,
-.report-header-actions button { border-radius: 2px; }
-
-/* 부서 이름표는 그 부서의 잉크로 찍혀 있다. burgundy 머리글은 HOME(접수처) 것이다. */
-#view-archive[data-archive-mode="records"] .archive-logo-lockup strong { color: #4a5f6b; }
-#view-archive[data-archive-mode="diary"] .archive-logo-lockup strong { color: #55572f; }
-#view-archive .archive-logo-lockup span { color: #7b6f61; }
-#manager-details .manager-logo-lockup span { color: #6d7469; }
-
-/* 날짜는 알약이 아니라 접수 일부인 */
-#view-archive .archive-title-row time {
-  border-radius: 1px;
-  border-color: #b6a482;
-  background: transparent;
-  letter-spacing: .04em;
-}
-#view-archive[data-archive-mode="records"] .archive-title-row > div > span { color: var(--dept-records); }
-#view-archive[data-archive-mode="records"] .archive-report-link { color: var(--dept-records); }
-#view-archive[data-archive-mode="diary"] .archive-title-row > div > span { color: var(--dept-diary); }
-#view-archive[data-archive-mode="diary"] .archive-report-link { color: var(--dept-diary); }
-#view-archive[data-archive-mode="diary"] .archive-title-row time { border-color: #a9a373; }
-
-/* ═══════════ 기록보관과 (RECORDS) ═══════════
-   마닐라 서류철을 펼치면 색인 카드가 꽂혀 있다.
-   특징: 접수번호 · 색인 · 분류 스티커. 붉은 도장은 승인된 건에만. */
-
-#view-archive[data-archive-mode="records"] {
-  background-color: #efe7d8;
-  background-image: none;
-}
-/* 작업 영역 자체가 마닐라 폴더다. 위쪽에 폴더 접힘선이 있다. */
-#view-archive[data-archive-mode="records"] .archive-workspace {
-  border: 1px solid #c0a976;
-  border-top: 3px solid #b99f6d;
-  border-radius: 1px 1px 3px 3px;
-  background: #e9d9b4;
-  box-shadow: var(--ink-hard-lg);
-}
-#view-archive[data-archive-mode="records"] #archive-kicker { color: var(--dept-records); }
-
-/* 캐비닛 탭: 버건디가 아니라 dusty blue 색인 탭 */
-#view-archive[data-archive-mode="records"] .archive-tabs button {
-  border-radius: 3px 3px 0 0;
-  border-color: #bda98a;
-  background: #ded0ab;
-  color: #6c5f45;
-}
-#view-archive[data-archive-mode="records"] .archive-tabs button.active {
-  border-color: var(--dept-records);
-  background: var(--dept-records);
-  color: #f6f2e6;
-}
-
-/* 분류 스티커: 알약이 아니라 서류철에 붙이는 각진 라벨 */
-#view-archive[data-archive-mode="records"] .record-filters button {
-  border-radius: 1px;
-  border-color: #b9a17c;
-  background: #f4ecd7;
-  color: #6b5c42;
-}
-#view-archive[data-archive-mode="records"] .record-filters button.active {
-  border-color: var(--dept-records);
-  background: var(--dept-records);
-  color: #f7f4ea;
-}
-#view-archive[data-archive-mode="records"] .record-search input,
-#view-archive[data-archive-mode="records"] .record-grade-filter select {
-  border-radius: 1px;
-  border-color: #b9a17c;
-  background: #fdf9ee;
-}
-#view-archive[data-archive-mode="records"] .record-legend {
-  border-radius: 1px;
-  border-left: 3px solid var(--dept-records-2);
-  color: #6b5c42;
-}
-
-/* 색인 카드: 폴더 안에 꽂힌 흰 카드. 위쪽에 부서색 색인선이 있다. */
-#view-archive[data-archive-mode="records"] .office-record-card {
-  border: 1px solid #cbb894;
-  border-top: 2px solid var(--dept-records);
-  border-radius: 0 0 2px 2px;
-  background: #fdfaf0;
-  box-shadow: var(--ink-hard);
-}
-/* 접수번호 칸을 카드 색인란처럼 — 세로 괘선으로 끊는다 */
-#view-archive[data-archive-mode="records"] .record-number {
-  border-right: 1px solid #d6c5a4;
-  background: #f4ecd8;
-}
-#view-archive[data-archive-mode="records"] .record-number b {
-  color: var(--dept-records);
-  font-size: 21px;
-}
-#view-archive[data-archive-mode="records"] .record-number span {
-  color: #8c7a5c;
-  font-size: 9px;
-}
-/* 상태 라벨: 기본은 khaki 분류 스티커, 승인된 건만 붉은 도장 */
-#view-archive[data-archive-mode="records"] .record-approval > span {
-  border-radius: 1px;
-  border: 1px solid #b9a17c;
-  background: #f2e9d3;
-  color: #6b5c42;
+.reaction-office-header > small {
+  border: 1px solid #c2ac93;
+  border-radius: 2px;
+  background: #f7efe3;
+  box-shadow: var(--doc-shadow-sm);
   letter-spacing: .02em;
 }
-#view-archive[data-archive-mode="records"] .office-record-card.official {
-  border-top-color: var(--stamp-red);
+.report-header-actions button {
+  border: 1px solid #c2ac93;
+  border-radius: 3px;
+  background: #f7efe3;
+  box-shadow: var(--doc-shadow-sm);
 }
-#view-archive[data-archive-mode="records"] .office-record-card.official .record-approval > span {
+
+/* 큰 서류 카드: 재질을 하나로. 흐린 blur 그림자를 잉크 오프셋으로 바꾼다. */
+#view-archive .archive-butler-brief,
+#view-archive .archive-workspace,
+#manager-details .personnel-card,
+#manager-details .butler-roster-card,
+#manager-details .manager-work-card,
+#manager-details .stages-card,
+#view-report .weekly-report-sheet,
+.praise-result-document,
+.gift-receipt {
+  border: 1px solid var(--doc-line);
+  border-radius: 5px;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow);
+}
+/* 카드 안쪽 이중선도 각진 모서리에 맞춘다 */
+#view-archive .archive-butler-brief:before,
+#manager-details .personnel-card:before,
+#view-report .weekly-report-sheet:before { border-radius: 3px; }
+.praise-result-document {
+  background: var(--doc-paper);
+  box-shadow: inset 0 0 0 6px #fffdf8, inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+}
+.gift-receipt {
+  box-shadow: inset 0 0 0 6px #fffdf8, inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+}
+
+/* 카드 안 블록: 한 단계 낮은 종이 */
+#view-archive .office-record-card,
+#view-archive .records-summary,
+#view-archive .butler-diary-page,
+#view-archive .diary-ledger-summary,
+#manager-details .manager-obsession,
+#manager-details .manager-stats,
+#view-report .report-hero,
+#view-report .weekly-rate-card,
+#view-report .weekly-summary > div,
+#view-report .weekly-comment,
+.praise-result-hero,
+.praise-result-deed,
+.praise-result-document blockquote,
+.praise-result-metrics,
+#result-relationship-result,
+.gift-reaction-hero,
+.gift-receipt blockquote,
+#gift-relationship-result,
+.gift-result-metrics {
+  border-radius: 3px;
+  border-color: #d3c4b3;
+}
+#view-archive .office-record-card { background: #fffdf8; box-shadow: var(--doc-shadow-sm); }
+#view-archive .butler-diary-page { background: #fffdf8; box-shadow: var(--doc-shadow-sm); }
+
+/* 큰 제목은 공통 잉크 */
+#view-archive .archive-title-row h1,
+#manager-details .personnel-heading > span,
+#manager-details .manager-section-title h2,
+#view-report #weekly-report-title,
+#result-title { color: var(--ink); }
+
+/* 주 행동 버튼: HOME의 결재 버튼과 같은 잉크 블록 */
+#view-report .weekly-next-button,
+.praise-result-document > .primary-button,
+.gift-receipt > .primary-button {
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+}
+#view-report .weekly-next-button span,
+.praise-result-document > .primary-button span,
+.gift-receipt > .primary-button span { color: #e5a1ad; }
+
+/* 부 행동 버튼: 종이 버튼 */
+#manager-details .recruit-note,
+#manager-details .manager-change-button,
+#view-archive .diary-empty-page button {
+  border: 1px solid var(--doc-line);
+  border-radius: 3px;
+  box-shadow: var(--doc-shadow-sm);
+}
+
+/* ═══════════ 2. 파일탭 라벨 ═══════════
+   HOME의 .file-tab(대업 접수서 · FORM 01)과 같은 조형이다.
+   이미 있는 영문 행정 라벨을 그 자리로 올려서 쓴다 — DOM은 그대로다. */
+
+#view-archive .archive-workspace,
+#manager-details .personnel-card,
+#view-report .weekly-report-sheet,
+.praise-result-document,
+.gift-receipt { overflow: visible; }
+
+/* 탭은 카드 위쪽 가장자리에 걸려야 한다. 중간 컨테이너가 position:relative면
+   그 컨테이너 안쪽에 갇혀 제목을 덮으므로, 기준을 카드로 되돌린다. */
+#manager-details .personnel-heading,
+#view-report .report-title-block,
+.reaction-document-meta { position: static; }
+
+#view-archive #archive-kicker,
+#manager-details .personnel-heading small,
+#view-report .report-title-block:before,
+.reaction-document-meta > span {
+  position: absolute;
+  top: -11px;
+  left: 13px;
+  z-index: 5;
+  padding: 6px 11px;
+  border-radius: 4px 4px 0 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+
+/* RECORDS / ARCHIVE / DIARY — 작업 영역 위 탭 */
+#view-archive .archive-workspace { position: relative; padding-top: 26px; }
+#view-archive .archive-title-row { align-items: center; }
+#view-archive .archive-title-row h1 { margin-top: 0; }
+#view-archive #archive-kicker { background: var(--tab-records); }
+#view-archive[data-archive-mode="diary"] #archive-kicker { background: var(--tab-diary); }
+
+/* MANAGER — 인사기록카드 위 탭 */
+#manager-details .personnel-card { padding-top: 24px; }
+#manager-details .personnel-heading small {
+  background: var(--tab-manager);
+  color: #fff;
+  letter-spacing: .1em;
+}
+#manager-details .personnel-heading small b { margin-left: 3px; color: #fff; }
+
+/* WEEKLY — 보고서 문서번호 탭 */
+#view-report .weekly-report-sheet { position: relative; padding-top: 24px; }
+#view-report .report-title-block:before {
+  content: "WEEKLY REPORT · FILE 05";
+  background: var(--tab-records);
+}
+
+/* FORM 05 / GIFT — 서식 번호 탭 */
+.praise-result-document { padding-top: 24px; }
+.praise-result-document .reaction-document-meta > span { background: var(--burgundy); }
+.gift-receipt { padding-top: 24px; }
+.gift-receipt .reaction-document-meta > span { background: var(--tab-manager); }
+
+/* ═══════════ 3. 세그먼트 탭 ═══════════
+   카드 안에 큰 색면 버튼이 앉아 있으면 화면이 분절된다.
+   문서 색인처럼 얇게 두고, 선택은 상단 색선과 종이색으로 표시한다. */
+
+#view-archive .archive-tabs {
+  margin: 13px 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: transparent;
+}
+#view-archive .archive-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-top: 3px solid transparent;
+  border-right: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: #f0e7db;
+  color: #8a7b71;
+  font-size: 13px;
+  font-weight: 800;
+}
+#view-archive .archive-tabs button:last-child { border-right: 0; }
+#view-archive .archive-tabs button.active {
+  border-top-color: var(--tab-records);
+  background: var(--doc-paper);
+  color: var(--ink);
+}
+#view-archive[data-archive-mode="diary"] .archive-tabs button.active { border-top-color: var(--tab-diary); }
+
+/* ═══════════ 4. 소형 태그 · 소형 포인트 ═══════════
+   알약을 걷어내고, 색은 테두리와 글자에만 남긴다. */
+
+#view-archive .archive-title-row time {
+  border-radius: 2px;
+  border-color: #c2ac93;
+  background: #f7efe3;
+  letter-spacing: .03em;
+}
+#view-archive .archive-report-link { color: var(--tab-records); }
+#view-archive[data-archive-mode="diary"] .archive-report-link { color: var(--tab-diary); }
+
+#view-archive .record-filters button {
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: #f7efe3;
+  color: #7a6b62;
+}
+#view-archive .record-filters button.active {
+  border-color: var(--tab-records);
+  background: #eef1f3;
+  color: var(--tab-records);
+  font-weight: 850;
+}
+#view-archive .record-search input,
+#view-archive .record-grade-filter select,
+#view-archive .record-find-tools input,
+#view-archive .record-find-tools select {
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: var(--doc-paper);
+}
+#view-archive .record-legend {
+  border-radius: 2px;
+  border-left: 3px solid var(--doc-line);
+  color: #7a6b62;
+}
+
+/* 접수 카드: 왼쪽 문서번호 칸이 이 카드의 성격이다 */
+#view-archive .record-number {
+  border-right: 1px solid var(--doc-line-soft);
+  background: #f7efe3;
+}
+#view-archive .record-number b { color: var(--tab-records); font-size: 21px; }
+#view-archive .record-number span { color: #8b7a6d; font-size: 9px; }
+#view-archive .record-approval > span {
+  padding: 4px 7px;
+  border-radius: 2px;
+  border: 1px solid var(--doc-line);
+  background: #f7efe3;
+  color: #7a6b62;
+  letter-spacing: .02em;
+}
+/* 붉은색은 승인에만. 손으로 찍어 살짝 기울었다. */
+#view-archive .office-record-card.official .record-approval > span {
   border-color: var(--stamp-red);
   background: transparent;
   color: var(--stamp-red);
-  /* 손으로 찍어 살짝 기운 승인 도장 */
-  transform: rotate(-1.6deg);
+  transform: rotate(-1.5deg);
 }
-#view-archive[data-archive-mode="records"] .records-summary {
+#view-archive .record-detail-cta {
   border-radius: 2px;
-  border-color: #c3ac83;
-  background: #f6efdd;
+  border-color: var(--tab-records);
+  color: var(--tab-records);
 }
-#view-archive[data-archive-mode="records"] .records-summary-heading i { color: var(--dept-records); }
-#view-archive[data-archive-mode="records"] .records-empty { border-radius: 2px; }
-#view-archive[data-archive-mode="records"] .record-detail-cta {
-  border-radius: 1px;
-  border-color: var(--dept-records);
-  color: var(--dept-records);
-}
+#view-archive .records-summary { background: #f9f2e8; }
+#view-archive .records-summary-heading i { color: var(--tab-records); border-color: rgba(91, 115, 131, .45); }
+#view-archive .records-summary dd b { color: var(--tab-records); }
 
-/* 담당 집사 브리핑은 서류철 위에 얹힌 접수표 */
-#view-archive[data-archive-mode="records"] .archive-butler-brief {
-  border-radius: 2px;
-  border-color: #cbb894;
-  box-shadow: var(--ink-hard);
-}
+/* ═══════════ 5. 비밀 관찰 일지 ═══════════
+   재질은 다른 화면과 같다. 성격은 탭 색, 괘선, 봉인 표시로만 낸다. */
 
-/* ═══════════ 비밀 관찰 일지 (DIARY) ═══════════
-   서류철이 아니라 집사가 혼자 쓰는 노트다. 종이가 누렇게 떴고 모서리가 접혀 있다.
-   붉은색은 오늘 봉인한 밀랍 하나뿐. */
-
-#view-archive[data-archive-mode="diary"] {
-  background-color: #e6dfc6;
-  /* 세월에 뜬 반점(foxing). 격자 대신 이 화면만의 종이 흠집이다. */
-  background-image:
-    radial-gradient(circle at 18% 22%, rgba(139, 118, 74, .10) 0 2px, transparent 3px),
-    radial-gradient(circle at 71% 61%, rgba(139, 118, 74, .08) 0 2px, transparent 3px),
-    radial-gradient(circle at 43% 84%, rgba(139, 118, 74, .07) 0 1px, transparent 2px);
-  background-size: 137px 151px;
-}
-#view-archive[data-archive-mode="diary"] .archive-workspace {
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-#view-archive[data-archive-mode="diary"] .archive-tabs button {
-  border-radius: 2px;
-  border-color: #bdb489;
-  background: #ded7b9;
-  color: #63603f;
-}
-#view-archive[data-archive-mode="diary"] .archive-tabs button.active {
-  border-color: var(--dept-diary);
-  background: var(--dept-diary);
-  color: #f4f2e2;
-}
-#view-archive[data-archive-mode="diary"] #archive-kicker,
-#view-archive[data-archive-mode="diary"] .diary-intro > span { color: var(--dept-diary); }
-#view-archive[data-archive-mode="diary"] .archive-butler-brief {
-  border-radius: 2px;
-  border-color: #c7bd94;
-  background: #fbf6e2;
-  box-shadow: var(--ink-hard);
-}
-
-/* 일기 장(張): 카드가 아니라 노트를 펼친 한 면 */
-#view-archive[data-archive-mode="diary"] .butler-diary-page {
-  position: relative;
-  border: 1px solid #c8bd93;
-  border-left: 3px solid #bcae7f;   /* 제본된 안쪽 여백 */
-  border-radius: 0;
-  background: #fbf6e2;
-  box-shadow: var(--ink-hard);
-}
-/* 오른쪽 아래가 접힌 종이 */
-#view-archive[data-archive-mode="diary"] .butler-diary-page:after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 15px;
-  height: 15px;
-  background: linear-gradient(135deg, transparent 50%, #e6dcbb 50%);
-  border-left: 1px solid #cdc19a;
-  border-top: 1px solid #cdc19a;
-  pointer-events: none;
-}
-#view-archive[data-archive-mode="diary"] .butler-diary-page > header { border-bottom: 1px solid #d5cba4; }
-/* 날짜는 일부인(日附印)처럼 */
+#view-archive[data-archive-mode="diary"] .butler-diary-page > header { border-bottom: 1px solid var(--doc-line-soft); }
 #view-archive[data-archive-mode="diary"] .butler-diary-page > header small {
   display: inline-block;
   margin-top: 3px;
   padding: 2px 5px;
-  border: 1px solid #a9a373;
-  border-radius: 1px;
-  color: var(--dept-diary);
+  border: 1px solid #c2ab8e;
+  border-radius: 2px;
+  color: var(--tab-diary);
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: .05em;
 }
 #view-archive[data-archive-mode="diary"] .butler-diary-page > header em {
-  border-radius: 1px;
-  border: 1px solid #bcb289;
+  border-radius: 2px;
+  border: 1px solid #c2ab8e;
   background: transparent;
-  color: var(--dept-diary);
+  color: var(--tab-diary);
 }
-#view-archive[data-archive-mode="diary"] .butler-diary-page > footer {
-  border-top: 1px solid #d5cba4;
-  color: #6f6a4a;
-}
-#view-archive[data-archive-mode="diary"] .butler-diary-page > footer b {
-  border-radius: 1px;
-  border: 1px solid #a9a373;
-  background: transparent;
-  color: var(--dept-diary);
-}
-/* 공개된 장은 손때가 탄 종이 */
-#view-archive[data-archive-mode="diary"] .butler-diary-page:not(.sealed) .diary-paper-lines {
-  background-image: linear-gradient(rgba(120, 106, 62, .09) 1px, transparent 1px);
+/* 손으로 쓴 장이라 괘선이 남아 있다 */
+#view-archive[data-archive-mode="diary"] .butler-diary-page .diary-paper-lines {
+  background-image: linear-gradient(rgba(120, 106, 62, .07) 1px, transparent 1px);
   background-size: 100% 25px;
 }
-
-/* 오늘 장만 봉인. 여기에만 밀랍 붉은색을 쓴다. */
-#view-archive[data-archive-mode="diary"] .butler-diary-page.sealed {
-  border-color: #b6a877;
-  border-left-color: #8f2f34;
-  background: #f7f0d9;
+#view-archive[data-archive-mode="diary"] .butler-diary-page > footer {
+  border-top: 1px solid var(--doc-line-soft);
+  color: #7a6b62;
 }
-/* 봉인 표시의 붉은색은 밀랍 인장 하나로 충분하다. 나머지는 올리브로 둔다. */
+#view-archive[data-archive-mode="diary"] .butler-diary-page > footer b {
+  border-radius: 2px;
+  border: 1px solid #c2ab8e;
+  background: transparent;
+  color: var(--tab-diary);
+}
+/* 오늘 장만 미개봉. 밀랍 인장 하나가 이 화면의 유일한 붉은 점이다. */
+#view-archive[data-archive-mode="diary"] .butler-diary-page.sealed { border-style: dashed; }
 #view-archive[data-archive-mode="diary"] .diary-teaser {
   position: relative;
-  border-radius: 0;
-  border: 1px dashed #b6a877;
-  background: rgba(250, 244, 223, .92);
+  border-radius: 2px;
+  border: 1px dashed #c2ab8e;
+  background: #f9f4e8;
 }
-/* 밀랍 인장 */
 #view-archive[data-archive-mode="diary"] .diary-teaser:after {
   content: "封";
   position: absolute;
@@ -314,437 +386,334 @@
   right: 11px;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
   border-radius: 50%;
   background: #8f2f34;
-  box-shadow: 0 1px 0 rgba(60, 20, 22, .35);
   color: #f6e6d8;
   font-size: 10px;
   font-weight: 800;
   transform: rotate(-7deg);
 }
-#view-archive[data-archive-mode="diary"] .diary-teaser span { color: var(--dept-diary); }
-#view-archive[data-archive-mode="diary"] .diary-ledger-summary,
-#view-archive[data-archive-mode="diary"] .diary-empty-page {
-  border-radius: 0;
-  border-color: #c8bd93;
-  background: #fbf6e2;
-}
-#view-archive[data-archive-mode="diary"] .diary-empty-page button {
-  border-radius: 1px;
-  box-shadow: var(--ink-hard);
-}
+#view-archive[data-archive-mode="diary"] .diary-teaser span { color: var(--tab-diary); }
+#view-archive[data-archive-mode="diary"] .diary-intro > span { color: var(--tab-diary); letter-spacing: .14em; }
 
-/* ═══════════ 중앙인사국 (MANAGER) ═══════════
-   인사기록 폴더. 증명사진 · 종이클립 · 인사 도장 · 비고란.
-   cat home(집사방)은 방 자체가 배경이므로 손대지 않는다. */
+/* ═══════════ 6. 중앙인사국 ═══════════ */
 
-#view-manager {
-  background-color: #e8e6de;
-  /* 서류 캐비닛 안쪽처럼 아주 옅은 세로 결. 격자 종이가 아니다. */
-  background-image: linear-gradient(90deg, rgba(63, 74, 92, .035) 1px, transparent 1px);
-  background-size: 34px 100%;
-}
-#manager-details .manager-logo-lockup strong { color: var(--dept-manager); }
-#manager-details .personnel-heading > span { color: var(--dept-manager); }
-
-/* 인사기록 폴더: 왼쪽에 폴더 등(spine)이 있다 */
-#manager-details .personnel-card {
-  border: 1px solid #b6bbb0;
-  border-left: 5px solid var(--dept-manager-2);
-  border-radius: 0 3px 3px 0;
-  background: #f7f6ef;
-  box-shadow: var(--ink-hard-lg);
-}
-#manager-details .personnel-card:before { border-radius: 0 2px 2px 0; }
-#manager-details .personnel-heading { border-bottom: 1px solid #c2c6ba; }
-#manager-details .personnel-paperclip { border-color: #8d94a1; }
-
-/* 증명사진 틀 */
-#manager-details .manager-character-stage {
-  border: 1px solid #a9b0a4;
-  border-radius: 1px;
-  background: #eef0e8;
-  box-shadow: inset 0 0 0 3px #f7f6ef;
-}
-#manager-details .manager-nameplate {
-  border-radius: 0;
-  background: var(--dept-manager);
-  color: #eef0f4;
-}
+#manager-details .personnel-heading { border-bottom: 1px solid var(--doc-line-soft); }
+#manager-details .personnel-paperclip { border-color: #9b7541; }
+#manager-details .manager-nameplate { border-radius: 2px; }
+#manager-details .manager-profile-copy h1 { color: var(--tab-manager); }
+#manager-details #manager-butler-symbol { color: var(--tab-manager); }
 #manager-details .manager-status-line b {
-  border-radius: 1px;
-  border: 1px solid var(--dept-manager-2);
-  background: transparent;
-  color: var(--dept-manager-2);
+  padding: 4px 6px;
+  border: 1px solid var(--tab-manager);
+  border-radius: 2px;
+  color: var(--tab-manager);
 }
-#manager-details .manager-facts dt { color: #6d7469; }
-#manager-details .manager-profile-copy h1 { color: var(--dept-manager); }
-#manager-details #manager-butler-symbol { color: var(--dept-manager-2); }
-#manager-details #manager-role-title { color: #6d7469; }
+#manager-details .manager-handnote {
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: #f9f2e8;
+  box-shadow: var(--doc-shadow-sm);
+}
 
-/* 관계 영역 = 인사기록카드의 비고 / 관찰란 */
+/* 관계 블록 = 인사기록카드의 비고 / 관찰란 */
 #manager-details .manager-obsession {
   position: relative;
-  margin-top: 14px;
+  margin-top: 15px;
   padding-top: 16px;
-  border: 1px solid #bcc0b4;
-  border-radius: 0;
-  background: #f1f1e8;
+  background: #f9f2e8;
 }
 #manager-details .manager-obsession:before {
   content: "비 고 · 관 찰 기 록";
   position: absolute;
   top: -8px;
-  left: 10px;
+  left: 11px;
   padding: 1px 6px;
-  background: #f1f1e8;
-  color: var(--dept-manager);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: .12em;
-}
-#manager-details .obsession-heading b { color: var(--dept-manager); }
-#manager-details .obsession-track { border-radius: 0; background: #d9ddd2; }
-#manager-details .obsession-track i { border-radius: 0; background: var(--dept-manager-2); }
-/* 관찰란 안쪽은 인사 담당이 손으로 적어 넣은 소견이다 */
-#manager-details .relationship-summary {
-  border-color: #bcc0b4;
-  border-left: 3px solid var(--dept-manager-2);
-  background: #fbfbf5;
-}
-#manager-details .relationship-summary > span {
-  display: inline-block;
-  padding: 2px 6px;
-  border: 1px solid var(--dept-manager);
-  border-radius: 1px;
-  color: var(--dept-manager);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: .04em;
-}
-#manager-details .relationship-summary > strong { color: var(--dept-manager); }
-#manager-details .relationship-summary > small { color: #6d7469; }
-/* 집사가 직접 끼워 넣은 쪽지 */
-#manager-details .manager-handnote {
-  border-color: #bcc0b4;
-  background: #f1f1e8;
-  box-shadow: var(--ink-hard);
-}
-
-/* 선물은 사내 전달표 접수 — 버건디 사각형이 아니라 전표 한 장 */
-#manager-details .manager-gift-button {
-  border: 1px solid #b6bbb0;
-  border-left: 4px solid var(--dept-manager);
-  border-radius: 0 2px 2px 0;
-  background:
-    linear-gradient(180deg, #f7f6ef 0 50%, #f2f1e8 50% 100%);
-  box-shadow: var(--ink-hard);
-}
-#manager-details .manager-gift-button b { color: #2f3742; }
-#manager-details .manager-gift-button small { color: #6d7469; }
-#manager-details .manager-gift-button small b { color: var(--dept-manager); }
-/* 전달표 왼쪽 칸은 접수 도장 자리 */
-#manager-details .manager-gift-button > span {
-  border-radius: 1px;
-  border: 1px solid #b0b7ab;
-  background: #eef0e8;
-  color: var(--dept-manager-2);
-}
-#manager-details .manager-gift-button > i { color: var(--dept-manager); }
-
-#manager-details .butler-roster-card,
-#manager-details .manager-work-card,
-#manager-details .stages-card {
-  border: 1px solid #bcc0b4;
-  border-radius: 2px;
-  background: #f7f6ef;
-  box-shadow: var(--ink-hard);
-}
-#manager-details .manager-section-title h2 { color: #2f3742; }
-#manager-details .manager-stats {
-  border-radius: 1px;
-  border-color: #c2c6ba;
-  background: #eef0e8;
-}
-#manager-details .manager-stats dt { color: var(--dept-manager); }
-#manager-details .stage-list span {
-  border-radius: 1px;
-  border-color: #b6bbb0;
-  background: #f1f1e8;
-}
-#manager-details .recruit-note,
-#manager-details .manager-change-button {
-  border-radius: 2px;
-  border-color: #b6bbb0;
-  box-shadow: var(--ink-hard);
-}
-#manager-details .manager-details-back { border-radius: 1px; }
-
-/* ═══════════ 주간 보고서 (WEEKLY REPORT) ═══════════
-   복사기에서 막 나온 흑백 서식. 색이 아니라 표와 결재란이 재미다.
-   붉은색은 마지막 결재 도장 하나뿐. */
-
-#view-report {
-  background-color: #e5e4e0;
-  background-image: none;
-}
-#view-report .report-logo-lockup strong { color: var(--dept-weekly); }
-#view-report .report-logo-lockup span { color: #5d6874; }
-
-/* 복사 용지: 모서리가 각지고 그림자가 거의 없다 */
-#view-report .weekly-report-sheet {
-  border: 1px solid #b9bcbf;
-  border-radius: 0;
-  background: #fbfaf6;
-  box-shadow: 4px 5px 0 rgba(38, 48, 60, .07);
-}
-#view-report .weekly-report-sheet:before { border-radius: 0; }
-#view-report .report-paperclip { border-color: #7f8792; }
-
-/* 문서 머리: 문서번호 + 이중선. 띠 색을 쓰지 않는다. */
-#view-report .report-title-block {
-  margin: -19px -13px 0;
-  padding: 14px 13px 10px;
-  border-bottom: 3px double var(--dept-weekly);
-  background: transparent;
-}
-#view-report .report-title-block:before {
-  content: "문서번호 과잉-주간-05  ·  WEEKLY DUTY REPORT";
-  display: block;
-  margin-bottom: 7px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid #cfd2d5;
-  color: #5d6874;
+  background: #f9f2e8;
+  color: var(--tab-manager);
   font-size: 9px;
   font-weight: 850;
   letter-spacing: .1em;
 }
-#view-report #weekly-report-title { color: #1e2731; }
-#view-report .report-intro small { color: #5d6874; }
-#view-report #report-butler-name { color: var(--dept-weekly); }
-/* 담당자 난도 서식의 한 칸이다 */
-#view-report .report-hero {
-  border: 1px solid #c3c6c9;
-  border-radius: 0;
-  background: #f6f5f1;
+#manager-details .obsession-heading b { color: var(--tab-manager); }
+#manager-details .obsession-track { border-radius: 0; background: #e2d7ca; }
+#manager-details .obsession-track i { border-radius: 0; background: var(--tab-manager); }
+#manager-details .relationship-summary {
+  border-radius: 2px;
+  border-color: #d3c4b3;
+  background: var(--doc-paper);
 }
+#manager-details .relationship-summary > span {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--tab-manager);
+  border-radius: 2px;
+  color: var(--tab-manager);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .04em;
+}
+#manager-details .relationship-summary > strong { color: var(--ink); }
+#manager-details .relationship-summary > small { color: var(--tab-manager); }
 
-/* 표: 셀 경계선을 세워 서식처럼 읽히게 한다 */
-#view-report .weekly-rate-card {
-  border: 1px solid #c3c6c9;
-  border-radius: 0;
-  background: #f6f5f1;
+/* 선물은 사내 전달 접수 — 색면 버튼이 아니라 전표 한 장 */
+#manager-details .manager-gift-button {
+  border: 1px solid var(--doc-line);
+  border-radius: 3px;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow-sm);
 }
-#view-report .weekly-rate-total strong { color: var(--dept-weekly); }
-#view-report .weekly-rate-total i { border-radius: 0; background: #dcdee0; }
-#view-report .weekly-rate-total i em { border-radius: 0; background: var(--dept-weekly); }
-#view-report .weekly-days > div i {
-  border-radius: 0;
-  border: 1px solid #cfd2d5;
-  background: #eceeef;
+#manager-details .manager-gift-button > span {
+  border-radius: 2px;
+  border: 1px solid var(--doc-line);
+  background: #f7efe3;
+  color: var(--tab-manager);
 }
-#view-report .weekly-days > div i em { border-radius: 0; background: var(--dept-weekly); }
-#view-report .weekly-days b { color: #3b4551; }
-#view-report .weekly-summary > div {
-  border: 1px solid #c3c6c9;
-  border-radius: 0;
-  background: #fbfaf6;
+#manager-details .manager-gift-button b { color: var(--ink); }
+#manager-details .manager-gift-button small { color: #8a7b71; }
+#manager-details .manager-gift-button small b { color: var(--tab-manager); }
+#manager-details .manager-gift-button > i { color: var(--tab-manager); }
+
+#manager-details .manager-section-title { border-bottom: 1px solid var(--doc-line-soft); }
+#manager-details .manager-section-title h2 span { color: var(--tab-manager); }
+#manager-details .manager-stats { background: #f9f2e8; }
+#manager-details .manager-stats dt { color: var(--tab-manager); }
+#manager-details .stage-list span { border-radius: 2px; border-color: var(--doc-line); }
+#manager-details .manager-roster-person { border-radius: 3px; }
+#manager-details .manager-roster-person.active { border-color: var(--tab-manager); }
+#manager-details .manager-roster-person.active:before { border-bottom-color: var(--tab-manager); }
+#manager-details .manager-roster-person.active small { color: var(--tab-manager); }
+#manager-details .manager-details-back { border-radius: 2px; }
+
+/* ═══════════ 7. 주간 보고서 ═══════════
+   같은 종이 위의 서식이다. 재미는 표와 결재란에서 나오게 하고 색은 아낀다. */
+
+#view-report .report-title-block {
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--doc-line-soft);
 }
-/* 서식 항목 기호는 원형 배지가 아니라 네모 칸 안의 활자 */
+#view-report .report-intro small { color: #8a7b71; }
+#view-report #report-butler-name { color: var(--tab-records); }
+#view-report .report-hero { background: #f9f2e8; }
+#view-report .weekly-rate-card { background: var(--doc-paper); }
+#view-report .weekly-rate-total strong { color: var(--tab-records); }
+#view-report .weekly-rate-total i { border-radius: 0; border-color: var(--doc-line); background: #ece2d5; }
+#view-report .weekly-rate-total i em { border-radius: 0; background: var(--tab-records); }
+#view-report .weekly-days i { border-radius: 0; background: #ece2d5; }
+#view-report .weekly-days i em { border-radius: 0; background: var(--tab-records); }
+#view-report .weekly-summary > div { background: #f9f2e8; }
+/* 항목 기호는 원형 배지가 아니라 서식 칸 */
 #view-report .weekly-summary i {
-  width: 22px;
-  height: 22px;
-  border: 1px solid #c3c6c9;
-  border-radius: 0;
-  background: #eceeef;
-  color: var(--dept-weekly);
+  width: 23px;
+  height: 23px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--doc-paper);
+  color: var(--tab-records);
   font-size: 12px;
 }
-#view-report .weekly-summary dd b { color: var(--dept-weekly); }
-
-/* 총평 = 결재란. 여기에만 붉은 결재 도장이 찍힌다. */
-#view-report .weekly-comment {
-  position: relative;
-  border: 1px solid var(--dept-weekly);
-  border-radius: 0;
-  background: #fbfaf6;
-}
+#view-report .weekly-summary dd b { color: var(--tab-records); }
+/* 총평은 결재란. 붉은 결재 도장 하나만 남긴다. */
+#view-report .weekly-comment { background: #f9f2e8; }
 #view-report .weekly-comment > span {
   border: 2px solid var(--stamp-red);
   border-radius: 50%;
   color: var(--stamp-red);
-  background: transparent;
-  /* 손으로 찍어 어긋난 결재 도장 */
   transform: rotate(-8deg);
 }
-#view-report .weekly-comment h3 { color: var(--dept-weekly); }
-#view-report .weekly-next-button {
-  border-radius: 0;
-  border: 1px solid var(--dept-weekly);
-  background: var(--dept-weekly);
-  box-shadow: var(--ink-hard);
-}
+#view-report .weekly-comment h3 { color: var(--ink); }
 
-/* ═══════════ 심사 결과서 (FORM 05) ═══════════
-   거의 흑백인 공식 서식. 종이 자체가 재미여야 한다.
-   붉은색은 승인 도장과 서식 라벨에만. 집사 한마디는 계속 가장 큰 본문이다. */
+/* ═══════════ 8. 심사 결과서 · 선물 인수증 ═══════════ */
 
-.praise-result-modal {
-  background-color: #eeeae1;
-  background-image: none;
-}
-.reaction-office-header {
-  border-bottom: 3px double var(--dept-form05);
-}
-.reaction-office-header > div strong { color: var(--dept-form05); }
-.reaction-office-header > div span { color: #6b625b; }
-.reaction-office-header > small {
-  border-radius: 0;
-  border: 1px solid #b4a99b;
-  background: transparent;
-  color: #59504a;
-}
-.praise-result-document {
-  border: 1px solid #b8ada0;
-  border-radius: 0;
-  background: #fbf8f1;
-  box-shadow: 5px 6px 0 rgba(55, 49, 46, .10);
-}
-/* 서식 번호만 붉게 — 이 화면의 유일한 라벨 색 */
+/* 서식 번호가 탭으로 올라갔으므로, 남은 모드 배지는 원래 자리(오른쪽)를 지킨다 */
 .reaction-document-meta {
-  border-bottom: 1px solid #cdc2b4;
+  justify-content: flex-end;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--doc-line-soft);
 }
-.reaction-document-meta > span { color: var(--stamp-red); }
 .reaction-document-meta > b {
-  border-radius: 0;
-  border: 1px solid #a2988c;
-  background: transparent;
-  color: #4b433d;
+  padding: 5px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--doc-line);
+  background: #f7efe3;
+  color: #7a6b62;
 }
-.praise-result-summary small { color: #6b625b; }
-#result-title { color: var(--dept-form05); }
-.praise-result-hero {
-  border-radius: 0;
-  border-color: #c6bbad;
-  background: #f5f1e8;
-}
-.praise-result-deed {
-  border-radius: 0;
-  border-color: #c6bbad;
-  background: #f4efe4;
-}
-.praise-result-deed small { color: #6b625b; }
+.praise-result-hero { background: #f9f2e8; }
+.praise-result-deed { background: #f9f2e8; }
+.praise-result-deed small { color: #8a7b71; }
 #result-record-status {
-  border-radius: 0;
-  border-color: #a2988c;
-  color: #4b433d;
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  color: #7a6b62;
 }
-.praise-result-document blockquote {
-  border-radius: 0;
-  border-color: #c6bbad;
-  background: #fdfbf5;
-}
-#result-relationship-result {
-  border-radius: 0;
-  border-color: #c6bbad;
-  background: #f6f2e9;
-}
-#result-relationship-result b { border-radius: 0; background: #ded4c5; }
-#result-relationship-result b i { border-radius: 0; background: var(--dept-form05); }
-.praise-result-metrics {
-  border-radius: 0;
-  border-color: #c6bbad;
-  background: #fbf8f1;
-}
-.praise-result-metrics dt { color: #6b625b; }
-.praise-result-metrics dd,
-.praise-result-metrics > div:nth-child(2) dd { color: var(--dept-form05); }
+.praise-result-document blockquote { background: var(--doc-paper); }
+#result-relationship-result { background: #f9f2e8; }
+#result-relationship-result > span { color: var(--burgundy); }
+#result-relationship-result b { border-radius: 0; background: #e2d7ca; }
+#result-relationship-result b i { border-radius: 0; background: var(--burgundy); }
+.praise-result-metrics { background: var(--doc-paper); }
+.praise-result-metrics dt { color: #8a7b71; }
+.praise-result-metrics > div:nth-child(2) dd { color: var(--burgundy); }
+.rare-verdict-note { border-radius: 3px; }
 /* 승인 도장은 살짝 기울어 찍혀 있다 */
-.reaction-stamp {
-  border-color: var(--stamp-red);
-  color: var(--stamp-red);
-  transform: rotate(-11deg);
-}
-.rare-verdict-note { border-radius: 0; }
-/* 다음 절차 버튼도 서식의 일부다. 큰 버건디 덩어리를 두지 않는다. */
-.praise-result-document .primary-button {
-  border-radius: 0;
-  border: 1px solid var(--dept-form05);
-  background: var(--dept-form05);
-  box-shadow: var(--ink-hard);
-}
-.reaction-footnote { color: #6b625b; }
+.reaction-stamp { border-color: var(--stamp-red); color: var(--stamp-red); transform: rotate(-11deg); }
 
-/* ═══════════ 선물 인수증 (GIFT) ═══════════
-   심사 결과서가 아니라 인사국이 발행한 사내 전달표다. 그래서 인사국의 잉크를 쓴다.
-   붉은색은 인수 도장에만. */
-.gift-modal {
-  background-color: #e8e6de;
-  background-image: linear-gradient(90deg, rgba(63, 74, 92, .035) 1px, transparent 1px);
-  background-size: 34px 100%;
-}
-.gift-modal .reaction-office-header { border-bottom: 3px double var(--dept-manager); }
-.gift-modal .reaction-office-header > div strong { color: var(--dept-manager); }
-.gift-modal .reaction-office-header > div span { color: #6d7469; }
-.gift-receipt {
-  border: 1px solid #b6bbb0;
-  border-left: 5px solid var(--dept-manager-2);
-  border-radius: 0 2px 2px 0;
-  background: #f7f6ef;
-  box-shadow: var(--ink-hard-lg);
-}
-.gift-modal .reaction-document-meta > span { color: var(--dept-manager); }
-.gift-reaction-hero {
-  border-radius: 0;
-  border-color: #bcc0b4;
-  background: #f1f1e8;
-}
-.gift-receipt h1 { color: var(--dept-manager); }
-.gift-receipt > p #gift-received-name { color: var(--dept-manager-2); }
+.gift-reaction-hero { background: #f9f2e8; }
+.gift-receipt h1 { color: var(--tab-manager); }
+.gift-receipt > p #gift-received-name { color: var(--tab-manager); }
 .gift-reaction-badge {
-  border-radius: 1px;
-  border-color: #b0b7ab;
-  background: #eef0e8;
-  color: #5c6459;
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: #f7efe3;
+  color: #7a6b62;
 }
 .gift-reaction-badge[data-reaction="favorite"] {
-  border-color: var(--dept-manager-2);
-  background: #eaefe6;
-  color: var(--dept-manager-2);
+  border-color: var(--tab-manager);
+  background: #eef0f3;
+  color: var(--tab-manager);
 }
-.gift-receipt blockquote {
-  border-radius: 0;
-  border-color: #bcc0b4;
-  background: #fbfbf5;
+.gift-receipt blockquote { background: var(--doc-paper); }
+#gift-relationship-result { background: #f9f2e8; }
+#gift-relationship-result > span { color: var(--tab-manager); }
+#gift-relationship-result b { border-radius: 0; background: #e2d7ca; }
+#gift-relationship-result b i { border-radius: 0; background: var(--tab-manager); }
+.gift-result-metrics { border-radius: 3px; border-color: #d3c4b3; background: var(--doc-paper); }
+.gift-result-metrics dt { color: #8a7b71; }
+.gift-result-metrics dd b { color: var(--tab-manager); }
+
+/* ═══════════ 9. 빈 상태 ═══════════
+   연한 박스 하나가 덩그러니 놓이면 심심하다. 미개설 파일철처럼 읽히게 한다. */
+
+#view-archive .records-empty,
+#view-archive .diary-empty-page {
+  position: relative;
+  padding: 30px 16px 26px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: #f9f2e8;
 }
-#gift-relationship-result {
-  border-radius: 0;
-  border-color: #bcc0b4;
-  background: #f1f1e8;
+/* 아직 아무것도 적히지 않은 괘선지 */
+#view-archive .records-empty:before,
+#view-archive .diary-empty-page:before {
+  content: "";
+  position: absolute;
+  inset: 14px 15px;
+  background: repeating-linear-gradient(rgba(148, 121, 96, .13) 0 1px, transparent 1px 25px);
+  pointer-events: none;
 }
-#gift-relationship-result > span { color: var(--dept-manager); }
-#gift-relationship-result b { border-radius: 0; background: #d9ddd2; }
-#gift-relationship-result b i { border-radius: 0; background: var(--dept-manager-2); }
-.gift-result-metrics {
-  border-radius: 0;
-  border-color: #bcc0b4;
-  background: #f7f6ef;
+#view-archive .records-empty > span,
+#view-archive .diary-empty-page > span {
+  position: relative;
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--doc-paper);
+  color: #8a7b71;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .14em;
 }
-.gift-result-metrics dt { color: #6d7469; }
-.gift-result-metrics dd b { color: var(--dept-manager); }
-.gift-receipt > .primary-button {
-  border-radius: 0;
-  border: 1px solid var(--dept-manager);
-  background: var(--dept-manager);
-  box-shadow: var(--ink-hard);
+#view-archive .records-empty > p,
+#view-archive .diary-empty-page > p { position: relative; color: #7a6b62; }
+#view-archive .diary-empty-page button {
+  position: relative;
+  background: var(--doc-paper);
+  color: var(--ink);
 }
 
-/* ═══════════ CERTIFICATE ═══════════
-   이미 공식 문서로 읽힌다. 머리글 배지 모서리만 같은 시대에 맞춘다. */
-.certificate-screen-header > small { border-radius: 1px; }
-.certificate-screen-header > button { border-radius: 2px; }
+/* ═══════════ 10. 인증서 보관함 ═══════════
+   기록과 같은 캐비닛의 다른 서랍이다. 탭 색을 공유한다. */
+#view-archive .archive-progress-note {
+  border-radius: 3px;
+  border-color: #d3c4b3;
+  background: #f9f2e8;
+}
+#view-archive .archive-progress-note > div strong { color: var(--tab-records); }
+#view-archive .archive-progress-note > b { border-radius: 0; background: #e2d7ca; }
+#view-archive .archive-progress-note > b i { border-radius: 0; background: var(--tab-records); }
+#view-archive .archive-cabinet-heading span { color: var(--tab-records); }
+#view-archive .archive-cabinet-row {
+  border-radius: 3px;
+  border-color: #d3c4b3;
+  background: #fffdf8;
+  box-shadow: var(--doc-shadow-sm);
+}
+#view-archive .archive-file-action span {
+  padding: 4px 7px;
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: #f7efe3;
+  color: #7a6b62;
+}
+
+/* 기록 상세도 기록보관과의 서류다 — 같은 재질, 같은 각진 태그, 같은 탭 색 */
+.record-detail-header { border-bottom: 3px double #b49b83; }
+.record-detail-header > button {
+  border: 1px solid #c2ac93;
+  border-radius: 3px;
+  background: #f7efe3;
+  box-shadow: var(--doc-shadow-sm);
+}
+.record-detail-header > small {
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: #f7efe3;
+  color: #7a6b62;
+}
+.record-detail-document {
+  border: 1px solid var(--doc-line);
+  border-radius: 5px;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow);
+}
+.record-detail-meta { border-bottom: 1px solid var(--doc-line-soft); }
+.record-detail-context section {
+  border-radius: 3px;
+  border-color: #d3c4b3;
+  background: #f9f2e8;
+}
+.record-detail-context section > span { color: var(--tab-records); letter-spacing: .08em; }
+.record-detail-title-copy > small {
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: #f7efe3;
+  color: #7a6b62;
+}
+.record-detail-title-copy p { color: var(--tab-records); }
+.record-detail-document blockquote { border-radius: 3px; border-color: #d3c4b3; background: var(--doc-paper); }
+.record-detail-facts { border-color: #d3c4b3; background: var(--doc-paper); }
+.record-detail-note { border-left-color: var(--tab-records); background: #f9f2e8; }
+.record-detail-note span { color: var(--tab-records); }
+.record-detail-document > .primary-button {
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+}
+
+/* 인증서 원본 화면도 같은 서류과에서 발급된 것이다 */
+.certificate-screen-header { border-bottom: 3px double #b49b83; }
+.certificate-screen-header > small {
+  border: 1px solid #c2ac93;
+  border-radius: 2px;
+  background: #f7efe3;
+  box-shadow: var(--doc-shadow-sm);
+}
+.certificate-screen-header > button {
+  border: 1px solid #c2ac93;
+  border-radius: 3px;
+  background: #f7efe3;
+  box-shadow: var(--doc-shadow-sm);
+}
+.certificate-actions button { border-radius: 3px; }
+.certificate-actions .primary-button {
+  border-color: var(--ink);
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+}
 
 /* ═══════════ 기존 결함 보정 ═══════════
    사무국 메모지가 담당 집사 총평문 위에 겹쳐 마지막 줄을 덮고 있었다
@@ -757,8 +726,8 @@
   justify-self: end;
   width: fit-content;
   margin: -2px 2px 0 0;
-  border: 1px solid #c7cacd;
-  border-radius: 1px;
-  box-shadow: var(--ink-hard);
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  box-shadow: var(--doc-shadow-sm);
 }
 #view-report .report-intro { padding-bottom: 4px; }
