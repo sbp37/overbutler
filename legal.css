@@ -33,3 +33,4 @@ dd{color:#5b4b47}
 .legal-note{margin-top:17px;padding:12px 13px;border:1px dashed #cfbda8;border-radius:8px;background:#faf4ea;color:#78665e;font-size:12px;line-height:1.65}
 .legal-footer{padding:24px 5px 0;color:#84736a;font-size:11px;line-height:1.6;text-align:center}
 @media(max-width:370px){.legal-shell{padding-right:11px;padding-left:11px}.legal-document{padding-right:16px;padding-left:16px}h1{font-size:25px}dl>div{grid-template-columns:94px minmax(0,1fr)}dt,dd{padding-right:9px;padding-left:9px}}
+

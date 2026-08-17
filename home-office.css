@@ -1,0 +1,373 @@
+/* ───────── HOME 서류과 복원 ─────────
+   donor a25aedaf의 파일철/접수서 조형 언어를 현재 HOME DOM에 다시 입힌다.
+   기능·문구는 현재 버전 그대로. 바뀌는 것은 재질과 위계뿐이다.
+   범위는 #view-home 한정 — 다른 화면의 공용 규칙은 건드리지 않는다. */
+
+#view-home {
+  padding: 20px 15px 34px;
+  background: #f3ebe0;
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+}
+
+/* ── 사무국 머리글: 이중선으로 서류 상단부를 만든다 ──
+   기록/집사 바로가기 아이콘은 하단 nav와 완전히 같은 곳으로 가서 걷어냈다.
+   헤더에는 이름표와 운영 상태만 남긴다. */
+#view-home .home-office-header {
+  align-items: center;
+  min-height: 0;
+  margin: 0 1px 11px;
+  padding-bottom: 10px;
+  border-bottom: 3px double #b49b83;
+}
+#view-home .home-logo-lockup span { color: #7c4a4f; letter-spacing: .2em; }
+#view-home .home-logo-lockup small { margin-top: 6px; }
+#view-home .office-running {
+  border: 1px solid #c2ac93;
+  border-radius: 2px;
+  background: #f7efe3;
+  box-shadow: 2px 2px 0 rgba(67, 48, 45, .07);
+  letter-spacing: .02em;
+}
+
+/* ── 홈에서 걷어낸 것들 ──────────────────────────────
+   전부 DOM은 남긴다. app.js가 #briefing-message / #urgency-copy /
+   #home-gift-points 를 직접 참조해서, 지우면 렌더가 죽는다.
+   기능은 그대로 두고 홈 첫 화면에서만 자리를 비운다. */
+
+/* 접수대 방이 이미 집사의 존재를 보여준다. 같은 집사가 카드로 한 번 더
+   상주할 이유가 없다. 반응은 방 말풍선과 접수서 안 gentle-note로 나간다.
+   방이 없는 집사(고양이 외)에게는 이 카드가 유일한 창구라 그대로 둔다. */
+#view-home:has(.home-butler-room:not([hidden])) .home-briefing-slip { display: none; }
+
+/* 과몰입 심사와 선물 창구는 입력이라는 본 행동보다 앞에 설 이유가 없다.
+   심사값은 결과/관계 화면에, 선물은 집사 탭 안에 그대로 있다. */
+#view-home .absurd-status { display: none; }
+#view-home .home-gift-link { display: none; }
+
+/* ── A. 영문 행정 라벨 ── */
+#view-home .home-reception-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 1px 11px;
+  color: #86243a;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .17em;
+}
+#view-home .home-reception-label::before {
+  content: "";
+  flex: none;
+  width: 17px;
+  border-top: 3px solid var(--burgundy);
+}
+#view-home .home-reception-label::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed #c0ab95;
+}
+
+/* ── 접수대(집사방): 액자가 아니라 창구 서류함처럼 ── */
+.home-butler-room { margin: 0 0 15px; }
+.home-butler-room .cat-home-room {
+  border: 1px solid #b7a189;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+.room-pan-hint {
+  border-radius: 2px;
+  border: 1px solid rgba(112, 26, 42, .4);
+  padding: 4px 10px;
+  background: rgba(255, 250, 242, .93);
+  color: #7a1e30;
+  font-weight: 850;
+  letter-spacing: .01em;
+}
+
+/* 방이 없는 집사(고양이 외)에게는 이 카드가 홈의 유일한 창구라, 그때만 남긴다.
+   문서 재질만 맞춰 두고 레이아웃은 기존 규칙에 맡긴다. */
+#view-home .briefing-stage {
+  border: 1px solid #c3b2a1;
+  border-radius: 5px;
+  background: var(--paper-light);
+  background-image: none;
+  box-shadow: var(--shadow);
+  overflow: visible;
+}
+#view-home .home-briefing-slip .file-tab {
+  position: absolute;
+  top: -11px;
+  left: 13px;
+  padding: 6px 11px;
+  border-radius: 3px 3px 0 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .02em;
+}
+
+/* ── B/D. 접수처 제목 + 기울어진 금일 접수 도장 ── */
+#view-home .home-hero {
+  position: relative;
+  padding: 30px 2px 4px;
+}
+#view-home .home-hero > span {
+  display: inline-block;
+  padding-left: 8px;
+  border-left: 4px solid var(--burgundy);
+  color: var(--burgundy);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: -.01em;
+}
+#view-home .home-hero i {
+  position: absolute;
+  right: 1px;
+  top: 17px;
+  padding: 6px 9px;
+  border: 1.5px solid var(--burgundy);
+  border-radius: 2px;
+  background: rgba(255, 250, 242, .82);
+  color: var(--burgundy);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: .02em;
+  transform: rotate(4deg);
+}
+#view-home .home-hero h1 {
+  max-width: 360px;
+  margin: 13px 0 0;
+  color: #2c2528;
+  font: 850 40px/1.06 Paperlogy, "Noto Serif KR", sans-serif;
+  letter-spacing: -.07em;
+  word-break: keep-all;
+}
+#view-home .home-hero p {
+  margin: 10px 0 0;
+  max-width: 330px;
+  color: #7a6d6a;
+  font-size: 14px;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+/* ── C. 대업 접수서 파일철 ── */
+#view-home .entry-form {
+  margin-top: 22px;
+  padding: 27px 15px 15px;
+  border: 1px solid #c3b2a1;
+  border-radius: 5px;
+  background: var(--paper-light);
+  box-shadow: var(--shadow);
+  overflow: visible;
+}
+#view-home .entry-form.first-run-entry {
+  border-color: #ab8087;
+  box-shadow: var(--shadow), 0 0 0 2px rgba(164, 64, 84, .1);
+}
+#view-home .entry-form > .file-tab {
+  position: absolute;
+  top: -11px;
+  left: 13px;
+  padding: 6px 11px;
+  border-radius: 3px 3px 0 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .02em;
+}
+#view-home .field-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--line);
+}
+#view-home .field-heading strong { font-size: 15px; letter-spacing: -.02em; }
+#view-home .field-heading span { color: #998a80; font-size: 12px; font-weight: 700; }
+#view-home .field-heading b { color: #7a6055; font-style: normal; }
+
+#view-home .achievement-field { margin-top: 12px; }
+#view-home .entry-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 112px;
+  margin: 0;
+  padding: 15px 14px;
+  border: 1px solid #c9b6a2;
+  border-radius: 3px;
+  background-color: #f7eee3;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0 25px,
+    rgba(148, 121, 96, .26) 25px 26px
+  );
+  background-position: 0 15px;
+  background-attachment: local;
+  box-shadow: none;
+  color: #33292b;
+  font: 650 17px/26px var(--ui-font);
+  resize: none;
+}
+#view-home .entry-form textarea::placeholder { color: #a4917f; font-weight: 600; }
+#view-home .entry-form textarea:focus {
+  border-color: #a86572;
+  box-shadow: 0 0 0 3px rgba(150, 63, 80, .09);
+}
+
+/* ── 빠른 입력: 앱 칩이 아니라 서류 체크란 ── */
+#view-home .quick-actions {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 11px 0 13px;
+}
+#view-home .quick-actions button {
+  min-height: 62px;
+  padding: 7px 1px;
+  border: 1px solid #c6b09a;
+  border-radius: 2px;
+  background: #efe5d8 !important;
+  color: #5c4d49;
+  font-size: 10px;
+  font-weight: 850;
+}
+#view-home .quick-actions button span {
+  display: block;
+  margin: 0;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -.04em;
+  white-space: nowrap;
+}
+#view-home .quick-actions svg { margin-bottom: 7px; stroke: #8d5b64; }
+#view-home .quick-actions button:active { background: #e5d8c8 !important; transform: translateY(1px); }
+
+/* ── E. 공식 인증 도장 ── */
+#view-home .entry-footnote {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+#view-home .stamp-progress {
+  position: relative;
+  display: block;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #ece1d4;
+  overflow: hidden;
+}
+#view-home .progress-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+#view-home .progress-heading strong {
+  display: block;
+  color: #4a3d3c;
+  font-size: 14px;
+  letter-spacing: -.02em;
+}
+#view-home .progress-heading b {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--burgundy);
+  font-size: 18px;
+  font-weight: 850;
+}
+#view-home .stamp-circles {
+  display: flex;
+  gap: 9px;
+  margin: 12px 0 11px;
+}
+#view-home .stamp-circles i {
+  width: 40px;
+  height: 40px;
+  border: 1px dashed #b6a396;
+  background: rgba(255, 250, 242, .74);
+  font-size: 11px;
+}
+#view-home .stamp-circles i.filled:before { font-size: 11px; }
+#view-home .stamp-progress p {
+  margin: 0;
+  color: #857569;
+  font-size: 11px;
+  line-height: 1.5;
+}
+#view-home .stamp-progress:after {
+  display: block;
+  right: 15px;
+  top: 40px;
+  font-size: 11px;
+}
+
+/* ── F. 결재 버튼 ── */
+#view-home .report-button {
+  width: 100%;
+  min-height: 60px;
+  margin: 14px 0 0;
+  border: 1px solid var(--ink);
+  border-radius: 5px;
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 850;
+  letter-spacing: -.02em;
+}
+#view-home .report-button b { font: inherit; }
+#view-home .report-button span {
+  float: right;
+  margin-right: 4px;
+  color: #e5a1ad;
+  font-size: 19px;
+  font-weight: 400;
+}
+#view-home .report-button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(67, 48, 45, .16); }
+
+#view-home .form-note {
+  margin: 9px 0 0;
+  color: #8c7d74;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* 집사 회신 카드도 같은 서류 재질로 — 반응은 여기 아니면 방 말풍선에 나온다 */
+#view-home .gentle-note {
+  margin-top: 13px;
+  border-radius: 3px;
+  border: 1px solid #c3b2a1;
+  background: var(--paper-light);
+  box-shadow: none;
+}
+#view-home .gentle-note > header {
+  border-bottom: 1px dashed var(--line);
+}
+
+/* ── 좁은 화면 ── */
+@media (max-width: 392px) {
+  #view-home .home-hero h1 { font-size: 36px; }
+  #view-home .stamp-circles { gap: 7px; }
+  #view-home .stamp-circles i { width: 37px; height: 37px; }
+}
+@media (max-width: 372px) {
+  #view-home { padding-right: 12px; padding-left: 12px; }
+  #view-home .home-hero { padding-top: 32px; }
+  #view-home .home-hero h1 { font-size: 32px; }
+  #view-home .home-hero p { font-size: 13px; }
+  #view-home .quick-actions { gap: 4px; }
+  #view-home .quick-actions button { font-size: 9px; }
+  #view-home .stamp-circles { gap: 5px; }
+  #view-home .stamp-circles i { width: 34px; height: 34px; font-size: 10px; }
+  #view-home .stamp-circles i.filled:before { font-size: 10px; }
+  #view-home .report-button { font-size: 16px; }
+}

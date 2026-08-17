@@ -23,6 +23,9 @@
 .archive-title-row>div>span{display:block;color:#8b2639;font-size:9px;font-weight:850;letter-spacing:.12em}
 .archive-title-row h1{margin:5px 0 0;color:#392e2d;font:850 27px/1.08 "Noto Serif KR",serif;letter-spacing:-.055em}
 .archive-title-row time{padding:7px 9px;border:1px solid #d5c5b2;border-radius:99px;background:#faf4eb;color:#6f6159;font-size:11px;font-weight:750;white-space:nowrap}
+/* 주간 보고서는 홈 하단 카드 더미에서 여기로 옮겨왔다. 기록 화면의 유일한 추가 요소. */
+.archive-title-aside{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.archive-report-link{min-height:32px;padding:0 2px;border:0;background:transparent;color:#7f2637;font-size:11px;font-weight:850;white-space:nowrap}
 #view-archive .archive-tabs{display:grid;grid-template-columns:repeat(3,1fr);margin:13px 0 14px;border:1px solid #cdbda9;border-radius:8px;overflow:hidden}
 #view-archive .archive-tabs button{min-height:44px;border:0;border-right:1px solid #d6c8b7;background:#f5eee5;color:#776a62;font-size:13px;font-weight:800}
 #view-archive .archive-tabs button:last-child{border-right:0}
@@ -49,7 +52,7 @@
 .record-number span{display:block;margin-top:6px;font-size:10px;line-height:1.25}
 .record-main{align-self:center;min-width:0;padding:13px 9px}
 .record-main strong{display:block;color:#352b2b;font-size:15px;line-height:1.3;word-break:keep-all}
-.record-main p{display:-webkit-box;margin:5px 0 4px;color:#786a64;font-size:12px;line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.record-main p{display:-webkit-box;margin:5px 0 4px;color:#786a64;font-size:12px;line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden}
 .record-main small{color:#a07843;font-size:11px;font-weight:750}
 .record-approval{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px 5px;border-left:1px solid #e3d9cc}
 .record-approval>span{padding:4px 7px;border:1px solid #cdbd9e;border-radius:99px;color:#8c6a34;background:#fffaf0;font-size:10px;font-weight:850;white-space:nowrap}
@@ -121,6 +124,7 @@
 .record-detail-document{position:relative;margin-top:13px;padding:16px 14px 12px;border:1px solid #d4c4b1;border-radius:10px;background:#fffdf8;box-shadow:0 8px 18px rgba(69,46,36,.08)}
 .record-detail-document:before{content:"";position:absolute;right:20px;top:-9px;width:12px;height:37px;border:2px solid #9a7544;border-bottom-color:transparent;border-radius:8px;transform:rotate(9deg)}
 .record-detail-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid #e0d5c8;color:#8a786d;font-size:10px;font-weight:800;letter-spacing:.06em}
+.record-detail-context{display:grid;gap:8px;padding:12px 0 2px}.record-detail-context section{padding:10px 11px;border:1px solid #ded2c4;border-radius:7px;background:#faf5ed}.record-detail-context section>span{display:block;margin-bottom:5px;color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.05em}.record-detail-context p{margin:0;color:#443637;font-size:13px;line-height:1.5;word-break:keep-all}.record-detail-context section:nth-child(2) p{font-weight:850}.record-detail-context section:nth-child(3){background:#f5ede1}.record-detail-context section:nth-child(3) p{position:relative;padding-left:11px}.record-detail-context section:nth-child(3) p:before{content:"“";position:absolute;left:0;color:#a48456;font-weight:900}.record-detail-context section:nth-child(3) p+p{margin-top:5px}
 .record-detail-hero{display:grid;grid-template-columns:122px minmax(0,1fr);align-items:end;gap:8px;min-height:185px;padding:12px 0 10px}
 .record-detail-portrait{align-self:stretch;display:flex;align-items:flex-end;justify-content:center;border-radius:8px;background:radial-gradient(circle at 50% 58%,#fff 0 43%,transparent 70%)}
 .record-detail-portrait img{width:135px;height:178px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 5px 2px rgba(62,42,34,.08))}
@@ -155,4 +159,102 @@
   .record-detail-title-copy h2{font-size:20px}
   .archive-cabinet-row{grid-template-columns:62px minmax(0,1fr) 60px;padding-right:6px;padding-left:6px}
   .archive-folder-icon{width:53px}
+}
+
+/* ── RECORDS 모드: 기록이 화면의 주인공 ──────────────────────────────
+   기록을 보러 왔는데 큰 집사 초상화 → 제목 → 탭 → 필터 → 검색 → 등급 필터를
+   전부 지나야 실제 기록이 나왔다. 그러면 "내가 말했던 것들이 쌓인 곳"이 아니라
+   보관함 관리 화면으로 읽힌다. 요소는 하나도 지우지 않고, 기록 모드에서만
+   순서와 크기를 바꾼다. diary / certificates 모드는 그대로다. */
+
+/* 집사는 없애지 않는다. 큰 카드를 한 줄 상태 표시로 줄인다.
+   기록·일기 모드가 같은 처리를 쓴다. 인증서 모드는 큰 카드 그대로다. */
+#view-archive[data-archive-mode="records"] .archive-butler-brief,
+#view-archive[data-archive-mode="diary"] .archive-butler-brief{
+  display:flex;align-items:center;gap:9px;min-height:0;
+  margin-bottom:2px;padding:9px 12px;border-radius:8px;
+  background:#fbf5ec;box-shadow:none;overflow:visible;
+}
+#view-archive[data-archive-mode="records"] .archive-butler-brief:before,
+#view-archive[data-archive-mode="records"] .archive-paperclip,
+#view-archive[data-archive-mode="records"] .archive-memo,
+#view-archive[data-archive-mode="records"] .archive-box-art,
+#view-archive[data-archive-mode="records"] .archive-butler-portrait:after,
+#view-archive[data-archive-mode="records"] .archive-butler-copy small,
+#view-archive[data-archive-mode="records"] .archive-butler-copy h2,
+#view-archive[data-archive-mode="diary"] .archive-butler-brief:before,
+#view-archive[data-archive-mode="diary"] .archive-paperclip,
+#view-archive[data-archive-mode="diary"] .archive-memo,
+#view-archive[data-archive-mode="diary"] .archive-box-art,
+#view-archive[data-archive-mode="diary"] .archive-butler-portrait:after,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy small,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy h2{display:none}
+#view-archive[data-archive-mode="records"] .archive-butler-portrait,
+#view-archive[data-archive-mode="diary"] .archive-butler-portrait{flex:none;height:auto;width:30px}
+#view-archive[data-archive-mode="records"] .archive-butler-portrait img,
+#view-archive[data-archive-mode="diary"] .archive-butler-portrait img{width:30px;height:34px;filter:none}
+#view-archive[data-archive-mode="records"] .archive-butler-copy,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy{padding:0;min-width:0}
+#view-archive[data-archive-mode="records"] .archive-butler-copy p,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy p{
+  margin:0;padding:0;border:0;border-radius:0;background:transparent;
+  color:#6d5c53;font:750 12px/1.4 "Wanted Sans Variable","Wanted Sans",sans-serif;
+}
+
+/* 하단 nav에 이미 집사 일기 탭이 있다. 기록 모드에서는 중복 진입점을 접는다.
+   공식 인증서는 여기 말고 진입로가 없으므로 그대로 둔다. */
+#view-archive[data-archive-mode="records"] .archive-tabs{grid-template-columns:repeat(2,1fr)}
+#view-archive[data-archive-mode="records"] #archive-tab-diary{display:none}
+
+/* 실제 기록이 먼저. 관리 도구는 목록 아래로 내린다.
+   DOM은 그대로 두고 순서만 바꿔, 필터/검색 동작에 손대지 않는다. */
+#view-archive[data-archive-mode="records"] #archive-records{display:flex;flex-direction:column}
+#view-archive[data-archive-mode="records"] #archive-records>.archive-record-list{order:1}
+#view-archive[data-archive-mode="records"] #archive-records>.record-legend{order:2}
+#view-archive[data-archive-mode="records"] #archive-records>.records-summary{order:3}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters{order:4}
+#view-archive[data-archive-mode="records"] #archive-records>.record-find-tools{order:5}
+
+/* 아래로 내려간 관리 도구는 목록과 구분되게, 그리고 조용하게. */
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters{
+  position:relative;margin:18px 0 10px;padding-top:26px;border-top:1px dashed #d8c9b6;
+}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters:before{
+  content:"기록 분류 · 찾기";position:absolute;left:1px;top:9px;
+  color:#9a8879;font-size:10px;font-weight:850;letter-spacing:.04em;white-space:nowrap;
+}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters button{min-height:38px;padding:0 12px;font-size:11px}
+#view-archive[data-archive-mode="records"] #archive-records>.record-find-tools{margin:0 0 4px}
+#view-archive[data-archive-mode="records"] #archive-records>.record-legend{margin:11px 0 0;font-size:11px}
+#view-archive[data-archive-mode="records"] #archive-records>.records-summary{margin-top:12px}
+
+/* ── DIARY 모드: 오늘의 teaser가 화면의 주인공 ─────────────────────────
+   집사 일기는 보관함의 또 다른 탭이 아니라 "내가 한 말을 쟤가 뒤에서 뭐라고
+   적어놨을까"가 궁금해서 다시 들어오는 화면이다. 그런데 큰 초상화 → 제목 → 탭
+   → intro 3줄 → 통계 3칸을 지나야 오늘 teaser가 나왔다.
+   공개 로직(next-day reveal)은 손대지 않는다. 순서와 크기만 바꾼다. */
+
+/* 하단 nav에 이미 기록 탭이 있다. 일기 모드에서는 중복 진입점을 접는다.
+   공식 인증서는 여기 말고 진입로가 없으므로 유지한다. */
+#view-archive[data-archive-mode="diary"] .archive-tabs{grid-template-columns:repeat(2,1fr)}
+#view-archive[data-archive-mode="diary"] #archive-tab-records{display:none}
+
+/* intro는 정체성이라 남기되, teaser를 밀어내지 않을 만큼만 차지한다. */
+#view-archive[data-archive-mode="diary"] .diary-intro{padding:1px 2px 9px}
+#view-archive[data-archive-mode="diary"] .diary-intro h2{margin:3px 0 0;font-size:19px}
+#view-archive[data-archive-mode="diary"] .diary-intro p{display:none}
+#view-archive[data-archive-mode="diary"] .butler-diary-list{margin-top:11px}
+
+/* 통계는 대시보드용이다. 일기를 다 읽은 뒤에 보는 보조 정보로 내린다. */
+#view-archive[data-archive-mode="diary"] .diary-ledger-summary{order:2;margin-top:2px}
+#view-archive[data-archive-mode="diary"] .butler-diary-page{order:1}
+#view-archive[data-archive-mode="diary"] .diary-empty-page{order:1}
+
+/* 오늘 봉인된 장은 목록에서 바로 눈에 띄어야 한다. 내용은 그대로 teaser뿐이다. */
+#view-archive[data-archive-mode="diary"] .butler-diary-page.sealed{
+  border-color:#c3a98f;box-shadow:0 6px 14px rgba(72,49,38,.09);
+}
+#view-archive[data-archive-mode="diary"] .diary-empty-page button{
+  min-height:44px;margin-top:14px;padding:0 16px;border:1px solid #c9b49c;border-radius:7px;
+  background:#fffdf8;color:#7a2637;font-size:12px;font-weight:850;
 }

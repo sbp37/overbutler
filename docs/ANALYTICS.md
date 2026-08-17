@@ -29,3 +29,4 @@ Current event names:
 Allowed properties are limited to non-user text such as character key, view/tab, achievement category/verdict, interaction source, official status, gift reaction type, relationship stage index, onboarding state, and preview state.
 
 Connect an external provider only after the provider, consent requirement, retention period, and privacy-policy changes are approved.
+

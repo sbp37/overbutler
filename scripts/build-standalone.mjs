@@ -16,11 +16,15 @@ const mimeTypes = {
 
 let html = await readFile(sourcePath, "utf8");
 const css = await readFile(resolve(root, "app.css"), "utf8");
+const messageInterpreter = await readFile(resolve(root, "message-interpreter.js"), "utf8");
+const chatEngine = await readFile(resolve(root, "chat-engine.js"), "utf8");
 const js = await readFile(resolve(root, "app.js"), "utf8");
 
 html = html
   .replace('<link rel="stylesheet" href="app.css">', () => `<style>\n${css}\n</style>`)
-  .replace('<script src="app.js"></script>', () => `<script>\n${js}\n</script>`);
+  .replace(/<script src="message-interpreter\.js[^"]*"><\/script>/, () => `<script>\n${messageInterpreter}\n</script>`)
+  .replace(/<script src="chat-engine\.js[^"]*"><\/script>/, () => `<script>\n${chatEngine}\n</script>`)
+  .replace(/<script src="app\.js[^"]*"><\/script>/, () => `<script>\n${js}\n</script>`);
 
 const localImages = [...new Set(
   [...html.matchAll(/(?:src\s*=\s*|url\()["']?([^"')]+\.(?:png|jpe?g|webp|svg))["']?|["'](design\/[^"']+\.(?:png|jpe?g|webp|svg))["']/gi)]

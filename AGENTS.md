@@ -17,6 +17,8 @@ AI-assisted work should follow these constraints:
 - Before finishing, remove broken imports, debug code, and obvious runtime errors.
 - Keep `main` as the default branch.
 - Move project documentation and asset conventions into `docs/` when expanding this set of rules.
+- Butler dialogue, character voice, and the over-praise world rules live in `docs/BUTLER-VOICE.md`. Read it before writing or editing any butler line, and keep its privacy litmus (the butler only knows what the user typed, and the sentence must look at the paperwork rather than at the user) intact.
+- 입력/응답 로직(message-interpreter.js, chat-engine.js, FORM05 라우팅) 수정 전 `docs/INPUT-ROUTING.md`를 읽는다.
 
 
 ## User Working Style / 작업 방식

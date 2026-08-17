@@ -97,6 +97,16 @@ button{cursor:pointer}
 .bottom-nav button.active:before{content:"";position:absolute;top:-6px;left:50%;width:30px;height:3px;border-radius:0 0 3px 3px;background:#ef9cad;transform:translateX(-50%)}
 .overlay{position:fixed;z-index:100;inset:0;display:grid;place-items:center;padding:calc(18px + var(--safe-top)) calc(18px + var(--safe-right)) calc(18px + var(--safe-bottom)) calc(18px + var(--safe-left));background:rgba(37,29,31,.68);overflow-y:auto}
 .overlay[hidden]{display:none}
+.butler-chat-overlay{z-index:120;place-items:end center;padding:0;background:rgba(37,29,31,.52)}
+.butler-chat-sheet{width:min(100%,430px);max-height:min(76dvh,620px);padding:15px 14px calc(12px + var(--safe-bottom));overflow:hidden;border:1px solid #cdbca8;border-bottom:0;border-radius:18px 18px 0 0;background:#fffaf2;color:#3f3330;box-shadow:0 -12px 30px rgba(48,31,27,.2)}
+.butler-chat-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 2px 11px;border-bottom:1px solid #ded1c1}.butler-chat-header small{display:block;color:#947b68;font-size:9px;font-weight:850;letter-spacing:.08em}.butler-chat-header h2{margin:3px 0 0;color:#711b2c;font:850 20px/1.2 "Noto Serif KR",serif}.butler-chat-header button{flex:0 0 42px;width:42px;height:42px;border:1px solid #d2c2b0;border-radius:50%;background:#fffdf8;color:#5e4d48;font-size:22px}
+.butler-chat-messages{display:flex;flex-direction:column;gap:8px;min-height:120px;max-height:min(43dvh,340px);padding:13px 2px;overflow-y:auto;overscroll-behavior:contain}.butler-chat-message{max-width:86%;margin:0;padding:9px 11px;border-radius:13px;font-size:13px;line-height:1.48;white-space:pre-line;word-break:keep-all}.butler-chat-message.butler{align-self:flex-start;border:1px solid #ddcfbf;background:#f7eee3}.butler-chat-message.user{align-self:flex-end;background:#7b1b2d;color:#fff}
+.butler-chat-typing{display:flex;align-items:center;gap:4px;width:max-content;margin:0 2px 10px;padding:10px 13px;border:1px solid #ddcfbf;border-radius:13px;background:#f7eee3}.butler-chat-typing[hidden]{display:none}.butler-chat-typing span{width:6px;height:6px;border-radius:50%;background:#8b2639;animation:chat-dot 1s infinite}.butler-chat-typing span:nth-child(2){animation-delay:.15s}.butler-chat-typing span:nth-child(3){animation-delay:.3s}
+.butler-chat-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}.butler-chat-form input{min-width:0;height:48px;padding:0 13px;border:1px solid #cfbeaa;border-radius:10px;background:#fffdf9;color:#382e2c;font-size:16px;outline:0}.butler-chat-form input:focus{border-color:#8b2639;box-shadow:0 0 0 3px rgba(139,38,57,.09)}.butler-chat-form button{min-width:64px;height:48px;padding:0 13px;border:1px solid #57101d;border-radius:10px;background:#74192a;color:#fff;font-size:13px;font-weight:850}.butler-chat-form button:disabled,.butler-chat-form input:disabled{opacity:.58}
+.butler-chat-note{margin:8px 2px 0;color:#8b7b72;font-size:9px;line-height:1.4}.butler-chat-sheet.is-thinking .butler-chat-form{opacity:.72}
+@keyframes chat-dot{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-3px);opacity:1}}
+@media(max-width:370px){.butler-chat-sheet{padding-right:11px;padding-left:11px}.butler-chat-message{font-size:12px}.butler-chat-form button{min-width:58px;padding-right:10px;padding-left:10px}}
+@media(prefers-reduced-motion:reduce){.butler-chat-typing span{animation:none}}
 .analysis-sheet{width:min(100%,430px);padding:18px;border-radius:26px;background:#272023;color:#fff;box-shadow:0 24px 70px rgba(0,0,0,.35)}
 .analysis-top span{color:#d2c7c8}
 .analysis-top b{color:#ef9cad}
@@ -168,7 +178,7 @@ button{cursor:pointer}
 .stamp-circles{display:flex;gap:10px;margin:14px 0 15px}
 .stamp-circles i{position:relative;display:grid;place-items:center;width:40px;height:40px;border:1px dashed #baaa9d;border-radius:50%;background:rgba(255,250,242,.72);color:#9a8a80;font-size:12px;font-style:normal;font-weight:800;transition:transform .2s}
 .stamp-circles i:after{content:"";position:absolute;inset:3px;border:1px solid currentColor;border-radius:50%;opacity:.35}
-.stamp-circles i.filled:before{content:"기록";position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:900;letter-spacing:-.06em;text-shadow:.4px .4px 0 rgba(164,64,84,.3)}
+.stamp-circles i.filled:before{content:"대업";position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:900;letter-spacing:-.06em;text-shadow:.4px .4px 0 rgba(164,64,84,.3)}
 .stamp-circles i.filled span{opacity:0}
 .stamp-circles i:nth-child(even).filled{transform:rotate(4deg)}
 .stamp-circles i.inked-now{animation:stamp-ink-in .68s cubic-bezier(.2,.9,.22,1)}

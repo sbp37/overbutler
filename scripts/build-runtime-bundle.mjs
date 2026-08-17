@@ -7,6 +7,8 @@ const maxBundleBytes = 100 * 1024 * 1024;
 
 const entryFiles = [
   "index.html",
+  "message-interpreter.js",
+  "chat-engine.js",
   "app.js",
   "app.css",
   "home-final.css",

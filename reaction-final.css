@@ -87,3 +87,23 @@
 @media(prefers-reduced-motion:reduce){
   .reaction-stamp,.praise-result-character-stage img,.gift-character-stage img,.reaction-spark,.gift-character-stage:before,.gift-character-stage:after{animation:none!important}
 }
+
+/* ── FORM 05 정보 위계 ────────────────────────────────
+   2~3초 보고 "내가 이걸 했다고 고양이가 굳이 대업으로 올렸네ㅋㅋ"가 먼저 와야 한다.
+   그런데 서식 제목("집사 주접 승인", 30px)이 집사의 실제 한마디(17px)보다 크고,
+   점수(18px)가 대업명과 같은 크기라 결과서가 성적표처럼 읽혔다.
+   요소는 하나도 지우지 않고 크기와 순서만 조정한다.
+   전부 #id로 걸어 FORM 05에만 적용한다 — .relationship-result는 선물 화면과 공용이다. */
+#result-title{margin-bottom:6px;font-size:22px}
+#result-verdict{margin-bottom:12px;font-size:13px}
+/* 집사의 한마디가 이 문서에서 가장 큰 본문이 된다. */
+#result-report{font-size:19px;line-height:1.5}
+/* 관계는 숫자보다 "집사가 이 기록을 챙겨뒀다"는 문장이 먼저 읽히게 한다. */
+#result-relationship-result{display:flex;flex-direction:column}
+#result-relationship-result>p{order:-1;margin:0 0 9px;color:#584845;font-size:14px}
+#result-relationship-result>span{color:#9a8577;font-size:9px;font-weight:800;letter-spacing:.04em}
+#result-relationship-result>div{margin:4px 0 6px}
+#result-relationship-result>div strong{font-size:14px}
+#result-relationship-result>div small{font-size:9px}
+/* 점수는 보조 정보다. 대업명(18px)이나 집사 한마디보다 커지지 않게 한다. */
+#result-score{font-size:14px}

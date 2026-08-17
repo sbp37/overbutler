@@ -1,6 +1,23 @@
 /* MANAGER concept — personnel record, not generic settings */
 .main-screen[data-current-view="manager"]>.app-header{display:none}
 #view-manager{padding:22px 16px calc(98px + var(--safe-bottom));background-color:#f5ede2;background-image:radial-gradient(rgba(116,88,61,.035) .7px,transparent .8px),linear-gradient(180deg,#faf4eb 0,#f1e7da 60%,#f7f1e8 100%);background-size:6px 6px,100% 100%}
+.manager-cat-home[hidden]{display:none!important}
+#view-manager.cat-home-active{min-height:calc(100dvh - var(--safe-top));padding:0;background:#d9c6ae;overflow:hidden}
+#view-manager.cat-home-active .manager-details:not(.is-open){display:none}
+#view-manager.cat-home-active.details-open{overflow:visible;background:#f5ede2}
+#view-manager.cat-home-active.details-open .manager-cat-home{display:none}
+.manager-cat-home{display:grid;grid-template-rows:minmax(0,1fr) auto;height:calc(100dvh - 72px - var(--safe-top) - var(--safe-bottom));min-height:0;background:#d9c6ae;overflow:hidden}
+.cat-home-room{position:relative;width:100%;height:auto;min-height:0;max-height:none;overflow:hidden;background:#d9c6ae;isolation:isolate;touch-action:pan-y}
+.cat-home-world{position:absolute;z-index:1;inset:0 auto 0 0;width:155%;height:100%;transform:translate3d(0,0,0);will-change:transform;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.cat-home-room.is-dragging .cat-home-world{cursor:grabbing;transition:none!important}.cat-home-world.is-settling{transition:transform .22s ease-out}
+.cat-home-background,.cat-home-foreground{position:absolute;inset:0;background-image:url("design/rooms/cat-office-room.webp");background-repeat:no-repeat;background-position:center;background-size:cover}
+.cat-home-background{z-index:0;background-color:#e7d8c6}.cat-home-foreground{z-index:4;pointer-events:none;clip-path:polygon(0 80%,38% 80%,38% 72%,62% 72%,62% 80%,100% 80%,100% 100%,0 100%);-webkit-clip-path:polygon(0 80%,38% 80%,38% 72%,62% 72%,62% 80%,100% 80%,100% 100%,0 100%)}
+.cat-home-character{position:absolute;z-index:2;left:50%;bottom:25%;display:flex;align-items:flex-end;justify-content:center;width:142px;height:194px;padding:0;border:0;background:transparent;cursor:pointer;transform:translateX(-50%);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.cat-home-character img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 3px 2px rgba(60,40,28,.09));pointer-events:none;transform-origin:50% 78%}.cat-home-character:active img{transform:scale(.985)}.cat-home-character.is-reacting img{animation:cat-home-response .55s cubic-bezier(.2,.8,.25,1)}.cat-home-character:focus-visible{outline:3px solid rgba(116,25,42,.42);outline-offset:3px;border-radius:14px}
+.cat-home-speech{position:absolute;z-index:5;top:calc(50% - 104px);left:50%;display:-webkit-box;width:130px;max-height:50px;margin:0;padding:8px 9px;overflow:hidden;border:1px solid rgba(151,124,96,.4);border-radius:12px;background:rgba(255,250,242,.95);color:#3f3330;box-shadow:0 3px 9px rgba(72,49,35,.08);font-size:12px;font-weight:700;line-height:1.34;word-break:keep-all;opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .2s ease,transform .2s ease,visibility 0s linear .2s;-webkit-box-orient:vertical;-webkit-line-clamp:2;pointer-events:none}.cat-home-speech.is-visible{opacity:1;visibility:visible;transform:translateY(0);transition-delay:0s}.cat-home-speech:after{content:"";position:absolute;left:18px;bottom:-7px;width:12px;height:8px;background:linear-gradient(135deg,transparent 0 48%,rgba(151,124,96,.4) 49% 54%,rgba(255,250,242,.95) 55%);clip-path:polygon(0 0,100% 0,50% 100%)}
+.cat-home-actions{position:relative;z-index:6;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:9px max(10px,env(safe-area-inset-left)) 10px;background:rgba(255,250,242,.96);border-top:1px solid #cdbca8;box-shadow:0 -5px 14px rgba(63,42,31,.08)}.cat-home-actions button{min-width:0;min-height:48px;padding:5px 3px;border:1px solid #d4c3af;border-radius:9px;background:#fffaf2;color:#5c4943;font-size:10px;font-weight:850;line-height:1.2;word-break:keep-all}.cat-home-actions button:active{background:#f0e3d4;transform:translateY(1px)}
+.manager-details-back{display:none;align-items:center;min-height:44px;margin:0 0 12px;padding:0 4px;border:0;background:transparent;color:#74192a;font-size:12px;font-weight:850}.cat-home-active .manager-details.is-open{padding:16px 16px calc(98px + var(--safe-bottom));background-color:#f5ede2;background-image:radial-gradient(rgba(116,88,61,.035) .7px,transparent .8px),linear-gradient(180deg,#faf4eb 0,#f1e7da 60%,#f7f1e8 100%);background-size:6px 6px,100% 100%}.cat-home-active .manager-details.is-open .manager-details-back{display:flex}
+@keyframes cat-home-response{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-5px) scale(1.02)}70%{transform:translateY(1px) scale(.995)}100%{transform:translateY(0) scale(1)}}
 .manager-office-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 2px 18px}
 .manager-logo-lockup strong{display:block;color:#721c2b;font:900 34px/.96 "Noto Serif KR",serif;letter-spacing:-.08em}
 .manager-logo-lockup span{display:block;margin-top:7px;color:#7c4c4c;font-size:9px;font-weight:850;letter-spacing:.15em}
@@ -88,4 +105,150 @@
   .personnel-pool-list{gap:6px}.personnel-pool-person{grid-template-columns:48px minmax(0,1fr);padding-right:6px;padding-left:6px}.personnel-pool-person img{width:46px}
   .handover-route{grid-template-columns:1fr 25px 1fr}.handover-route img{height:108px}.handover-route p{font-size:10px}
   .app-information{display:block}.app-information nav{justify-content:flex-start;margin-top:4px}
+  .cat-home-character{bottom:25%;width:132px;height:180px}.cat-home-actions{gap:5px;padding-right:8px;padding-left:8px}.cat-home-actions button{font-size:9px}
 }
+@media(min-width:420px){.cat-home-character{bottom:25%;width:148px;height:202px}}
+@media(prefers-reduced-motion:reduce){.cat-home-world,.cat-home-speech{transition:none}.cat-home-character.is-reacting img{animation:none}}
+
+/* 집사방 정보 스트립: 방 상단은 창문뿐이라 정보가 0인 영역이었다. 아트를 가리지 않는
+   위치에 관계 상태를 얹어, 집사 탭을 열자마자 지금 관계가 어디쯤인지 보이게 한다. */
+.cat-home-status{
+  display:none!important;
+  position:absolute;
+  z-index:3;
+  top:calc(12px + var(--safe-top));
+  left:12px;
+  right:12px;
+  padding:10px 12px 11px;
+  border:1px solid rgba(120,86,52,.35);
+  border-radius:11px;
+  background:rgba(38,24,16,.52);
+  backdrop-filter:blur(7px);
+  -webkit-backdrop-filter:blur(7px);
+  box-shadow:0 4px 14px rgba(40,25,14,.22);
+  pointer-events:none;
+}
+.cat-home-status-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+}
+.cat-home-status-head span{
+  color:#fff3e0;
+  font-size:13px;
+  font-weight:850;
+  letter-spacing:-.01em;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+}
+.cat-home-status-head b{
+  flex:none;
+  color:#f3d9b4;
+  font-size:11px;
+  font-weight:800;
+}
+.cat-home-status-head b i{font-style:normal;font-size:14px;color:#fff}
+
+.cat-home-status-bar{
+  margin-top:7px;
+  height:6px;
+  border-radius:99px;
+  background:rgba(255,246,232,.24);
+  overflow:hidden;
+}
+.cat-home-status-bar i{
+  display:block;
+  height:100%;
+  border-radius:99px;
+  background:linear-gradient(90deg,#e6a86b,#f5cf9c);
+  transition:width .45s cubic-bezier(.2,.85,.25,1);
+}
+.cat-home-status small{
+  display:block;
+  margin-top:6px;
+  color:rgba(255,241,224,.82);
+  font-size:10px;
+  font-weight:750;
+}
+
+/* 방이 드래그되고 집사가 눌린다는 사실을 알려주는 첫 방문 힌트. 한 번 만지면 사라진다. */
+.cat-home-hint{
+  display:none!important;
+  position:absolute;
+  z-index:3;
+  left:50%;
+  bottom:14px;
+  margin:0;
+  padding:7px 13px;
+  transform:translateX(-50%);
+  border:1px solid rgba(255,244,230,.3);
+  border-radius:99px;
+  background:rgba(38,24,16,.58);
+  color:#fdf1e2;
+  font-size:11px;
+  font-weight:750;
+  white-space:nowrap;
+  pointer-events:none;
+  animation:cat-home-hint-breathe 2.6s ease-in-out infinite;
+}
+.cat-home-hint[hidden]{display:none}
+
+@keyframes cat-home-hint-breathe{
+  0%,100%{opacity:.72;transform:translateX(-50%) translateY(0)}
+  50%{opacity:1;transform:translateX(-50%) translateY(-3px)}
+}
+
+@media(max-width:340px){
+  .cat-home-status{left:9px;right:9px;padding:9px 10px 10px}
+  .cat-home-hint{font-size:10px;padding:6px 10px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .cat-home-hint{animation:none}
+  .cat-home-status-bar i{transition:none}
+}
+
+/* ── CAT-FIRST 집사 화면: "여러 집사 인사관리"가 아니라 "나와 내 고양이" ───────
+   지금 단계에서 이 화면을 여는 이유는 담당 교체가 아니라 "얘가 나를 어떻게 생각하나"다.
+   그런데 관계 문장이 과몰입 숫자 아래에 있고, 선물 버튼은 근무 기록 카드 안에 묻혀 있고,
+   아직 집사가 하나뿐인데 빈 roster가 큰 자리를 차지했다.
+   기능은 하나도 지우지 않고 순서와 크기만 바꾼다. */
+
+#view-manager .manager-details{display:flex;flex-direction:column}
+#view-manager .manager-details-back{order:0}
+#view-manager .manager-office-header{order:1}
+#view-manager .personnel-card{order:2}
+#view-manager .manager-gift-button{order:3}          /* 선물은 관계 행동이다 */
+#view-manager .manager-work-card{order:4}            /* 근무 기록 통계 */
+#view-manager .stages-card{order:5}                  /* 과몰입 진행 전체 */
+#view-manager .butler-roster-card{order:6}           /* 아래는 인사 관리 영역 */
+#view-manager .recruit-note{order:7}
+#view-manager .manager-change-button{order:8}
+#view-manager .app-information{order:9}
+
+/* 관계 칸: 집사의 말이 먼저, 숫자는 아래로. */
+#view-manager .manager-obsession{display:flex;flex-direction:column;padding:12px}
+#view-manager .manager-obsession .relationship-summary{order:1;margin:0}
+#view-manager .manager-obsession .obsession-heading{order:2;margin-top:11px;padding-top:10px;border-top:1px dashed #ded2c5;font-size:10px}
+#view-manager .manager-obsession .obsession-heading b{font-size:11px}
+#view-manager .manager-obsession .obsession-track{order:3;margin-top:6px}
+#view-manager .relationship-summary>strong{display:block;color:#711b2c;font:850 17px/1.2 "Noto Serif KR",serif}
+#view-manager .relationship-summary>p{margin:7px 0 0;color:#4f423e;font:700 15px/1.45 "Wanted Sans Variable","Wanted Sans",sans-serif;word-break:keep-all}
+#view-manager .relationship-summary>small{display:block;margin-top:7px;color:#9a8879;font-size:10px}
+
+/* 프로필 카드: 캐릭터·이름·관계가 주인공. 호칭/성격/특기는 보조로 접는다. */
+#view-manager .manager-facts>div{padding:4px 0}
+#view-manager .manager-facts dt{font-size:9px}
+#view-manager .manager-facts dd{font-size:10px}
+#view-manager .manager-handnote{font-size:14px;padding:9px 11px}
+
+/* 선물 CTA가 관계 바로 다음에 오므로, 카드에 묻혀 있던 때보다 또렷하게. */
+#view-manager .manager-gift-button{margin-top:11px}
+
+/* 아직 집사가 하나뿐인 사용자에게 빈 명단이 큰 면적을 먹지 않게 한다. */
+#view-manager .butler-roster-card,
+#view-manager .manager-work-card,
+#view-manager .stages-card{padding:13px 13px 12px}
+#view-manager .butler-roster-card .manager-section-title h2,
+#view-manager .manager-work-card .manager-section-title h2,
+#view-manager .stages-card .manager-section-title h2{font-size:15px}

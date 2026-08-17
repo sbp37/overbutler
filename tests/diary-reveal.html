@@ -1,0 +1,80 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Diary reveal fixture</title>
+<script>
+  const character = new URLSearchParams(location.search).get("character") || "cat";
+  const names = { cat: "치즈냥", ai: "오류봇", dog: "멍대리" };
+  const formatDate = date => new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(date).replace(/\. /g, ".").replace(/\.$/, "");
+  const now = new Date();
+  const previous = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const today = formatDate(now);
+  const yesterday = formatDate(previous);
+  const butlerName = names[character] || names.cat;
+  const stories = [
+    { sourceText: "결혼식 다녀왔는데 너무 힘들었어", deed: "힘든 와중에도 결혼식 다녀오기", activities: ["결혼식 다녀옴"], mood: "tired" },
+    { sourceText: "집 와서 씻었어", deed: "생활 문명 복구: 씻기 완료", activities: ["집에 도착함", "씻기 완료"], mood: null },
+    { sourceText: "물 한 잔 마셨어", deed: "생존 수분 충전 완료", activities: ["물 한 잔 챙기기"], mood: null }
+  ];
+  const entries = [yesterday, today].flatMap((date, dateIndex) => stories.map((story, index) => ({
+    id: `${dateIndex}-${index}`,
+    date,
+    todos: [story.deed],
+    deed: story.deed,
+    sourceText: story.sourceText,
+    activities: story.activities,
+    mood: story.mood,
+    text: `${story.deed} 기록 완료`,
+    character,
+    butlerName,
+    ownerName: "테스트주인님",
+    diaryRevealVersion: 1,
+    snapshotVersion: 1
+  })));
+  entries.push({
+    id: "legacy-mixed-today",
+    date: today,
+    todos: ["혼합 그룹 기존 기록"],
+    deed: "혼합 그룹 기존 기록",
+    text: "기존 공개 상태 보존",
+    reflection: "신규 기록과 함께 있어도 공개되는 기존 일기 본문",
+    character,
+    butlerName,
+    ownerName: "테스트주인님"
+  });
+  entries.push({
+    id: "legacy-today",
+    date: today,
+    todos: ["기존 기록"],
+    deed: "기존 기록",
+    text: "기존 기록 보존",
+    reflection: "기존 legacy 일기 본문 공개 유지",
+    character: "fairy",
+    butlerName: "옛별빛",
+    ownerName: "테스트주인님"
+  });
+  entries.push({
+    id: "revealed-today",
+    date: today,
+    todos: ["이미 공개된 기록"],
+    deed: "이미 공개된 기록",
+    text: "공개 상태 보존",
+    reflection: "한번 공개된 일기 본문 공개 유지",
+    character: "witch",
+    butlerName: "보라수정",
+    ownerName: "테스트주인님",
+    diaryRevealVersion: 1,
+    diaryRevealed: true
+  });
+  localStorage.setItem("butlermaker_v1", JSON.stringify({
+    onboarded: true,
+    username: "테스트",
+    character,
+    butlerName,
+    ownedButlers: ["cat", "ai", "dog", character],
+    lastActiveDate: today,
+    diary: entries
+  }));
+  location.replace(`../index.html?diary-fixture=${character}`);
+</script>
