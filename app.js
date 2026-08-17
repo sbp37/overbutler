@@ -1699,12 +1699,17 @@
     // 소개 대신 지금 몇 건이 보관돼 있는지를 넣는다.
     const storedCount = state.records.length;
     const todayCount = state.records.filter(record => record.date === today()).length;
+    // 일기 모드도 같은 한 줄이다. 다만 "오늘 뭘 적는 중"은 teaser가 이미 말하므로
+    // 여기서는 보관량만 알린다. 같은 말을 두 번 하지 않게 한다.
+    const diaryDays = new Set(state.diary.map(entry => entry.date).filter(Boolean)).size;
     $("#archive-butler-message").textContent = name === "records"
       ? (storedCount
         ? `${profile.name}가 기록 ${storedCount}건 보관 중 · 오늘 ${todayCount}건`
         : `${profile.name}가 첫 기록을 기다리는 중`)
       : name === "diary"
-        ? `${ownerDisplayName()}의 하루를 집사 시선으로 몰래 적어뒀어요.`
+        ? (diaryDays
+          ? `${profile.name}가 일지 ${diaryDays}일치 보관 중`
+          : `${profile.name}가 아직 일지를 시작하지 않음`)
         : "모든 대업은 주인님의 역사예요. 집사가 빠짐없이 안전하게 보관할게요.";
   }
 
@@ -2117,7 +2122,9 @@
     });
     const pages = Array.from(groups.values()).reverse();
     if (!pages.length) {
-      list.innerHTML = '<div class="diary-empty-page"><span>EMPTY DIARY</span><p>대업을 하나 보고하면<br>담당 집사가 그날의 일기를 몰래 씁니다.</p></div>';
+      // 빈 화면을 "일기 없음"으로 끝내지 않는다. 무엇을 하면 일기가 생기는지 알려주고
+      // 그 자리에서 홈으로 돌아갈 수 있게 한다(기존 [data-view] 위임을 그대로 쓴다).
+      list.innerHTML = '<div class="diary-empty-page"><span>EMPTY DIARY</span><p>집사는 그날 들은 이야기를 바탕으로<br>혼자 일지를 적어둡니다.<br>오늘 이야기를 하나 들려주면 첫 장이 열립니다.</p><button type="button" data-view="home" data-nav="home">오늘 이야기 들려주러 가기 →</button></div>';
       return;
     }
     const butlerCount = new Set(pages.map(entries => normalizeCharacter(entries.at(-1)?.butler?.character || entries.at(-1)?.character))).size;
@@ -3867,6 +3874,12 @@
     });
     $("#archive-record-list").addEventListener("keydown", event => {
       if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-record-id]")) { event.preventDefault(); openRecordDetail(findRecordById(event.target.dataset.recordId)); }
+    });
+    // 일기 빈 화면의 "홈으로" 버튼은 렌더할 때마다 새로 만들어져서, 초기화 시점에
+    // 한 번 도는 $$("[data-view]") 바인딩에 걸리지 않는다. 기록 목록과 같은 방식으로 위임한다.
+    $("#butler-diary-list").addEventListener("click", event => {
+      const trigger = event.target.closest("[data-view]");
+      if (trigger) showView(trigger.dataset.view, trigger.dataset.nav || trigger.dataset.view);
     });
     $("#record-detail-close").addEventListener("click", closeRecordDetail);
     $("#record-detail-back").addEventListener("click", closeRecordDetail);

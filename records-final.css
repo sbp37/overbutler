@@ -167,8 +167,10 @@
    보관함 관리 화면으로 읽힌다. 요소는 하나도 지우지 않고, 기록 모드에서만
    순서와 크기를 바꾼다. diary / certificates 모드는 그대로다. */
 
-/* 집사는 없애지 않는다. 큰 카드를 한 줄 상태 표시로 줄인다. */
-#view-archive[data-archive-mode="records"] .archive-butler-brief{
+/* 집사는 없애지 않는다. 큰 카드를 한 줄 상태 표시로 줄인다.
+   기록·일기 모드가 같은 처리를 쓴다. 인증서 모드는 큰 카드 그대로다. */
+#view-archive[data-archive-mode="records"] .archive-butler-brief,
+#view-archive[data-archive-mode="diary"] .archive-butler-brief{
   display:flex;align-items:center;gap:9px;min-height:0;
   margin-bottom:2px;padding:9px 12px;border-radius:8px;
   background:#fbf5ec;box-shadow:none;overflow:visible;
@@ -179,11 +181,22 @@
 #view-archive[data-archive-mode="records"] .archive-box-art,
 #view-archive[data-archive-mode="records"] .archive-butler-portrait:after,
 #view-archive[data-archive-mode="records"] .archive-butler-copy small,
-#view-archive[data-archive-mode="records"] .archive-butler-copy h2{display:none}
-#view-archive[data-archive-mode="records"] .archive-butler-portrait{flex:none;height:auto;width:30px}
-#view-archive[data-archive-mode="records"] .archive-butler-portrait img{width:30px;height:34px;filter:none}
-#view-archive[data-archive-mode="records"] .archive-butler-copy{padding:0;min-width:0}
-#view-archive[data-archive-mode="records"] .archive-butler-copy p{
+#view-archive[data-archive-mode="records"] .archive-butler-copy h2,
+#view-archive[data-archive-mode="diary"] .archive-butler-brief:before,
+#view-archive[data-archive-mode="diary"] .archive-paperclip,
+#view-archive[data-archive-mode="diary"] .archive-memo,
+#view-archive[data-archive-mode="diary"] .archive-box-art,
+#view-archive[data-archive-mode="diary"] .archive-butler-portrait:after,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy small,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy h2{display:none}
+#view-archive[data-archive-mode="records"] .archive-butler-portrait,
+#view-archive[data-archive-mode="diary"] .archive-butler-portrait{flex:none;height:auto;width:30px}
+#view-archive[data-archive-mode="records"] .archive-butler-portrait img,
+#view-archive[data-archive-mode="diary"] .archive-butler-portrait img{width:30px;height:34px;filter:none}
+#view-archive[data-archive-mode="records"] .archive-butler-copy,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy{padding:0;min-width:0}
+#view-archive[data-archive-mode="records"] .archive-butler-copy p,
+#view-archive[data-archive-mode="diary"] .archive-butler-copy p{
   margin:0;padding:0;border:0;border-radius:0;background:transparent;
   color:#6d5c53;font:750 12px/1.4 "Wanted Sans Variable","Wanted Sans",sans-serif;
 }
@@ -214,3 +227,34 @@
 #view-archive[data-archive-mode="records"] #archive-records>.record-find-tools{margin:0 0 4px}
 #view-archive[data-archive-mode="records"] #archive-records>.record-legend{margin:11px 0 0;font-size:11px}
 #view-archive[data-archive-mode="records"] #archive-records>.records-summary{margin-top:12px}
+
+/* ── DIARY 모드: 오늘의 teaser가 화면의 주인공 ─────────────────────────
+   집사 일기는 보관함의 또 다른 탭이 아니라 "내가 한 말을 쟤가 뒤에서 뭐라고
+   적어놨을까"가 궁금해서 다시 들어오는 화면이다. 그런데 큰 초상화 → 제목 → 탭
+   → intro 3줄 → 통계 3칸을 지나야 오늘 teaser가 나왔다.
+   공개 로직(next-day reveal)은 손대지 않는다. 순서와 크기만 바꾼다. */
+
+/* 하단 nav에 이미 기록 탭이 있다. 일기 모드에서는 중복 진입점을 접는다.
+   공식 인증서는 여기 말고 진입로가 없으므로 유지한다. */
+#view-archive[data-archive-mode="diary"] .archive-tabs{grid-template-columns:repeat(2,1fr)}
+#view-archive[data-archive-mode="diary"] #archive-tab-records{display:none}
+
+/* intro는 정체성이라 남기되, teaser를 밀어내지 않을 만큼만 차지한다. */
+#view-archive[data-archive-mode="diary"] .diary-intro{padding:1px 2px 9px}
+#view-archive[data-archive-mode="diary"] .diary-intro h2{margin:3px 0 0;font-size:19px}
+#view-archive[data-archive-mode="diary"] .diary-intro p{display:none}
+#view-archive[data-archive-mode="diary"] .butler-diary-list{margin-top:11px}
+
+/* 통계는 대시보드용이다. 일기를 다 읽은 뒤에 보는 보조 정보로 내린다. */
+#view-archive[data-archive-mode="diary"] .diary-ledger-summary{order:2;margin-top:2px}
+#view-archive[data-archive-mode="diary"] .butler-diary-page{order:1}
+#view-archive[data-archive-mode="diary"] .diary-empty-page{order:1}
+
+/* 오늘 봉인된 장은 목록에서 바로 눈에 띄어야 한다. 내용은 그대로 teaser뿐이다. */
+#view-archive[data-archive-mode="diary"] .butler-diary-page.sealed{
+  border-color:#c3a98f;box-shadow:0 6px 14px rgba(72,49,38,.09);
+}
+#view-archive[data-archive-mode="diary"] .diary-empty-page button{
+  min-height:44px;margin-top:14px;padding:0 16px;border:1px solid #c9b49c;border-radius:7px;
+  background:#fffdf8;color:#7a2637;font-size:12px;font-weight:850;
+}
