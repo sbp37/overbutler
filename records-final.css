@@ -160,3 +160,57 @@
   .archive-cabinet-row{grid-template-columns:62px minmax(0,1fr) 60px;padding-right:6px;padding-left:6px}
   .archive-folder-icon{width:53px}
 }
+
+/* ── RECORDS 모드: 기록이 화면의 주인공 ──────────────────────────────
+   기록을 보러 왔는데 큰 집사 초상화 → 제목 → 탭 → 필터 → 검색 → 등급 필터를
+   전부 지나야 실제 기록이 나왔다. 그러면 "내가 말했던 것들이 쌓인 곳"이 아니라
+   보관함 관리 화면으로 읽힌다. 요소는 하나도 지우지 않고, 기록 모드에서만
+   순서와 크기를 바꾼다. diary / certificates 모드는 그대로다. */
+
+/* 집사는 없애지 않는다. 큰 카드를 한 줄 상태 표시로 줄인다. */
+#view-archive[data-archive-mode="records"] .archive-butler-brief{
+  display:flex;align-items:center;gap:9px;min-height:0;
+  margin-bottom:2px;padding:9px 12px;border-radius:8px;
+  background:#fbf5ec;box-shadow:none;overflow:visible;
+}
+#view-archive[data-archive-mode="records"] .archive-butler-brief:before,
+#view-archive[data-archive-mode="records"] .archive-paperclip,
+#view-archive[data-archive-mode="records"] .archive-memo,
+#view-archive[data-archive-mode="records"] .archive-box-art,
+#view-archive[data-archive-mode="records"] .archive-butler-portrait:after,
+#view-archive[data-archive-mode="records"] .archive-butler-copy small,
+#view-archive[data-archive-mode="records"] .archive-butler-copy h2{display:none}
+#view-archive[data-archive-mode="records"] .archive-butler-portrait{flex:none;height:auto;width:30px}
+#view-archive[data-archive-mode="records"] .archive-butler-portrait img{width:30px;height:34px;filter:none}
+#view-archive[data-archive-mode="records"] .archive-butler-copy{padding:0;min-width:0}
+#view-archive[data-archive-mode="records"] .archive-butler-copy p{
+  margin:0;padding:0;border:0;border-radius:0;background:transparent;
+  color:#6d5c53;font:750 12px/1.4 "Wanted Sans Variable","Wanted Sans",sans-serif;
+}
+
+/* 하단 nav에 이미 집사 일기 탭이 있다. 기록 모드에서는 중복 진입점을 접는다.
+   공식 인증서는 여기 말고 진입로가 없으므로 그대로 둔다. */
+#view-archive[data-archive-mode="records"] .archive-tabs{grid-template-columns:repeat(2,1fr)}
+#view-archive[data-archive-mode="records"] #archive-tab-diary{display:none}
+
+/* 실제 기록이 먼저. 관리 도구는 목록 아래로 내린다.
+   DOM은 그대로 두고 순서만 바꿔, 필터/검색 동작에 손대지 않는다. */
+#view-archive[data-archive-mode="records"] #archive-records{display:flex;flex-direction:column}
+#view-archive[data-archive-mode="records"] #archive-records>.archive-record-list{order:1}
+#view-archive[data-archive-mode="records"] #archive-records>.record-legend{order:2}
+#view-archive[data-archive-mode="records"] #archive-records>.records-summary{order:3}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters{order:4}
+#view-archive[data-archive-mode="records"] #archive-records>.record-find-tools{order:5}
+
+/* 아래로 내려간 관리 도구는 목록과 구분되게, 그리고 조용하게. */
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters{
+  position:relative;margin:18px 0 10px;padding-top:26px;border-top:1px dashed #d8c9b6;
+}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters:before{
+  content:"기록 분류 · 찾기";position:absolute;left:1px;top:9px;
+  color:#9a8879;font-size:10px;font-weight:850;letter-spacing:.04em;white-space:nowrap;
+}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters button{min-height:38px;padding:0 12px;font-size:11px}
+#view-archive[data-archive-mode="records"] #archive-records>.record-find-tools{margin:0 0 4px}
+#view-archive[data-archive-mode="records"] #archive-records>.record-legend{margin:11px 0 0;font-size:11px}
+#view-archive[data-archive-mode="records"] #archive-records>.records-summary{margin-top:12px}
