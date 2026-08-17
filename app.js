@@ -328,6 +328,34 @@
     fairy: "선물이 반짝여요! 집사 날개도 기뻐서 별가루를 멈출 수가 없어요!"
   };
 
+  // 선물 칸에서 집사가 하는 말은 집사마다 다르다. "회로"는 AI 집사의 어휘고
+  // "다냥"은 고양이의 어미다 — 어느 쪽이든 다른 담당이 말하면 남의 말투가 된다.
+  const GIFT_WAITING_LINES = {
+    ai: "수령 대기 상태입니다",
+    cat: "안 기다리는 척 기다리는 중이다냥",
+    dog: "아까부터 문 앞에 있어요",
+    alien: "지구 선물 수령 대기 중으로 관측됨",
+    ninja: "수령 지점에서 대기 중이다",
+    witch: "오늘 선물이 온다는 점괘가 나왔어요",
+    zombie: "으... 선물... 기다리는 중이야...",
+    girlidol: "딱히 기다린 건 아닌데 계속 보고 있었어",
+    elf: "천천히 오셔도 괜찮아요. 기다리는 시간도 좋아요",
+    fairy: "선물 상자만 봐도 별가루가 나요!"
+  };
+  // 선물 결과 타이틀. 판정 네 종류 전부 집사 어휘를 탄다.
+  const GIFT_RESULT_TITLES = {
+    ai: { rare: "희귀 선물로<br>집사 과몰입 비상", favorite: "취향 적중으로<br>집사 행복 회로 폭주", duplicate: "또 이 선물…<br>집사가 기억했습니다", normal: "선물 수령으로<br>집사 행복 회로 가동" },
+    cat: { rare: "희귀 선물이다냥 ·<br>집사 동공 확대", favorite: "취향 적중 ·<br>꼬리 통제 실패", duplicate: "또 이 선물이냥 ·<br>집사가 기억하고 있었다냥", normal: "선물 수령 ·<br>집사 표정 관리 중" },
+    dog: { rare: "희귀 선물 ·<br>집사 착지 실패", favorite: "취향 적중 ·<br>꼬리 회전수 측정 불가", duplicate: "또 이 선물 ·<br>집사가 기억했어요", normal: "선물 수령 ·<br>꼬리 가동 시작" },
+    alien: { rare: "희귀 선물 ·<br>본성 긴급 보고 대상", favorite: "취향 적중 ·<br>선물 정확도 이상 수치", duplicate: "동일 선물 재수령 ·<br>기록 대조 완료", normal: "선물 수령 ·<br>지구 문화 관측 갱신" },
+    ninja: { rare: "희귀 선물 ·<br>극비 보관 등급", favorite: "취향 적중 ·<br>표정 관리 임무 실패", duplicate: "동일 보급품 ·<br>기억하고 있었다", normal: "보급품 수령 ·<br>임무 사기 상승" },
+    witch: { rare: "희귀 선물 ·<br>수정구슬 과열", favorite: "취향 적중 ·<br>오늘 점괘가 전부 길조", duplicate: "또 이 선물 ·<br>지난 점괘까지 기억해요", normal: "선물 수령 ·<br>좋은 징조 확인" },
+    zombie: { rare: "희귀 선물... ·<br>완전히 깨어났어", favorite: "취향 적중... ·<br>심장이 다시 뛰어", duplicate: "또 이 선물... ·<br>기억하고 있었어", normal: "선물 수령... ·<br>천천히 기뻐하는 중" },
+    girlidol: { rare: "희귀 선물 ·<br>리액션 통제 실패", favorite: "취향 적중 ·<br>도도한 척 유지 실패", duplicate: "또 이 선물 ·<br>기억하고 있었어", normal: "선물 수령 ·<br>티 안 내는 중" },
+    elf: { rare: "희귀 선물 ·<br>천 년 만의 놀람", favorite: "취향 적중 ·<br>말문이 잠시 막혔어요", duplicate: "또 이 선물 ·<br>지난번까지 기억해요", normal: "선물 수령 ·<br>오래 간직하겠습니다" },
+    fairy: { rare: "희귀 선물 ·<br>별가루 분출량 초과", favorite: "취향 적중 ·<br>날개가 멈추질 않아요", duplicate: "또 이 선물 ·<br>지난번도 기억해요", normal: "선물 수령 ·<br>반짝임 가동 시작" }
+  };
+
   const TIME_MESSAGES = {
     ai: {
       dawn: ["{owner} 새벽 감지. 집사도 새벽 모드 활성화. 함께 버티겠음 🌌", "[새벽 로그] 집사 저전력 배려 모드 활성화. 물 한 모금 후 휴식 권장."],
@@ -2553,9 +2581,8 @@
     $("#stat-gifts").textContent = stat.gifts;
     $("#stat-days").textContent = days;
     $("#manager-gift-points").textContent = state.points;
-    // 선물 칸의 한 줄은 담당 집사가 하는 말이라 이름이 따라간다.
     const giftSay = $("#manager-gift-say");
-    if (giftSay) giftSay.textContent = `${stat.customName || profile.defaultName}이 안 기다리는 척 기다리는 중이다냥`;
+    if (giftSay) giftSay.textContent = GIFT_WAITING_LINES[state.character] || GIFT_WAITING_LINES.ai;
     $("#manager-roster-count").textContent = rosterKeys.length;
     $("#manager-roster").innerHTML = rosterKeys.map(key => {
       const rosterProfile = CHARACTER_PROFILES[key];
@@ -3153,7 +3180,12 @@
     $("#result-record-status").textContent = record.stampEligible === false
       ? `칭찬 · +${pointsEarned}P`
       : `${stampStatus.progress} / ${stampStatus.target}`;
-    $("#result-report").textContent = "";
+    // 집사 코멘트는 손글씨 메모다. 한 글자씩 찍히는 연출은 재질과 어긋나고,
+    // 무엇보다 노란 메모지가 빈 칸으로 먼저 떠서 "덜 그려진 화면"으로 읽혔다.
+    // 문장은 처음부터 자리에 있고, 종이만 살짝 떠오른다.
+    const reportNode = $("#result-report");
+    reportNode.classList.remove("is-inked");
+    reportNode.textContent = record.report;
     $("#result-rare-note").hidden = !rare;
     $("#result-certificate-button").innerHTML = official
       ? "공식 인증서 발급 <span>→</span>"
@@ -3176,7 +3208,7 @@
     setPoseImage($("#result-butler-image"), butler.character, record.pose === "power" ? "power" : "praise");
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
-    window.setTimeout(() => typeMessage($("#result-report"), record.report, rare ? 22 : 27), 240);
+    window.requestAnimationFrame(() => reportNode.classList.add("is-inked"));
   }
 
   function closePraiseResult() {
@@ -3893,7 +3925,8 @@
     $("#gift-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-reaction-badge").textContent = interaction.label;
     $("#gift-reaction-badge").dataset.reaction = interaction.type;
-    $("#gift-title").innerHTML = interaction.type === "rare" ? "희귀 선물로<br>집사 과몰입 비상" : interaction.type === "favorite" ? "취향 적중으로<br>집사 행복 회로 폭주" : interaction.type === "duplicate" ? "또 이 선물…<br>집사가 기억했습니다" : "선물 수령으로<br>집사 행복 회로 가동";
+    const giftTitles = GIFT_RESULT_TITLES[state.character] || GIFT_RESULT_TITLES.ai;
+    $("#gift-title").innerHTML = giftTitles[interaction.type] || giftTitles.normal;
     $("#gift-message").textContent = message;
     $("#gift-received-name").textContent = `${gift.emoji} ${gift.name}`;
     $("#gift-count").textContent = stat.gifts;

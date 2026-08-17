@@ -90,10 +90,15 @@
   border: 2px solid var(--metal); border-bottom: 0; border-radius: 5px 5px 3px 3px;
 }
 
-/* 스테이플 심 — 종이 위로 나온 두 다리만 보인다. */
+/* 스테이플 심 — 앞에서 본 스테이플은 종이 위에 놓인 금속 막대 하나다.
+   다리는 종이 뒤로 넘어가 보이지 않는다. 예전에는 세 변만 그린 ⌐ 모양을
+   종이 위쪽 바깥(top:-3px)에 걸쳐 뒀는데, 겹치는 부분이 2px뿐이라
+   물려 있는 심이 아니라 허공에 뜬 꺾쇠로 읽혔다. */
 .of-staple {
-  position: absolute; z-index: 6; width: 16px; height: 5px;
-  border: 1.8px solid var(--metal-dk); border-bottom: 0;
+  position: absolute; z-index: 6; width: 16px; height: 4px;
+  border: 0; border-radius: 1px;
+  background: linear-gradient(var(--metal), var(--metal-dk));
+  box-shadow: 0 1px 1px rgba(45, 35, 22, .28);
 }
 
 /* 2공 펀치 — 배경 격자지가 구멍으로 비쳐 보이게 --paper를 채운다. */
@@ -420,7 +425,7 @@
   border-left: 3px solid var(--kraft-deep);
   background: var(--memo);
 }
-#view-archive .owner-file-remark .of-staple { top: -3px; left: 18px; transform: rotate(-2deg); }
+#view-archive .owner-file-remark .of-staple { top: 8px; right: 14px; transform: rotate(-3deg); }
 #view-archive .owner-file-remark > span {
   display: block;
   margin-bottom: 4px;
@@ -1420,7 +1425,7 @@
 
 /* 여백 메모 — 테이프 대신 스테이플로 박고, 본문은 집사 육필로. */
 #view-archive .file-margin-note:before { content: none; }
-#view-archive .file-margin-note .of-staple { top: -3px; right: 20px; transform: rotate(3deg); }
+#view-archive .file-margin-note .of-staple { top: 8px; right: 16px; transform: rotate(3deg); }
 #view-archive .file-margin-note > span {
   display: block;
   margin-bottom: 4px;
@@ -2442,7 +2447,7 @@
   border-left: 3px solid var(--kraft-deep);
   background: var(--memo);
 }
-.praise-result-line .of-staple { top: -3px; left: 16px; }
+.praise-result-line .of-staple { top: 8px; right: 14px; transform: rotate(-3deg); }
 .praise-result-document #result-report {
   margin: 0;
   padding: 0;
@@ -2566,7 +2571,7 @@
   font: 600 14.5px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
   word-break: keep-all;
 }
-#analysis-overlay .analysis-deed .of-staple { top: -3px; left: 16px; }
+#analysis-overlay .analysis-deed .of-staple { top: 8px; right: 14px; transform: rotate(-3deg); }
 
 /* 심사 항목 — 위에서부터 차례로 도장이 찍힌다. */
 #analysis-overlay .analysis-steps {
@@ -2637,7 +2642,7 @@
   background: var(--memo);
   text-align: left;
 }
-#analysis-overlay .analysis-note .of-staple { top: -3px; right: 18px; }
+#analysis-overlay .analysis-note .of-staple { top: 8px; right: 14px; transform: rotate(3deg); }
 #analysis-overlay .analysis-note > span {
   display: block;
   margin-bottom: 4px;
@@ -2905,4 +2910,15 @@
   font: 800 9px/1 var(--disp);
   letter-spacing: .1em;
   transform: rotate(2deg);
+}
+
+/* 집사 코멘트는 종이가 놓이듯 떠오른다 — 빈 칸이 먼저 뜨지 않게 문장은 이미 자리에 있다. */
+.praise-result-document #result-report {
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.praise-result-document #result-report.is-inked { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .praise-result-document #result-report { opacity: 1; transform: none; transition: none; }
 }
