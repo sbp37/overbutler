@@ -277,11 +277,6 @@
           </div>
         </section>
 
-        <div class="owner-file-stamps">
-          <span class="owner-file-stamps-label">공식 인증<br>도장</span>
-          <div class="owner-file-stamp-row" id="owner-file-stamp-row"></div>
-        </div>
-
         <section class="archive-workspace">
           <div class="archive-title-row">
             <div class="archive-title-aside">
@@ -292,7 +287,7 @@
           <div class="archive-panel active" id="archive-records" role="region" aria-label="주인님 파일 본문">
             <div class="record-find-tools">
               <label class="record-search"><span>기록 찾기</span><input id="record-search" type="search" maxlength="40" placeholder="대업명·칭호 검색" autocomplete="off"></label>
-              <label class="record-grade-filter"><span>등급</span><select id="record-grade-filter"><option value="all">전체 등급</option></select></label>
+              <div class="record-grade-filter" role="group" aria-label="등급 분류"><span>등급</span><div class="record-grade-chips" id="record-grade-filter"><button class="active" type="button" data-record-grade="all">전체</button><button type="button" data-record-grade="daily">일상</button><button type="button" data-record-grade="rare">희귀</button><button type="button" data-record-grade="official">공식 인정</button></div></div>
             </div>
             <p class="record-legend" id="record-legend"></p>
             <div class="archive-record-list" id="archive-record-list"></div>

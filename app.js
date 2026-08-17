@@ -1690,15 +1690,6 @@
     $("#archive-butler-name").textContent = `담당 ${alias} · ${opened.replace(/-/g, ". ")} 개설`;
     const openedStamp = $("#owner-file-opened-stamp");
     if (openedStamp) openedStamp.textContent = opened.slice(5).replace("-", ". ");
-
-    // 인증 도장 줄 — 찍힌 칸은 "대업", 남은 칸은 번호. 다음 인증까지 몇 칸인지가 한눈에 보인다.
-    const status = certificationStatus();
-    const row = $("#owner-file-stamp-row");
-    if (row) {
-      row.innerHTML = Array.from({ length: status.target }, (_, index) => (index < status.progress
-        ? `<span class="owner-file-stamp on">대업</span>`
-        : `<span class="owner-file-stamp">${index + 1}</span>`)).join("");
-    }
   }
 
   function renderRelationshipStatus() {
@@ -2252,18 +2243,19 @@
 
   function renderArchiveRecords() {
     const officialIds = new Set(state.certificates.map(record => record.id));
-    const gradeSelect = $("#record-grade-filter");
-    const grades = Array.from(new Set(state.records.map(record => record.grade).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ko"));
-    const gradeOptions = [`<option value="all">전체 등급</option>`, ...grades.map(grade => `<option value="${escapeHtml(grade)}">${escapeHtml(grade)}</option>`)].join("");
-    if (gradeSelect.innerHTML !== gradeOptions) gradeSelect.innerHTML = gradeOptions;
-    if (!grades.includes(recordGrade)) recordGrade = "all";
-    gradeSelect.value = recordGrade;
+    // 등급은 기록마다 다른 문구가 아니라 세 갈래다 — 평소 / 희귀 판정 / 공식 인정.
+    // 저장된 grade 문자열을 그대로 나열하면 목록이 기록 수만큼 늘어나기만 했다.
+    $$("#record-grade-filter button").forEach(button => {
+      button.classList.toggle("active", button.dataset.recordGrade === recordGrade);
+    });
     const query = normalizeDeed(recordSearch);
     const keep = record => {
       if (recordFilter === "today" && record.date !== today()) return false;
       if (recordFilter === "official" && !officialIds.has(record.id)) return false;
       if (recordFilter === "praise" && record.stampEligible !== false) return false;
-      if (recordGrade !== "all" && record.grade !== recordGrade) return false;
+      if (recordGrade === "rare" && !record.rare) return false;
+      if (recordGrade === "official" && !officialIds.has(record.id)) return false;
+      if (recordGrade === "daily" && (record.rare || officialIds.has(record.id))) return false;
       if (!query) return true;
       return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
     };
@@ -4020,7 +4012,12 @@
       renderArchiveRecords();
     }));
     $("#record-search").addEventListener("input", event => { recordSearch = event.target.value; renderArchiveRecords(); });
-    $("#record-grade-filter").addEventListener("change", event => { recordGrade = event.target.value; renderArchiveRecords(); });
+    $("#record-grade-filter").addEventListener("click", event => {
+      const chip = event.target.closest("[data-record-grade]");
+      if (!chip) return;
+      recordGrade = chip.dataset.recordGrade;
+      renderArchiveRecords();
+    });
     $("#archive-record-list").addEventListener("click", event => {
       // 도장은 카드 안에 있지만 카드 상세가 아니라 인증서를 연다(진입로 2). 먼저 가로챈다.
       const stamp = event.target.closest("[data-cert-id]");

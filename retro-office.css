@@ -435,51 +435,6 @@
   word-break: keep-all;
 }
 
-/* 인증 도장 줄 — 서류철 밖, 종이 위에 바로 찍힌다. */
-#view-archive .owner-file-stamps {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin: 18px 4px 0;
-}
-#view-archive .owner-file-stamps-label {
-  flex: 0 0 52px;
-  color: var(--ink-soft);
-  font: 700 10px/1.5 var(--disp);
-  letter-spacing: .1em;
-}
-#view-archive .owner-file-stamp-row { display: flex; flex: 1; gap: 7px; }
-#view-archive .owner-file-stamp {
-  /* 칸은 줄어들 수 있어야 한다 — 7칸이 360px에서도 한 줄에 들어와야
-     "다음 인증까지 몇 칸"이 한눈에 읽힌다. */
-  display: flex;
-  flex: 0 0 36px;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1.5px dashed var(--doc-line);
-  border-radius: 50%;
-  color: var(--ink-faint);
-  font: 700 9px/1 var(--disp);
-}
-#view-archive .owner-file-stamp.on {
-  border: 2px solid var(--stamp-red);
-  background: rgba(157, 47, 58, .06);
-  color: var(--stamp-red);
-  font: 800 9.5px/1 var(--disp);
-}
-#view-archive .owner-file-stamp.on:nth-child(1) { transform: rotate(-11deg); }
-#view-archive .owner-file-stamp.on:nth-child(2) { transform: rotate(6deg); }
-#view-archive .owner-file-stamp.on:nth-child(3) { transform: rotate(-4deg); }
-#view-archive .owner-file-stamp.on:nth-child(4) { transform: rotate(9deg); }
-#view-archive .owner-file-stamp.on:nth-child(5) { transform: rotate(-7deg); }
-/* 좁은 화면에서도 7칸이 한 줄에 남아야 "몇 칸 남았는지"가 한눈에 읽힌다. */
-@media (max-width: 385px) {
-  #view-archive .owner-file-stamp-row { gap: 5px; }
-  #view-archive .owner-file-stamp { flex-basis: 31px; width: 31px; height: 31px; font-size: 8px; }
-}
-
 /* ═══════════ 주인님 파일 본문 ═══════════
    기록 카드 · 여백 메모 · 인증서 도장이 한 스트림 안에 날짜순으로 공존한다. */
 
@@ -2814,3 +2769,43 @@
 }
 #view-home .stamp-progress p { display: none; }
 #view-home .stamp-progress:after { display: none; }
+
+/* ═══════════ v4.1 수정 — 파일 ═══════════ */
+
+/* 등급은 브라우저 셀렉트가 아니라 칩이다. 종이 위에서 시스템 UI 하나만
+   튀어나와 있었고, 열어야 뭐가 있는지 알 수 있는 것도 이 화면답지 않았다. */
+#view-archive .record-grade-filter {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#view-archive .record-grade-filter > span {
+  flex: 0 0 auto;
+  margin: 0 4px 0 0;
+  color: var(--ink-soft);
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .1em;
+}
+#view-archive .record-grade-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+#view-archive .record-grade-chips button {
+  padding: 8px 13px;
+  border: 1px solid var(--doc-line);
+  border-radius: 20px;
+  background: var(--ivory);
+  color: var(--ink-soft);
+  font: 600 11.5px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#view-archive .record-grade-chips button.active {
+  border-color: var(--stamp-red);
+  background: rgba(157, 47, 58, .06);
+  color: var(--stamp-red);
+  font-weight: 700;
+}
+
+/* 검색과 등급은 같은 줄에 밀어 넣을 수 없다 — 칩 네 개는 자기 줄을 갖는다. */
+#view-archive .record-find-tools { display: block; }
+#view-archive .record-search { display: grid; gap: 5px; margin-bottom: 10px; }
+#view-archive .record-grade-filter { flex-wrap: wrap; }
