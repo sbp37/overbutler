@@ -838,7 +838,7 @@
   const $$ = selector => Array.from(document.querySelectorAll(selector));
   const randomItem = list => list[Math.floor(Math.random() * list.length)];
   const ANALYTICS_EVENT_NAME = "overbutler:analytics";
-  const ANALYTICS_PROPERTY_ALLOWLIST = new Set(["character", "view", "tab", "category", "verdict", "source", "official", "giftType", "relationshipStage", "onboarded", "preview"]);
+  const ANALYTICS_PROPERTY_ALLOWLIST = new Set(["character", "view", "tab", "filter", "category", "verdict", "source", "official", "giftType", "relationshipStage", "onboarded", "preview"]);
   const analyticsQueue = [];
   const analyticsSubscribers = new Set();
 
@@ -1774,24 +1774,7 @@
     $("#record-legend").textContent = status.first
       ? `모든 기록은 대업 후보로 접수됩니다. ${status.target}건이 모이면 사무국이 공식 인정 인증서를 발급합니다. (${status.remaining}건 남음)`
       : `대업 후보 ${status.target}건마다 공식 인정 인증서가 한 장 발급됩니다. 다음 발급까지 ${status.remaining}건 남았습니다.`;
-    const certificateFiles = state.certificates.slice().reverse().map((certificate, index) => {
-      const sourceIndex = state.certificates.length - 1 - index;
-      return `<article class="archive-cabinet-row">
-        <div class="archive-certificate-thumb" aria-hidden="true"><span>공식<br>인증서</span><img src="${recordPortrait(certificate, "praise")}" alt=""></div>
-        <div class="archive-file-copy"><strong>${escapeHtml(certificate.deed)}</strong><p>${escapeHtml(certificate.grade)}</p><small>${escapeHtml(certificate.date)} · 문서 ${String(certificate.number || sourceIndex + 1).padStart(2, "0")}</small></div>
-        <div class="archive-file-action"><span>보관 완료</span><button type="button" data-cert-index="${sourceIndex}" aria-label="${escapeHtml(certificate.deed)} 인증서 열람">›</button></div>
-      </article>`;
-    }).join("");
-    $("#archive-certificates").innerHTML = `<section class="archive-progress-note">
-      <div><span>${status.first ? "첫" : "다음"} 공식 인증 진행</span><strong>${status.progress}<i>/</i>${status.target}</strong></div>
-      <p>${status.remaining}건을 더 접수하면 사무국에서 새 인증서를 발급합니다.</p>
-      <b style="--archive-progress:${Math.round(status.progress / status.target * 100)}%"><i></i></b>
-    </section>
-    <div class="archive-cabinet-heading"><strong>기록 보관 서고</strong><span>총 ${state.certificates.length}건</span></div>
-    <div class="archive-cabinet-list">${certificateFiles || '<div class="records-empty certificate-empty"><i aria-hidden="true"></i><span>인증서 보관 대기</span><p>아직 발급된 공식 인증서가 없습니다.<br>대업 도장을 모으면 이곳에 첫 문서가 보관됩니다.</p></div>'}</div>
-    <div class="archive-security-note"><span aria-hidden="true">▣</span><p>모든 공식 인증서는 기기 안에 안전하게 보관되며<br>언제든 다시 열람할 수 있습니다.</p></div>`;
     renderArchiveRecords();
-    $$('[data-cert-index]').forEach(button => button.addEventListener("click", () => openCertificate(state.certificates[Number(button.dataset.certIndex)])));
   }
 
   // 한국어 조사 자동 선택. 기록 문구가 무엇이든 문장이 어색해지지 않게 한다.
@@ -3950,9 +3933,8 @@
         filter.classList.toggle("active", active);
         filter.setAttribute("aria-pressed", String(active));
       });
-      trackEvent("owner_file_filter", { tab: recordFilter });
+      trackEvent("owner_file_filter", { filter: recordFilter });
       renderArchiveRecords();
-      $$('[data-cert-index]').forEach(certificateButton => certificateButton.addEventListener("click", () => openCertificate(state.certificates[Number(certificateButton.dataset.certIndex)])));
     }));
     $("#record-search").addEventListener("input", event => { recordSearch = event.target.value; renderArchiveRecords(); });
     $("#record-grade-filter").addEventListener("change", event => { recordGrade = event.target.value; renderArchiveRecords(); });

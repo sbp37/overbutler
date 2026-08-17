@@ -8,32 +8,10 @@
   --content-gap: 14px;
 }
 
-body,
-button,
-input,
-textarea,
-select,
-.briefing-speech,
-.archive-butler-copy p,
-.archive-memo,
-.manager-handnote,
-.gift-drop-zone > p,
-.gift-receipt blockquote,
-.praise-result-document blockquote {
-  font-family: var(--ui-font);
-}
-
 button,
 input,
 textarea,
 select { font-size: max(16px, 1em); }
-
-/* Decoration stays intentional: one strong office cue per major surface. */
-#view-home .briefing-stage::after,
-.archive-memo,
-.archive-box-art,
-.personnel-paperclip,
-.home-desk-links button::after { display: none; }
 
 .document-card,
 .archive-workspace,
@@ -149,67 +127,9 @@ select { font-size: max(16px, 1em); }
 
 .home-desk-links button small { display: none; }
 
-/* RECORDS / ARCHIVE — character is supporting context, records lead. */
-.archive-butler-brief {
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 12px;
-  align-items: stretch;
-  min-height: 168px;
-  padding: 13px 14px 12px 5px;
-}
-
-.archive-butler-portrait {
-  align-self: start;
-  height: 156px;
-  min-height: 0;
-}
-
-.archive-butler-portrait img {
-  width: 112px;
-  height: 156px;
-  object-position: center bottom;
-}
-
-.archive-butler-copy {
-  align-self: center;
-  padding: 18px 0 10px;
-}
-
-.archive-butler-copy small { font-size: 12px; }
-.archive-butler-copy h2 { margin: 4px 0 7px; font-size: 21px; }
-.archive-butler-copy p {
-  padding: 10px 11px;
-  font-size: 14px;
-  font-weight: 650;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-#view-archive[data-archive-mode="certificates"] .archive-butler-brief {
-  grid-template-columns: 112px minmax(0, 1fr);
-  min-height: 168px;
-  padding-right: 14px;
-}
-
-#view-archive[data-archive-mode="certificates"] .archive-butler-portrait {
-  height: 156px;
-  min-height: 0;
-}
-
-#view-archive[data-archive-mode="certificates"] .archive-butler-portrait img {
-  width: 112px;
-  height: 156px;
-}
-
-#view-archive[data-archive-mode="certificates"] .archive-butler-copy p { font-size: 14px; }
-#view-archive[data-archive-mode="certificates"] .archive-box-art { display: none; }
-
 .archive-workspace { padding: 18px 13px 14px; }
 .archive-title-row h1 { font-size: 25px; }
 .archive-title-row > div > span { font-size: 10px; }
-
-#view-archive .archive-tabs { margin-bottom: 12px; }
-#view-archive .archive-tabs button { font-size: 14px; }
 
 .office-record-card {
   grid-template-columns: 48px minmax(0, 1fr) 62px;
@@ -258,80 +178,6 @@ select { font-size: max(16px, 1em); }
 .record-approval img { width: 34px; height: 38px; }
 .record-approval figcaption,
 .record-detail-cta { display: none; }
-
-/* Certificate archive uses one meaningful thumbnail instead of nested file props. */
-.archive-cabinet-row {
-  grid-template-columns: 62px minmax(0, 1fr) 62px;
-  min-height: 96px;
-  padding: 8px;
-}
-
-.archive-certificate-thumb {
-  position: relative;
-  width: 54px;
-  height: 68px;
-  margin: auto;
-  border: 2px double #b18b4b;
-  background: #fffaf0;
-  overflow: hidden;
-}
-
-.archive-certificate-thumb::before {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(177, 139, 75, .45);
-}
-
-.archive-certificate-thumb span {
-  position: absolute;
-  z-index: 2;
-  top: 8px;
-  left: 6px;
-  color: #7b1b2d;
-  font: 850 8px/1.15 "Noto Serif KR", serif;
-}
-
-.archive-certificate-thumb img {
-  position: absolute;
-  right: -4px;
-  bottom: -2px;
-  width: 38px;
-  height: 48px;
-  object-fit: contain;
-  object-position: center bottom;
-}
-
-.certificate-empty {
-  display: grid;
-  justify-items: center;
-  padding: 28px 16px;
-}
-
-.certificate-empty i {
-  position: relative;
-  width: 44px;
-  height: 54px;
-  margin-bottom: 11px;
-  border: 2px double #b89a69;
-  background: #fffaf0;
-}
-
-.certificate-empty i::after {
-  content: "대업";
-  position: absolute;
-  inset: 10px 7px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #d4bea0;
-  color: #8b2639;
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 850;
-}
-
-.certificate-empty span { color: #6c5851; font-size: 13px; letter-spacing: 0; }
-.certificate-empty p { max-width: 250px; }
 
 /* MANAGER — one stable portrait column and one identity column. */
 .personnel-grid {
@@ -557,10 +403,6 @@ select { font-size: max(16px, 1em); }
   #view-home .briefing-character img { height: 163px; }
   #view-home .briefing-panel h1 { font-size: 20px; }
   #view-home .briefing-speech { font-size: 15px; }
-  .archive-butler-brief { grid-template-columns: 102px minmax(0, 1fr); }
-  .archive-butler-portrait img { width: 102px; height: 146px; }
-  #view-archive[data-archive-mode="certificates"] .archive-butler-brief { grid-template-columns: 102px minmax(0, 1fr); }
-  #view-archive[data-archive-mode="certificates"] .archive-butler-portrait img { width: 102px; height: 146px; }
   .personnel-grid { grid-template-columns: 116px minmax(0, 1fr); }
   .manager-character-stage { width: 116px; height: 208px; }
   .manager-character-stage img { width: 116px; height: 186px; }
@@ -574,11 +416,6 @@ select { font-size: max(16px, 1em); }
   #view-home .briefing-panel { padding-top: 12px; }
   #view-home .briefing-panel h1 { font-size: 19px; }
   #view-home .briefing-speech { padding: 10px; font-size: 14px; }
-  .archive-butler-brief { grid-template-columns: 90px minmax(0, 1fr); gap: 9px; }
-  .archive-butler-portrait img { width: 90px; height: 136px; }
-  #view-archive[data-archive-mode="certificates"] .archive-butler-brief { grid-template-columns: 90px minmax(0, 1fr); gap: 9px; }
-  #view-archive[data-archive-mode="certificates"] .archive-butler-portrait img { width: 90px; height: 136px; }
-  .archive-butler-copy p { font-size: 13px; }
   .personnel-grid { grid-template-columns: 104px minmax(0, 1fr); }
   .manager-character-stage { width: 104px; height: 198px; }
   .manager-character-stage img { width: 104px; height: 176px; }
