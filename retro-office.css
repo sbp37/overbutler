@@ -93,7 +93,7 @@
 }
 
 /* 큰 서류 카드: 재질을 하나로. 흐린 blur 그림자를 잉크 오프셋으로 바꾼다. */
-#view-archive .archive-butler-brief,
+#view-archive .owner-file-cover,
 #view-archive .archive-workspace,
 #manager-details .personnel-card,
 #manager-details .butler-roster-card,
@@ -108,7 +108,6 @@
   box-shadow: var(--doc-shadow);
 }
 /* 카드 안쪽 이중선도 각진 모서리에 맞춘다 */
-#view-archive .archive-butler-brief:before,
 #manager-details .personnel-card:before,
 #view-report .weekly-report-sheet:before { border-radius: 3px; }
 .praise-result-document {
@@ -178,6 +177,7 @@
    HOME의 .file-tab(대업 접수서 · FORM 01)과 같은 조형이다.
    이미 있는 영문 행정 라벨을 그 자리로 올려서 쓴다 — DOM은 그대로다. */
 
+#view-archive .owner-file-cover,
 #view-archive .archive-workspace,
 #manager-details .personnel-card,
 #view-report .weekly-report-sheet,
@@ -207,12 +207,130 @@
   white-space: nowrap;
 }
 
-/* RECORDS / ARCHIVE / DIARY — 작업 영역 위 탭 */
-#view-archive .archive-workspace { position: relative; padding-top: 26px; }
-#view-archive .archive-title-row { align-items: center; }
-#view-archive .archive-title-row h1 { margin-top: 0; }
-#view-archive #archive-kicker { background: var(--tab-records); }
-#view-archive[data-archive-mode="diary"] #archive-kicker { background: var(--tab-diary); }
+/* ═══════════ 주인님 파일 표지 ═══════════
+   기록·일지·인증서가 한 문서로 접히면서 표지가 이 화면의 첫 장이 됐다.
+   파일탭은 작업 영역이 아니라 표지에 걸린다. accent는 기존 RECORDS를 승계한다. */
+#view-archive .owner-file-cover {
+  position: relative;
+  margin-top: 11px;
+  padding: 26px 14px 14px;
+  overflow: visible;
+}
+#view-archive .owner-file-cover > .file-tab {
+  top: -11px;
+  left: 13px;
+  border-radius: 4px 4px 0 0;
+  background: var(--tab-records);
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+#view-archive .owner-file-identity {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+#view-archive .owner-file-portrait { display: flex; align-items: flex-end; justify-content: center; }
+#view-archive .owner-file-portrait img { width: 88px; height: 106px; object-fit: contain; }
+#view-archive .owner-file-headline { min-width: 0; }
+#view-archive .owner-file-headline small { color: #8a7b71; font-size: 10px; font-weight: 800; }
+#view-archive .owner-file-headline h1 {
+  margin: 3px 0 2px;
+  color: var(--ink);
+  font: 850 26px/1.1 "Noto Serif KR", serif;
+  letter-spacing: -.055em;
+}
+#view-archive .owner-file-headline p { margin: 0; color: #7a6b62; font-size: 12px; font-weight: 750; }
+
+/* 수치 4개는 서식의 기재란처럼. 360px에서도 2×2로 접혀 표지가 한 화면에 들어간다. */
+#view-archive .owner-file-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 12px 0 0;
+  border: 1px solid var(--doc-line-soft);
+  background: #f9f2e8;
+}
+#view-archive .owner-file-stats > div {
+  min-width: 0;
+  padding: 8px 10px;
+  border-right: 1px solid var(--doc-line-soft);
+  border-bottom: 1px solid var(--doc-line-soft);
+}
+#view-archive .owner-file-stats > div:nth-child(2n) { border-right: 0; }
+#view-archive .owner-file-stats > div:nth-last-child(-n+2) { border-bottom: 0; }
+#view-archive .owner-file-stats dt { color: #8a7b71; font-size: 10px; font-weight: 800; }
+#view-archive .owner-file-stats dd {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  word-break: keep-all;
+}
+#view-archive .owner-file-stats dd b { margin-right: 1px; color: var(--tab-records); font: 850 19px Paperlogy, sans-serif; }
+
+/* 소견은 표지 아래쪽 결재란처럼 얇은 이중선으로 끊는다 */
+#view-archive .owner-file-remark {
+  margin: 11px 0 0;
+  padding: 10px 0 0;
+  border-top: 3px double var(--doc-line);
+}
+#view-archive .owner-file-remark > span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--tab-records);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+#view-archive .owner-file-remark > p {
+  margin: 0;
+  color: #4a3f3c;
+  font: 700 15px/1.45 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+
+/* 필터 칩이 탭 자리를 물려받았다 — 표지 바로 아래 맨 위로 올린다.
+   검색은 기존 order 원칙대로 하단에 그대로 둔다(설계: 검색 하단 유지). */
+#view-archive[data-archive-mode="records"] #archive-records > .record-filters {
+  order: 0;
+  margin: 0 0 12px;
+  padding-top: 0;
+  border-top: 0;
+}
+#view-archive[data-archive-mode="records"] #archive-records > .record-filters:before { content: none; }
+#view-archive[data-archive-mode="records"] #archive-records > .record-filters button {
+  min-height: 40px;
+  padding: 0 13px;
+  font-size: 12px;
+}
+/* 하단에 남는 검색에는 제 이름표를 붙여준다 — 분류 칩이 위로 갔으니 여기는 찾기다. */
+#view-archive[data-archive-mode="records"] #archive-records > .record-find-tools {
+  position: relative;
+  margin: 18px 0 4px;
+  padding-top: 26px;
+  border-top: 1px dashed #d8c9b6;
+}
+#view-archive[data-archive-mode="records"] #archive-records > .record-find-tools:before {
+  content: "기록 찾기";
+  position: absolute;
+  left: 1px;
+  top: 9px;
+  color: #9a8879;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .04em;
+}
+
+/* 파일탭이 표지로 올라가면서 작업 영역은 탭 없이 본문만 담는다.
+   남은 머리줄은 일부인과 주간 보고서 링크 한 줄로 눕힌다 — 세로로 세우면
+   표지와 본문 사이에 빈 칸만 생긴다. */
+#view-archive .archive-workspace { position: relative; padding-top: 12px; }
+#view-archive .archive-title-row { align-items: center; justify-content: flex-end; padding: 0 2px 10px; }
+#view-archive .archive-title-aside {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
 
 /* MANAGER — 인사기록카드 위 탭 */
 #manager-details .personnel-card { padding-top: 24px; }

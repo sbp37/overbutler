@@ -238,42 +238,41 @@
           <div class="archive-office-running"><i></i> 사무국 정상 운영 중</div>
         </header>
 
-        <section class="archive-butler-brief document-card">
+        <section class="owner-file-cover document-card">
           <span class="archive-paperclip" aria-hidden="true"></span>
-          <div class="archive-butler-portrait">
-            <img id="archive-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" alt="요정 집사">
+          <span class="file-tab" id="archive-kicker">PERSONNEL FILE · 주인님 파일</span>
+          <div class="owner-file-identity">
+            <div class="owner-file-portrait">
+              <img id="archive-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" alt="요정 집사">
+            </div>
+            <div class="owner-file-headline">
+              <small id="archive-butler-role">담당 집사</small>
+              <h1 id="archive-view-title">주인님 파일</h1>
+              <p id="archive-butler-name">요정 집사</p>
+            </div>
           </div>
-          <div class="archive-butler-copy">
-            <small id="archive-butler-role">금일 기록 담당</small>
-            <h2 id="archive-butler-name">요정 집사</h2>
-            <p id="archive-butler-message">작은 기록도 빠짐없이 반짝이게 보관해둘게요.</p>
-          </div>
-          <div class="archive-memo" aria-hidden="true">작은 기록이<br>쌓이면 대업이<br>됩니다!</div>
-          <div class="archive-box-art" aria-hidden="true"><b></b><b></b><b></b><span>ARCHIVE<br><small>OVERBUTLER</small></span></div>
+          <dl class="owner-file-stats">
+            <div><dt>파일 두께</dt><dd><b id="owner-file-thickness">0</b>건</dd></div>
+            <div><dt>함께한 날</dt><dd><b id="owner-file-days">0</b>일</dd></div>
+            <div><dt>최다 대업</dt><dd id="owner-file-top">—</dd></div>
+            <div><dt>공식 인정</dt><dd><b id="owner-file-official">0</b>건</dd></div>
+          </dl>
+          <blockquote class="owner-file-remark"><span>집사 소견</span><p id="owner-file-remark"></p></blockquote>
         </section>
 
         <section class="archive-workspace">
           <div class="archive-title-row">
-            <div>
-              <span id="archive-kicker">RECORD DESK · FILE 02</span>
-              <h1 id="archive-view-title">오늘의 기록</h1>
-            </div>
             <div class="archive-title-aside">
               <time id="archive-date"></time>
               <button class="archive-report-link" type="button" data-view="report" data-nav="records">주간 보고서 →</button>
             </div>
           </div>
-          <div class="archive-tabs" role="tablist" aria-label="기록 분류">
-            <button type="button" id="archive-tab-records" role="tab" aria-selected="false" aria-controls="archive-records" tabindex="-1" data-archive-tab="records">기록</button>
-            <button type="button" id="archive-tab-diary" role="tab" aria-selected="false" aria-controls="archive-diary" tabindex="-1" data-archive-tab="diary">집사 일기</button>
-            <button class="active" type="button" id="archive-tab-certificates" role="tab" aria-selected="true" aria-controls="archive-certificates" data-archive-tab="certificates">공식 인증서</button>
-          </div>
-          <div class="archive-panel" id="archive-records" role="tabpanel" aria-labelledby="archive-tab-records" aria-hidden="true">
-            <div class="record-filters" id="record-filters" role="group" aria-label="기록 필터">
+          <div class="archive-panel active" id="archive-records" role="region" aria-label="주인님 파일 본문">
+            <div class="record-filters" id="record-filters" role="group" aria-label="기록 분류">
               <button class="active" type="button" data-record-filter="all">전체</button>
               <button type="button" data-record-filter="today">오늘</button>
               <button type="button" data-record-filter="official">공식 인정</button>
-              <button type="button" data-record-filter="praise">칭찬 기록</button>
+              <button type="button" data-record-filter="praise">반복</button>
             </div>
             <div class="record-find-tools">
               <label class="record-search"><span>기록 찾기</span><input id="record-search" type="search" maxlength="40" placeholder="대업명·칭호 검색" autocomplete="off"></label>
@@ -290,11 +289,11 @@
               </dl>
             </section>
           </div>
-          <div class="archive-panel" id="archive-diary" role="tabpanel" aria-labelledby="archive-tab-diary" aria-hidden="true">
-            <div class="diary-intro"><span>DAILY OBSERVATION LOG</span><h2>집사가 몰래 쓴 일지</h2><p>그날의 대업과 당시 담당 집사의 속마음을 보관합니다.</p></div>
+          <!-- STEP 3에서 본문 스트림으로 흡수된다. 그때까지 렌더 대상만 살려둔다. -->
+          <div class="archive-panel owner-file-pending" id="archive-diary" role="region" aria-label="집사 일지" hidden>
             <div class="butler-diary-list" id="butler-diary-list"></div>
           </div>
-          <div class="archive-panel active" id="archive-certificates" role="tabpanel" aria-labelledby="archive-tab-certificates" aria-hidden="false"></div>
+          <div class="archive-panel owner-file-pending" id="archive-certificates" role="region" aria-label="공식 인증서" hidden></div>
         </section>
       </section>
 

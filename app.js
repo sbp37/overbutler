@@ -1259,7 +1259,6 @@
     $("#home-butler-desc").textContent = profile.tagline;
     setPoseImage($("#archive-butler-image"), state.character, "base");
     $("#archive-butler-name").textContent = profile.displayName;
-    $("#archive-butler-message").textContent = profile.briefings[0];
     setPoseImage($("#report-butler-image"), state.character, "base");
     $("#report-butler-name").textContent = profile.displayName;
     $("#manager-role-title").textContent = profile.roleTitle;
@@ -1664,53 +1663,22 @@
     $("#main-screen").classList.toggle("home-active", name === "home");
     $("#main-screen").dataset.currentView = name;
     if (name === "home" && state.character === "cat") window.requestAnimationFrame(configureCatHome);
-    if (name === "archive" && ["records", "diary", "certificates"].includes(navKey)) showArchiveTab(navKey);
     trackEvent("view_change", { view: name, tab: navKey });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function showArchiveTab(name) {
-    $$('[data-archive-tab]').forEach(button => {
-      const active = button.dataset.archiveTab === name;
-      button.classList.toggle("active", active);
-      if (button.closest(".archive-tabs")) {
-        button.setAttribute("aria-selected", String(active));
-        button.tabIndex = active ? 0 : -1;
-      }
-    });
-    $$(".archive-panel").forEach(panel => {
-      const active = panel.id === `archive-${name}`;
-      panel.classList.toggle("active", active);
-      panel.setAttribute("aria-hidden", String(!active));
-    });
-    $("#view-archive").dataset.archiveMode = name;
-    const labels = {
-      records: ["RECORD DESK · FILE 02", "오늘의 기록", "금일 기록 담당"],
-      diary: ["BUTLER DIARY · FILE 03", "집사 일기", "일지 작성 담당"],
-      certificates: ["CERTIFICATE ARCHIVE · FILE 04", "인증서 보관함", "기록 보관 담당"]
-    };
-    const [kicker, title, role] = labels[name] || labels.certificates;
-    $("#archive-kicker").textContent = kicker;
-    $("#archive-view-title").textContent = title;
-    const profile = CHARACTER_PROFILES[state.character];
-    $("#archive-butler-role").textContent = role;
-    // 기록 모드에서는 집사 카드가 한 줄 상태 표시로 줄어든다(records-final.css).
-    // 기록을 보러 온 사람에게 집사 소개문을 먼저 읽힐 이유가 없으니, 그 한 줄에는
-    // 소개 대신 지금 몇 건이 보관돼 있는지를 넣는다.
-    const storedCount = state.records.length;
-    const todayCount = state.records.filter(record => record.date === today()).length;
-    // 일기 모드도 같은 한 줄이다. 다만 "오늘 뭘 적는 중"은 teaser가 이미 말하므로
-    // 여기서는 보관량만 알린다. 같은 말을 두 번 하지 않게 한다.
-    const diaryDays = new Set(state.diary.map(entry => entry.date).filter(Boolean)).size;
-    $("#archive-butler-message").textContent = name === "records"
-      ? (storedCount
-        ? `${profile.name}가 기록 ${storedCount}건 보관 중 · 오늘 ${todayCount}건`
-        : `${profile.name}가 첫 기록을 기다리는 중`)
-      : name === "diary"
-        ? (diaryDays
-          ? `${profile.name}가 일지 ${diaryDays}일치 보관 중`
-          : `${profile.name}가 아직 일지를 시작하지 않음`)
-        : "모든 대업은 주인님의 역사예요. 집사가 빠짐없이 안전하게 보관할게요.";
+  // 탭 3개(기록/일지/인증서)는 "주인님 파일" 한 문서로 접혔다. 모드 속성은
+  // records로 고정한다 — 파란 회색 accent와 기록 카드 조판을 그대로 승계한다.
+  function renderOwnerFileCover() {
+    const cover = ownerFileCover();
+    $("#owner-file-thickness").textContent = cover.thickness;
+    $("#owner-file-days").textContent = cover.daysTogether;
+    $("#owner-file-top").textContent = cover.topCategory
+      ? `${cover.topCategory.label} · ${cover.topCategory.count}건`
+      : "아직 없음";
+    $("#owner-file-official").textContent = cover.officialCount;
+    $("#owner-file-remark").textContent = cover.remark;
+    $("#archive-butler-role").textContent = `${CHARACTER_PROFILES[state.character].name} 담당`;
   }
 
   function renderRelationshipStatus() {
@@ -1795,6 +1763,8 @@
   }
 
   function renderArchive() {
+    renderOwnerFileCover();
+    $("#view-archive").dataset.archiveMode = "records";
     $("#archive-date").textContent = today();
     $("#records-today-count").textContent = state.records.filter(record => record.date === today()).length;
     $("#records-official-count").textContent = state.certificates.length;
@@ -3929,19 +3899,16 @@
       window.setTimeout(() => $("#achievement-input").focus(), reducedMotion ? 0 : 360);
     });
     $("#fame-button").addEventListener("click", () => showView("archive"));
-    $$('[data-archive-tab]').forEach(button => button.addEventListener("click", () => showArchiveTab(button.dataset.archiveTab)));
-    $("#view-archive .archive-tabs").addEventListener("keydown", event => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-      const tabs = $$("#view-archive .archive-tabs [role='tab']");
-      const current = Math.max(0, tabs.indexOf(document.activeElement));
-      const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-      event.preventDefault();
-      showArchiveTab(tabs[next].dataset.archiveTab);
-      tabs[next].focus();
-    });
+    // 필터 칩은 탭 자리를 물려받았다. 목록만 다시 그리고 표지는 그대로 둔다
+    // (설계: 필터를 걸어도 표지는 항상 유지).
     $$('[data-record-filter]').forEach(button => button.addEventListener("click", () => {
       recordFilter = button.dataset.recordFilter;
-      $$('[data-record-filter]').forEach(filter => filter.classList.toggle("active", filter === button));
+      $$('[data-record-filter]').forEach(filter => {
+        const active = filter === button;
+        filter.classList.toggle("active", active);
+        filter.setAttribute("aria-pressed", String(active));
+      });
+      trackEvent("owner_file_filter", { tab: recordFilter });
       renderArchiveRecords();
       $$('[data-cert-index]').forEach(certificateButton => certificateButton.addEventListener("click", () => openCertificate(state.certificates[Number(certificateButton.dataset.certIndex)])));
     }));
