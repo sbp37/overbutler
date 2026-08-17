@@ -287,67 +287,87 @@
    기록 카드 · 여백 메모 · 인증서 도장이 한 스트림 안에 날짜순으로 공존한다. */
 
 #view-archive .file-date-group { display: grid; gap: 10px; }
-#view-archive .file-date-group + .file-date-group { margin-top: 16px; }
-/* 날짜 구분선은 서류철 간지처럼 얇게 */
+#view-archive .file-date-group + .file-date-group { margin-top: 20px; }
+/* 날짜는 크라프트 칩. 기록 카드(아이보리)보다 한 층 아래 재질이라 서류철 간지로 읽힌다. */
 #view-archive .file-date-divider {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   margin: 2px 1px 0;
 }
 #view-archive .file-date-divider > span {
   flex: none;
-  color: var(--tab-records);
+  padding: 7px 12px;
+  border-radius: 3px;
+  background: var(--kraft);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .12), inset 0 1px 0 rgba(255, 255, 255, .35);
+  color: #4a3a24;
   font-size: 11px;
-  font-weight: 850;
-  letter-spacing: .04em;
+  font-weight: 800;
+  letter-spacing: .02em;
 }
 #view-archive .file-date-divider:after {
   content: "";
   flex: 1;
-  border-top: 1px dashed #d8c9b6;
+  border-top: 1px solid var(--doc-line);
 }
 
-/* 여백 메모 — 카드가 아니다. 본문 옆에 집사가 손으로 적어둔 쪽지다. */
+/* 여백 메모 — 카드가 아니라 기록 위에 덧붙인 노란 노트지다. 왼쪽 44px 들여쓰기로
+   그날 기록에 종속돼 보이게 하고, 살짝 기울여 붙인 종이처럼 둔다. */
 #view-archive .file-margin-note {
   position: relative;
-  margin: 2px 2px 0 22px;
-  padding: 10px 12px;
-  border: 0;
-  border-left: 2px solid #c6b89a;
-  border-radius: 0;
-  background: transparent;
+  margin: 0 0 4px 44px;
+  padding: 11px 13px 10px;
+  border: 1px solid #e6d6b4;
+  border-radius: 2px;
+  background: var(--memo);
+  box-shadow: 2px 2.5px 0 rgba(45, 35, 22, .08);
+  transform: rotate(-.5deg);
 }
+/* 위쪽에 붙인 테이프 조각 */
 #view-archive .file-margin-note:before {
-  content: "✎";
+  content: "";
   position: absolute;
-  left: -19px;
-  top: 9px;
-  color: #b3a288;
-  font-size: 12px;
+  top: -8px;
+  left: 18px;
+  width: 46px;
+  height: 15px;
+  background: rgba(211, 179, 132, .6);
+  border-left: 1px dashed rgba(255, 255, 255, .55);
+  border-right: 1px dashed rgba(255, 255, 255, .55);
+  transform: rotate(-3deg);
 }
 #view-archive .file-margin-note > p {
   margin: 0;
-  color: #5c5049;
-  font: 700 14px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  color: #6b5d4d;
+  font: 500 12.5px/1.65 "Wanted Sans Variable", "Wanted Sans", sans-serif;
   word-break: keep-all;
 }
 #view-archive .file-margin-note > small {
   display: block;
-  margin-top: 6px;
-  color: #9a8879;
-  font-size: 10px;
-  font-weight: 800;
+  margin-top: 7px;
+  color: var(--kraft-deep);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
 }
-/* 오늘 것은 봉인 상태 — 기존 teaser 조판을 그대로 쓰되 여백 자리에 앉힌다 */
+/* 오늘 것은 봉인 상태 — 같은 노트지 위에 밀랍 색 테이프와 점선 테두리만 얹는다 */
 #view-archive .file-margin-note.diary-teaser {
-  padding: 12px 13px;
-  border: 1px dashed #c2ab8e;
-  border-left: 2px solid #8f2f34;
-  background: #f9f4e8;
+  border-style: dashed;
+  border-color: #ddc79b;
 }
-#view-archive .file-margin-note.diary-teaser:before { content: "✉"; color: #8f2f34; }
-#view-archive .file-margin-note.diary-teaser > span { color: var(--tab-diary); }
+#view-archive .file-margin-note.diary-teaser:before { background: rgba(160, 48, 56, .35); }
+#view-archive .file-margin-note.diary-teaser > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--kraft-deep);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+#view-archive .file-margin-note.diary-teaser > strong,
+#view-archive .file-margin-note.diary-teaser > blockquote,
+#view-archive .file-margin-note.diary-teaser > small { color: #6b5d4d; }
 
 /* 공식 인정 건의 도장 — 장식이 아니라 버튼이다. 눌러서 인증서를 연다.
    도장이 이 자리로 오면서 카드 본문에 찍히던 :after 도장은 거둔다. 한 건에 도장 하나. */
@@ -359,6 +379,7 @@
   padding: 0;
   border: 0;
   background: var(--stamp-red);
+  transform: rotate(8deg);
   -webkit-mask-image: url("design/paper-assets/stamp-approved.png");
   mask-image: url("design/paper-assets/stamp-approved.png");
   -webkit-mask-repeat: no-repeat;
@@ -369,7 +390,6 @@
   mask-size: contain;
   opacity: .85;
   font-size: 0;
-  transform: rotate(-7deg);
 }
 #view-archive .record-cert-stamp:active { opacity: 1; }
 #view-archive #archive-record-list .office-record-card.official:after { display: none; }
@@ -496,13 +516,29 @@
   color: #7a6b62;
 }
 
-/* 접수 카드: 왼쪽 문서번호 칸이 이 카드의 성격이다 */
+/* 기록 카드는 아이보리 한 장. 왼쪽 번호 칸만 노트지 색으로 떼어내 문서번호처럼 세운다.
+   비공식 건은 오른쪽 칸이 아예 없다 — 도장 유무가 곧 상태다(시안 B2-1). */
+#view-archive .office-record-card {
+  grid-template-columns: 44px minmax(0, 1fr);
+  min-height: 0;
+  border-radius: 4px;
+  box-shadow: 2.5px 3px 0 rgba(45, 35, 22, .09);
+  overflow: hidden;
+}
+#view-archive .office-record-card.official { grid-template-columns: 44px minmax(0, 1fr) 62px; }
+#view-archive .office-record-card:before { content: none; }
+#view-archive .record-main { padding: 12px 13px; }
+#view-archive .record-approval {
+  gap: 0;
+  padding: 0;
+  border-left: 0;
+}
 #view-archive .record-number {
   border-right: 1px solid var(--doc-line-soft);
-  background: var(--paper);
+  background: var(--memo);
 }
-#view-archive .record-number b { color: var(--tab-records); font-size: 21px; }
-#view-archive .record-number span { color: #8b7a6d; font-size: 9px; }
+#view-archive .record-number b { color: var(--kraft-deep); font-size: 18px; }
+#view-archive .record-number span { color: #a3927c; font-size: 8px; letter-spacing: .06em; }
 #view-archive .record-approval > span {
   padding: 4px 7px;
   border-radius: 2px;

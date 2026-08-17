@@ -2187,23 +2187,19 @@
   }
 
   function ownerFileRecordCard(record, officialIds) {
-    const butler = record.butler || snapshotButler(record);
     const official = officialIds.has(record.id);
     const statusClass = official ? "official" : record.stampEligible === false ? "praise" : "candidate";
-    const statusLabel = official ? "공식 인정" : record.stampEligible === false ? "반복 접수" : "대업 후보";
     const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
     const sourceText = storedText(record.sourceText).trim();
     const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
       ? sourceText
       : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
     // 공식 인정 건은 도장 자체가 인증서 진입로다(진입로 2). 카드 상세와 겹치지 않게 버튼으로 둔다.
-    const approvalAction = official
-      ? `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">인증서</button>`
-      : `<span class="record-detail-cta" aria-hidden="true">상세</span>`;
+    const approvalAction = `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">공식 인정</button>`;
     return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
-      <div class="record-number"><b>${listNumber}</b><span>${escapeHtml(record.date)}</span></div>
+      <div class="record-number"><b>${listNumber}</b><span>NO.</span></div>
       <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p><small>#${escapeHtml(record.nickname || record.grade)}</small></div>
-      <div class="record-approval"><span>${statusLabel}</span><figure><img src="${recordPortrait(record, official ? "praise" : "base")}" alt="${escapeHtml(butler.name)}"><figcaption>${escapeHtml(butler.name)}<br>기록</figcaption></figure>${approvalAction}</div>
+      ${official ? `<div class="record-approval">${approvalAction}</div>` : ""}
     </article>`;
   }
 
