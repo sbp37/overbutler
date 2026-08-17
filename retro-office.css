@@ -167,7 +167,7 @@
 /* 부 행동 버튼: 종이 버튼 */
 #manager-details .recruit-note,
 #manager-details .manager-change-button,
-#view-archive .diary-empty-page button {
+#view-archive .records-empty button {
   border: 1px solid var(--doc-line);
   border-radius: 3px;
   box-shadow: var(--doc-shadow-sm);
@@ -870,8 +870,7 @@
 /* ═══════════ 9. 빈 상태 ═══════════
    연한 박스 하나가 덩그러니 놓이면 심심하다. 미개설 파일철처럼 읽히게 한다. */
 
-#view-archive .records-empty,
-#view-archive .diary-empty-page {
+#view-archive .records-empty {
   position: relative;
   padding: 30px 16px 26px;
   border: 1px dashed var(--doc-line);
@@ -879,16 +878,14 @@
   background: #f9f2e8;
 }
 /* 아직 아무것도 적히지 않은 괘선지 */
-#view-archive .records-empty:before,
-#view-archive .diary-empty-page:before {
+#view-archive .records-empty:before {
   content: "";
   position: absolute;
   inset: 14px 15px;
   background: repeating-linear-gradient(rgba(148, 121, 96, .13) 0 1px, transparent 1px 25px);
   pointer-events: none;
 }
-#view-archive .records-empty > span,
-#view-archive .diary-empty-page > span {
+#view-archive .records-empty > span {
   position: relative;
   display: inline-block;
   padding: 3px 8px;
@@ -900,20 +897,22 @@
   font-weight: 850;
   letter-spacing: .14em;
 }
-#view-archive .records-empty > p,
-#view-archive .diary-empty-page > p { position: relative; color: #7a6b62; }
-#view-archive[data-archive-mode="diary"] .diary-empty-page button {
+#view-archive .records-empty > p { position: relative; color: #7a6b62; }
+/* 빈 파일의 홈 이동 버튼 — 종이 버튼 하나. 텅 빈 화면에서 유일한 다음 동작이다. */
+#view-archive .records-empty button {
   position: relative;
-  border-radius: 3px;
-  border-color: var(--doc-line);
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 0 16px;
   background: var(--doc-paper);
   color: var(--ink);
-  box-shadow: var(--doc-shadow-sm);
+  font-size: 12px;
+  font-weight: 850;
 }
 /* ── 종이 에셋 : 메모 종이 ──
    아직 한 장도 안 쓰인 일지 위에 빈 메모지가 한 장 끼워져 있는 정도로만 둔다.
    본문 위가 아니라 모서리에 걸치고, 좁은 화면에서는 빠진다. */
-#view-archive[data-archive-mode="diary"] .diary-empty-page:after {
+#view-archive .records-empty:after {
   content: "";
   position: absolute;
   right: -6px;
@@ -925,7 +924,7 @@
   pointer-events: none;
 }
 @media (max-width: 372px) {
-  #view-archive[data-archive-mode="diary"] .diary-empty-page:after { display: none; }
+  #view-archive .records-empty:after { display: none; }
 }
 
 /* ═══════════ 10. 인증서 보관함 ═══════════
