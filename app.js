@@ -1694,8 +1694,15 @@
     $("#archive-view-title").textContent = title;
     const profile = CHARACTER_PROFILES[state.character];
     $("#archive-butler-role").textContent = role;
+    // 기록 모드에서는 집사 카드가 한 줄 상태 표시로 줄어든다(records-final.css).
+    // 기록을 보러 온 사람에게 집사 소개문을 먼저 읽힐 이유가 없으니, 그 한 줄에는
+    // 소개 대신 지금 몇 건이 보관돼 있는지를 넣는다.
+    const storedCount = state.records.length;
+    const todayCount = state.records.filter(record => record.date === today()).length;
     $("#archive-butler-message").textContent = name === "records"
-      ? templateOwner(profile.briefings[0])
+      ? (storedCount
+        ? `${profile.name}가 기록 ${storedCount}건 보관 중 · 오늘 ${todayCount}건`
+        : `${profile.name}가 첫 기록을 기다리는 중`)
       : name === "diary"
         ? `${ownerDisplayName()}의 하루를 집사 시선으로 몰래 적어뒀어요.`
         : "모든 대업은 주인님의 역사예요. 집사가 빠짐없이 안전하게 보관할게요.";
