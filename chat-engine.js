@@ -14,7 +14,7 @@
 
   // 관계 티어 경계. 대사(relationshipLinesFor)와 주인님 파일 표지 소견이 같은 기준을
   // 써야 해서 내보낸다 — 두 곳에 같은 숫자를 따로 적어두면 반드시 어긋난다.
-  const TIER_THRESHOLDS = Object.freeze({ t2: 35, t3: 65 });
+  const TIER_THRESHOLDS = Object.freeze({ t2: 18, t3: 65 });
 
   const INTENTS = [
     ["hard_day", /(?:오늘|회사|하루).*(?:너무\s*)?(?:힘들|고생|지치)|(?:힘들|고생|지치).*(?:오늘|회사|하루)/i, "힘든 하루", "tired"],
