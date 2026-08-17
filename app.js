@@ -2112,6 +2112,83 @@
     };
   }
 
+  /* ═══════════ 주인님 파일 — 파생 계산 ═══════════
+     기록·일지·인증서를 한 문서로 접기 위해 필요한 값은 전부 기존 state에서 계산한다.
+     저장 계약(butlermaker_v1)에는 아무것도 더하지 않는다.
+
+     경계 원칙(owner-file-design §1): 유저가 제출한 내용에 대한 통계는 기억이라 쓰고,
+     행동 패턴(접수 시간대·공백일·부재)에 대한 통계는 감시라 쓰지 않는다. */
+
+  const OWNER_FILE_CATEGORY_LABELS = Object.freeze({
+    hygiene: "씻기", hydration: "수분", food: "식사", work: "사회생활",
+    home: "집안일", movement: "움직임", social: "연락", other: "기타"
+  });
+
+  // 티어 경계는 관계 대사와 같은 기준을 쓴다. chat-engine이 없으면(테스트 등) 같은 값으로 폴백.
+  const OWNER_FILE_TIERS = CHAT_ENGINE?.TIER_THRESHOLDS || { t2: 35, t3: 65 };
+
+  const OWNER_FILE_REMARKS = Object.freeze({
+    cat: {
+      t1: ["표준 규격 파일이다냥. 내용은… 담당이니까 아는 거다냥.", "아직 얇은 파일이다냥. 두꺼워질지는 지켜보겠다냥."],
+      t2: ["서류철이 제법 두꺼워졌다냥. …뿌듯한 건 아니다냥.", "이 파일, 다른 것보다 손이 자주 간다냥. 배치 문제일 거다냥."],
+      t3: ["이 파일은 집사 책상에서 안 치운다냥. 감사실에는 업무 참고용이라고 했다냥.", "표지가 닳아서 한 번 갈았다냥. 왜 닳았는지는 묻지 마라냥."]
+    }
+  });
+  const OWNER_FILE_REMARK_FALLBACK = "담당 집사가 관리 중인 공식 파일입니다.";
+
+  function ownerFileTier(obsession = state.obsession) {
+    const level = nonNegativeInteger(obsession);
+    if (level >= OWNER_FILE_TIERS.t3) return "t3";
+    if (level >= OWNER_FILE_TIERS.t2) return "t2";
+    return "t1";
+  }
+
+  // 진입할 때마다 소견이 바뀌면 표지가 안 정착한다. 날짜를 시드로 써서 하루 동안 고정한다.
+  function ownerFileRemark(character = state.character, obsession = state.obsession) {
+    const pool = OWNER_FILE_REMARKS[normalizeCharacter(character)]?.[ownerFileTier(obsession)];
+    if (!pool?.length) return OWNER_FILE_REMARK_FALLBACK;
+    const seed = today().split("").reduce((total, value) => total + value.charCodeAt(0), 0);
+    return pool[seed % pool.length];
+  }
+
+  function ownerFileCover() {
+    const records = Array.isArray(state.records) ? state.records : [];
+    const counts = new Map();
+    records.forEach(record => {
+      const key = OWNER_FILE_CATEGORY_LABELS[record.category] ? record.category : "other";
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    // 동점이면 카테고리 표의 선언 순서로 끊는다. 진입할 때마다 최다 항목이 바뀌면 안 된다.
+    const order = Object.keys(OWNER_FILE_CATEGORY_LABELS);
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || order.indexOf(a[0]) - order.indexOf(b[0]))[0];
+    return {
+      thickness: records.length,
+      daysTogether: new Set(records.map(record => record.date).filter(Boolean)).size,
+      topCategory: top ? { key: top[0], label: OWNER_FILE_CATEGORY_LABELS[top[0]], count: top[1] } : null,
+      officialCount: Array.isArray(state.certificates) ? state.certificates.length : 0,
+      remark: ownerFileRemark()
+    };
+  }
+
+  function groupRecordsByDate() {
+    const records = Array.isArray(state.records) ? state.records : [];
+    const diary = Array.isArray(state.diary) ? state.diary : [];
+    const officialIds = new Set((state.certificates || []).map(record => String(record.id)));
+    const groups = new Map();
+    const bucket = date => {
+      if (!groups.has(date)) groups.set(date, { date, records: [], diaryEntries: [], hasOfficial: false });
+      return groups.get(date);
+    };
+    records.forEach(record => {
+      const group = bucket(record.date || "날짜 미상");
+      group.records.push(record);
+      if (officialIds.has(String(record.id))) group.hasOfficial = true;
+    });
+    // 일지는 기록이 없는 날에도 남을 수 있어 별도로 넣는다. 캐릭터는 저장된 값을 그대로 쓴다.
+    diary.forEach(entry => bucket(entry.date || "날짜 미상").diaryEntries.push(entry));
+    return [...groups.values()].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  }
+
   function renderButlerDiary() {
     const list = $("#butler-diary-list");
     if (!list) return;
@@ -4023,6 +4100,7 @@
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
     certificationStatus,
+    ownerFileCover, groupRecordsByDate, ownerFileRemark, ownerFileTier,
     chat: CHAT_ENGINE,
     timeGreetingFor: getTimeGreeting
   });

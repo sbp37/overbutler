@@ -12,6 +12,10 @@
   // 옛 캐릭터 키로 저장된 대화 기록이 넘어와도 같은 집사로 이어지게 한다. app.js와 같은 표를 쓴다.
   const LEGACY_CHARACTER_ALIASES = { fox: "zombie", star: "girlidol" };
 
+  // 관계 티어 경계. 대사(relationshipLinesFor)와 주인님 파일 표지 소견이 같은 기준을
+  // 써야 해서 내보낸다 — 두 곳에 같은 숫자를 따로 적어두면 반드시 어긋난다.
+  const TIER_THRESHOLDS = Object.freeze({ t2: 35, t3: 65 });
+
   const INTENTS = [
     ["hard_day", /(?:오늘|회사|하루).*(?:너무\s*)?(?:힘들|고생|지치)|(?:힘들|고생|지치).*(?:오늘|회사|하루)/i, "힘든 하루", "tired"],
     ["home_arrival", /(?:이제|방금)?\s*(?:집에?|집으로)\s*(?:왔|도착|이야|이다|임)|퇴근\s*(?:했|완료|함|이다|했어|했어요)?/i, "귀가", "relieved"],
@@ -379,8 +383,8 @@
     const level = Number(obsession) || 0;
     if (!pools) return [];
     const lines = [];
-    if (level >= 35) lines.push(...(pools.t2?.[intent] || []));
-    if (level >= 65) lines.push(...(pools.t3?.[intent] || []));
+    if (level >= TIER_THRESHOLDS.t2) lines.push(...(pools.t2?.[intent] || []));
+    if (level >= TIER_THRESHOLDS.t3) lines.push(...(pools.t3?.[intent] || []));
     return lines;
   }
 
@@ -605,5 +609,5 @@
     return "night";
   }
 
-  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, classify, respond, normalizeMemory, timeSlotForHour, intents: Object.freeze(INTENTS.map(item => item[0])) });
+  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, classify, respond, normalizeMemory, timeSlotForHour, TIER_THRESHOLDS, intents: Object.freeze(INTENTS.map(item => item[0])) });
 });
