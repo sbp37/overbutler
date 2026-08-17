@@ -207,3 +207,48 @@
   .cat-home-hint{animation:none}
   .cat-home-status-bar i{transition:none}
 }
+
+/* ── CAT-FIRST 집사 화면: "여러 집사 인사관리"가 아니라 "나와 내 고양이" ───────
+   지금 단계에서 이 화면을 여는 이유는 담당 교체가 아니라 "얘가 나를 어떻게 생각하나"다.
+   그런데 관계 문장이 과몰입 숫자 아래에 있고, 선물 버튼은 근무 기록 카드 안에 묻혀 있고,
+   아직 집사가 하나뿐인데 빈 roster가 큰 자리를 차지했다.
+   기능은 하나도 지우지 않고 순서와 크기만 바꾼다. */
+
+#view-manager .manager-details{display:flex;flex-direction:column}
+#view-manager .manager-details-back{order:0}
+#view-manager .manager-office-header{order:1}
+#view-manager .personnel-card{order:2}
+#view-manager .manager-gift-button{order:3}          /* 선물은 관계 행동이다 */
+#view-manager .manager-work-card{order:4}            /* 근무 기록 통계 */
+#view-manager .stages-card{order:5}                  /* 과몰입 진행 전체 */
+#view-manager .butler-roster-card{order:6}           /* 아래는 인사 관리 영역 */
+#view-manager .recruit-note{order:7}
+#view-manager .manager-change-button{order:8}
+#view-manager .app-information{order:9}
+
+/* 관계 칸: 집사의 말이 먼저, 숫자는 아래로. */
+#view-manager .manager-obsession{display:flex;flex-direction:column;padding:12px}
+#view-manager .manager-obsession .relationship-summary{order:1;margin:0}
+#view-manager .manager-obsession .obsession-heading{order:2;margin-top:11px;padding-top:10px;border-top:1px dashed #ded2c5;font-size:10px}
+#view-manager .manager-obsession .obsession-heading b{font-size:11px}
+#view-manager .manager-obsession .obsession-track{order:3;margin-top:6px}
+#view-manager .relationship-summary>strong{display:block;color:#711b2c;font:850 17px/1.2 "Noto Serif KR",serif}
+#view-manager .relationship-summary>p{margin:7px 0 0;color:#4f423e;font:700 15px/1.45 "Wanted Sans Variable","Wanted Sans",sans-serif;word-break:keep-all}
+#view-manager .relationship-summary>small{display:block;margin-top:7px;color:#9a8879;font-size:10px}
+
+/* 프로필 카드: 캐릭터·이름·관계가 주인공. 호칭/성격/특기는 보조로 접는다. */
+#view-manager .manager-facts>div{padding:4px 0}
+#view-manager .manager-facts dt{font-size:9px}
+#view-manager .manager-facts dd{font-size:10px}
+#view-manager .manager-handnote{font-size:14px;padding:9px 11px}
+
+/* 선물 CTA가 관계 바로 다음에 오므로, 카드에 묻혀 있던 때보다 또렷하게. */
+#view-manager .manager-gift-button{margin-top:11px}
+
+/* 아직 집사가 하나뿐인 사용자에게 빈 명단이 큰 면적을 먹지 않게 한다. */
+#view-manager .butler-roster-card,
+#view-manager .manager-work-card,
+#view-manager .stages-card{padding:13px 13px 12px}
+#view-manager .butler-roster-card .manager-section-title h2,
+#view-manager .manager-work-card .manager-section-title h2,
+#view-manager .stages-card .manager-section-title h2{font-size:15px}
