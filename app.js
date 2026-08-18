@@ -3325,7 +3325,10 @@
   // 대업명은 사용자가 쓴 말을 집사가 격상시킨 제목이라("물 한 잔 마셨어" → "생존 수분 충전 완료")
   // 원문 키워드가 남아있지 않다. 분류할 때 원문을 함께 보고, 격상된 제목에 쓰이는 말도 같이 잡는다.
   function categoryForDeed(deed, sourceText = "") {
-    const value = normalizeDeed(`${deed} ${sourceText}`);
+    // 원문에서 부정된 절은 빼고 본다. "안 먹었는데 회사 일은 했어"의 "먹"이
+    // 식사 분야로 잡히면 부정 가드를 통과한 문장에 「한 끼의 영웅」이 붙는다.
+    const cleanSource = CHAT_ENGINE?.stripNegatedClauses?.(sourceText) ?? sourceText;
+    const value = normalizeDeed(`${deed} ${cleanSource}`);
     const groups = [
       ["hygiene", ["씻", "샤워", "양치", "세수", "머리감", "목욕", "위생", "청결"]],
       ["hydration", ["물", "차", "커피", "수분", "음료", "마셨", "마심"]],

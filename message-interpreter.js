@@ -124,6 +124,16 @@
     return NEGATION_CUE.some(pattern => pattern.test(cleaned));
   }
 
+  /* 부정된 절을 걷어낸 문장. 칭호·분야를 정할 때 원문을 그대로 넘기면
+     "안 먹었는데 회사 일은 했어"의 "먹"이 식사 분야로 잡혀 「한 끼의 영웅」이
+     붙는다 — 부정 가드를 뚫고 같은 오해가 칭호 쪽으로 돌아 들어오는 경로다. */
+  function stripNegatedClauses(value) {
+    const text = safeText(value);
+    if (!text) return "";
+    const kept = negationClauses(text).filter(clause => !isNegatedClause(clause.text)).map(clause => clause.text);
+    return kept.join(" ").replace(/\s+/g, " ").trim();
+  }
+
   const ACTIVITY_RULES = [
     ["social", "결혼식 다녀옴", /결혼식(?:에|을)?\s*(?:갔|다녀|참석)/i],
     ["commute", "집에 도착함", /(?:이제|방금)?\s*(?:집에?|집으로)\s*(?:왔|도착|이야|이다|임)|퇴근\s*(?:했|완료|함)/i],
@@ -382,5 +392,5 @@
     };
   }
 
-  return Object.freeze({ analyzeUserMessage, matchesActive, intents: Object.freeze(INTENT_TYPES), moods: Object.freeze(MOOD_TYPES) });
+  return Object.freeze({ analyzeUserMessage, matchesActive, stripNegatedClauses, intents: Object.freeze(INTENT_TYPES), moods: Object.freeze(MOOD_TYPES) });
 });

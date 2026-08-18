@@ -450,8 +450,70 @@
       "그렇구냥. 오늘 이야기는 여기 적어두겠다냥."
     ]
   };
+  /* ── 인용 반사 ──
+     분류에 실패했을 때 "그렇구냥. 오늘 이야기는 여기 적어두겠다냥"이 나가는데,
+     이건 못 알아들었다는 걸 광고하는 문장이다. 대신 주인님이 실제로 쓴 구절을
+     되읽는다 — 알아듣지 못해도 "읽긴 읽었다"는 건 증명할 수 있다.
+
+     규칙(정한 대로 지킨다):
+       · 12자 이내. 넘으면 12자 이전 마지막 공백에서 자르고, 공백이 없으면 그냥 자른다.
+       · 첫 절만 쓴다. 뒤 절까지 끌면 인용이 길어지고 무슨 말인지 흐려진다.
+       · 한글 3음절 미만이거나 불용어뿐이면 인용하지 않는다.
+       · 조사·연결어미로 끝나면 잘라낸다("일 좀" → "일 좀", "쿠팡을" → "쿠팡").
+       · 자해·죽음·욕설이 섞인 문장은 절대 인용하지 않는다 — 아픈 말을 그대로
+         돌려주는 꼴이 된다. 이때는 기존 공감 폴백으로 간다. */
+  const QUOTE_BLOCKLIST = /죽고\s*싶|죽어버|죽을래|자살|자해|손목|뛰어내리|사라지고\s*싶|없어지고\s*싶|살기\s*싫|씨발|시발|ㅅㅂ|병신|좆|개새|미친놈|꺼져|우울증/;
+  const QUOTE_SPLIT = /[.!?~,;]|(?:는데|은데|지만)|고\s|다가\s|그리고|그런데|근데|하지만|그래서|그러다/;
+  // 잘려서 덩그러니 남은 조사만 떼어낸다. "도/만"은 빼놨다 — "아무것도", "하나만"처럼
+  // 뜻의 일부인 경우가 많아서 떼면 오히려 말이 부서진다.
+  const QUOTE_TRAILING = /(?:을|를|이|가|은|는|에|에서|의|와|과|랑|이랑|하고|한테|께|보다)$/;
+  const QUOTE_STOPWORDS = new Set(["오늘", "그냥", "진짜", "너무", "그거", "이거", "저거", "음", "아", "어", "네", "응", "뭐"]);
+  const QUOTE_LIMIT = 12;
+
+  // 부정·아픈 말이 든 절은 인용하지 않는다. 되읽는 순간 집사가 그 말을 다시
+  // 꺼내는 꼴이 된다 — "기분 안 좋았"을 인용하면 이미 풀린 기분을 되감는다.
+  const QUOTE_AVOID = /(?:^|[\s"'`([])(?:안|못)\s+[가-힣]|안(?:먹|씻|했|해|돼|되)|못(?:먹|씻|했|해)|(?:지|진)\s*(?:않|못)|힘들|지쳤|우울|속상|짜증|화나|빡|걱정|불안|막막|싫|아프|아팠/;
+
+  function quotableSnippet(value) {
+    const text = String(value || "").trim();
+    if (!text || QUOTE_BLOCKLIST.test(text)) return "";
+    const clauses = text.split(QUOTE_SPLIT).map(part => part.trim()).filter(Boolean);
+    for (const clause of clauses) {
+      if (QUOTE_AVOID.test(clause)) continue;
+      let snippet = clause.replace(/^[ㅋㅎㅠㅜ\s]+/, "").trim();
+      const truncated = snippet.length > QUOTE_LIMIT;
+      if (truncated) {
+        const cut = snippet.slice(0, QUOTE_LIMIT);
+        const lastSpace = cut.lastIndexOf(" ");
+        snippet = (lastSpace >= 4 ? cut.slice(0, lastSpace) : cut).trim();
+      }
+      snippet = snippet.replace(/[ㅋㅎ~!?.\s]+$/, "").trim();
+      if (truncated) snippet = snippet.replace(QUOTE_TRAILING, "").trim();
+      const syllables = (snippet.match(/[가-힣]/g) || []).length;
+      if (syllables < 3) continue;
+      const words = snippet.split(/\s+/).filter(Boolean);
+      if (!words.length || words.every(word => QUOTE_STOPWORDS.has(word))) continue;
+      // 절 경계에 잘려 어간만 남은 꼬리("친구랑 카페 갔")는 인용하면 말이 부서진다.
+      // 과거 어간은 받침 ㅆ으로 끝난다 — 그런 조각은 건너뛰고 다음 절을 본다.
+      const lastCode = snippet.charCodeAt(snippet.length - 1);
+      if (lastCode >= 0xac00 && lastCode <= 0xd7a3 && (lastCode - 0xac00) % 28 === 20) continue;
+      return snippet;
+    }
+    return "";
+  }
+
+  const CAT_QUOTE_REFLECT = snippet => [
+    `‘${snippet}’… 그 줄은 굵은 펜으로 적어뒀다냥.`,
+    `‘${snippet}’라고 적어뒀다냥. 오늘 장부에서 제일 눈에 띈 줄이다냥.`,
+    `‘${snippet}’… 이 대목은 두 번 읽었다냥. 접수는 끝났다냥.`
+  ];
+
   function catStoryFallback(text) {
     const value = String(text || "");
+    // 인용이 먼저다. 되읽을 구절이 있으면 그게 가장 확실한 "읽었다"는 증거다.
+    // 뽑을 게 없거나 민감한 문장이면 기존 애씀/바람/범용 폴백으로 내려간다.
+    const snippet = quotableSnippet(value);
+    if (snippet) return CAT_QUOTE_REFLECT(snippet);
     const effort = CAT_EFFORT_CUE.test(value);
     const hope = CAT_HOPE_CUE.test(value);
     if (effort && hope) return CAT_STORY_FALLBACK.effortHope;
@@ -681,5 +743,5 @@
     return "night";
   }
 
-  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, classify, respond, normalizeMemory, timeSlotForHour, TIER_THRESHOLDS, RELATIONSHIP_BOUNDARIES, intents: Object.freeze(INTENTS.map(item => item[0])) });
+  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, stripNegatedClauses: interpreter?.stripNegatedClauses, classify, respond, normalizeMemory, timeSlotForHour, TIER_THRESHOLDS, RELATIONSHIP_BOUNDARIES, intents: Object.freeze(INTENTS.map(item => item[0])) });
 });
