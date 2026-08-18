@@ -446,10 +446,13 @@
   font: 700 9px/1 var(--disp);
   letter-spacing: .16em;
 }
+/* 개구체는 획이 얇아 같은 크기·같은 명도로는 본문보다 흐리게 읽힌다.
+   집사가 손으로 쓴 문장은 이 화면에서 가장 읽히고 싶은 줄이므로
+   한 단계 키우고 잉크를 진하게 쓴다. */
 #view-archive .owner-file-remark > p {
   margin: 0;
-  color: #4c4234;
-  font: 700 17px/1.45 var(--hand);
+  color: #3a3125;
+  font: 700 19px/1.5 var(--hand);
   word-break: keep-all;
 }
 
@@ -1436,7 +1439,11 @@
 /* 등록 도장은 제목 오른쪽 빈 자리에 찍는다. 시안 좌표(bottom:44px)는 손글씨 소견을
    가로질러 마지막 줄을 읽기 어렵게 만드는데, 소견은 이 화면에서 가장 사람 손에
    가까운 문장이라 가려서는 안 된다. */
-#view-archive .owner-file-doc .of-datestamp { top: 34px; right: 14px; bottom: auto; opacity: .7; }
+/* top:34px는 제목("주인님 파일") 줄 높이와 정확히 겹친다. 도장은 머리글 위쪽
+   여백으로 올려서 제목도 소견도 가리지 않게 한다. */
+#view-archive .owner-file-doc .of-datestamp { top: 12px; right: 12px; bottom: auto; opacity: .7; }
+/* 도장이 올라간 만큼 머리글 오른쪽을 비워 글자가 도장 밑으로 들어가지 않게 한다. */
+#view-archive .owner-file-head { padding-right: 66px; }
 
 /* 여백 메모 — 테이프 대신 스테이플로 박고, 본문은 집사 육필로. */
 #view-archive .file-margin-note:before { content: none; }
@@ -1451,15 +1458,15 @@
 #view-archive .file-margin-note > p,
 #view-archive .file-margin-note.diary-teaser > blockquote {
   margin: 0;
-  color: #4c4234;
-  font: 700 17px/1.5 var(--hand);
+  color: #3a3125;
+  font: 700 19px/1.5 var(--hand);
   word-break: keep-all;
 }
 #view-archive .file-margin-note.diary-teaser > strong {
   display: block;
   margin-bottom: 4px;
-  color: #4c4234;
-  font: 700 16px/1.5 var(--hand);
+  color: #3a3125;
+  font: 700 18px/1.5 var(--hand);
 }
 #view-archive .file-margin-note.diary-teaser > small {
   display: block;

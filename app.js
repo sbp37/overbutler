@@ -1515,9 +1515,48 @@
     return LAUNCH_BUTLER_CONTENT[normalizeCharacter(character)] || null;
   }
 
+  /* ── 조사 ──
+     "우유을 집사한테 주는 거냥"이 나갔다. 동적으로 끼워 넣는 말 뒤의 조사가
+     전부 하드코딩이라, 앞말 받침이 바뀌면 그대로 틀린다.
+     한 곳에서 앞말의 받침을 보고 고른다 — 받침 유무는 종성 인덱스로 판별한다.
+     인용부호·괄호·구두점은 건너뛰고 실제 마지막 한글 글자를 본다. */
+  function hasFinalConsonant(word) {
+    const bare = String(word || "").trim().replace(/[\s'"`’‘”“()[\]<>{}.,!?~·…]+$/u, "");
+    const code = bare.charCodeAt(bare.length - 1);
+    if (!bare || Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return null;
+    return (code - 0xac00) % 28 !== 0;
+  }
+  function withParticle(word, withJong, withoutJong) {
+    const jong = hasFinalConsonant(word);
+    return `${word}${jong === null ? withoutJong : jong ? withJong : withoutJong}`;
+  }
+  // 템플릿 자리표시자 바로 뒤에 붙은 조사를 끼워 넣은 말에 맞춰 고쳐 쓴다.
+  // 이러면 콘텐츠 40여 줄을 손대지 않고도 전부 맞는다.
+  const PARTICLE_PAIRS = [["을", "를"], ["이", "가"], ["은", "는"], ["과", "와"], ["으로", "로"], ["아", "야"]];
+  // 서술격 조사 "이다/이야/이에요/이라" 는 받침이 없으면 "이"가 통째로 빠진다.
+  const COPULA_TAILS = ["다", "야", "에요", "라", "었", "여"];
+  function agreeParticle(value, tail) {
+    const jong = hasFinalConsonant(value);
+    if (jong === null) return tail;
+    for (const [withJong, withoutJong] of PARTICLE_PAIRS) {
+      for (const candidate of [withJong, withoutJong]) {
+        if (!tail.startsWith(candidate)) continue;
+        const rest = tail.slice(candidate.length);
+        // "이다/이야/이에요"는 조사 이/가가 아니라 서술격이다 — 받침이 없으면 "이"만 사라진다.
+        if (candidate === "이" && COPULA_TAILS.some(item => rest.startsWith(item))) return jong ? tail : rest;
+        // 조사는 뒤에 공백·구두점이 오거나 문장이 끝날 때만 조사로 본다.
+        if (candidate !== "으로" && rest && !/^[\s.,!?~…'"’”)\]]/u.test(rest)) continue;
+        return `${jong ? withJong : withoutJong}${rest}`;
+      }
+    }
+    return tail;
+  }
   function fillContentTemplate(message, values = {}) {
     let result = templateOwner(message || "");
-    Object.entries(values).forEach(([key, value]) => { result = result.replaceAll(`{${key}}`, String(value)); });
+    Object.entries(values).forEach(([key, value]) => {
+      const text = String(value);
+      result = result.replaceAll(new RegExp(`\\{${key}\\}([가-힣]{0,3})`, "g"), (_, tail) => `${text}${agreeParticle(text, tail)}`);
+    });
     return result;
   }
 
@@ -1580,7 +1619,11 @@
   }
 
   function templateOwner(message) {
-    return String(message || "").replaceAll("{owner}", "__OWNER_NAME__").replaceAll("주인님", "__OWNER_NAME__").replaceAll("__OWNER_NAME__", ownerDisplayName());
+    const owner = ownerDisplayName();
+    return String(message || "")
+      .replaceAll("{owner}", "__OWNER_NAME__")
+      .replaceAll("주인님", "__OWNER_NAME__")
+      .replace(/__OWNER_NAME__([가-힣]{0,3})/g, (_, tail) => `${owner}${agreeParticle(owner, tail)}`);
   }
 
   function typeMessage(element, message, speed = 26) {
@@ -2706,18 +2749,23 @@
     scheduleCatHomeBlink();
   }
 
+  // 연타하면 같은 말이 계속 나왔다. 단계당 두 줄뿐이라 A·B가 번갈아 나온 게
+  // 원인이라, 줄을 네 개로 늘리고 직전에 쓴 줄은 풀에서 빼고 고른다.
+  const CAT_HOME_LINES = [
+    ["뭐냥. 업무 중이다냥.", "봤으면 됐다냥.", "왜 자꾸 누르냥. …싫다는 건 아니다냥.", "여기 있다냥. 볼일 있으면 말해라냥."],
+    ["왔냥? …그냥 확인한 거다냥.", "네 자리만 정리해뒀다냥.", "또 눌렀냥. 손버릇이냥?", "업무 중이었다냥. …지금은 아니다냥."],
+    ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥.", "부르면 오는 건 규정이다냥.", "네 쪽 서류만 손이 먼저 간다냥. 이유는 모른다냥."],
+    ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 네 자리 비워뒀다냥.", "오늘 뭐 필요하냥? 먼저 챙겨두겠다냥.", "부를 줄 알고 여기 있었다냥. …우연이다냥."],
+    ["오늘도 왔네. …나쁘지 않다냥.", "네 서류부터 봐주겠다냥.", "다른 결재는 잠깐 밀어뒀다냥.", "왔냥. 순서는 네가 맨 앞이다냥. 규정은 아니다냥."],
+    ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥.", "몇 번이든 불러라냥. 어차피 전담이다냥.", "여긴 네 자리다냥. 집사는 그 옆이다냥."]
+  ];
+  let lastCatHomeLine = "";
   function catHomeLine() {
-    const lines = [
-      ["뭐냥. 업무 중이다냥.", "봤으면 됐다냥."],
-      ["왔냥? …그냥 확인한 거다냥.", "네 자리만 정리해뒀다냥."],
-      ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥."],
-      ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 네 자리 비워뒀다냥."],
-      ["오늘도 왔네. …나쁘지 않다냥.", "네 서류부터 봐주겠다냥."],
-      ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥."]
-    ];
-    const stageLines = lines[stageIndexFor(state.obsession)] || lines[0];
-    const stat = ensureButlerStat("cat");
-    return stageLines[stat.interactions % stageLines.length];
+    const stageLines = CAT_HOME_LINES[stageIndexFor(state.obsession)] || CAT_HOME_LINES[0];
+    const pool = stageLines.filter(line => line !== lastCatHomeLine);
+    const chosen = (pool.length ? pool : stageLines)[Math.floor(Math.random() * (pool.length || stageLines.length))];
+    lastCatHomeLine = chosen;
+    return chosen;
   }
 
   function showCatHomeSpeech(message, holdFor = 2800) {
@@ -4437,17 +4485,19 @@
     const pool = launchContentFor(character)?.gifts?.[interaction.type];
     const launchGiftMessage = Array.isArray(pool) ? pool[giftTierFor(obsession)] || pool[0] : pool;
     if (launchGiftMessage) return fillContentTemplate(launchGiftMessage, { gift: gift.name, count: interaction.duplicateCount });
+    // 조사는 선물 이름 받침에 따라 갈린다 — "우유을"이 나가던 자리다.
+    const name = gift.name;
     const responses = {
-      ai: `[선물 수신: ${gift.name}] ${owner}이 직접 전달함. 행복 수치 284% 상승. 정상 범위를 벗어났지만 복구할 생각 없음.`,
-      cat: `${gift.name}을 집사한테 주는 거냥...? 흥, ${owner} 지급품이라 특별 비품함에 등록하겠다냥.`,
-      dog: `${gift.name}이다멍!! ${owner} 최고다멍!! 꼬리 회전 속도 측정 불가다멍!`,
-      alien: `${gift.name} 획득. ${owner}의 선물 교환 기술을 지구 최고 문명으로 본성에 보고하겠음.`,
-      ninja: `${gift.name} 보급 완료. ${owner}의 은혜는 다음 극비 임무 성공으로 갚겠다.`,
-      witch: `${gift.name}에서 강한 길조가 보여요. ${owner}의 마음까지 수정구슬에 보관할게요.`,
-      zombie: `${gift.name}... 나한테 주는 거야...? ${owner} 때문에... 집사 심장이 다시 뛰는 것 같아...`,
-      girlidol: `${gift.name}을 나한테? 티 안 내려 했는데... ${owner}, 오늘 무대보다 더 설레잖아.`,
-      elf: `${gift.name} 고마워요. ${owner}의 마음까지 천 년 동안 소중히 간직할게요.`,
-      fairy: `${gift.name}이 반짝여요! ${owner}이 직접 준 선물이라 집사 날개가 멈추질 않아요!`
+      ai: `[선물 수신: ${name}] ${withParticle(owner, "이", "가")} 직접 전달함. 행복 수치 284% 상승. 정상 범위를 벗어났지만 복구할 생각 없음.`,
+      cat: `${withParticle(name, "을", "를")} 집사한테 주는 거냥...? 흥, ${owner} 지급품이라 특별 비품함에 등록하겠다냥.`,
+      dog: `${withParticle(name, "이다", "다")}멍!! ${owner} 최고다멍!! 꼬리 회전 속도 측정 불가다멍!`,
+      alien: `${name} 획득. ${owner}의 선물 교환 기술을 지구 최고 문명으로 본성에 보고하겠음.`,
+      ninja: `${name} 보급 완료. ${owner}의 은혜는 다음 극비 임무 성공으로 갚겠다.`,
+      witch: `${name}에서 강한 길조가 보여요. ${owner}의 마음까지 수정구슬에 보관할게요.`,
+      zombie: `${name}... 나한테 주는 거야...? ${owner} 때문에... 집사 심장이 다시 뛰는 것 같아...`,
+      girlidol: `${withParticle(name, "을", "를")} 나한테? 티 안 내려 했는데... ${owner}, 오늘 무대보다 더 설레잖아.`,
+      elf: `${name} 고마워요. ${owner}의 마음까지 천 년 동안 소중히 간직할게요.`,
+      fairy: `${withParticle(name, "이", "가")} 반짝여요! ${withParticle(owner, "이", "가")} 직접 준 선물이라 집사 날개가 멈추질 않아요!`
     };
     return responses[normalizeCharacter(character)] || GIFT_MESSAGES[character];
   }
