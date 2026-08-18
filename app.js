@@ -948,6 +948,7 @@
   let catHomeInitialized = false;
   let catHomeSpeechTimer = null;
   let catHomeBlinkTimer = null;
+  let catHomeSlipTimer = null;
   let catHomePendingReaction = "";
   let chatReplyTimer = null;
 
@@ -2519,16 +2520,55 @@
     world.style.transform = `translate3d(${catHomeOffsetX}px,0,0)`;
   }
 
+  // 쓴 슬립은 위로 빠지고 새 슬립이 아래에서 올라온다. 첫 발행과 감소 모드에서는
+  // 바꿀 종이가 없거나 움직이면 안 되므로 바로 얹는다.
+  function swapReceptionSlip(message) {
+    const paper = $("#cat-home-speech-paper");
+    const text = $("#cat-home-speech-text");
+    if (!paper || !text) return;
+    const clip = $("#cat-home-speech .of-clip");
+    const first = !text.textContent;
+    if (first || prefersReducedMotion()) { text.textContent = message; return; }
+    window.clearTimeout(catHomeSlipTimer);
+    // 두 클래스가 같이 붙어 있으면 나중에 선언된 slip-in이 이겨서 나가는 장면이
+    // 통째로 사라진다. 반대쪽을 반드시 먼저 떼고 건다.
+    paper.classList.remove("slip-in");
+    restartAnimation(paper, "slip-out");
+    if (clip) restartAnimation(clip, "slip-wobble");
+    catHomeSlipTimer = window.setTimeout(() => {
+      text.textContent = message;
+      paper.classList.remove("slip-out");
+      restartAnimation(paper, "slip-in");
+    }, 120);
+  }
+
+  // 눈 깜빡임 한 번. 탭에도, 저 혼자 있는 시간에도 같은 동작을 쓴다.
+  function blinkOnce() {
+    const image = $("#cat-home-character-image");
+    if (!image) return;
+    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
+    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 180);
+    scheduleCatHomeBlink();
+  }
+
+  // 방이 배경화면이 되는 건 아무도 안 움직여서다. 6~12초에 한 번, 아무 조작이
+  // 없어도 저절로 깜빡인다. 보이지 않는 동안에는 돌리지 않는다 — 안 보이는
+  // 이미지를 계속 갈아끼우는 건 배터리만 쓴다.
+  function deskIdleVisible() {
+    return state.character === "cat"
+      && !$("#home-butler-room")?.hidden
+      && $("#view-home")?.classList.contains("active")
+      && document.visibilityState !== "hidden";
+  }
+
   function scheduleCatHomeBlink() {
     window.clearTimeout(catHomeBlinkTimer);
-    if (state.character !== "cat" || $("#home-butler-room")?.hidden) return;
+    if (!deskIdleVisible()) return;
     catHomeBlinkTimer = window.setTimeout(() => {
-      if (state.character !== "cat" || catHomeDrag) return;
-      const image = $("#cat-home-character-image");
-      image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
-      window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 170);
-      scheduleCatHomeBlink();
-    }, 6500 + Math.floor(Math.random() * 4500));
+      if (!deskIdleVisible()) return; // 화면을 떠났다 — 돌아올 때 다시 건다
+      if (catHomeDrag) { scheduleCatHomeBlink(); return; } // 방을 미는 중엔 한 박자 쉰다
+      blinkOnce();
+    }, 6000 + Math.floor(Math.random() * 6000));
   }
 
   function configureCatHome() {
@@ -2576,14 +2616,13 @@
     if (!speech || !character || state.character !== "cat") return;
     if ($("#home-butler-room")?.hidden) return;
     window.clearTimeout(catHomeSpeechTimer);
-    // 말풍선이 아니라 접수 슬립이다 — 본문만 갈아끼우고 클립·발행자 서명은 그대로 둔다.
-    $("#cat-home-speech-text").textContent = message;
+    // 말풍선이 아니라 접수 슬립이다 — 클립은 그대로 두고 종이만 갈아끼운다.
+    swapReceptionSlip(message);
     speech.classList.add("is-visible");
     character.classList.remove("is-reacting");
     void character.offsetWidth;
     character.classList.add("is-reacting");
-    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
-    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 190);
+    blinkOnce();
     // 슬립은 발행되면 책상에 남는다. 사라지면 접수대 아래가 빈 칸으로 덜컥 내려앉는다.
     catHomeSpeechTimer = window.setTimeout(() => {
       character.classList.remove("is-reacting");
@@ -4468,6 +4507,11 @@
       // 방을 밀고 손을 뗀 직후의 클릭은 말 걸기가 아니다.
       if (catHomeDragged) { catHomeDragged = false; return; }
       interactWithCatHome();
+    });
+    // 탭을 뒤로 보내면 접수대도 쉰다. 돌아오면 다시 저 혼자 깜빡이기 시작한다.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") window.clearTimeout(catHomeBlinkTimer);
+      else scheduleCatHomeBlink();
     });
     $("#butler-chat-form").addEventListener("submit", submitButlerChat);
     $("#butler-chat-close").addEventListener("click", closeButlerChat);

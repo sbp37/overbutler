@@ -1142,6 +1142,7 @@
 #view-home .room-pan-hint { bottom: 40px; }
 
 /* 접수 슬립 — 창구 아래로 반쯤 나온 종이. 클립으로 물려 있다. */
+/* 접수 슬립 — 바깥은 클립이 박힌 자리(움직이지 않는다), 안쪽이 종이다. */
 #view-home .reception-slip {
   position: relative;
   z-index: 4;
@@ -1149,20 +1150,26 @@
   width: auto;
   max-height: none;
   margin: -30px 16px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, visibility 0s linear .2s;
+  pointer-events: none;
+}
+#view-home .reception-slip-paper {
   padding: 15px 16px 11px;
   border: 1px solid var(--doc-line);
   border-radius: 0;
   background: var(--ivory);
   box-shadow: 3px 4px 0 rgba(45, 35, 22, .13);
-  opacity: 0;
-  visibility: hidden;
-  transform: rotate(-.6deg);
-  transition: opacity .2s ease, visibility 0s linear .2s;
-  pointer-events: none;
+  rotate: -.6deg;
 }
 #view-home .reception-slip.is-visible { opacity: 1; visibility: visible; transition-delay: 0s; }
 #view-home .reception-slip:after { content: none; }
-#view-home .reception-slip .of-clip { top: -9px; left: 20px; transform: rotate(-4deg); }
+#view-home .reception-slip .of-clip { z-index: 7; top: -9px; left: 20px; rotate: -4deg; transform: none; }
 #view-home .reception-slip p {
   margin: 0;
   color: var(--ink);
@@ -2801,7 +2808,8 @@
 /* ═══════════ v4.1 수정 — 홈 ═══════════ */
 
 /* 슬립은 인사 한 줄이면 된다. 발행 푸터는 종이를 두껍게만 만들었다. */
-#view-home .reception-slip { margin-top: -22px; padding: 13px 15px 12px; }
+#view-home .reception-slip { margin-top: -22px; padding: 0; }
+#view-home .reception-slip-paper { padding: 13px 15px 12px; }
 #view-home .reception-slip p { font-size: 15px; }
 
 /* 제목 — 공문 서체는 문서 안쪽에서 쓰고, 화면 제목은 앱의 목소리로 돌린다. */
@@ -3368,4 +3376,31 @@
 }
 @media (prefers-reduced-motion: reduce) {
   #certificate-card.certpaper .official-stamp.ink-land { animation: none; }
+}
+
+/* ═══════════ P2-3 접수 슬립 종이 교체 ═══════════
+   집사 말이 바뀔 때 글자만 갈리면 종이라는 설정이 죽는다. 쓴 슬립은 위로
+   빠지고 새 슬립이 아래에서 올라온다. 클립은 접수대에 박혀 있어서 자리를
+   지키고, 종이가 지나가는 힘에 한 번만 흔들린다. 합쳐서 0.25초.
+   종이의 기울기는 rotate 속성이 들고 있어 translate 애니와 겹치지 않는다. */
+@keyframes slip-out {
+  from { transform: translate3d(0, 0, 0); opacity: 1; }
+  to { transform: translate3d(0, -6px, 0); opacity: 0; }
+}
+@keyframes slip-in {
+  from { transform: translate3d(0, 6px, 0); opacity: 0; }
+  to { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+@keyframes slip-clip-wobble {
+  0%, 100% { rotate: -4deg; }
+  45% { rotate: -2deg; }
+  75% { rotate: -5.2deg; }
+}
+#view-home .reception-slip-paper.slip-out { animation: slip-out .12s ease-in both; }
+#view-home .reception-slip-paper.slip-in { animation: slip-in .13s cubic-bezier(.2, .85, .3, 1) both; }
+#view-home .reception-slip .of-clip.slip-wobble { animation: slip-clip-wobble .25s ease-in-out both; }
+@media (prefers-reduced-motion: reduce) {
+  #view-home .reception-slip-paper.slip-out,
+  #view-home .reception-slip-paper.slip-in,
+  #view-home .reception-slip .of-clip.slip-wobble { animation: none; }
 }
