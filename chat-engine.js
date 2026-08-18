@@ -12,6 +12,15 @@
   // 옛 캐릭터 키로 저장된 대화 기록이 넘어와도 같은 집사로 이어지게 한다. app.js와 같은 표를 쓴다.
   const LEGACY_CHARACTER_ALIASES = { fox: "zombie", star: "girlidol" };
 
+  // 관계 단계 경계 — 화면의 6단계와 대사 티어가 같은 눈금을 쓰게 하려고 여기 한 곳에만 둔다.
+  // chat-engine이 app.js보다 먼저 로드되므로 정의는 이쪽에 있고 app.js가 읽어 쓴다.
+  // 대업당 +3이라 이 숫자가 곧 "며칠째에 그 단계가 되는가"를 정한다.
+  const RELATIONSHIP_BOUNDARIES = Object.freeze([0, 18, 40, 60, 80, 100]);
+  // 대사 티어는 단계 경계 위에 얹는다 — 2단계(익숙해짐) 진입에서 말투가 풀리고,
+  // 4단계(챙김 받는 중) 진입에서 먼저 챙기는 말이 열린다. 예전에는 18/65라
+  // 화면 단계와 어긋나, 말투만 친해지고 단계는 그대로인 구간이 있었다.
+  const TIER_THRESHOLDS = Object.freeze({ t2: RELATIONSHIP_BOUNDARIES[1], t3: RELATIONSHIP_BOUNDARIES[3] });
+
   const INTENTS = [
     ["hard_day", /(?:오늘|회사|하루).*(?:너무\s*)?(?:힘들|고생|지치)|(?:힘들|고생|지치).*(?:오늘|회사|하루)/i, "힘든 하루", "tired"],
     ["home_arrival", /(?:이제|방금)?\s*(?:집에?|집으로)\s*(?:왔|도착|이야|이다|임)|퇴근\s*(?:했|완료|함|이다|했어|했어요)?/i, "귀가", "relieved"],
@@ -103,7 +112,20 @@
       miss: ["집사도 오늘 좀 보고 싶었다냥. …업무상 말이다냥.", "보고 싶었다고 먼저 말하면 반칙이다냥. 나도 조금 그랬다냥.", "왔으니 됐다냥. 빈자리가 좀 신경 쓰였던 것뿐이다냥."],
       sleep: ["잘 자라냥 🌙 오늘 이야기는 집사가 잘 접어두겠다냥.", "이제 눈 감아도 된다냥. 오늘 몫은 충분히 해냈다냥.", "푹 자라냥. 네 기록은 밤새 얌전히 지켜두겠다냥."],
       thanks: ["별걸 다 고맙다 하냥. 그래도 그 말은 잘 보관하겠다냥.", "고맙다는 말, 의외로 꽤 좋다냥. 서류함 맨 위에 둔다냥.", "흥, 당연한 일을 했을 뿐이다냥. 그래도 또 말해도 된다냥."],
-      hard_day: ["그랬냥… 오늘은 진짜 고생했다냥. 여기서는 좀 늘어져 있어도 된다냥 🐾", "많이 버거웠겠구냥. 잘한 것 찾기 전에 일단 숨부터 돌려라냥.", "그 하루를 지나 여기까지 왔냥. 지금은 아무것도 더 증명 안 해도 된다냥."]
+      hard_day: ["그랬냥… 오늘은 진짜 고생했다냥. 여기서는 좀 늘어져 있어도 된다냥 🐾", "많이 버거웠겠구냥. 잘한 것 찾기 전에 일단 숨부터 돌려라냥.", "그 하루를 지나 여기까지 왔냥. 지금은 아무것도 더 증명 안 해도 된다냥."],
+      home_arrival: ["집에 왔냥? 무사히 도착했으면 됐다냥. 이제 어깨 힘 좀 빼라냥.", "무사히 왔으면 그걸로 접수는 끝이다냥. 나머지는 앉아서 하자냥.", "들어왔으면 됐다냥. 밖에서 쓴 기운까지 굳이 안에 들고 오지 마라냥."],
+      no_motivation: ["아무것도 하기 싫은 날도 있다냥. 오늘은 숨 쉬고 버틴 것부터 인정해준다냥.", "의욕이 안 나오는 것도 접수 사유가 된다냥. 서류는 집사가 대신 넘기겠다냥.", "억지로 움직일 필요 없다냥. 오늘 칸은 비워둔 채로 두겠다냥."],
+      ate_good: ["맛있는 거 먹었냥? 잘했다냥. 그런 보고는 집사 기분도 꽤 좋아진다냥.", "잘 먹었다니 다행이다냥. 그런 건 굳이 안 물어도 알아서 적어두겠다냥.", "맛있었냥? 그럼 오늘 항목 하나는 이미 채워진 거다냥. 나쁘지 않다냥."],
+      love: ["그런 말 갑자기 하면 곤란하다냥… 그래도 잘 들었다냥. 집사도 많이 아낀다냥.", "그런 말은 서류로 남기기 곤란하다냥… 그래도 지우진 않겠다냥.", "…들었다냥. 집사도 비슷한 걸 적어두긴 했다냥. 어디에 뒀는지는 안 알려준다냥."],
+      sad: ["속상했냥… 당장 괜찮은 척 안 해도 된다냥. 말하고 싶은 만큼만 말해라냥.", "그랬구냥… 이유를 다 설명 안 해도 된다냥. 집사는 그냥 옆에 있겠다냥.", "속상한 건 접수만 해두겠다냥. 처리도 판단도 오늘은 안 한다냥."],
+      angry: ["화날 만한 일이 있었구냥. 일단 여기선 참지 말고 천천히 풀어놔라냥.", "화가 났구냥. 여기서 한 말은 어디로도 안 넘긴다냥. 마음껏 해라냥.", "그럴 만했다냥. 집사는 편들 준비부터 하고 듣겠다냥."],
+      bored: ["심심했냥? 집사가 잠깐 상대해주는 건 규정상 허용이다냥.", "심심하냥. 마침 집사도 서류만 보기 지겨웠다냥. …마침이다냥.", "할 말 없어도 된다냥. 아무 말이나 접수해도 반려 안 한다냥."],
+      worry: ["고민 있냥? 답부터 재촉 안 할 테니 엉킨 데부터 같이 보자냥.", "고민이구냥. 결론 없이 늘어놔도 된다냥. 정리하는 건 집사 일이다냥.", "정하기 어려우면 안 정해도 된다냥. 오늘은 펼쳐만 두고 덮어도 괜찮다냥."],
+      happy: ["기분 좋냥? 흥, 꼬리가 올라간 건 네 기분이 옮아서다냥.", "좋은 일이 있었구냥. 집사 표정까지 같이 풀린 건 우연이다냥.", "기분 좋다는 건 잘 적어두겠다냥. 이런 항목은 자리를 좀 크게 잡는다냥."],
+      commute: ["출근하냥? 너무 완벽하게 하려 말고 무사히 다녀와라냥.", "일하러 가는구냥. 오늘 목표는 잘하는 게 아니라 돌아오는 거다냥.", "다녀와라냥. 자리는 그대로 둘 테니 굳이 서두르지 마라냥."],
+      washed: ["씻었냥? 아주 훌륭한 생존 대업이다냥. 뽀송한 건 인정한다냥.", "씻고 왔구냥. 사소해 보여도 집사가 제일 좋아하는 항목이다냥.", "그것만 해도 오늘 몫은 했다냥. 도장은 이미 꺼내뒀다냥."],
+      exercise: ["운동까지 했냥? 제법인데냥. 오늘은 스스로 좀 대단해해도 된다냥.", "몸까지 움직였구냥. 흥, 조금 놀랐다냥. …아주 조금이다냥.", "운동은 기록칸이 따로 있다냥. 오늘은 거기 한 줄 채웠다냥."],
+      quiet_day: ["그런 날도 괜찮다냥. 평범하게 지나간 하루도 집사는 끝까지 듣는다냥 🐾", "별일 없었구냥. 특이사항 없음도 엄연한 보고다냥.", "무난한 하루도 접수한다냥. 사건 없는 서류가 사실 제일 좋은 서류다냥."]
     },
     ai: {
       greeting: ["주인님 접속 감지. 집사 반가움 회로 작동 중. (버그아님)", "[접속 확인] 주인님 도착. 대기 상태 해제. 반가움 수치 상승 중.", "[알림] 주인님 등장. 집사 기쁨 수치 상승 중.", "금일도 접속 확인. 집사 금일도 같은 자리에 있었음."],
@@ -379,8 +401,8 @@
     const level = Number(obsession) || 0;
     if (!pools) return [];
     const lines = [];
-    if (level >= 35) lines.push(...(pools.t2?.[intent] || []));
-    if (level >= 65) lines.push(...(pools.t3?.[intent] || []));
+    if (level >= TIER_THRESHOLDS.t2) lines.push(...(pools.t2?.[intent] || []));
+    if (level >= TIER_THRESHOLDS.t3) lines.push(...(pools.t3?.[intent] || []));
     return lines;
   }
 
@@ -428,8 +450,70 @@
       "그렇구냥. 오늘 이야기는 여기 적어두겠다냥."
     ]
   };
+  /* ── 인용 반사 ──
+     분류에 실패했을 때 "그렇구냥. 오늘 이야기는 여기 적어두겠다냥"이 나가는데,
+     이건 못 알아들었다는 걸 광고하는 문장이다. 대신 주인님이 실제로 쓴 구절을
+     되읽는다 — 알아듣지 못해도 "읽긴 읽었다"는 건 증명할 수 있다.
+
+     규칙(정한 대로 지킨다):
+       · 12자 이내. 넘으면 12자 이전 마지막 공백에서 자르고, 공백이 없으면 그냥 자른다.
+       · 첫 절만 쓴다. 뒤 절까지 끌면 인용이 길어지고 무슨 말인지 흐려진다.
+       · 한글 3음절 미만이거나 불용어뿐이면 인용하지 않는다.
+       · 조사·연결어미로 끝나면 잘라낸다("일 좀" → "일 좀", "쿠팡을" → "쿠팡").
+       · 자해·죽음·욕설이 섞인 문장은 절대 인용하지 않는다 — 아픈 말을 그대로
+         돌려주는 꼴이 된다. 이때는 기존 공감 폴백으로 간다. */
+  const QUOTE_BLOCKLIST = /죽고\s*싶|죽어버|죽을래|자살|자해|손목|뛰어내리|사라지고\s*싶|없어지고\s*싶|살기\s*싫|씨발|시발|ㅅㅂ|병신|좆|개새|미친놈|꺼져|우울증/;
+  const QUOTE_SPLIT = /[.!?~,;]|(?:는데|은데|지만)|고\s|다가\s|그리고|그런데|근데|하지만|그래서|그러다/;
+  // 잘려서 덩그러니 남은 조사만 떼어낸다. "도/만"은 빼놨다 — "아무것도", "하나만"처럼
+  // 뜻의 일부인 경우가 많아서 떼면 오히려 말이 부서진다.
+  const QUOTE_TRAILING = /(?:을|를|이|가|은|는|에|에서|의|와|과|랑|이랑|하고|한테|께|보다)$/;
+  const QUOTE_STOPWORDS = new Set(["오늘", "그냥", "진짜", "너무", "그거", "이거", "저거", "음", "아", "어", "네", "응", "뭐"]);
+  const QUOTE_LIMIT = 12;
+
+  // 부정·아픈 말이 든 절은 인용하지 않는다. 되읽는 순간 집사가 그 말을 다시
+  // 꺼내는 꼴이 된다 — "기분 안 좋았"을 인용하면 이미 풀린 기분을 되감는다.
+  const QUOTE_AVOID = /(?:^|[\s"'`([])(?:안|못)\s+[가-힣]|안(?:먹|씻|했|해|돼|되)|못(?:먹|씻|했|해)|(?:지|진)\s*(?:않|못)|힘들|지쳤|우울|속상|짜증|화나|빡|걱정|불안|막막|싫|아프|아팠/;
+
+  function quotableSnippet(value) {
+    const text = String(value || "").trim();
+    if (!text || QUOTE_BLOCKLIST.test(text)) return "";
+    const clauses = text.split(QUOTE_SPLIT).map(part => part.trim()).filter(Boolean);
+    for (const clause of clauses) {
+      if (QUOTE_AVOID.test(clause)) continue;
+      let snippet = clause.replace(/^[ㅋㅎㅠㅜ\s]+/, "").trim();
+      const truncated = snippet.length > QUOTE_LIMIT;
+      if (truncated) {
+        const cut = snippet.slice(0, QUOTE_LIMIT);
+        const lastSpace = cut.lastIndexOf(" ");
+        snippet = (lastSpace >= 4 ? cut.slice(0, lastSpace) : cut).trim();
+      }
+      snippet = snippet.replace(/[ㅋㅎ~!?.\s]+$/, "").trim();
+      if (truncated) snippet = snippet.replace(QUOTE_TRAILING, "").trim();
+      const syllables = (snippet.match(/[가-힣]/g) || []).length;
+      if (syllables < 3) continue;
+      const words = snippet.split(/\s+/).filter(Boolean);
+      if (!words.length || words.every(word => QUOTE_STOPWORDS.has(word))) continue;
+      // 절 경계에 잘려 어간만 남은 꼬리("친구랑 카페 갔")는 인용하면 말이 부서진다.
+      // 과거 어간은 받침 ㅆ으로 끝난다 — 그런 조각은 건너뛰고 다음 절을 본다.
+      const lastCode = snippet.charCodeAt(snippet.length - 1);
+      if (lastCode >= 0xac00 && lastCode <= 0xd7a3 && (lastCode - 0xac00) % 28 === 20) continue;
+      return snippet;
+    }
+    return "";
+  }
+
+  const CAT_QUOTE_REFLECT = snippet => [
+    `‘${snippet}’… 그 줄은 굵은 펜으로 적어뒀다냥.`,
+    `‘${snippet}’라고 적어뒀다냥. 오늘 장부에서 제일 눈에 띈 줄이다냥.`,
+    `‘${snippet}’… 이 대목은 두 번 읽었다냥. 접수는 끝났다냥.`
+  ];
+
   function catStoryFallback(text) {
     const value = String(text || "");
+    // 인용이 먼저다. 되읽을 구절이 있으면 그게 가장 확실한 "읽었다"는 증거다.
+    // 뽑을 게 없거나 민감한 문장이면 기존 애씀/바람/범용 폴백으로 내려간다.
+    const snippet = quotableSnippet(value);
+    if (snippet) return CAT_QUOTE_REFLECT(snippet);
     const effort = CAT_EFFORT_CUE.test(value);
     const hope = CAT_HOPE_CUE.test(value);
     if (effort && hope) return CAT_STORY_FALLBACK.effortHope;
@@ -458,12 +542,49 @@
   };
 
   // 기록명은 사용자 입력에 따라 달라지므로 조사를 받침에 맞춰 고른다.
+  /* 조사는 앞말의 받침으로 정해진다. 따옴표로 감싼 말을 넘기면 마지막 글자가
+     따옴표라 늘 받침 없는 쪽으로 붙었다 — 인용 부호·괄호·공백은 건너뛰고
+     실제 마지막 한글 글자를 본다. */
   function particle(word, withJong, withoutJong) {
     const text = String(word || "").trim();
-    const code = text.charCodeAt(text.length - 1);
-    if (!text || Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return `${text}${withoutJong}`;
+    const bare = text.replace(/[\s'"`’‘”“()\[\]<>{}.,!?~·…]+$/u, "");
+    const code = bare.charCodeAt(bare.length - 1);
+    if (!bare || Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return `${text}${withoutJong}`;
     return `${text}${(code - 0xac00) % 28 !== 0 ? withJong : withoutJong}`;
   }
+
+  /* 돌봄을 거른 보고는 대업이 아니라 걱정 사유다. CAT-FIRST — 고양이만 변주를
+     갖고, 나머지 캐릭터는 중립 공용문 하나를 쓴다. 어느 쪽도 "안 한 일"을
+     칭찬하지 않고, 대신 지금 할 수 있는 아주 작은 것 하나를 가리킨다. */
+  const CAT_SKIPPED_CARE = {
+    meal: [
+      "밥을 걸렀냥…? 그건 대업이 아니라 걱정 사유다냥. 지금이라도 뭐 하나 물고 와라냥.",
+      "끼니를 건너뛴 건 접수 못 한다냥. 대신 걱정란에 적어뒀다냥. 아무거나 좋으니 좀 먹어라냥.",
+      "안 먹었다는 보고는 칭찬할 수가 없다냥. 규정이 아니라 집사가 싫어서다냥. 뭐라도 챙겨라냥.",
+      "빈속으로 버틴 거냥? 그건 장부에 못 올린다냥. 물이라도 한 잔 먼저 마셔라냥."
+    ],
+    hygiene: [
+      "못 씻었다는 건 대업란에 못 올린다냥. 오늘 그만큼 힘들었냥? 그거부터 듣고 싶다냥.",
+      "씻는 걸 건너뛴 날도 있다냥. 대업은 아니지만 혼낼 일도 아니다냥. 무리하지 마라냥.",
+      "그건 접수 안 하고 걱정란에만 적어두겠다냥. 여유 생기면 세수라도 한 번 해라냥."
+    ],
+    rest: [
+      "잠을 못 잤다는 건 대업이 아니다냥. 오늘 제일 급한 안건이다냥. 좀 누워라냥.",
+      "밤을 샜냥…? 그건 칭찬할 수가 없다냥. 집사 걱정란만 길어진다냥.",
+      "못 잔 건 접수 못 한다냥. 대신 오늘 할 일 목록을 반으로 줄여주겠다냥."
+    ]
+  };
+  const NEUTRAL_SKIPPED_CARE = {
+    meal: "식사를 거른 건 대업으로 접수하지 않습니다. 지금이라도 간단한 것부터 챙겨주세요.",
+    hygiene: "씻는 걸 건너뛴 날도 있습니다. 대업은 아니지만 탓할 일도 아니에요. 무리하지 마세요.",
+    rest: "잠을 제대로 못 잔 건 칭찬할 수 없습니다. 오늘은 회복이 가장 급한 일입니다."
+  };
+  // 감정과 성취가 한 문장에 섞이면 감정을 먼저 받고 성취는 부기로 붙인다.
+  const SKIPPED_CARE_PREFIX = { meal: "밥은 걸렀지만", hygiene: "씻는 건 건너뛰었지만", rest: "잠은 못 잤지만" };
+  const CAT_SKIPPED_WITH_WIN = (careType, title) =>
+    `${SKIPPED_CARE_PREFIX[careType] || "그건 걸렀지만"} ${particle(`‘${title}’`, "은", "는")} 접수했다냥. …순서는 집사가 정한다냥. 걱정이 먼저다냥.`;
+  const NEUTRAL_SKIPPED_WITH_WIN = (careType, title) =>
+    `${SKIPPED_CARE_PREFIX[careType] || "그건 걸렀지만"} ${particle(`‘${title}’`, "은", "는")} 접수했습니다. 다만 순서는 걱정이 먼저입니다.`;
 
   const ACTIVITY_RESPONSE = {
     cat: title => `이야기 속에서 ${particle(`‘${title}’`, "을", "를")} 발견했다냥. 흥, 이건 집사가 대업으로 잘 다듬어두겠다냥.`,
@@ -521,6 +642,7 @@
     let intent = "fallback";
     if (intents.includes("commute") && /집|퇴근/.test(text)) intent = "home_arrival";
     else if (intents.includes("tired") && (intents.includes("work") || /오늘|하루/.test(text))) intent = "hard_day";
+    else if (intents.includes("skipped_care")) intent = "skipped_care";
     else if (intents.includes("no_motivation")) intent = "no_motivation";
     else if (intents.includes("sleep")) intent = "sleep";
     else if (intents.includes("goodbye")) intent = "goodbye";
@@ -561,27 +683,43 @@
     // 문장 전체를 읽었다는 신호(toneShift/futurePlans/여러 완료 행동)가 있으면, 그 문장
     // 전용으로 고른 대사를 쓰고 RESPONSE_POOLS/relationshipLinesFor의 일반 변주는
     // 건너뛴다 — 그 풀들은 "힘든 하루"류 단일 감정 대사라 이 신호를 못 담는다.
-    const toneShiftOverride = key === "cat" && result.toneShift;
+    // 돌봄을 거른 보고는 어떤 일반 변주보다 먼저다 — 이 문장에는 걱정으로만 답한다.
+    const skippedCareType = result.intent === "skipped_care" ? (result.skippedCare?.[0]?.type || "meal") : "";
+    const toneShiftOverride = key === "cat" && !skippedCareType && result.toneShift;
     const futurePlanOverride = key === "cat" && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
     const multiActivityOverride = key === "cat" && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
       && result.intent === "fallback" && !result.achievementCandidate
       ? catStoryFallback(result.text || message) : null;
-    let base = result.intent === "home_arrival" && hasHardDayContext ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
+    // 힘든 하루 뒤의 귀가는 앞 대화를 이어받는 브릿지가 본문이다. 이것도 일반 변주로
+    // 덮이면 안 된다 — home_arrival 풀이 있는 캐릭터에서 브릿지가 통째로 사라진다.
+    const bridgeOverride = result.intent === "home_arrival" && hasHardDayContext;
+    let base = bridgeOverride ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
+    if (skippedCareType) {
+      // 성취가 같이 잡혔으면 걱정을 먼저 말하고 성취는 부기로 붙인다.
+      base = result.achievementCandidate && result.achievementTitle
+        ? (key === "cat" ? CAT_SKIPPED_WITH_WIN : NEUTRAL_SKIPPED_WITH_WIN)(skippedCareType, result.achievementTitle)
+        : (key === "cat" ? "" : NEUTRAL_SKIPPED_CARE[skippedCareType] || NEUTRAL_SKIPPED_CARE.meal);
+      if (key === "cat" && !base) base = (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal)[0];
+    }
     if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
     else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.mood, result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general(result.mood);
     else if (futurePlanOverride) base = CAT_FUTURE_PLAN_ONLY(result.futurePlans[0].snippet);
     else if (multiActivityOverride) base = CAT_MULTI_ACTIVITY(result.activities, result.achievementTitle);
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
-    const bypassPools = toneShiftOverride || futurePlanOverride || multiActivityOverride;
+    const bypassPools = Boolean(skippedCareType) || toneShiftOverride || futurePlanOverride || multiActivityOverride || bridgeOverride;
     const endings = ENDINGS[key] || ENDINGS.cat;
-    const extra = bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
+    // 고양이는 걱정 문장도 변주를 갖는다. 성취가 같이 잡힌 경우는 한 문장으로 고정한다.
+    const skippedCareLines = skippedCareType && key === "cat" && !(result.achievementCandidate && result.achievementTitle)
+      ? (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal) : null;
+    const extra = skippedCareLines || (bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${tail}`])
       : [base, `${base}\n${tail}`];
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
-    if (result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
+    // 걱정 응답은 이미 성취를 문장 안에서 다뤘다 — 여기서 또 붙이면 두 번 말한다.
+    if (!skippedCareType && result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
     const nextMemory = {
       character: key,
       lastMood: result.mood || memory.lastMood,
@@ -605,5 +743,5 @@
     return "night";
   }
 
-  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, classify, respond, normalizeMemory, timeSlotForHour, intents: Object.freeze(INTENTS.map(item => item[0])) });
+  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, stripNegatedClauses: interpreter?.stripNegatedClauses, classify, respond, normalizeMemory, timeSlotForHour, TIER_THRESHOLDS, RELATIONSHIP_BOUNDARIES, intents: Object.freeze(INTENTS.map(item => item[0])) });
 });

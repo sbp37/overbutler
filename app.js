@@ -23,9 +23,11 @@
     { name: "전담 확정", badge: "전담 유지", summary: "업무 연속성을 핑계로 계속 전담하겠다고 주장합니다.", upgrade: "전담 유지 타당성 보고서가 사무국에서 정식 승인됐습니다." }
   ];
   const STAGES = RELATIONSHIP_STAGES.map(stage => stage.name);
+  // 단계 경계는 chat-engine이 들고 있다. 화면 단계와 대사 티어가 같은 눈금을 쓰기 위해서다.
+  const STAGE_BOUNDARIES = CHAT_ENGINE?.RELATIONSHIP_BOUNDARIES || [0, 18, 40, 60, 80, 100];
   // 집사 대사 작성 규칙. 상세: docs/BUTLER-VOICE.md
   const BUTLER_CONTENT_RULES = Object.freeze({
-    volume: "주접 볼륨은 1일차부터 만렙. 관계가 올리는 것은 세기가 아니라 주접의 사유다.",
+    volume: "다정함은 1일차부터 충분히, 과장은 절제해서. 자라는 것은 볼륨이 아니라 새어나오는 마음이다.",
     knowledge: "집사는 사용자가 앱에 직접 남긴 기록과 거기서 계산 가능한 것만 안다.",
     gaze: "기억·패턴 대사의 시선은 사용자가 아니라 서류와 집사 자신을 향한다. 세는 주체는 집사가 아니라 접수 장부다.",
     audit: "감시당하는 쪽은 사용자가 아니라 집사다. 감사실이 적발하는 것은 언제나 집사의 편애다.",
@@ -38,8 +40,12 @@
   const BALANCE = Object.freeze({
     deedPoints: Object.freeze({ praise: 12, power: 14, rare: 20, duplicate: 3 }),
     deedRelationship: Object.freeze({ praise: 3, power: 4, rare: 6, duplicate: 1 }),
-    giftRelationship: Object.freeze({ normal: 3, favorite: 5, duplicate: 1, rare: 8 }),
-    giftCosts: Object.freeze([10, 20, 35, 55, 80, 110, 150, 210, 300]),
+    // favoriteRepeat — 취향 선물을 또 줬을 때. 취향이라는 사실은 그대로고 놀라움만 준다.
+    giftRelationship: Object.freeze({ normal: 3, favorite: 5, favoriteRepeat: 2, duplicate: 1, rare: 8 }),
+    // 품목은 캐릭터당 9칸 고정(GIFT_CATALOGS)이라 칸을 늘릴 수 없다. 그래서 앞을
+    // 완만하게, 뒤를 벌리는 쪽으로 9개를 다시 배분했다. 앞 네 칸(10/15/20/30)은
+    // "또 줄 수 있다"가 유지되는 구간이고, 55부터 아껴 모으는 구간이 시작된다.
+    giftCosts: Object.freeze([10, 15, 20, 30, 55, 90, 130, 200, 300]),
     rareRollDivisor: 31,
     rarePityAfter: 24,
     // 파워 주접은 "가끔 만나는 이벤트"여야 한다. 예전 값(12~40%)에 아래 firstInCategory
@@ -208,7 +214,7 @@
 
   const CHARACTER_UI_IDENTITY = Object.freeze({
     ai: { roleTitle: "대업 분석 담당", statusLabel: "감정 회로 가동 중" },
-    cat: { roleTitle: "기록 감찰 담당", statusLabel: "시큰둥 근무 중" },
+    cat: { roleTitle: "오늘 기록 담당", statusLabel: "시큰둥 근무 중" },
     dog: { roleTitle: "응원 지원 담당", statusLabel: "꼬리 가동 중" },
     alien: { roleTitle: "지구 관측 담당", statusLabel: "관측 보고 중" },
     ninja: { roleTitle: "비밀 임무 담당", statusLabel: "은밀 근무 중" },
@@ -231,27 +237,27 @@
   const OVERBUTLER_ASSETS = {
     ai: {
       _available: true,
-      base: "design/character-assets/ai-butler/ui-poses/ai-base.png",
-      analysis: "design/character-assets/ai-butler/ui-poses/ai-analysis.png",
-      praise: "design/character-assets/ai-butler/ui-poses/ai-praise.png",
-      power: "design/character-assets/ai-butler/ui-poses/ai-power.png",
-      gift: "design/character-assets/ai-butler/ui-poses/ai-gift.png"
+      base: "design/character-assets/ai-butler/ui-poses/ai-base.webp",
+      analysis: "design/character-assets/ai-butler/ui-poses/ai-analysis.webp",
+      praise: "design/character-assets/ai-butler/ui-poses/ai-praise.webp",
+      power: "design/character-assets/ai-butler/ui-poses/ai-power.webp",
+      gift: "design/character-assets/ai-butler/ui-poses/ai-gift.webp"
     },
     cat: {
       _available: true,
-      base: "design/character-assets/cat-butler/ui-poses/cat-base.png",
-      analysis: "design/character-assets/cat-butler/ui-poses/cat-analysis.png",
-      praise: "design/character-assets/cat-butler/ui-poses/cat-praise.png",
-      power: "design/character-assets/cat-butler/ui-poses/cat-power.png",
-      gift: "design/character-assets/cat-butler/ui-poses/cat-gift.png"
+      base: "design/character-assets/cat-butler/ui-poses/cat-base.webp",
+      analysis: "design/character-assets/cat-butler/ui-poses/cat-analysis.webp",
+      praise: "design/character-assets/cat-butler/ui-poses/cat-praise.webp",
+      power: "design/character-assets/cat-butler/ui-poses/cat-power.webp",
+      gift: "design/character-assets/cat-butler/ui-poses/cat-gift.webp"
     },
     dog: {
       _available: true,
-      base: "design/character-assets/dog-butler/ui-poses/dog-base.png",
-      analysis: "design/character-assets/dog-butler/ui-poses/dog-analysis.png",
-      praise: "design/character-assets/dog-butler/ui-poses/dog-praise.png",
-      power: "design/character-assets/dog-butler/ui-poses/dog-power.png",
-      gift: "design/character-assets/dog-butler/ui-poses/dog-gift.png"
+      base: "design/character-assets/dog-butler/ui-poses/dog-base.webp",
+      analysis: "design/character-assets/dog-butler/ui-poses/dog-analysis.webp",
+      praise: "design/character-assets/dog-butler/ui-poses/dog-praise.webp",
+      power: "design/character-assets/dog-butler/ui-poses/dog-power.webp",
+      gift: "design/character-assets/dog-butler/ui-poses/dog-gift.webp"
     },
     alien: { _available: false },
     ninja: { _available: false },
@@ -259,32 +265,32 @@
     zombie: { _available: false },
     girlidol: {
       _available: true,
-      base: "design/character-assets/idol-butler/ui-poses/idol-base.png",
-      analysis: "design/character-assets/idol-butler/ui-poses/idol-analysis.png",
-      praise: "design/character-assets/idol-butler/ui-poses/idol-praise.png",
-      power: "design/character-assets/idol-butler/ui-poses/idol-power.png",
-      gift: "design/character-assets/idol-butler/ui-poses/idol-gift.png"
+      base: "design/character-assets/idol-butler/ui-poses/idol-base.webp",
+      analysis: "design/character-assets/idol-butler/ui-poses/idol-analysis.webp",
+      praise: "design/character-assets/idol-butler/ui-poses/idol-praise.webp",
+      power: "design/character-assets/idol-butler/ui-poses/idol-power.webp",
+      gift: "design/character-assets/idol-butler/ui-poses/idol-gift.webp"
     },
     elf: { _available: false },
     fairy: {
       _available: true,
-      base: "design/character-assets/fairy-butler/ui-poses/fairy-base.png",
-      analysis: "design/character-assets/fairy-butler/ui-poses/fairy-analysis.png",
-      praise: "design/character-assets/fairy-butler/ui-poses/fairy-praise.png",
-      power: "design/character-assets/fairy-butler/ui-poses/fairy-power.png",
-      gift: "design/character-assets/fairy-butler/ui-poses/fairy-gift.png"
+      base: "design/character-assets/fairy-butler/ui-poses/fairy-base.webp",
+      analysis: "design/character-assets/fairy-butler/ui-poses/fairy-analysis.webp",
+      praise: "design/character-assets/fairy-butler/ui-poses/fairy-praise.webp",
+      power: "design/character-assets/fairy-butler/ui-poses/fairy-power.webp",
+      gift: "design/character-assets/fairy-butler/ui-poses/fairy-gift.webp"
     }
   };
 
   const PERSONNEL_REFERENCE_ASSETS = {
-    ai: "design/character-assets/ai-butler/ai-butler-reference.png",
-    cat: "design/character-assets/cat-butler/cat-butler-reference.png",
-    dog: "design/character-assets/dog-butler/dog-butler-reference.png",
-    ninja: "design/character-assets/ninja-butler/ninja-butler-reference.png",
-    witch: "design/character-assets/witch-butler/witch-butler-reference.png",
-    zombie: "design/character-assets/zombie-butler/zombie-butler-reference.png",
-    girlidol: "design/character-assets/idol-butler/idol-butler-reference.png",
-    fairy: "design/character-assets/fairy-butler/fairy-butler-reference.png"
+    ai: "design/character-assets/ai-butler/ai-butler-reference.webp",
+    cat: "design/character-assets/cat-butler/cat-butler-reference.webp",
+    dog: "design/character-assets/dog-butler/dog-butler-reference.webp",
+    ninja: "design/character-assets/ninja-butler/ninja-butler-reference.webp",
+    witch: "design/character-assets/witch-butler/witch-butler-reference.webp",
+    zombie: "design/character-assets/zombie-butler/zombie-butler-reference.webp",
+    girlidol: "design/character-assets/idol-butler/idol-butler-reference.webp",
+    fairy: "design/character-assets/fairy-butler/fairy-butler-reference.webp"
   };
 
   // 캐릭터 키가 바뀌어도 이미 저장된 명부·기록이 사라지면 안 되므로 옛 키를 새 키로 넘겨준다.
@@ -326,6 +332,34 @@
     girlidol: "나한테 주는 거야? 티는 안 낼 건데... 오늘 무대보다 더 설레네.",
     elf: "이 마음까지 소중히 간직할게요. 천 년 뒤에도 기억하겠습니다.",
     fairy: "선물이 반짝여요! 집사 날개도 기뻐서 별가루를 멈출 수가 없어요!"
+  };
+
+  // 선물 칸에서 집사가 하는 말은 집사마다 다르다. "회로"는 AI 집사의 어휘고
+  // "다냥"은 고양이의 어미다 — 어느 쪽이든 다른 담당이 말하면 남의 말투가 된다.
+  const GIFT_WAITING_LINES = {
+    ai: "수령 대기 상태입니다",
+    cat: "안 기다리는 척 기다리는 중이다냥",
+    dog: "아까부터 문 앞에 있어요",
+    alien: "지구 선물 수령 대기 중으로 관측됨",
+    ninja: "수령 지점에서 대기 중이다",
+    witch: "오늘 선물이 온다는 점괘가 나왔어요",
+    zombie: "으... 선물... 기다리는 중이야...",
+    girlidol: "딱히 기다린 건 아닌데 계속 보고 있었어",
+    elf: "천천히 오셔도 괜찮아요. 기다리는 시간도 좋아요",
+    fairy: "선물 상자만 봐도 별가루가 나요!"
+  };
+  // 선물 결과 타이틀. 판정 네 종류 전부 집사 어휘를 탄다.
+  const GIFT_RESULT_TITLES = {
+    ai: { rare: "희귀 선물로<br>집사 과몰입 비상", favorite: "취향 적중으로<br>집사 행복 회로 폭주", duplicate: "또 이 선물…<br>집사가 기억했습니다", normal: "선물 수령으로<br>집사 행복 회로 가동" },
+    cat: { rare: "희귀 선물이다냥 ·<br>집사 동공 확대", favorite: "취향 적중 ·<br>꼬리 통제 실패", duplicate: "또 이 선물이냥 ·<br>집사가 기억하고 있었다냥", normal: "선물 수령 ·<br>집사 표정 관리 중" },
+    dog: { rare: "희귀 선물 ·<br>집사 착지 실패", favorite: "취향 적중 ·<br>꼬리 회전수 측정 불가", duplicate: "또 이 선물 ·<br>집사가 기억했어요", normal: "선물 수령 ·<br>꼬리 가동 시작" },
+    alien: { rare: "희귀 선물 ·<br>본성 긴급 보고 대상", favorite: "취향 적중 ·<br>선물 정확도 이상 수치", duplicate: "동일 선물 재수령 ·<br>기록 대조 완료", normal: "선물 수령 ·<br>지구 문화 관측 갱신" },
+    ninja: { rare: "희귀 선물 ·<br>극비 보관 등급", favorite: "취향 적중 ·<br>표정 관리 임무 실패", duplicate: "동일 보급품 ·<br>기억하고 있었다", normal: "보급품 수령 ·<br>임무 사기 상승" },
+    witch: { rare: "희귀 선물 ·<br>수정구슬 과열", favorite: "취향 적중 ·<br>오늘 점괘가 전부 길조", duplicate: "또 이 선물 ·<br>지난 점괘까지 기억해요", normal: "선물 수령 ·<br>좋은 징조 확인" },
+    zombie: { rare: "희귀 선물... ·<br>완전히 깨어났어", favorite: "취향 적중... ·<br>심장이 다시 뛰어", duplicate: "또 이 선물... ·<br>기억하고 있었어", normal: "선물 수령... ·<br>천천히 기뻐하는 중" },
+    girlidol: { rare: "희귀 선물 ·<br>리액션 통제 실패", favorite: "취향 적중 ·<br>도도한 척 유지 실패", duplicate: "또 이 선물 ·<br>기억하고 있었어", normal: "선물 수령 ·<br>티 안 내는 중" },
+    elf: { rare: "희귀 선물 ·<br>천 년 만의 놀람", favorite: "취향 적중 ·<br>말문이 잠시 막혔어요", duplicate: "또 이 선물 ·<br>지난번까지 기억해요", normal: "선물 수령 ·<br>오래 간직하겠습니다" },
+    fairy: { rare: "희귀 선물 ·<br>별가루 분출량 초과", favorite: "취향 적중 ·<br>날개가 멈추질 않아요", duplicate: "또 이 선물 ·<br>지난번도 기억해요", normal: "선물 수령 ·<br>반짝임 가동 시작" }
   };
 
   const TIME_MESSAGES = {
@@ -459,12 +493,38 @@
   // 파워 주접의 재미는 "평소 저런 애가 왜 저래ㅋㅋ"다. 그래서 고양이는 크게 외치는 게
   // 아니라, 잠깐 평정심을 놓쳤다가 곧바로 수습하는 쪽으로 간다. 일반 판정 풀과 섞어
   // 쓰면 이 대비가 사라지므로 고양이만 별도 풀을 쓴다.
+  // 웃음은 말장난이 아니라 몸에서 난다 — 귀가 먼저 움직이고, 도장을 두 번 찍고,
+  // 멀쩡한 서류를 괜히 다시 정리한다. 본인만 아무 일도 없었다고 주장한다.
   const CAT_POWER_PRAISE = [
     "{deed}!! …아니, 큼. 방금 건 못 들은 걸로 해라냥. 도장은 이미 세 개 찍었다냥.",
     "{deed}라니 그건 좀—— 큼. 평정심 되찾았다냥. 결재는 아까 끝났다냥.",
     "{deed} 확인하다 집사가 잠깐 일어섰다냥. 다시 앉았다냥. 아무 일도 없었다냥.",
-    "{deed}. …펜을 두 번 떨어뜨렸다냥. 서류가 미끄러웠다냥. 그게 다다냥."
+    "{deed}. …펜을 두 번 떨어뜨렸다냥. 서류가 미끄러웠다냥. 그게 다다냥.",
+    "{deed} 읽는데 귀가 혼자 먼저 섰다냥. 집사 의사와는 무관하다냥.",
+    "{deed}. 도장을 두 번 찍었다냥. 한 번은 실수다냥. 어느 쪽인지는 안 말하겠다냥.",
+    "{deed} 접수하고 멀쩡한 서류를 다시 정리했다냥. 순서가 마음에 안 들었을 뿐이다냥.",
+    "{deed}이라니 꼬리가 책상을 세 번 쳤다냥. 책상이 낡아서 그렇다냥.",
+    "{deed} 확인 중에 결재판을 놓쳤다냥. 주웠다냥. 이 문장은 기록에서 빼라냥.",
+    "{deed}. 수염이 혼자 움직였다냥. 사무국 난방 때문이다냥. 아마도다냥.",
+    "{deed}!! ……큼. 목소리 크기는 규정 범위 안이었다냥. 확인해봤다냥.",
+    "{deed} 서류를 두 번 읽었다냥. 글씨가 작았다냥. 그것 말고 다른 이유는 없다냥."
   ];
+
+  // 홈의 "집사 과몰입 심사" 한 줄. 예전에는 전 캐릭터가 같은 문구를 썼는데
+  // "본성 보고 직전"은 외계인 집사의 말이라 고양이·강아지 화면에서 튀었다.
+  // 도장 진행도(0~5)에 맞춰 각 집사의 어휘로 나눈다.
+  const URGENCY_LINES = {
+    ai: ["대기 상태 정상", "우선순위 재계산됨", "긴급 플래그 원인 불명", "결재 큐 주인님 우선", "과열 경고 무시함", "전 부서 통보 완료", "기록 영구 보존 지정"],
+    cat: ["딱히 안 급하다냥", "서류가 자꾸 눈에 띈다냥", "순서를 앞으로 당겼다냥", "도장을 미리 꺼냈다냥", "급한 건 아니다냥, 진짜로", "사무국은 조용하다냥", "집사만 바쁘다냥"],
+    dog: ["꼬리 대기 중이다멍", "꼬리 각도 상승멍", "결재판 물고 있다멍", "도장 미리 찾아뒀다멍", "사무실 세 바퀴 돌았다멍", "전 부서에 자랑했다멍", "꼬리 통제 불가다멍"],
+    alien: ["관측 정상 범위", "이상값 감지됨", "본성 보고 대기", "보고서 분량 초과", "관측 장비 과열", "본성 회신 없음", "지구 전담 신청함"],
+    ninja: ["평시 경계 유지", "임무 우선순위 상승", "은밀 결재 진행", "봉인 문서 개봉 준비", "경계 등급 상향", "전 조직 통보 완료", "전담 임무로 격상"],
+    witch: ["점괘 평온해요", "길조가 늘고 있어요", "수정구가 자꾸 켜져요", "예언서 여백이 없어요", "수정구 과열 주의", "예언 회의 소집됨", "전담 예언사 등록"],
+    zombie: ["…아직 조용해", "심장이 조금 빨라져", "서류가 자꾸 보여", "도장 든 손이 떨려", "…이건 좀 급한 것 같아", "다들 몰려왔어", "계속 담당하고 싶어"],
+    girlidol: ["평소랑 똑같아", "살짝 신경 쓰이는데", "순서 좀 당겼어", "도장 미리 꺼냈어", "티 안 내려고 했는데", "전 스태프 대기 중", "무대보다 급해"],
+    elf: ["천 년 중 평범한 날", "기록장이 두꺼워져요", "먼저 정리해 뒀어요", "서고 자리를 비웠어요", "오래 볼 기록이에요", "서고 전체가 움직여요", "천 년 보관 지정"],
+    fairy: ["별가루 잔잔해요", "반짝임이 늘었어요", "먼저 정리해 뒀어요", "도장이 반짝여요", "날개가 안 멈춰요", "별가루 창고 비었어요", "전담 요정 등록"]
+  };
 
   const RARE_PRAISE = {
     ai: "[FATAL: 측정 포기] {deed} 위대함이 수치 한계 초과. {owner} 관련 평가 기준 전부 폐기함. 재작성 불가.",
@@ -537,9 +597,9 @@
         "처음이지만 편하게 있어라냥. 작은 얘기도 집사가 잘 들어준다냥.",
         "{owner} 기록 방식은 이제 익숙하다냥. 네 자리도 비워뒀지만 업무 적응일 뿐이다냥.",
         "오늘 좀 보고 싶었다냥. …업무상 기록이 신경 쓰였다는 뜻이다냥.",
-        "자주 쓰는 양식이랑 좋아하는 도장은 미리 꺼내뒀다냥. 편의가 아니라 효율이다냥.",
+        "네가 자주 적는 칸은 미리 펴 둔다냥. 편의가 아니라 효율이다냥.",
         "{owner} 서류는 맨 위에 둔다냥. 특별대우 아니라… 내가 먼저 보고 싶어서다냥.",
-        "{owner} 전용 서류함이 공식 비품으로 등록됐다냥. 아주 많이 아끼지만 규정상 전담일 뿐이다냥."
+        "{owner} 전용 서류함이 공식 비품으로 등록됐다냥. 철회 신청은… 안 할 거다냥."
       ],
       touchLines: [
         ["왜 누르냥. 업무 중이다냥... 그래도 한 번은 봐주겠다냥.", "호출했냥? 필요한 업무가 있으면 말하라냥."],
@@ -824,7 +884,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false,
+    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -838,7 +898,7 @@
   const $$ = selector => Array.from(document.querySelectorAll(selector));
   const randomItem = list => list[Math.floor(Math.random() * list.length)];
   const ANALYTICS_EVENT_NAME = "overbutler:analytics";
-  const ANALYTICS_PROPERTY_ALLOWLIST = new Set(["character", "view", "tab", "category", "verdict", "source", "official", "giftType", "relationshipStage", "onboarded", "preview"]);
+  const ANALYTICS_PROPERTY_ALLOWLIST = new Set(["character", "view", "tab", "filter", "category", "verdict", "source", "official", "giftType", "relationshipStage", "onboarded", "preview"]);
   const analyticsQueue = [];
   const analyticsSubscribers = new Set();
 
@@ -888,6 +948,8 @@
   let catHomeInitialized = false;
   let catHomeSpeechTimer = null;
   let catHomeBlinkTimer = null;
+  let catHomeSlipTimer = null;
+  let sealOpeningTimer = null;
   let catHomePendingReaction = "";
   let chatReplyTimer = null;
 
@@ -1023,6 +1085,8 @@
     merged.startDate = storedText(raw.startDate, DEFAULT_STATE.startDate);
     merged.lastActiveDate = storedText(raw.lastActiveDate) || null;
     merged.catHomeHintDone = Boolean(raw.catHomeHintDone);
+    // 소리는 기본이 꺼짐이다. 저장된 값이 없으면 켜지지 않는다.
+    merged.soundOn = Boolean(raw.soundOn);
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
     const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : legacyAchievements;
     const certificateSource = Array.isArray(raw.certificates)
@@ -1175,6 +1239,143 @@
   }
 
   function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+
+  /* ── 연출 공통 ──
+     이 앱의 생동감은 이펙트가 아니라 "저 집사가 저 방에서 일하고 있다"에서 나온다.
+     그래서 움직이는 것은 종이·도장·클립뿐이고, 전부 transform/opacity만 쓴다.
+     감소 모드에서는 애니를 붙이지 않는다 — 최종 상태는 이미 CSS가 그리고 있으므로
+     클래스를 안 붙이는 것만으로 즉시 최종 상태가 된다. */
+  const reduceMotionQuery = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function prefersReducedMotion() { return Boolean(reduceMotionQuery?.matches); }
+  // 진동은 화면 움직임은 아니지만 같은 "자극 줄이기" 요청으로 본다.
+  function haptic(duration) {
+    if (prefersReducedMotion()) return;
+    try { navigator.vibrate?.(duration); } catch { /* 지원 안 하는 기기는 조용히 넘어간다 */ }
+  }
+  // 같은 요소에 다시 붙이려면 클래스를 떼고 리플로우를 한 번 강제해야 애니가 되감긴다.
+  function restartAnimation(element, className) {
+    if (!element) return;
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+  }
+  /* ── 사무실 소리 ──
+     녹음 파일 대신 WebAudio로 합성한다. 넷 다 짧고 마른 사무실 소리라
+     합성으로 충분하고, 번들에 1바이트도 안 늘어난다. 자세한 판단 근거는
+     docs/CURRENT.md의 P2 소리 항목에 적어뒀다.
+     기본은 꺼짐이다 — 켠 사람에게만 난다. */
+  const OfficeSound = (() => {
+    let ctx = null;
+    let noise = null;
+    // 오디오 컨텍스트는 사용자가 직접 누른 순간에만 만들 수 있다(자동재생 정책).
+    function ensure() {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) return null;
+      if (!ctx) ctx = new Ctor();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      return ctx;
+    }
+    function noiseSource(context) {
+      if (!noise) {
+        noise = context.createBuffer(1, context.sampleRate, context.sampleRate);
+        const data = noise.getChannelData(0);
+        for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+      }
+      const source = context.createBufferSource();
+      source.buffer = noise;
+      source.loop = true;
+      return source;
+    }
+    function burst(context, { filter, frequency, q, peak, attack, release }) {
+      const source = noiseSource(context);
+      const band = context.createBiquadFilter();
+      band.type = filter;
+      band.frequency.value = frequency;
+      band.Q.value = q;
+      const gain = context.createGain();
+      const now = context.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(peak, now + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + attack + release);
+      source.connect(band).connect(gain).connect(context.destination);
+      source.start(now);
+      source.stop(now + attack + release + 0.02);
+    }
+    const play = {
+      // 종이 슥 — 넓은 대역 잡음이 짧게 스친다.
+      paper(context) {
+        burst(context, { filter: "bandpass", frequency: 2400, q: 0.8, peak: 0.07, attack: 0.02, release: 0.16 });
+      },
+      // 클립 딸깍 — 아주 짧은 금속 잡음 하나.
+      clip(context) {
+        burst(context, { filter: "bandpass", frequency: 4200, q: 9, peak: 0.09, attack: 0.002, release: 0.045 });
+      },
+      // 도장 탁 — 아래로 떨어지는 저음 한 방 + 종이에 닿는 짧은 잡음.
+      stamp(context) {
+        const now = context.currentTime;
+        const thump = context.createOscillator();
+        thump.type = "sine";
+        thump.frequency.setValueAtTime(170, now);
+        thump.frequency.exponentialRampToValueAtTime(55, now + 0.09);
+        const thumpGain = context.createGain();
+        thumpGain.gain.setValueAtTime(0.001, now);
+        thumpGain.gain.linearRampToValueAtTime(0.2, now + 0.006);
+        thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+        thump.connect(thumpGain).connect(context.destination);
+        thump.start(now);
+        thump.stop(now + 0.16);
+        burst(context, { filter: "lowpass", frequency: 1400, q: 0.7, peak: 0.1, attack: 0.002, release: 0.05 });
+      },
+      // 골골 — 낮은 톤에 26Hz 진폭 변조. 크게 나면 안 된다, 새어나오는 소리다.
+      purr(context) {
+        const now = context.currentTime;
+        const carrier = context.createOscillator();
+        carrier.type = "sawtooth";
+        carrier.frequency.value = 42;
+        const tone = context.createBiquadFilter();
+        tone.type = "lowpass";
+        tone.frequency.value = 240;
+        const depth = context.createGain();
+        depth.gain.value = 0;
+        const lfo = context.createOscillator();
+        lfo.frequency.value = 26;
+        const lfoGain = context.createGain();
+        lfoGain.gain.value = 0.5;
+        lfo.connect(lfoGain).connect(depth.gain);
+        const out = context.createGain();
+        out.gain.setValueAtTime(0, now);
+        out.gain.linearRampToValueAtTime(0.05, now + 0.35);
+        out.gain.setValueAtTime(0.05, now + 1.25);
+        out.gain.exponentialRampToValueAtTime(0.0001, now + 1.85);
+        carrier.connect(tone).connect(depth).connect(out).connect(context.destination);
+        carrier.start(now); lfo.start(now);
+        carrier.stop(now + 1.9); lfo.stop(now + 1.9);
+      }
+    };
+    return {
+      // 토글을 켠 그 클릭이 곧 사용자 제스처다 — 여기서 컨텍스트를 연다.
+      prime() { ensure(); },
+      cue(name) {
+        if (!state.soundOn || !play[name]) return;
+        const context = ensure();
+        if (!context) return;
+        try { play[name](context); } catch { /* 오디오가 막힌 환경은 조용히 넘어간다 */ }
+      }
+    };
+  })();
+
+  // 도장이 찍힌다 — 도장이 내려앉고, 그 힘으로 종이가 한 번 흔들린다.
+  // 둘은 별개 연출이 아니라 한 동작이라 같이 간다(둘 다 transform 한 겹).
+  function inkStamp(element, options = {}) {
+    if (!element) return;
+    const paper = options.paper === null ? null : (options.paper || element.parentElement);
+    if (prefersReducedMotion()) return;
+    restartAnimation(element, "ink-land");
+    if (paper) restartAnimation(paper, "paper-jolt");
+    // 탁 소리와 진동은 같은 순간에 온다 — 도장이 종이에 닿는 그 지점이다.
+    haptic(options.vibrate ?? 25);
+    OfficeSound.cue("stamp");
+  }
   function today() { return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/\. /g, ".").replace(/\.$/, ""); }
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
   // 해석기가 만든 기록명은 이미 "…완료" 같은 완결형인 경우가 많다.
@@ -1188,17 +1389,24 @@
   }
   function officialRecords() { return state.records.filter(record => record.stampEligible !== false); }
   function scoreText(record) { return record?.scoreLabel || `${record?.score ?? 99}점`; }
-  function stageIndexFor(obsession) { return Math.min(STAGES.length - 1, Math.floor(clamp(obsession, 0, 100) / 20)); }
+  function stageIndexFor(obsession) {
+    const value = clamp(obsession, 0, 100);
+    let index = 0;
+    STAGE_BOUNDARIES.forEach((boundary, position) => { if (value >= boundary) index = position; });
+    return Math.min(RELATIONSHIP_STAGES.length - 1, index);
+  }
   function relationshipStageFor(obsession) { return RELATIONSHIP_STAGES[stageIndexFor(obsession)]; }
   function pointsToNextStage(obsession) {
     const index = stageIndexFor(obsession);
-    return index >= RELATIONSHIP_STAGES.length - 1 ? 0 : (index + 1) * 20 - clamp(obsession, 0, 100);
+    return index >= RELATIONSHIP_STAGES.length - 1 ? 0 : STAGE_BOUNDARIES[index + 1] - clamp(obsession, 0, 100);
   }
   function relationshipProgress(obsession) {
     const value = clamp(obsession, 0, 100);
     const index = stageIndexFor(value);
     if (index >= RELATIONSHIP_STAGES.length - 1) return 100;
-    return Math.round(((value - index * 20) / 20) * 100);
+    const from = STAGE_BOUNDARIES[index];
+    const span = Math.max(1, STAGE_BOUNDARIES[index + 1] - from);
+    return Math.round(((value - from) / span) * 100);
   }
 
   function assetFor(character, pose) {
@@ -1257,9 +1465,11 @@
     $("#home-butler-role-title").textContent = profile.roleTitle;
     $("#home-butler-name").textContent = profile.displayName;
     $("#home-butler-desc").textContent = profile.tagline;
+    // 접수대 명패와 슬립 서명은 "지금 창구에 앉아 있는 사람"이라 별명을 쓴다.
+    const onDutyAlias = ensureButlerStat(state.character).customName || profile.defaultName;
+    const counterPlate = $("#home-counter-plate");
+    if (counterPlate) counterPlate.textContent = `창구 01 · 전담 ${onDutyAlias}`;
     setPoseImage($("#archive-butler-image"), state.character, "base");
-    $("#archive-butler-name").textContent = profile.displayName;
-    $("#archive-butler-message").textContent = profile.briefings[0];
     setPoseImage($("#report-butler-image"), state.character, "base");
     $("#report-butler-name").textContent = profile.displayName;
     $("#manager-role-title").textContent = profile.roleTitle;
@@ -1272,9 +1482,10 @@
     const profile = CHARACTER_PROFILES[normalizeCharacter(character)];
     if (verdictType === "rare") return templateOwner(template(RARE_PRAISE[normalizeCharacter(character)] || RARE_PRAISE.ai, deed));
     if (verdictType === "power" && normalizeCharacter(character) === "cat") return templateOwner(template(randomItem(CAT_POWER_PRAISE), deed));
-    // 티어는 "주접의 세기"가 아니라 "주접의 사유"다. docs/BUTLER-VOICE.md 참고.
-    // T0은 규정을 핑계로 한 몰개성 풀볼륨이고, 장부 인용·기관 동원 같은
-    // 개인화 카드는 관계가 쌓인 뒤에만 나와야 하므로 신규 사용자는 T0에서 시작한다.
+    // 티어가 올리는 것은 세기가 아니라 사유다 — 자라는 것은 볼륨이 아니라
+    // 새어나오는 마음이다(docs/BUTLER-VOICE.md §1). T0은 규정을 핑계로 삼는
+    // 몰개성한 칭찬이고, 장부 인용·기관 동원 같은 개인화 카드는 관계가 쌓인
+    // 뒤에만 나와야 하므로 신규 사용자는 T0에서 시작한다.
     const baseTier = stageIndexFor(obsession);
     const powerFloor = verdictType === "power" ? 1 : 0;
     const tier = clamp(Math.max(powerFloor, baseTier), 0, profile.praise.length - 1);
@@ -1304,9 +1515,48 @@
     return LAUNCH_BUTLER_CONTENT[normalizeCharacter(character)] || null;
   }
 
+  /* ── 조사 ──
+     "우유을 집사한테 주는 거냥"이 나갔다. 동적으로 끼워 넣는 말 뒤의 조사가
+     전부 하드코딩이라, 앞말 받침이 바뀌면 그대로 틀린다.
+     한 곳에서 앞말의 받침을 보고 고른다 — 받침 유무는 종성 인덱스로 판별한다.
+     인용부호·괄호·구두점은 건너뛰고 실제 마지막 한글 글자를 본다. */
+  function hasFinalConsonant(word) {
+    const bare = String(word || "").trim().replace(/[\s'"`’‘”“()[\]<>{}.,!?~·…]+$/u, "");
+    const code = bare.charCodeAt(bare.length - 1);
+    if (!bare || Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return null;
+    return (code - 0xac00) % 28 !== 0;
+  }
+  function withParticle(word, withJong, withoutJong) {
+    const jong = hasFinalConsonant(word);
+    return `${word}${jong === null ? withoutJong : jong ? withJong : withoutJong}`;
+  }
+  // 템플릿 자리표시자 바로 뒤에 붙은 조사를 끼워 넣은 말에 맞춰 고쳐 쓴다.
+  // 이러면 콘텐츠 40여 줄을 손대지 않고도 전부 맞는다.
+  const PARTICLE_PAIRS = [["을", "를"], ["이", "가"], ["은", "는"], ["과", "와"], ["으로", "로"], ["아", "야"]];
+  // 서술격 조사 "이다/이야/이에요/이라" 는 받침이 없으면 "이"가 통째로 빠진다.
+  const COPULA_TAILS = ["다", "야", "에요", "라", "었", "여"];
+  function agreeParticle(value, tail) {
+    const jong = hasFinalConsonant(value);
+    if (jong === null) return tail;
+    for (const [withJong, withoutJong] of PARTICLE_PAIRS) {
+      for (const candidate of [withJong, withoutJong]) {
+        if (!tail.startsWith(candidate)) continue;
+        const rest = tail.slice(candidate.length);
+        // "이다/이야/이에요"는 조사 이/가가 아니라 서술격이다 — 받침이 없으면 "이"만 사라진다.
+        if (candidate === "이" && COPULA_TAILS.some(item => rest.startsWith(item))) return jong ? tail : rest;
+        // 조사는 뒤에 공백·구두점이 오거나 문장이 끝날 때만 조사로 본다.
+        if (candidate !== "으로" && rest && !/^[\s.,!?~…'"’”)\]]/u.test(rest)) continue;
+        return `${jong ? withJong : withoutJong}${rest}`;
+      }
+    }
+    return tail;
+  }
   function fillContentTemplate(message, values = {}) {
     let result = templateOwner(message || "");
-    Object.entries(values).forEach(([key, value]) => { result = result.replaceAll(`{${key}}`, String(value)); });
+    Object.entries(values).forEach(([key, value]) => {
+      const text = String(value);
+      result = result.replaceAll(new RegExp(`\\{${key}\\}([가-힣]{0,3})`, "g"), (_, tail) => `${text}${agreeParticle(text, tail)}`);
+    });
     return result;
   }
 
@@ -1369,7 +1619,11 @@
   }
 
   function templateOwner(message) {
-    return String(message || "").replaceAll("{owner}", "__OWNER_NAME__").replaceAll("주인님", "__OWNER_NAME__").replaceAll("__OWNER_NAME__", ownerDisplayName());
+    const owner = ownerDisplayName();
+    return String(message || "")
+      .replaceAll("{owner}", "__OWNER_NAME__")
+      .replaceAll("주인님", "__OWNER_NAME__")
+      .replace(/__OWNER_NAME__([가-힣]{0,3})/g, (_, tail) => `${owner}${agreeParticle(owner, tail)}`);
   }
 
   function typeMessage(element, message, speed = 26) {
@@ -1457,7 +1711,8 @@
       trigger.classList.remove("is-reacting");
       $("#briefing-butler-label").textContent = `${CHARACTER_PROFILES[state.character].shortName || CHARACTER_PROFILES[state.character].name} · 업무 중`;
     }, 1800);
-    window.setTimeout(openButlerChat, 260);
+    // 집사 응답은 별도 창이 아니라 접수 슬립 위에서 이뤄지는 방향으로 간다.
+    // 창을 지우기 전 단계라 진입만 끊어 둔다(기능·핸들러는 그대로).
   }
 
   function appendChatMessage(role, message) {
@@ -1664,66 +1919,66 @@
     $("#main-screen").classList.toggle("home-active", name === "home");
     $("#main-screen").dataset.currentView = name;
     if (name === "home" && state.character === "cat") window.requestAnimationFrame(configureCatHome);
-    if (name === "archive" && ["records", "diary", "certificates"].includes(navKey)) showArchiveTab(navKey);
+    // 이번 세션에 새로 생긴 공식 인정 도장은 파일을 펼치는 이 순간에 찍힌다.
+    if (name === "archive") window.setTimeout(inkPendingOfficialStamps, 280);
     trackEvent("view_change", { view: name, tab: navKey });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function showArchiveTab(name) {
-    $$('[data-archive-tab]').forEach(button => {
-      const active = button.dataset.archiveTab === name;
-      button.classList.toggle("active", active);
-      if (button.closest(".archive-tabs")) {
-        button.setAttribute("aria-selected", String(active));
-        button.tabIndex = active ? 0 : -1;
-      }
-    });
-    $$(".archive-panel").forEach(panel => {
-      const active = panel.id === `archive-${name}`;
-      panel.classList.toggle("active", active);
-      panel.setAttribute("aria-hidden", String(!active));
-    });
-    $("#view-archive").dataset.archiveMode = name;
-    const labels = {
-      records: ["RECORD DESK · FILE 02", "오늘의 기록", "금일 기록 담당"],
-      diary: ["BUTLER DIARY · FILE 03", "집사 일기", "일지 작성 담당"],
-      certificates: ["CERTIFICATE ARCHIVE · FILE 04", "인증서 보관함", "기록 보관 담당"]
-    };
-    const [kicker, title, role] = labels[name] || labels.certificates;
-    $("#archive-kicker").textContent = kicker;
-    $("#archive-view-title").textContent = title;
-    const profile = CHARACTER_PROFILES[state.character];
-    $("#archive-butler-role").textContent = role;
-    // 기록 모드에서는 집사 카드가 한 줄 상태 표시로 줄어든다(records-final.css).
-    // 기록을 보러 온 사람에게 집사 소개문을 먼저 읽힐 이유가 없으니, 그 한 줄에는
-    // 소개 대신 지금 몇 건이 보관돼 있는지를 넣는다.
-    const storedCount = state.records.length;
-    const todayCount = state.records.filter(record => record.date === today()).length;
-    // 일기 모드도 같은 한 줄이다. 다만 "오늘 뭘 적는 중"은 teaser가 이미 말하므로
-    // 여기서는 보관량만 알린다. 같은 말을 두 번 하지 않게 한다.
-    const diaryDays = new Set(state.diary.map(entry => entry.date).filter(Boolean)).size;
-    $("#archive-butler-message").textContent = name === "records"
-      ? (storedCount
-        ? `${profile.name}가 기록 ${storedCount}건 보관 중 · 오늘 ${todayCount}건`
-        : `${profile.name}가 첫 기록을 기다리는 중`)
-      : name === "diary"
-        ? (diaryDays
-          ? `${profile.name}가 일지 ${diaryDays}일치 보관 중`
-          : `${profile.name}가 아직 일지를 시작하지 않음`)
-        : "모든 대업은 주인님의 역사예요. 집사가 빠짐없이 안전하게 보관할게요.";
+  // 탭 3개(기록/일지/인증서)는 "주인님 파일" 한 문서로 접혔다. 모드 속성은
+  // records로 고정한다 — 파란 회색 accent와 기록 카드 조판을 그대로 승계한다.
+  function renderOwnerFileCover() {
+    const cover = ownerFileCover();
+    $("#owner-file-thickness").textContent = cover.thickness;
+    $("#owner-file-days").textContent = cover.daysTogether;
+    // 기록 한 건으로 "최다 대업 청소 · 1건"이라고 적으면 집계가 아니라 농담이 된다.
+    // 3건부터 세고, 그전에는 언제부터 세는지를 밝혀둔다.
+    $("#owner-file-top").textContent = cover.topCategory && cover.thickness >= 3
+      ? `${cover.topCategory.label} · ${cover.topCategory.count}건`
+      : cover.thickness ? "3건부터 집계" : "아직 없음";
+    $("#owner-file-official").textContent = cover.officialCount;
+    $("#owner-file-remark").textContent = cover.remark;
+    $("#archive-butler-role").textContent = `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
+
+    // 표지에는 누가 언제 연 파일인지가 적힌다. 개설일은 가장 오래된 기록의 날짜다.
+    const opened = [...state.records].map(record => record.date).filter(Boolean).sort()[0] || today();
+    const alias = ensureButlerStat(state.character).customName || CHARACTER_PROFILES[state.character].defaultName;
+    $("#archive-butler-name").textContent = `담당 ${alias} · ${opened.replace(/-/g, ". ")} 개설`;
+    const openedStamp = $("#owner-file-opened-stamp");
+    if (openedStamp) openedStamp.textContent = opened.slice(5).replace("-", ". ");
   }
 
   function renderRelationshipStatus() {
     const stage = relationshipStageFor(state.obsession);
     const remaining = pointsToNextStage(state.obsession);
     $("#home-relationship-stage").textContent = stage.name;
-    $("#home-relationship-next").textContent = remaining ? `다음 관계까지 ${remaining}` : "최고 관계 도달";
+    $("#home-relationship-next").textContent = remaining ? "다음 칸 결재 대기" : "최고 관계 도달";
     $("#relationship-stage-badge").textContent = stage.badge;
     $("#relationship-stage-title").textContent = stage.name;
     // 관계 칸의 주인공은 숫자가 아니라 집사의 말이다. 캐릭터 대사가 있으면 그걸 쓰고,
     // 없는 캐릭터에서만 시스템 설명문으로 떨어진다.
     $("#relationship-stage-summary").textContent = relationshipStageLine() || stage.summary;
-    $("#relationship-next-copy").textContent = remaining ? `다음 관계까지 과몰입 ${remaining}` : "집사 과몰입이 최고 단계에 도달했습니다.";
+    // 100점 눈금은 화면에 내보내지 않는다. 남은 거리는 주인님이 실제로 하는 일
+    // — 대업 몇 건 — 으로 환산해서 적는다. 대업마다 값이 달라서 어림수임을 밝힌다.
+    const deedsLeft = Math.ceil(remaining / BALANCE.deedRelationship.praise);
+    $("#relationship-next-copy").textContent = remaining ? `다음 칸까지 대업 ${deedsLeft}건쯤` : "마지막 칸까지 결재 완료";
+  }
+
+  // 관계는 막대가 아니라 결재란이다 — 지나온 칸에는 도장이 찍혀 있고, 지금 칸은
+  // 아직 점선이다. 아직 도달하지 않은 칸의 이름은 가린다: 다음에 무엇이 오는지를
+  // 미리 읽히면 관계가 목표 목록이 되고, 도착했을 때의 놀라움이 사라진다.
+  function relationshipApprovalMarkup(obsession, justInked = -1) {
+    const index = stageIndexFor(obsession);
+    // 마지막 칸은 도달하는 순간이 곧 완료다 — 그 위로 더 갈 눈금이 없으니
+    // 점선으로 두면 "아직 진행 중"이라는 거짓말이 된다.
+    const last = RELATIONSHIP_STAGES.length - 1;
+    return RELATIONSHIP_STAGES.map((stage, position) => {
+      const reached = position < index || (position === index && index === last);
+      const status = reached ? "done" : position === index ? "now" : "locked";
+      const label = position <= index ? escapeHtml(stage.name) : "「?」";
+      const landing = position === justInked ? " just-inked" : "";
+      return `<span class="${status}${landing}"><i>${status === "done" ? "印" : "·"}</i><b>${label}</b></span>`;
+    }).join("");
   }
 
   function renderRelationshipResult(prefix, before, after, delta, source) {
@@ -1731,18 +1986,32 @@
     if (!element) return;
     const previousStage = relationshipStageFor(before);
     const currentStage = relationshipStageFor(after);
-    const upgraded = stageIndexFor(after) > stageIndexFor(before);
-    const remaining = pointsToNextStage(after);
+    const nextIndex = stageIndexFor(after);
+    const upgraded = nextIndex > stageIndexFor(before);
     element.classList.toggle("upgraded", upgraded);
-    $(`#${prefix}-relationship-kicker`).textContent = upgraded ? `관계 단계 상승 · +${delta}` : `관계 기록 업데이트 · +${delta}`;
-    $(`#${prefix}-relationship-stage`).textContent = currentStage.name;
-    $(`#${prefix}-relationship-next`).textContent = remaining ? `다음 관계까지 ${remaining}` : "최고 관계 도달";
-    $(`#${prefix}-relationship-fill`).style.width = `${relationshipProgress(after)}%`;
-    $(`#${prefix}-relationship-message`).textContent = upgraded
-      ? `${previousStage.name} → ${currentStage.name}. ${relationshipStageLine(state.character, after) || templateOwner(currentStage.upgrade)}`
-      : source === "gift"
-        ? `${state.butlerName} 집사가 선물 받은 순간을 관계 기록에 소중히 추가했습니다.`
-        : `${state.butlerName} 집사가 이번 대업을 다시 꺼내볼 기억으로 관계 기록에 추가했습니다.`;
+    // 평소에는 한 줄이면 된다. 결재란을 매번 펼치면 단계가 오른 날이 특별해지지 않는다.
+    $(`#${prefix}-relationship-kicker`).textContent = upgraded
+      ? `관계 단계 상승 · ${previousStage.name} → ${currentStage.name}`
+      : `관계 +${delta} · ${currentStage.name}`;
+    const approval = $(`#${prefix}-relationship-approval`);
+    if (approval) {
+      approval.hidden = !upgraded;
+      // 방금 승인된 칸은 직전 단계다 — 새 단계는 아직 진행 중이라 점선으로 남는다.
+      // 다만 마지막 칸에 올라선 날은 그 칸 자체가 승인되므로 거기에 도장이 내려앉는다.
+      const inked = nextIndex >= RELATIONSHIP_STAGES.length - 1 ? nextIndex : nextIndex - 1;
+      approval.innerHTML = upgraded ? relationshipApprovalMarkup(after, inked) : "";
+      // 도장 자체는 .just-inked가 CSS에서 찍는다. 여기서는 그 힘으로 흔들릴 종이와
+      // 손끝에 오는 진동만 얹는다. 결재란은 방금 새로 그려져서 되감을 필요가 없다.
+      if (upgraded && !prefersReducedMotion()) {
+        restartAnimation(element, "paper-jolt");
+        haptic(25);
+      }
+    }
+    const message = $(`#${prefix}-relationship-message`);
+    message.hidden = !upgraded;
+    message.textContent = upgraded
+      ? relationshipStageLine(state.character, after) || templateOwner(currentStage.upgrade)
+      : "";
   }
 
   function isFirstDeedPending() {
@@ -1760,9 +2029,22 @@
     entry.classList.toggle("first-run-entry", pending);
     $("#entry-kicker").textContent = pending ? "첫 이야기 접수 · 창구 01" : "오늘 이야기 접수처 · 창구 01";
     $("#entry-description").textContent = pending
-      ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 괜찮아요.`
-      : "잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.";
-    $("#report-button-label").textContent = "집사에게 들려주기";
+      ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.`
+      : "잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.";
+    $("#report-button-label").textContent = "오늘 기록하기";
+  }
+
+  // 사무국 문서는 번호를 달고 나간다. 화면마다 다른 번호를 머리글 오른쪽에 두면
+  // "운영 중" 배지 하나를 세 화면에 돌려쓰던 것보다 어느 서류를 보고 있는지가 분명해진다.
+  function renderOfficeDocumentNumbers() {
+    const now = new Date();
+    const pad = value => String(value).padStart(2, "0");
+    const homeNo = $("#home-regno");
+    if (homeNo) homeNo.textContent = `제 ${now.getFullYear()}-${pad(now.getMonth() + 1)}${pad(now.getDate())}호`;
+    const homeStamp = $("#home-datestamp");
+    if (homeStamp) homeStamp.textContent = `${pad(now.getMonth() + 1)}. ${pad(now.getDate())}`;
+    const archiveNo = $("#archive-regno");
+    if (archiveNo) archiveNo.textContent = `총 ${state.records.length}건`;
   }
 
   function render(options = {}) {
@@ -1771,12 +2053,14 @@
     $("#fame-count").textContent = state.fame;
     $("#home-gift-points").textContent = state.points;
     $("#header-level").textContent = `과몰입 ${state.obsession}`;
+    renderOfficeDocumentNumbers();
     $("#stamp-count").textContent = status.progress;
     $("#stamp-target").textContent = status.target;
     $("#stamp-copy").textContent = status.first
       ? `첫 공식 인증까지 ${status.remaining}건 남았습니다.`
       : `다음 공식 인증까지 ${status.remaining}건 남았습니다.`;
-    $("#urgency-copy").textContent = ["이유 없이 최상", "국가적 관심 필요", "집사만 긴급함", "본성 보고 직전", "경광등 과열 중", "보고서 폭주 중", "전 직원 기립"][status.progress] || "이유 없이 최상";
+    const urgency = URGENCY_LINES[normalizeCharacter(state.character)] || URGENCY_LINES.ai;
+    $("#urgency-copy").textContent = urgency[status.progress] || urgency[0];
     $("#stamp-circles").innerHTML = Array.from({ length: status.target }, (_, index) => `<i class="${index < status.progress ? "filled" : ""}${options.animateStamp && index === status.progress - 1 ? " inked-now" : ""}"><span>${index + 1}</span></i>`).join("");
     const stampProgress = $(".stamp-progress");
     stampProgress.classList.toggle("stamp-awarded", Boolean(options.animateStamp));
@@ -1795,6 +2079,8 @@
   }
 
   function renderArchive() {
+    renderOwnerFileCover();
+    $("#view-archive").dataset.archiveMode = "records";
     $("#archive-date").textContent = today();
     $("#records-today-count").textContent = state.records.filter(record => record.date === today()).length;
     $("#records-official-count").textContent = state.certificates.length;
@@ -1804,25 +2090,7 @@
     $("#record-legend").textContent = status.first
       ? `모든 기록은 대업 후보로 접수됩니다. ${status.target}건이 모이면 사무국이 공식 인정 인증서를 발급합니다. (${status.remaining}건 남음)`
       : `대업 후보 ${status.target}건마다 공식 인정 인증서가 한 장 발급됩니다. 다음 발급까지 ${status.remaining}건 남았습니다.`;
-    const certificateFiles = state.certificates.slice().reverse().map((certificate, index) => {
-      const sourceIndex = state.certificates.length - 1 - index;
-      return `<article class="archive-cabinet-row">
-        <div class="archive-certificate-thumb" aria-hidden="true"><span>공식<br>인증서</span><img src="${recordPortrait(certificate, "praise")}" alt=""></div>
-        <div class="archive-file-copy"><strong>${escapeHtml(certificate.deed)}</strong><p>${escapeHtml(certificate.grade)}</p><small>${escapeHtml(certificate.date)} · 문서 ${String(certificate.number || sourceIndex + 1).padStart(2, "0")}</small></div>
-        <div class="archive-file-action"><span>보관 완료</span><button type="button" data-cert-index="${sourceIndex}" aria-label="${escapeHtml(certificate.deed)} 인증서 열람">›</button></div>
-      </article>`;
-    }).join("");
-    $("#archive-certificates").innerHTML = `<section class="archive-progress-note">
-      <div><span>${status.first ? "첫" : "다음"} 공식 인증 진행</span><strong>${status.progress}<i>/</i>${status.target}</strong></div>
-      <p>${status.remaining}건을 더 접수하면 사무국에서 새 인증서를 발급합니다.</p>
-      <b style="--archive-progress:${Math.round(status.progress / status.target * 100)}%"><i></i></b>
-    </section>
-    <div class="archive-cabinet-heading"><strong>기록 보관 서고</strong><span>총 ${state.certificates.length}건</span></div>
-    <div class="archive-cabinet-list">${certificateFiles || '<div class="records-empty certificate-empty"><i aria-hidden="true"></i><span>인증서 보관 대기</span><p>아직 발급된 공식 인증서가 없습니다.<br>대업 도장을 모으면 이곳에 첫 문서가 보관됩니다.</p></div>'}</div>
-    <div class="archive-security-note"><span aria-hidden="true">▣</span><p>모든 공식 인증서는 기기 안에 안전하게 보관되며<br>언제든 다시 열람할 수 있습니다.</p></div>`;
     renderArchiveRecords();
-    renderButlerDiary();
-    $$('[data-cert-index]').forEach(button => button.addEventListener("click", () => openCertificate(state.certificates[Number(button.dataset.certIndex)])));
   }
 
   // 한국어 조사 자동 선택. 기록 문구가 무엇이든 문장이 어색해지지 않게 한다.
@@ -2112,87 +2380,234 @@
     };
   }
 
-  function renderButlerDiary() {
-    const list = $("#butler-diary-list");
-    if (!list) return;
+  /* ═══════════ 주인님 파일 — 파생 계산 ═══════════
+     기록·일지·인증서를 한 문서로 접기 위해 필요한 값은 전부 기존 state에서 계산한다.
+     저장 계약(butlermaker_v1)에는 아무것도 더하지 않는다.
+
+     경계 원칙(owner-file-design §1): 유저가 제출한 내용에 대한 통계는 기억이라 쓰고,
+     행동 패턴(접수 시간대·공백일·부재)에 대한 통계는 감시라 쓰지 않는다. */
+
+  const OWNER_FILE_CATEGORY_LABELS = Object.freeze({
+    hygiene: "씻기", hydration: "수분", food: "식사", work: "사회생활",
+    home: "집안일", movement: "움직임", social: "연락", other: "기타"
+  });
+
+  // 티어 경계는 관계 대사와 같은 기준을 쓴다. chat-engine이 없으면(테스트 등) 같은 값으로 폴백.
+  const OWNER_FILE_TIERS = CHAT_ENGINE?.TIER_THRESHOLDS || { t2: 18, t3: 65 };
+
+  const OWNER_FILE_REMARKS = Object.freeze({
+    cat: {
+      t1: ["표준 규격 파일이다냥. 내용은… 담당이니까 아는 거다냥.", "아직 얇은 파일이다냥. 두꺼워질지는 지켜보겠다냥."],
+      t2: ["표지에 이름을 다시 적었다냥. 먼젓번 글씨가 마음에 안 들었다냥.", "이 파일, 다른 것보다 손이 자주 간다냥. 배치 문제일 거다냥."],
+      t3: ["이 파일은 집사 책상에서 안 치운다냥. 감사실에는 업무 참고용이라고 했다냥.", "표지가 닳아서 한 번 갈았다냥. 왜 닳았는지는 묻지 마라냥."]
+    }
+  });
+  const OWNER_FILE_REMARK_FALLBACK = "담당 집사가 관리 중인 공식 파일입니다.";
+
+  function ownerFileTier(obsession = state.obsession) {
+    const level = nonNegativeInteger(obsession);
+    if (level >= OWNER_FILE_TIERS.t3) return "t3";
+    if (level >= OWNER_FILE_TIERS.t2) return "t2";
+    return "t1";
+  }
+
+  // 진입할 때마다 소견이 바뀌면 표지가 안 정착한다. 날짜를 시드로 써서 하루 동안 고정한다.
+  function ownerFileRemark(character = state.character, obsession = state.obsession) {
+    const pool = OWNER_FILE_REMARKS[normalizeCharacter(character)]?.[ownerFileTier(obsession)];
+    if (!pool?.length) return OWNER_FILE_REMARK_FALLBACK;
+    const seed = today().split("").reduce((total, value) => total + value.charCodeAt(0), 0);
+    return pool[seed % pool.length];
+  }
+
+  function ownerFileCover() {
+    const records = Array.isArray(state.records) ? state.records : [];
+    const counts = new Map();
+    records.forEach(record => {
+      const key = OWNER_FILE_CATEGORY_LABELS[record.category] ? record.category : "other";
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    // 동점이면 카테고리 표의 선언 순서로 끊는다. 진입할 때마다 최다 항목이 바뀌면 안 된다.
+    const order = Object.keys(OWNER_FILE_CATEGORY_LABELS);
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || order.indexOf(a[0]) - order.indexOf(b[0]))[0];
+    return {
+      thickness: records.length,
+      daysTogether: new Set(records.map(record => record.date).filter(Boolean)).size,
+      topCategory: top ? { key: top[0], label: OWNER_FILE_CATEGORY_LABELS[top[0]], count: top[1] } : null,
+      officialCount: Array.isArray(state.certificates) ? state.certificates.length : 0,
+      remark: ownerFileRemark()
+    };
+  }
+
+  function groupRecordsByDate() {
+    const records = Array.isArray(state.records) ? state.records : [];
+    const diary = Array.isArray(state.diary) ? state.diary : [];
+    const officialIds = new Set((state.certificates || []).map(record => String(record.id)));
     const groups = new Map();
-    state.diary.forEach(entry => {
+    const bucket = date => {
+      if (!groups.has(date)) groups.set(date, { date, records: [], diaryEntries: [], hasOfficial: false });
+      return groups.get(date);
+    };
+    records.forEach(record => {
+      const group = bucket(record.date || "날짜 미상");
+      group.records.push(record);
+      if (officialIds.has(String(record.id))) group.hasOfficial = true;
+    });
+    // 일지는 기록이 없는 날에도 남을 수 있어 별도로 넣는다. 캐릭터는 저장된 값을 그대로 쓴다.
+    diary.forEach(entry => bucket(entry.date || "날짜 미상").diaryEntries.push(entry));
+    return [...groups.values()].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  }
+
+  // 최근 14일 그룹만 먼저 그린다. 기록이 쌓여도 진입 시 한 번에 다 그리지 않는다.
+  const OWNER_FILE_RECENT_GROUPS = 14;
+  let ownerFileExpanded = false;
+  // 세션 안에서만 산다 — 저장하지 않는다. 앱을 다시 열면 도장은 그냥 찍혀 있는 상태다.
+  const seenOfficialStampIds = new Set();
+  const pendingOfficialStampIds = new Set();
+  let archiveStampsSeeded = false;
+
+  function ownerFileDateLabel(date) {
+    const parts = String(date).split(".");
+    if (parts.length < 3) return date;
+    return `${Number(parts[1])}월 ${Number(parts[2])}일`;
+  }
+
+  // 하루치 일지를 작성 집사 단위로 묶는다. 같은 날 담당이 바뀌었으면 각자 한 장씩 남는다.
+  function diaryPagesForDate(entries) {
+    const groups = new Map();
+    entries.forEach(entry => {
       const character = normalizeCharacter(entry.butler?.character || entry.character);
-      const key = `${entry.date || "날짜 미상"}::${character}::${entry.butler?.name || entry.butlerName || ""}`;
+      const key = `${character}::${entry.butler?.name || entry.butlerName || ""}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(entry);
     });
-    const pages = Array.from(groups.values()).reverse();
-    if (!pages.length) {
-      // 빈 화면을 "일기 없음"으로 끝내지 않는다. 무엇을 하면 일기가 생기는지 알려주고
-      // 그 자리에서 홈으로 돌아갈 수 있게 한다(기존 [data-view] 위임을 그대로 쓴다).
-      list.innerHTML = '<div class="diary-empty-page"><span>EMPTY DIARY</span><p>집사는 그날 들은 이야기를 바탕으로<br>혼자 일지를 적어둡니다.<br>오늘 이야기를 하나 들려주면 첫 장이 열립니다.</p><button type="button" data-view="home" data-nav="home">오늘 이야기 들려주러 가기 →</button></div>';
-      return;
+    return [...groups.values()];
+  }
+
+  // 여백 메모 — 카드가 아니라 본문 옆에 적힌 손글씨다. 오늘 것은 봉인되어 teaser만 보인다.
+  // 봉인 판정은 기존 규칙 그대로: 오늘 날짜이고 아직 공개 전이면 teaser.
+  function ownerFileMarginNote(pageEntries) {
+    const sample = pageEntries.at(-1);
+    const butler = sample.butler || snapshotButler(sample);
+    const sealed = nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
+    if (sealed) {
+      const teaser = diaryTeaser(butler.character, pageEntries);
+      return `<section class="diary-teaser file-margin-note sealed">
+        <span class="of-staple" aria-hidden="true"></span>
+        <span>✎ ${escapeHtml(butler.name)}의 오늘 일기</span>
+        <strong>${escapeHtml(teaser.count)}</strong>
+        <blockquote>${escapeHtml(teaser.quote)}</blockquote>
+        <small>${escapeHtml(teaser.release)}</small>
+      </section>`;
     }
-    const butlerCount = new Set(pages.map(entries => normalizeCharacter(entries.at(-1)?.butler?.character || entries.at(-1)?.character))).size;
-    const deedCount = pages.reduce((total, entries) => total + entries.length, 0);
-    list.innerHTML = `<section class="diary-ledger-summary" aria-label="집사 일지 보관 현황"><div><span>보관된 하루</span><strong>${pages.length}<small>일</small></strong></div><div><span>관찰 대업</span><strong>${deedCount}<small>건</small></strong></div><div><span>기록 집사</span><strong>${butlerCount}<small>명</small></strong></div></section>` + pages.map(entries => {
-      const sample = entries.at(-1);
-      const butler = sample.butler || snapshotButler(sample);
-      const deeds = entries.map(entry => entry.deed || entry.todos?.[0]).filter(Boolean);
-      const reflection = [...entries].reverse().find(entry => entry.reflection)?.reflection || diaryReflection(butler.character, entries, sample.ownerName);
-      // 당일 혼합 그룹은 기존 공개 상태를 보존한다. 신규 항목만 있는 그룹부터 봉인한다.
-      const hasLegacyEntry = entries.some(entry => nonNegativeInteger(entry.diaryRevealVersion) === 0);
-      const sealed = !hasLegacyEntry && nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
-      const teaser = sealed ? diaryTeaser(butler.character, entries) : null;
-      const body = sealed
-        ? `<section class="diary-teaser"><span>${escapeHtml(teaser.kicker)}</span><strong>${escapeHtml(teaser.count)}</strong><blockquote>${escapeHtml(teaser.quote)}</blockquote><small>${escapeHtml(teaser.release)}</small></section>`
-        : `<ul>${deeds.map(deed => `<li>${escapeHtml(deed)}</li>`).join("")}</ul><blockquote>${escapeHtml(reflection)}</blockquote>`;
-      return `<article class="butler-diary-page${sealed ? " sealed" : ""}">
-        <header><div><img src="${recordPortrait(sample, "base")}" alt="${escapeHtml(butler.name)}"><span><b>${escapeHtml(butler.name)}</b><small>${escapeHtml(sample.date || "")}</small></span></div><em>${String(entries.length).padStart(2, "0")} DEEDS</em></header>
-        <div class="diary-paper-lines"><p><strong>${escapeHtml(sample.ownerName || ownerDisplayName())}의 오늘 기록</strong></p>${body}</div>
-        <footer><span>${escapeHtml(CHARACTER_PROFILES[butler.character].name)} 관찰 일지</span><b>${sealed ? "다음 날짜 공개" : "기록 완료"}</b></footer>
-      </article>`;
-    }).join("");
+    const reflection = [...pageEntries].reverse().find(entry => entry.reflection)?.reflection
+      || diaryReflection(butler.character, pageEntries, sample.ownerName);
+    return `<aside class="file-margin-note">
+      <span class="of-staple" aria-hidden="true"></span>
+      <span>✎ ${escapeHtml(butler.name)}의 일기</span>
+      <p>${escapeHtml(reflection)}</p>
+    </aside>`;
+  }
+
+  function ownerFileRecordCard(record, officialIds) {
+    const official = officialIds.has(record.id);
+    const statusClass = official ? "official" : record.stampEligible === false ? "praise" : "candidate";
+    const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
+    const sourceText = storedText(record.sourceText).trim();
+    const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
+      ? sourceText
+      : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
+    // 공식 인정 건은 도장 자체가 인증서 진입로다(진입로 2). 카드 상세와 겹치지 않게 버튼으로 둔다.
+    const approvalAction = `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">공식<br>인정</button>`;
+    // 칭호는 해시태그가 아니라 수여된 이름이다. 공문 서체로 적어야 그 무게가 산다.
+    const appellation = record.nickname || record.grade;
+    return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
+      <div class="record-number"><b>${listNumber}</b><span>NO.</span></div>
+      <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p>${appellation ? `<small>칭호 · ${escapeHtml(appellation)}</small>` : ""}</div>
+      ${official ? `<div class="record-approval">${approvalAction}</div>` : ""}
+    </article>`;
+  }
+
+  function ownerFileGroupMarkup(group, officialIds) {
+    const cards = group.records.map(record => ownerFileRecordCard(record, officialIds)).join("");
+    const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
+    return `<section class="file-date-group" aria-label="${escapeHtml(group.date)} 기록">
+      <div class="file-date-divider"><span>${escapeHtml(ownerFileDateLabel(group.date))}</span></div>
+      ${cards}${notes}
+    </section>`;
   }
 
   function renderArchiveRecords() {
     const officialIds = new Set(state.certificates.map(record => record.id));
-    const gradeSelect = $("#record-grade-filter");
-    const grades = Array.from(new Set(state.records.map(record => record.grade).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ko"));
-    const gradeOptions = [`<option value="all">전체 등급</option>`, ...grades.map(grade => `<option value="${escapeHtml(grade)}">${escapeHtml(grade)}</option>`)].join("");
-    if (gradeSelect.innerHTML !== gradeOptions) gradeSelect.innerHTML = gradeOptions;
-    if (!grades.includes(recordGrade)) recordGrade = "all";
-    gradeSelect.value = recordGrade;
+    // 등급은 기록마다 다른 문구가 아니라 세 갈래다 — 평소 / 희귀 판정 / 공식 인정.
+    // 저장된 grade 문자열을 그대로 나열하면 목록이 기록 수만큼 늘어나기만 했다.
+    $$("#record-grade-filter button").forEach(button => {
+      button.classList.toggle("active", button.dataset.recordGrade === recordGrade);
+    });
     const query = normalizeDeed(recordSearch);
-    const filtered = state.records.filter(record => {
-      if (recordFilter === "today") return record.date === today();
-      if (recordFilter === "official") return officialIds.has(record.id);
-      if (recordFilter === "praise") return record.stampEligible === false;
-      return true;
-    }).filter(record => recordGrade === "all" || record.grade === recordGrade).filter(record => {
+    const keep = record => {
+      if (recordFilter === "today" && record.date !== today()) return false;
+      if (recordFilter === "official" && !officialIds.has(record.id)) return false;
+      if (recordFilter === "praise" && record.stampEligible !== false) return false;
+      if (recordGrade === "rare" && !record.rare) return false;
+      if (recordGrade === "official" && !officialIds.has(record.id)) return false;
+      if (recordGrade === "daily" && (record.rare || officialIds.has(record.id))) return false;
       if (!query) return true;
       return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
-    }).slice().reverse();
+    };
+    // 필터·검색 중에는 일지를 붙이지 않는다. 찾는 기록만 보여주는 게 그 화면의 일이다.
+    const narrowed = recordFilter !== "all" || recordGrade !== "all" || Boolean(query);
+    const groups = groupRecordsByDate()
+      .map(group => ({
+        ...group,
+        records: group.records.filter(keep).slice().reverse(),
+        diaryEntries: narrowed ? [] : group.diaryEntries
+      }))
+      .filter(group => group.records.length || group.diaryEntries.length);
+
     const list = $("#archive-record-list");
-    if (!filtered.length) {
+    if (!groups.length) {
       const emptyCopy = state.records.length
         ? "이 분류에 해당하는 기록이 아직 없습니다."
-        : "아직 접수된 대업이 없습니다.<br>홈에서 사소한 일 하나를 보고해보세요.";
-      list.innerHTML = `<div class="records-empty"><span>EMPTY FILE</span><p>${emptyCopy}</p></div>`;
+        : "파일이 아직 얇습니다.<br>첫 기록이 접수되면 이 파일이 시작됩니다.";
+      const action = state.records.length
+        ? ""
+        : '<button type="button" data-view="home" data-nav="home">첫 기록 접수하러 가기 →</button>';
+      list.innerHTML = `<div class="records-empty"><span>EMPTY FILE</span><p>${emptyCopy}</p>${action}</div>`;
       return;
     }
-    list.innerHTML = filtered.map(record => {
-      const butler = record.butler || snapshotButler(record);
-      const certificateIndex = state.certificates.findIndex(item => item.id === record.id);
-      const statusClass = certificateIndex >= 0 ? "official" : record.stampEligible === false ? "praise" : "candidate";
-      const statusLabel = certificateIndex >= 0 ? "공식 인정" : record.stampEligible === false ? "칭찬 완료" : "대업 후보";
-      const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
-      const sourceText = storedText(record.sourceText).trim();
-      const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
-        ? sourceText
-        : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
-      return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
-        <div class="record-number"><b>${listNumber}</b><span>${escapeHtml(record.date)}</span></div>
-        <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p><small>#${escapeHtml(record.nickname || record.grade)}</small></div>
-        <div class="record-approval"><span>${statusLabel}</span><figure><img src="${recordPortrait(record, certificateIndex >= 0 ? "praise" : "base")}" alt="${escapeHtml(butler.name)}"><figcaption>${escapeHtml(butler.name)}<br>기록</figcaption></figure><span class="record-detail-cta" aria-hidden="true">상세</span></div>
-      </article>`;
-    }).join("");
+    const shown = ownerFileExpanded ? groups : groups.slice(0, OWNER_FILE_RECENT_GROUPS);
+    const hidden = groups.length - shown.length;
+    list.innerHTML = shown.map(group => ownerFileGroupMarkup(group, officialIds)).join("")
+      + (hidden > 0 ? `<button class="file-expand-button" type="button" data-owner-file-expand>이전 기록 펼치기 <span>${hidden}일</span></button>` : "");
+    inkNewOfficialStamps(list);
+  }
+
+  // 파일의 공식 인정 도장은 열 때마다 다시 찍히면 안 된다 — 이미 찍혀 있던 도장이
+  // 스크롤할 때마다 튀면 사무국이 아니라 게임 화면이 된다. 이번 세션에서 처음
+  // 생긴 도장 하나만 기다렸다가, 파일을 실제로 펼친 순간에 찍는다. 도장이 결과서
+  // 뒤에서 혼자 찍히면 아무도 못 본다. 첫 렌더는 조용히 명단만 채운다.
+  function inkNewOfficialStamps(list) {
+    const first = !archiveStampsSeeded;
+    archiveStampsSeeded = true;
+    list.querySelectorAll(".record-cert-stamp").forEach(stamp => {
+      const id = stamp.dataset.certId;
+      if (seenOfficialStampIds.has(id)) return;
+      seenOfficialStampIds.add(id);
+      if (!first) pendingOfficialStampIds.add(id);
+    });
+    if ($("#view-archive")?.classList.contains("active")) inkPendingOfficialStamps();
+  }
+
+  function inkPendingOfficialStamps() {
+    if (!pendingOfficialStampIds.size) return;
+    const list = $("#archive-record-list");
+    if (!list) return;
+    [...pendingOfficialStampIds].forEach(id => {
+      const stamp = list.querySelector(`.record-cert-stamp[data-cert-id="${CSS.escape(id)}"]`);
+      if (!stamp) return;
+      pendingOfficialStampIds.delete(id);
+      inkStamp(stamp, { paper: stamp.closest(".office-record-card") });
+    });
   }
 
   function findRecordById(id) {
@@ -2218,7 +2633,9 @@
     $("#record-detail-reactions").innerHTML = reactionLines.map(line => `<p>${escapeHtml(line)}</p>`).join("");
     $("#record-detail-butler").textContent = butler.name;
     $("#record-detail-score").textContent = scoreText(record);
-    $("#record-detail-verdict").textContent = isOfficial ? "공식 인증서 발급" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
+    $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
+    // 인증서가 없는 기록에서 "다시 열기"를 누르면 없는 증서를 지어내게 된다.
+    $("#record-detail-certificate").hidden = !isOfficial;
     setPoseImage($("#record-detail-image"), butler.character, "base");
     $("#record-detail-image").alt = `${butler.name} 집사`;
     $("#record-detail-overlay").hidden = false;
@@ -2235,6 +2652,7 @@
     if (!currentRecordDetail) return;
     const record = currentRecordDetail;
     closeRecordDetail();
+    certificateOpenedFromFile = true;
     openCertificate(record);
   }
 
@@ -2246,17 +2664,6 @@
     return { min, max: 0, center: min / 2 };
   }
 
-  function positionCatHomeSpeech() {
-    const room = $("#cat-home-room");
-    const world = $("#cat-home-world");
-    const speech = $("#cat-home-speech");
-    if (!room || !world || !speech) return;
-    const catScreenX = world.offsetWidth / 2 + catHomeOffsetX;
-    const screenLeft = clamp(catScreenX + 38, 8, Math.max(8, room.clientWidth - 138));
-    speech.style.left = `${screenLeft - catHomeOffsetX}px`;
-    speech.style.top = `${Math.max(14, room.clientHeight - 228)}px`;
-  }
-
   function setCatHomeOffset(value, settle = false) {
     const world = $("#cat-home-world");
     if (!world) return;
@@ -2264,19 +2671,58 @@
     catHomeOffsetX = clamp(Number(value) || 0, bounds.min, bounds.max);
     world.classList.toggle("is-settling", settle);
     world.style.transform = `translate3d(${catHomeOffsetX}px,0,0)`;
-    positionCatHomeSpeech();
+  }
+
+  // 쓴 슬립은 위로 빠지고 새 슬립이 아래에서 올라온다. 첫 발행과 감소 모드에서는
+  // 바꿀 종이가 없거나 움직이면 안 되므로 바로 얹는다.
+  function swapReceptionSlip(message) {
+    const paper = $("#cat-home-speech-paper");
+    const text = $("#cat-home-speech-text");
+    if (!paper || !text) return;
+    const clip = $("#cat-home-speech .of-clip");
+    const first = !text.textContent;
+    if (first || prefersReducedMotion()) { text.textContent = message; return; }
+    window.clearTimeout(catHomeSlipTimer);
+    // 두 클래스가 같이 붙어 있으면 나중에 선언된 slip-in이 이겨서 나가는 장면이
+    // 통째로 사라진다. 반대쪽을 반드시 먼저 떼고 건다.
+    paper.classList.remove("slip-in");
+    restartAnimation(paper, "slip-out");
+    OfficeSound.cue("paper");
+    if (clip) restartAnimation(clip, "slip-wobble");
+    catHomeSlipTimer = window.setTimeout(() => {
+      text.textContent = message;
+      paper.classList.remove("slip-out");
+      restartAnimation(paper, "slip-in");
+    }, 120);
+  }
+
+  // 눈 깜빡임 한 번. 탭에도, 저 혼자 있는 시간에도 같은 동작을 쓴다.
+  function blinkOnce() {
+    const image = $("#cat-home-character-image");
+    if (!image) return;
+    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.webp";
+    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.webp"; }, 180);
+    scheduleCatHomeBlink();
+  }
+
+  // 방이 배경화면이 되는 건 아무도 안 움직여서다. 6~12초에 한 번, 아무 조작이
+  // 없어도 저절로 깜빡인다. 보이지 않는 동안에는 돌리지 않는다 — 안 보이는
+  // 이미지를 계속 갈아끼우는 건 배터리만 쓴다.
+  function deskIdleVisible() {
+    return state.character === "cat"
+      && !$("#home-butler-room")?.hidden
+      && $("#view-home")?.classList.contains("active")
+      && document.visibilityState !== "hidden";
   }
 
   function scheduleCatHomeBlink() {
     window.clearTimeout(catHomeBlinkTimer);
-    if (state.character !== "cat" || $("#home-butler-room")?.hidden) return;
+    if (!deskIdleVisible()) return;
     catHomeBlinkTimer = window.setTimeout(() => {
-      if (state.character !== "cat" || catHomeDrag) return;
-      const image = $("#cat-home-character-image");
-      image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
-      window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 170);
-      scheduleCatHomeBlink();
-    }, 6500 + Math.floor(Math.random() * 4500));
+      if (!deskIdleVisible()) return; // 화면을 떠났다 — 돌아올 때 다시 건다
+      if (catHomeDrag) { scheduleCatHomeBlink(); return; } // 방을 미는 중엔 한 박자 쉰다
+      blinkOnce();
+    }, 6000 + Math.floor(Math.random() * 6000));
   }
 
   function configureCatHome() {
@@ -2303,18 +2749,23 @@
     scheduleCatHomeBlink();
   }
 
+  // 연타하면 같은 말이 계속 나왔다. 단계당 두 줄뿐이라 A·B가 번갈아 나온 게
+  // 원인이라, 줄을 네 개로 늘리고 직전에 쓴 줄은 풀에서 빼고 고른다.
+  const CAT_HOME_LINES = [
+    ["뭐냥. 업무 중이다냥.", "봤으면 됐다냥.", "왜 자꾸 누르냥. …싫다는 건 아니다냥.", "여기 있다냥. 볼일 있으면 말해라냥."],
+    ["왔냥? …그냥 확인한 거다냥.", "네 자리만 정리해뒀다냥.", "또 눌렀냥. 손버릇이냥?", "업무 중이었다냥. …지금은 아니다냥."],
+    ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥.", "부르면 오는 건 규정이다냥.", "네 쪽 서류만 손이 먼저 간다냥. 이유는 모른다냥."],
+    ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 네 자리 비워뒀다냥.", "오늘 뭐 필요하냥? 먼저 챙겨두겠다냥.", "부를 줄 알고 여기 있었다냥. …우연이다냥."],
+    ["오늘도 왔네. …나쁘지 않다냥.", "네 서류부터 봐주겠다냥.", "다른 결재는 잠깐 밀어뒀다냥.", "왔냥. 순서는 네가 맨 앞이다냥. 규정은 아니다냥."],
+    ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥.", "몇 번이든 불러라냥. 어차피 전담이다냥.", "여긴 네 자리다냥. 집사는 그 옆이다냥."]
+  ];
+  let lastCatHomeLine = "";
   function catHomeLine() {
-    const lines = [
-      ["뭐냥. 업무 중이다냥.", "봤으면 됐다냥."],
-      ["왔냥? …그냥 확인한 거다냥.", "네 자리만 정리해뒀다냥."],
-      ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥."],
-      ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 네 자리 비워뒀다냥."],
-      ["오늘도 왔네. …나쁘지 않다냥.", "네 서류부터 봐주겠다냥."],
-      ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥."]
-    ];
-    const stageLines = lines[stageIndexFor(state.obsession)] || lines[0];
-    const stat = ensureButlerStat("cat");
-    return stageLines[stat.interactions % stageLines.length];
+    const stageLines = CAT_HOME_LINES[stageIndexFor(state.obsession)] || CAT_HOME_LINES[0];
+    const pool = stageLines.filter(line => line !== lastCatHomeLine);
+    const chosen = (pool.length ? pool : stageLines)[Math.floor(Math.random() * (pool.length || stageLines.length))];
+    lastCatHomeLine = chosen;
+    return chosen;
   }
 
   function showCatHomeSpeech(message, holdFor = 2800) {
@@ -2324,16 +2775,15 @@
     if (!speech || !character || state.character !== "cat") return;
     if ($("#home-butler-room")?.hidden) return;
     window.clearTimeout(catHomeSpeechTimer);
-    speech.textContent = message;
-    positionCatHomeSpeech();
+    // 말풍선이 아니라 접수 슬립이다 — 클립은 그대로 두고 종이만 갈아끼운다.
+    swapReceptionSlip(message);
     speech.classList.add("is-visible");
     character.classList.remove("is-reacting");
     void character.offsetWidth;
     character.classList.add("is-reacting");
-    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
-    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 190);
+    blinkOnce();
+    // 슬립은 발행되면 책상에 남는다. 사라지면 접수대 아래가 빈 칸으로 덜컥 내려앉는다.
     catHomeSpeechTimer = window.setTimeout(() => {
-      speech.classList.remove("is-visible");
       character.classList.remove("is-reacting");
     }, holdFor);
   }
@@ -2353,7 +2803,6 @@
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
     saveState();
-    window.setTimeout(openButlerChat, 420);
   }
 
   function startCatHomeDrag(event) {
@@ -2417,6 +2866,38 @@
     if (action === "handover") renderPersonnelPool();
   }
 
+  // 아직 못 만난 집사는 이름도 얼굴도 내보내지 않는다. 밀랍으로 봉인된 인사 서류
+  // 한 장으로만 두면 실루엣을 미리 흘리지 않고도 다음 목표가 보인다.
+  function sealedApplicantMarkup() {
+    const locked = APPLICANT_ORDER.filter(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
+    const rows = locked.map(key => {
+      const status = applicantStatus(key);
+      const short = status.rows
+        .filter(row => row.current < row.required)
+        .map(row => `${row.label} ${row.required - row.current} 남음`)[0] || "개봉 준비 완료";
+      return `<div class="sealed-doc${status.ready ? " near" : ""}">
+        <span class="sealed-band">봉인</span>
+        <span class="sealed-envelope" aria-hidden="true"><i>封</i></span>
+        <span class="sealed-copy">
+          <b>인사 서류 · 미개봉</b>
+          <small>${escapeHtml(CHARACTER_PROFILES[key].name)} · 지원 서류 도착</small>
+          <em>개봉 조건 · ${escapeHtml(short)}</em>
+        </span>
+      </div>`;
+    });
+    // 마지막 한 장은 조건도 발신인도 밝히지 않는다. 사무국에도 모르는 서류가 있다.
+    rows.push(`<div class="sealed-doc">
+      <span class="sealed-band">봉인</span>
+      <span class="sealed-envelope" aria-hidden="true"><i>封</i></span>
+      <span class="sealed-copy">
+        <b>인사 서류 · 미개봉</b>
+        <small>발신인 불명 · 봉투가 가끔 움직임</small>
+        <em>개봉 조건 · ???</em>
+      </span>
+    </div>`);
+    return rows.join("");
+  }
+
   function renderManager() {
     const stat = ensureButlerStat(state.character);
     const profile = CHARACTER_PROFILES[state.character];
@@ -2431,27 +2912,33 @@
     $("#manager-butler-specialty").textContent = profile.specialty || profile.desc;
     $("#manager-butler-symbol").textContent = "✦";
     $("#manager-handnote").textContent = profile.briefings[0];
-    $("#obsession-value").textContent = state.obsession;
-    $("#obsession-fill").style.width = `${state.obsession}%`;
-    $("#obsession-label").textContent = `과몰입도 · ${STAGES[stageIndex]}`;
+    $("#obsession-label").textContent = "관계 결재란";
+    const posted = [...stat.activeDates].sort()[0] || today();
+    $("#manager-posted-stamp").textContent = posted.slice(5).replace("-", ". ");
+    $("#manager-status-label").textContent = profile.statusLabel;
     $("#stat-deeds").textContent = stat.achievements;
     $("#stat-gifts").textContent = stat.gifts;
     $("#stat-days").textContent = days;
     $("#manager-gift-points").textContent = state.points;
+    const giftSay = $("#manager-gift-say");
+    if (giftSay) giftSay.textContent = GIFT_WAITING_LINES[state.character] || GIFT_WAITING_LINES.ai;
     $("#manager-roster-count").textContent = rosterKeys.length;
-    $("#manager-roster").innerHTML = rosterKeys.map((key, index) => {
+    $("#manager-roster").innerHTML = rosterKeys.map(key => {
       const rosterProfile = CHARACTER_PROFILES[key];
       const rosterStat = ensureButlerStat(key);
       const current = key === state.character;
       return `<button class="manager-roster-person ${current ? "active" : ""}" type="button" data-manager-butler="${key}" ${current ? "aria-current=\"true\"" : ""}>
-        <span><img src="${personnelPortraitFor(key)}" alt="${escapeHtml(rosterProfile.name)}"></span>
-        <b>${String(index + 1).padStart(2, "0")} ${escapeHtml(rosterStat.customName || rosterProfile.defaultName)}</b>
-        <small>${current ? "현 담당" : "인수인계"}</small>
+        <img src="${personnelPortraitFor(key)}" alt="${escapeHtml(rosterProfile.name)}">
+        <span class="roster-person-copy">
+          <b>${escapeHtml(rosterProfile.name)} · ${escapeHtml(rosterStat.customName || rosterProfile.defaultName)}</b>
+          <small>${escapeHtml(rosterProfile.personality || rosterProfile.desc || "")} · 근무 ${Math.max(1, rosterStat.activeDates.length)}일차 · 대업 ${rosterStat.achievements}건 처리</small>
+        </span>
+        <span class="roster-person-seal">${current ? "현재<br>담당" : "인계<br>가능"}</span>
       </button>`;
-    }).join("");
+    }).join("") + sealedApplicantMarkup();
     const recentDuties = state.diary.filter(entry => normalizeCharacter(entry.butler?.character || entry.character) === state.character).slice(-3).reverse();
     $("#manager-duty-list").innerHTML = recentDuties.length ? recentDuties.map((entry, index) => `<div><i>${index === 0 ? "오늘 담당" : "기록"}</i><span>${escapeHtml(entry.deed || entry.todos?.[0] || "대업 기록")}</span><time>${escapeHtml(entry.date || "")}</time></div>`).join("") : '<div class="manager-duty-empty">아직 이 집사의 근무 기록이 없습니다.</div>';
-    $("#stage-list").innerHTML = RELATIONSHIP_STAGES.map((stage, index) => `<span class="${index === stageIndex ? "active" : index < stageIndex ? "done" : "locked"}"><i>0${index + 1}</i><b>${stage.name}</b></span>`).join("");
+    $("#stage-list").innerHTML = relationshipApprovalMarkup(state.obsession);
     const next = APPLICANT_ORDER.find(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
     const requirement = next ? applicantStatus(next) : null;
     if (state.pendingApplicants.length) {
@@ -2660,15 +3147,22 @@
     const pacing = analysisPacingFor(pendingEvaluation.verdictType);
     analysisRunsThisSession += 1;
     steps.forEach((step, index) => analysisTimers.push(window.setTimeout(() => {
-      if (index > 0) { steps[index - 1].className = "done"; steps[index - 1].querySelector("span").textContent = "완료"; }
+      if (index > 0) {
+        const passed = steps[index - 1];
+        passed.className = "done";
+        passed.querySelector("span").textContent = "통과";
+        // 통과 도장은 항목마다 하나씩 내려앉는다. 항목 간격(pacing.gap)이 최소 185ms라
+        // 0.18초짜리 착지가 서로 겹치지 않는다 — 저사양 기기에서도 한 번에 하나만 움직인다.
+        inkStamp(passed.querySelector("span"), { paper: passed });
+      }
       step.className = "active";
       const label = step.querySelector("span");
-      label.textContent = "진행 중";
+      label.innerHTML = "심사<br>중";
       // 파워·희귀는 중간에 한 번 멈칫한다. 새 UI 없이 기존 단계 상태 문구만 바꾼다.
       if (pacing.recheck === index) {
-        label.textContent = pacing.recheckLabel;
+        label.innerHTML = pacing.recheckLabel;
         analysisTimers.push(window.setTimeout(() => {
-          if (step.className === "active") label.textContent = pacing.settleLabel;
+          if (step.className === "active") label.innerHTML = pacing.settleLabel;
         }, Math.round(pacing.gap * 0.55)));
       }
       const percent = (index + 1) * 25;
@@ -2684,8 +3178,8 @@
   // 일반 판정은 "집사가 굳이 분석한다"는 개그만 남기고 빠르게 지나가고,
   // 길이는 파워·희귀에만 쓴다. 희소한 판정에만 시간을 쓰는 게 연출의 값어치를 지킨다.
   function analysisPacingFor(verdictType) {
-    if (verdictType === "rare") return { gap: 470, finish: 2500, recheck: 2, recheckLabel: "측정 실패", settleLabel: "재계산" };
-    if (verdictType === "power") return { gap: 360, finish: 1700, recheck: 1, recheckLabel: "재검토", settleLabel: "진행 중" };
+    if (verdictType === "rare") return { gap: 470, finish: 2500, recheck: 2, recheckLabel: "측정<br>실패", settleLabel: "재계산" };
+    if (verdictType === "power") return { gap: 360, finish: 1700, recheck: 1, recheckLabel: "재검토", settleLabel: "심사<br>중" };
     // 같은 세션에서 이미 여러 번 본 사용자는 더 빠르게. 저장하지 않는 단순 카운터다.
     const seen = analysisRunsThisSession;
     return seen >= 3 ? { gap: 185, finish: 820 } : { gap: 250, finish: 1080 };
@@ -2699,8 +3193,8 @@
     analysisTimers.forEach(clearTimeout);
     analysisTimers = [];
     const steps = $$("#analysis-steps li");
-    steps.forEach(step => { step.className = "done"; step.querySelector("span").textContent = "완료"; });
-    steps.at(-1).querySelector("span").textContent = "과열";
+    steps.forEach(step => { step.className = "done"; step.querySelector("span").textContent = "통과"; });
+    steps.at(-1).querySelector("span").textContent = "가산";
     $("#analysis-percent").textContent = "100%";
     $("#analysis-fill").style.width = "100%";
     finishAchievement(deed);
@@ -2879,7 +3373,10 @@
   // 대업명은 사용자가 쓴 말을 집사가 격상시킨 제목이라("물 한 잔 마셨어" → "생존 수분 충전 완료")
   // 원문 키워드가 남아있지 않다. 분류할 때 원문을 함께 보고, 격상된 제목에 쓰이는 말도 같이 잡는다.
   function categoryForDeed(deed, sourceText = "") {
-    const value = normalizeDeed(`${deed} ${sourceText}`);
+    // 원문에서 부정된 절은 빼고 본다. "안 먹었는데 회사 일은 했어"의 "먹"이
+    // 식사 분야로 잡히면 부정 가드를 통과한 문장에 「한 끼의 영웅」이 붙는다.
+    const cleanSource = CHAT_ENGINE?.stripNegatedClauses?.(sourceText) ?? sourceText;
+    const value = normalizeDeed(`${deed} ${cleanSource}`);
     const groups = [
       ["hygiene", ["씻", "샤워", "양치", "세수", "머리감", "목욕", "위생", "청결"]],
       ["hydration", ["물", "차", "커피", "수분", "음료", "마셨", "마심"]],
@@ -2946,50 +3443,46 @@
     return String(record?.ownerName || ownerDisplayName() || "주인님").trim() || "주인님";
   }
 
+  // 인증서를 어디서 열었는지 기억한다. FORM 05 발급 흐름은 닫으면 홈으로 가지만,
+  // 파일에서 도장이나 상세로 열어본 것은 보던 자리로 그대로 돌아와야 한다.
+  let certificateOpenedFromFile = false;
+
   function openCertificate(record) {
     const butler = record.butler || snapshotButler(record);
     const rare = record.verdictType === "rare" || record.rare;
-    const official = isOfficialCertificate(record);
-    const firstRecord = isFirstRecord(record);
-    const status = certificationStatus();
     const deedLength = Array.from(String(record.deed || "")).length;
     currentCertificate = record;
+    // 증서는 한 계보뿐이다 — 공식 인정. 기념 증서 경로는 걷어냈다(P0 C-1).
     $("#certificate-card").dataset.verdict = rare ? "rare" : "official";
-    $("#certificate-card").dataset.certification = official ? "official" : "commemorative";
+    $("#certificate-card").dataset.certification = "official";
     $("#certificate-card").dataset.deedLength = deedLength > 42 ? "extra-long" : deedLength > 24 ? "long" : "normal";
-    $("#certificate-screen-title").textContent = official ? "공식 대업 인증서" : "대업 기념 인증서";
-    $("#certificate-screen-copy").textContent = official
-      ? "당신의 대업을 공식적으로 인증합니다."
-      : firstRecord ? "첫 대업을 집사가 특별히 기념합니다." : "오늘의 대업을 집사가 특별히 기념합니다.";
-    $("#certificate-title").textContent = official ? "공식 대업 인증서" : "대업 기념 인증서";
-    $("#certificate-declaration").textContent = official
-      ? "이 증서는 아래의 대업 달성을 엄숙하게 인증합니다"
-      : "이 증서는 오늘의 대업을 집사 사무국이 기쁘게 기념합니다";
-    $("#certificate-number").textContent = `문서번호 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
-    $("#certificate-grade").textContent = record.grade;
+    $("#certificate-screen-title").textContent = "공식 인정 증서";
+    $("#certificate-screen-copy").textContent = "당신의 대업을 공식적으로 인증합니다.";
+    $("#certificate-title").textContent = "공식 인정 증서";
+    $("#certificate-declaration").textContent = `아래의 기록이 ${certificationStatus().target}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`;
+    const serial = `${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
+    $("#certificate-number").textContent = `SERIAL · 대업-${serial}`;
+    const certRegno = $("#certificate-regno");
+    if (certRegno) certRegno.textContent = `제 ${serial}호`;
+    $("#certificate-grade").textContent = `이번 인정 사유 · ${record.grade}`;
     $("#certificate-deed").textContent = record.deed;
-    $("#certificate-nickname").textContent = `― ${record.nickname} ―`;
+    // 기록 요지 4행 — 별점·점수 대신 사무국이 실제로 기재하는 항목만 남긴다.
+    $("#certificate-nickname").textContent = record.nickname;
+    $("#certificate-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업";
+    $("#certificate-intake").textContent = `NO. ${record.number} / 누적 ${state.records.length}건`;
+    const issueIndex = Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1);
+    $("#certificate-issue").textContent = `제 ${issueIndex}차 공식 인정`;
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
-    $("#certificate-difficulty").textContent = rare ? "판정 불가" : "★★★★★";
-    $("#certificate-score").textContent = scoreText(record);
-    // 인증서에는 집사 한마디 + 관계가 깊어졌을 때만 사무국 뒷이야기 한 줄을 덧붙인다.
-    const certNews = officeNewsFor([{ obsession: Number(record.relationshipAfter) || 0 }], butler.name, stableDeedNumber(record.deed || ""));
-    $("#certificate-report").textContent = certNews
-      ? `“${record.report}”\n— ${certNews}`
-      : `“${record.report}”`;
-    $("#certificate-butler-name").textContent = butler.name;
+    $("#certificate-butler-name").textContent = `발급 담당 ${butler.name}`;
     $("#certificate-date").textContent = record.date;
-    $("#certificate-card .official-stamp span").innerHTML = official
-      ? rare ? "희귀<br>위업<br>인증" : "공식<br>대업<br>인증"
-      : rare ? "희귀<br>위업<br>기념" : "오늘의<br>대업<br>기념";
-    $("#certificate-footnote").textContent = official
-      ? "✦ 인증서는 기록 보관함에서 다시 확인할 수 있어요. ✦"
-      : status.first
-        ? "✦ 지금 저장·공유할 수 있으며, 공식 보관 인증은 도장 5개부터 발급됩니다. ✦"
-        : `✦ 지금 저장·공유할 수 있으며, 다음 공식 보관 인증까지 ${status.remaining}건 남았습니다. ✦`;
+    $("#certificate-autograph").textContent = `${butler.name} 印`;
+    $("#certificate-card .official-stamp span").innerHTML = rare ? "희귀<br>인정" : "공식<br>인정";
+    $("#certificate-footnote").textContent = "✦ 증서는 주인님 파일에서 다시 확인할 수 있어요. ✦";
     setPoseImage($("#certificate-butler-image"), butler.character, record.pose || "praise");
     $("#certificate-overlay").hidden = false;
     document.body.style.overflow = "hidden";
+    // 공식 인정 도장은 증서를 열 때마다 새로 찍힌다. 종이는 서명란이 흔들린다.
+    window.setTimeout(() => inkStamp($("#certificate-card .official-stamp"), { paper: $("#certificate-card .certificate-signoff") }), 260);
     currentCertificateImagePromise = createCertificateBlob(record).catch(() => null);
   }
 
@@ -3004,31 +3497,37 @@
     const overlay = $("#praise-result-overlay");
     overlay.dataset.mode = mode;
     overlay.dataset.firstRecord = String(firstRecord);
-    $("#result-form-label").textContent = rare ? "희귀 대업 판정서 · FORM 05-R" : power ? "긴급 과몰입 결과서 · FORM 05-P" : "대업 심사 결과서 · FORM 05";
-    $("#result-mode-badge").textContent = rare ? "희귀 판정" : power ? "파워 주접" : "일반 주접";
-    $("#result-title").innerHTML = rare ? "측정 불가<br>위업" : power ? "파워 주접<br>발동" : "집사 주접<br>승인";
-    $("#result-verdict").textContent = rare
-      ? "통상적인 평가 기준으로는 위대함을 측정할 수 없어 사무국이 판정을 포기했습니다."
-      : power
-      ? "집사 감정 회로가 허용 범위를 넘어 긴급 과몰입으로 전환되었습니다."
-      : "검토 결과, 공식적으로 떠받들기로 결정했습니다.";
-    $("#result-stamp").innerHTML = rare ? "희귀<br>채택" : power ? "과몰입<br>폭주" : "칭찬<br>승인";
-    $("#result-butler-name").textContent = `${butler.name} 담당 집사`;
-    $("#result-deed").textContent = record.deed;
+    // 결과서의 주인공은 수여된 칭호다. "승인"은 도장이 이미 말하고 있으므로
+    // 제목에서 한 번 더 외치지 않는다(시안 v4-4).
+    $("#result-form-label").textContent = rare ? "희 귀 대 업 판 정 서" : power ? "긴 급 과 몰 입 결 과 서" : "대 업 심 사 결 과 서";
+    $("#result-mode-badge").textContent = rare ? "FORM 05-R · 금일 발행" : power ? "FORM 05-P · 금일 발행" : "FORM 05 · 금일 발행";
+    $("#result-title").textContent = record.nickname;
+    $("#result-verdict").textContent = rare ? "희귀 채택" : power ? "과몰입 폭주" : "칭찬 지급";
+    $("#result-stamp").innerHTML = rare ? "희귀<br>채택" : power ? "과몰입<br>폭주" : "승인";
+    const fieldLabel = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
+    $("#result-butler-name").textContent = `${fieldLabel} 분야 · ${record.grade}`;
+    $("#result-deed").textContent = `“${record.deed}”`;
     const pointsEarned = Number(record.pointsEarned) || 0;
     const relationshipGain = Number(record.relationshipGain) || 0;
+    $("#result-intake").textContent = `NO. ${record.number}`;
+    const stampStatus = certificationStatus();
     $("#result-record-status").textContent = record.stampEligible === false
       ? `칭찬 · +${pointsEarned}P`
-      : rare ? `희귀 도장 +1 · ${pointsEarned}P` : `도장 +1 · ${pointsEarned}P`;
-    $("#result-report").textContent = "";
+      : `${stampStatus.progress} / ${stampStatus.target}`;
+    // 집사 코멘트는 손글씨 메모다. 한 글자씩 찍히는 연출은 재질과 어긋나고,
+    // 무엇보다 노란 메모지가 빈 칸으로 먼저 떠서 "덜 그려진 화면"으로 읽혔다.
+    // 문장은 처음부터 자리에 있고, 종이만 살짝 떠오른다.
+    const reportNode = $("#result-report");
+    reportNode.classList.remove("is-inked");
+    reportNode.textContent = record.report;
     $("#result-rare-note").hidden = !rare;
-    $("#result-grade").textContent = record.grade;
-    $("#result-score").textContent = scoreText(record);
-    $("#result-nickname").textContent = record.nickname;
-    $("#result-certificate-button").innerHTML = official
-      ? "공식 인증서 발급 <span>→</span>"
-      : firstRecord ? "첫 대업 기념 인증서 <span>→</span>" : "대업 기념 인증서 보기 <span>→</span>";
-    $("#result-close").textContent = firstRecord ? "첫 기록 저장하고 홈으로" : "기록만 하고 홈으로";
+    // 증서는 공식 인정을 받은 날에만 나온다. 대업마다 기념 증서를 내주면
+    // 5건을 모아야 받는 공식 인정이 아무 의미가 없어진다.
+    $("#result-certificate-button").hidden = !official;
+    $("#result-certificate-button").innerHTML = "공식 인정 증서 보기 <span>→</span>";
+    $("#result-close").textContent = official
+      ? "증서는 나중에 보고 홈으로"
+      : firstRecord ? "첫 기록 저장하고 홈으로" : "기록 보관하고 홈으로";
     const status = certificationStatus();
     $("#result-footnote").textContent = firstRecord
       ? `첫 도장 1개와 선물 포인트 ${pointsEarned}P를 받았습니다. 공식 보관 인증까지 ${status.remaining}건 남았어요.`
@@ -3046,7 +3545,10 @@
     setPoseImage($("#result-butler-image"), butler.character, record.pose === "power" ? "power" : "praise");
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
-    window.setTimeout(() => typeMessage($("#result-report"), record.report, rare ? 22 : 27), 240);
+    window.requestAnimationFrame(() => reportNode.classList.add("is-inked"));
+    // 승인 도장은 결과서가 자리를 잡은 다음 내려앉는다. 종이가 아직 떠오르는 중에
+    // 찍으면 두 움직임이 겹쳐서 둘 다 안 보인다.
+    window.setTimeout(() => inkStamp($("#result-stamp"), { paper: $("#result-stamp").closest(".reaction-verdict-row") || $("#result-stamp").parentElement }), 240);
   }
 
   function closePraiseResult() {
@@ -3068,14 +3570,14 @@
   }
 
   function closeCertificate() {
-    const firstRecord = isFirstRecord(currentCertificate);
-    const official = isOfficialCertificate(currentCertificate);
+    const fromFile = certificateOpenedFromFile;
+    certificateOpenedFromFile = false;
     $("#certificate-overlay").hidden = true;
     document.body.style.overflow = "";
     currentCertificate = null;
     currentCertificateImagePromise = null;
-    showView("home");
-    if (firstRecord && !official) showToast(`첫 대업 기념 완료 · 공식 인증까지 ${certificationStatus().remaining}건`);
+    // 파일에서 열었으면 화면 전환 없이 오버레이만 닫는다 — showView는 스크롤을 맨 위로 올린다.
+    if (!fromFile) showView("home");
   }
 
   function roundedCanvasRect(ctx, x, y, width, height, radius) {
@@ -3145,12 +3647,43 @@
     }, "image/png"));
   }
 
+  // 자간이 붙은 글자를 캔버스에 찍는다. ctx.letterSpacing은 최근 엔진에만 있어
+  // 직접 한 글자씩 놓는다 — 증서의 격은 자간에서 나온다.
+  function drawTrackedText(ctx, text, x, y, tracking, align = "center") {
+    const chars = Array.from(String(text));
+    const widths = chars.map(ch => ctx.measureText(ch).width);
+    const total = widths.reduce((sum, w) => sum + w, 0) + tracking * Math.max(0, chars.length - 1);
+    let cursor = align === "center" ? x - total / 2 : align === "right" ? x - total : x;
+    const previous = ctx.textAlign;
+    ctx.textAlign = "left";
+    chars.forEach((ch, index) => {
+      ctx.fillText(ch, cursor, y);
+      cursor += widths[index] + tracking;
+    });
+    ctx.textAlign = previous;
+  }
+
+  function drawDottedLeader(ctx, fromX, toX, y, color) {
+    if (toX - fromX < 12) return;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([3, 9]);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(fromX, y);
+    ctx.lineTo(toX, y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 화면 증서(v4)와 같은 조형을 그린다. 공유 이미지가 유일한 무료 유입 채널이라
+  // 여기서 다른 증서가 나가면 앱을 열었을 때 다른 물건을 받는 셈이 된다.
   async function createCertificateBlob(record) {
     if (document.fonts?.ready) await document.fonts.ready;
     const butler = record.butler || snapshotButler(record);
     const owner = certificateOwnerName(record);
     const rare = record.verdictType === "rare" || record.rare;
-    const official = isOfficialCertificate(record);
     const portrait = await loadCanvasImage(assetFor(butler.character, record.pose || "praise"));
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
@@ -3159,188 +3692,376 @@
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    ctx.fillStyle = "#efe3d4";
+    const DISP = 'Paperlogy, "Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const BODY = '"Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const SERIF = '"Song Myung", "Noto Serif KR", serif';
+    const HAND = 'Gaegu, cursive';
+    const INK = "#332a20";
+    const INK_SOFT = "#7a6c5c";
+    const INK_FAINT = "#a3927c";
+    const IVORY = "#faf7f0";
+    const GOLD = "#b98a2e";
+    const GOLD_DP = "#8a6420";
+    const STAMP = "#9d2f3a";
+
+    // 격자 종이 바닥
+    ctx.fillStyle = "#efe8da";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(94, 72, 58, .05)";
+    ctx.lineWidth = 2;
+    for (let x = 0; x <= canvas.width; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y <= canvas.height; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+    // 금박 액자 — 사선 해칭 띠
+    const F = { x: 44, y: 40, w: 992, h: 1270 };
     ctx.save();
-    ctx.shadowColor = "rgba(70, 45, 31, .16)";
-    ctx.shadowBlur = 28;
-    ctx.shadowOffsetY = 12;
-    roundedCanvasRect(ctx, 42, 38, 996, 1274, 28);
-    ctx.fillStyle = "#fffaf2";
-    ctx.fill();
-    ctx.restore();
-    roundedCanvasRect(ctx, 60, 56, 960, 1238, 22);
-    ctx.strokeStyle = rare ? "#b68b3f" : "#c9ae73";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    roundedCanvasRect(ctx, 75, 71, 930, 1208, 15);
-    ctx.strokeStyle = rare ? "rgba(166, 119, 37, .62)" : "rgba(186, 151, 88, .48)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#741b2c";
-    ctx.font = '900 56px "Noto Serif KR", serif';
-    ctx.fillText("과잉집사", 102, 145);
-    ctx.fillStyle = "#815a56";
-    ctx.font = '850 15px "WantedSansVariable", sans-serif';
-    ctx.fillText("OVERBUTLER DUTY OFFICE", 104, 174);
-    roundedCanvasRect(ctx, 757, 94, 215, 58, 29);
-    ctx.fillStyle = "#fffaf2";
-    ctx.fill();
-    ctx.strokeStyle = "#ccb99f";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = "#861b30";
+    ctx.fillStyle = "rgba(45, 35, 22, .13)";
+    ctx.fillRect(F.x + 16, F.y + 18, F.w, F.h);
+    ctx.fillStyle = IVORY;
+    ctx.fillRect(F.x, F.y, F.w, F.h);
     ctx.beginPath();
-    ctx.arc(787, 123, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#554744";
-    ctx.font = '800 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "사무국 공식 발급" : "오늘의 대업 기념", 807, 130);
-    ctx.strokeStyle = "#d8c9b6";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(102, 205);
-    ctx.lineTo(978, 205);
-    ctx.stroke();
-
-    ctx.textAlign = "center";
-    ctx.strokeStyle = "#ad8140";
+    ctx.rect(F.x, F.y, F.w, F.h);
+    ctx.clip();
+    ctx.strokeStyle = "rgba(185, 138, 46, .5)";
     ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(540, 252, 35, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "#9b7337";
-    ctx.font = '900 19px "Noto Serif KR", serif';
-    ctx.fillText("OB", 540, 259);
-    ctx.fillStyle = "#463534";
-    ctx.font = '900 47px "Noto Serif KR", serif';
-    ctx.fillText(official ? "공식 대업 인증서" : "대업 기념 인증서", 540, 327);
-    ctx.fillStyle = "#88766c";
-    ctx.font = '600 18px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "이 증서는 아래의 대업 달성을 엄숙하게 인증합니다" : "오늘의 대업을 집사 사무국이 기쁘게 기념합니다", 540, 365);
-    ctx.fillStyle = "#711b2c";
-    ctx.font = '850 25px "Noto Serif KR", serif';
-    ctx.fillText(`${owner} 귀하`, 540, 402);
-    ctx.fillStyle = "#94703b";
-    ctx.font = '800 16px "WantedSansVariable", sans-serif';
-    ctx.fillText(`문서번호 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`, 540, 431);
-
-    roundedCanvasRect(ctx, 416, 452, 248, 50, 25);
-    ctx.fillStyle = rare ? "#fff0c3" : "#fff6df";
-    ctx.fill();
-    ctx.strokeStyle = rare ? "#b68b3f" : "#d2b575";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = "#89622c";
-    ctx.font = '800 19px "WantedSansVariable", sans-serif';
-    ctx.fillText(record.grade, 540, 484);
-
-    let deedFontSize = 56;
-    let deedLines = [];
-    do {
-      ctx.font = `900 ${deedFontSize}px "Noto Serif KR", serif`;
-      deedLines = canvasTextLines(ctx, record.deed, 820, 3);
-      if (deedLines.length <= 2 || deedFontSize <= 38) break;
-      deedFontSize -= 4;
-    } while (deedFontSize >= 38);
-    ctx.fillStyle = "#711b2c";
-    const deedBottom = drawCenteredCanvasLines(ctx, deedLines, 540, 556, deedFontSize * 1.28);
-    ctx.fillStyle = "#927045";
-    ctx.font = '700 24px "WantedSansVariable", sans-serif';
-    ctx.fillText(`― ${record.nickname} ―`, 540, deedBottom + 7);
-
-    const metricsY = Math.max(690, deedBottom + 45);
-    roundedCanvasRect(ctx, 126, metricsY, 828, 126, 12);
-    ctx.fillStyle = "#fcf7ef";
-    ctx.fill();
-    ctx.strokeStyle = "#ddcfbd";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(540, metricsY);
-    ctx.lineTo(540, metricsY + 126);
-    ctx.stroke();
-    ctx.fillStyle = "#8b776b";
-    ctx.font = '750 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "공식 난이도" : "집사 판정 난이도", 333, metricsY + 38);
-    ctx.fillText("인류 기여도", 747, metricsY + 38);
-    ctx.fillStyle = "#711b2c";
-    ctx.font = '900 39px "Noto Serif KR", serif';
-    ctx.fillText(rare ? "판정 불가" : "★★★★★", 333, metricsY + 91);
-    ctx.fillText(scoreText(record), 747, metricsY + 91);
-
-    const portraitY = metricsY + 143;
-    const quoteY = 1120;
-    const portraitHeight = Math.max(230, Math.min(326, quoteY - portraitY + 4));
-    ctx.save();
-    ctx.globalAlpha = .1;
-    ctx.strokeStyle = "#9b6f48";
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.arc(270, portraitY + 145, 138, 0, Math.PI * 2);
-    ctx.stroke();
+    for (let d = -F.h; d < F.w + F.h; d += 13) {
+      ctx.beginPath();
+      ctx.moveTo(F.x + d, F.y + F.h);
+      ctx.lineTo(F.x + d + F.h, F.y);
+      ctx.stroke();
+    }
     ctx.restore();
-    drawContainedCanvasImage(ctx, portrait, 102, portraitY - 12, 345, portraitHeight);
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#907d70";
-    ctx.font = '750 17px "WantedSansVariable", sans-serif';
-    ctx.fillText("발급 담당 집사", 470, portraitY + 64);
-    ctx.fillStyle = "#493936";
-    ctx.font = '900 35px "Noto Serif KR", serif';
-    ctx.fillText(butler.name, 470, portraitY + 110);
-    ctx.fillStyle = "#86756b";
-    ctx.font = '650 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(`발급 일자  ${record.date}`, 470, portraitY + 145);
-    ctx.strokeStyle = "#8b776c";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(470, portraitY + 185);
-    ctx.lineTo(690, portraitY + 185);
-    ctx.stroke();
-    ctx.fillStyle = "#9b826b";
-    ctx.font = '700 13px "WantedSansVariable", sans-serif';
-    ctx.fillText("OVERBUTLER SIGNATURE", 470, portraitY + 207);
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(F.x, F.y, F.w, F.h);
 
-    ctx.textAlign = "center";
+    // 증서 종이
+    const P = { x: F.x + 25, y: F.y + 25, w: F.w - 50, h: F.h - 50 };
     ctx.save();
-    ctx.translate(844, portraitY + 137);
-    ctx.rotate(-.11);
-    ctx.strokeStyle = rare ? "rgba(145, 101, 30, .9)" : "rgba(126, 25, 43, .86)";
-    ctx.lineWidth = 7;
     ctx.beginPath();
-    ctx.arc(0, 0, 79, 0, Math.PI * 2);
+    ctx.rect(P.x, P.y, P.w, P.h);
+    ctx.clip();
+    ctx.fillStyle = IVORY;
+    ctx.fillRect(P.x, P.y, P.w, P.h);
+    const glow = ctx.createRadialGradient(P.x + P.w / 2, P.y - 40, 0, P.x + P.w / 2, P.y - 40, P.w * 0.72);
+    glow.addColorStop(0, "rgba(185, 138, 46, .1)");
+    glow.addColorStop(1, "rgba(185, 138, 46, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(P.x, P.y, P.w, P.h);
+    ctx.strokeStyle = "rgba(185, 138, 46, .05)";
+    ctx.lineWidth = 2;
+    for (let d = -P.h; d < P.w + P.h; d += 18) {
+      ctx.beginPath();
+      ctx.moveTo(P.x + d, P.y);
+      ctx.lineTo(P.x + d + P.h, P.y + P.h);
+      ctx.stroke();
+    }
+    // OB 워터마크
+    const cx = P.x + P.w / 2;
+    ctx.strokeStyle = "rgba(51, 42, 32, .033)";
+    ctx.lineWidth = 25;
+    ctx.beginPath();
+    ctx.arc(cx, P.y + P.h / 2, 320, 0, Math.PI * 2);
     ctx.stroke();
+    ctx.fillStyle = "rgba(51, 42, 32, .033)";
+    ctx.font = `900 280px ${SERIF}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("OB", cx, P.y + P.h / 2);
+    ctx.textBaseline = "alphabetic";
+    ctx.restore();
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(P.x, P.y, P.w, P.h);
+
+    // 좌우 세로 마이크로텍스트
+    const SIDE = "OVERBUTLER DUTY OFFICE · OFFICIAL";
+    ctx.fillStyle = "rgba(185, 138, 46, .55)";
+    ctx.font = `700 19px ${DISP}`;
+    [[P.x + 26, 1], [P.x + P.w - 26, -1]].forEach(([sx, dir]) => {
+      ctx.save();
+      ctx.translate(sx, P.y + P.h / 2);
+      ctx.rotate(dir > 0 ? -Math.PI / 2 : Math.PI / 2);
+      drawTrackedText(ctx, SIDE, 0, 0, 8);
+      ctx.restore();
+    });
+
+    // 네 모서리 장식 — 화면 증서와 같은 도안
+    const corner = new Path2D("M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8");
+    ctx.save();
+    ctx.strokeStyle = GOLD;
+    ctx.globalAlpha = .8;
+    ctx.lineWidth = 1.7;
+    [[P.x + 20, P.y + 20, 1, 1], [P.x + P.w - 20, P.y + 20, -1, 1],
+     [P.x + 20, P.y + P.h - 20, 1, -1], [P.x + P.w - 20, P.y + P.h - 20, -1, -1]].forEach(([ox, oy, sx, sy]) => {
+      ctx.save();
+      ctx.translate(ox, oy);
+      ctx.scale(sx * 2.1, sy * 2.1);
+      ctx.stroke(corner);
+      ctx.restore();
+    });
+    ctx.restore();
+
+    // 메달 — 리본 두 갈래 위에 금화
+    const medalY = P.y + 126;
+    [[-42, 0.24], [42, -0.24]].forEach(([dx, rot]) => {
+      ctx.save();
+      ctx.translate(cx + dx, medalY + 44);
+      ctx.rotate(rot);
+      const ribbon = ctx.createLinearGradient(0, 0, 0, 76);
+      ribbon.addColorStop(0, STAMP);
+      ribbon.addColorStop(1, "#6f2027");
+      ctx.fillStyle = ribbon;
+      ctx.beginPath();
+      ctx.moveTo(-21, 0);
+      ctx.lineTo(21, 0);
+      ctx.lineTo(21, 76);
+      ctx.lineTo(0, 62);
+      ctx.lineTo(-21, 76);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+    const coin = ctx.createRadialGradient(cx - 26, medalY - 22, 6, cx, medalY, 84);
+    coin.addColorStop(0, "#e8cd7a");
+    coin.addColorStop(0.46, GOLD);
+    coin.addColorStop(1, GOLD_DP);
+    ctx.fillStyle = coin;
+    ctx.beginPath();
+    ctx.arc(cx, medalY, 84, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 244, 210, .55)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(0, 0, 65, 0, Math.PI * 2);
+    ctx.arc(cx, medalY, 62, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = rare ? "#80561c" : "#811a2d";
-    ctx.font = '900 20px "Noto Serif KR", serif';
-    ctx.fillText(official ? rare ? "희귀 위업" : "공식 대업" : rare ? "희귀 위업" : "오늘의 대업", 0, -7);
-    ctx.fillText(official ? "인증 완료" : "기념 완료", 0, 22);
+    ctx.fillStyle = "#fdf3d5";
+    ctx.font = `900 46px ${SERIF}`;
+    ctx.textAlign = "center";
+    ctx.fillText("OB", cx, medalY + 17);
+
+    // 발행처 · 제목 · 금줄
+    ctx.fillStyle = GOLD_DP;
+    ctx.font = `800 22px ${DISP}`;
+    drawTrackedText(ctx, "OVERBUTLER DUTY OFFICE", cx, medalY + 138, 7);
+    ctx.fillStyle = INK;
+    ctx.font = `900 72px ${SERIF}`;
+    drawTrackedText(ctx, "공식 인정 증서", cx, medalY + 212, 9);
+
+    const ruleY = medalY + 230;
+    const ruleHalf = 250;
+    [[cx - ruleHalf, cx - 22, "left"], [cx + 22, cx + ruleHalf, "right"]].forEach(([x1, x2, side]) => {
+      const grad = ctx.createLinearGradient(x1, 0, x2, 0);
+      grad.addColorStop(0, side === "left" ? "rgba(185,138,46,0)" : GOLD);
+      grad.addColorStop(1, side === "left" ? GOLD : "rgba(185,138,46,0)");
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x1, ruleY);
+      ctx.lineTo(x2, ruleY);
+      ctx.stroke();
+    });
+    ctx.save();
+    ctx.translate(cx, ruleY);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = GOLD;
+    ctx.fillRect(-7, -7, 14, 14);
     ctx.restore();
 
-    roundedCanvasRect(ctx, 102, quoteY, 876, 124, 8);
-    ctx.fillStyle = "#f7eddf";
-    ctx.fill();
-    ctx.strokeStyle = "#ddcbb4";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#7b1b2d";
-    ctx.font = '850 16px "WantedSansVariable", sans-serif';
-    ctx.fillText(`${butler.name} 집사의 한마디`, 132, quoteY + 31);
-    ctx.fillStyle = "#554541";
-    ctx.font = '700 28px "Wanted Sans", sans-serif';
-    const reportLines = canvasTextLines(ctx, `“${record.report}”`, 810, 2);
-    reportLines.forEach((line, index) => ctx.fillText(line, 132, quoteY + 70 + index * 35));
-
+    // 증명 문구 · 수여 대상
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `500 27px ${BODY}`;
     ctx.textAlign = "center";
-    ctx.fillStyle = "#9a897d";
-    ctx.font = '650 14px "WantedSansVariable", sans-serif';
-    ctx.fillText("나도 오늘의 대업 보고하기 · OVERBUTLER DUTY OFFICE", 540, 1270);
+    ctx.fillText(`아래의 기록이 ${certificationStatus().target}건의 대업 끝에`, cx, ruleY + 54);
+    ctx.fillText("사무국의 공식 인정을 받았음을 기쁘게 증명합니다", cx, ruleY + 94);
+
+    ctx.font = `800 38px ${SERIF}`;
+    // certificateOwnerName은 이미 "OO 주인님" 형태다. 여기서 호칭을 또 붙이면 두 번 불린다.
+    const ownerLabel = owner;
+    const ownerWidth = ctx.measureText(ownerLabel).width;
+    const suffixWidth = ctx.measureText(" 귀하").width;
+    ctx.textAlign = "left";
+    ctx.fillStyle = STAMP;
+    ctx.fillText(ownerLabel, cx - (ownerWidth + suffixWidth) / 2, ruleY + 150);
+    ctx.fillStyle = INK;
+    ctx.fillText(" 귀하", cx - (ownerWidth + suffixWidth) / 2 + ownerWidth, ruleY + 150);
+    ctx.textAlign = "center";
+
+    // 인정 사유 금박 칩
+    const chipLabel = `이번 인정 사유 · ${record.grade}`;
+    ctx.font = `800 26px ${DISP}`;
+    const chipWidth = ctx.measureText(chipLabel).width + 72;
+    const chipY = ruleY + 160;
+    const chipGrad = ctx.createLinearGradient(0, chipY, 0, chipY + 62);
+    chipGrad.addColorStop(0, "rgba(232, 205, 122, .16)");
+    chipGrad.addColorStop(1, "rgba(232, 205, 122, .05)");
+    roundedCanvasRect(ctx, cx - chipWidth / 2, chipY, chipWidth, 62, 31);
+    ctx.fillStyle = chipGrad;
+    ctx.fill();
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = GOLD_DP;
+    ctx.fillText(chipLabel, cx, chipY + 40);
+
+    // 아래쪽부터 자리를 먼저 잡는다 — 서명란과 시리얼 밴드는 길이가 고정이고,
+    // 늘어나는 것은 대업 제목뿐이다. 위에서부터 쌓으면 긴 제목이 서명란을 밀어낸다.
+    const briefX = P.x + 62;
+    const briefRight = P.x + P.w - 62;
+    const rowHeight = 44;
+    const bandTop = P.y + P.h - 92;
+    const signBottom = bandTop - 20;
+    const signTop = signBottom - 126;
+    const briefBottom = signTop - 20;
+    const briefTop = briefBottom - (22 + 4 * rowHeight);
+
+    // 「대업」 — 칩과 요지표 사이 빈 자리에 들어갈 때까지 줄이고, 그 안에서 가운데에 둔다
+    const deedZoneTop = chipY + 80;
+    const deedZoneBottom = briefTop - 20;
+    const deedRoom = Math.max(60, deedZoneBottom - deedZoneTop);
+    let deedSize = 54;
+    let deedLines = [];
+    while (true) {
+      ctx.font = `900 ${deedSize}px ${SERIF}`;
+      // 낫표는 줄바꿈 계산에서 빼고 나중에 앞뒤로 붙인다 — 함께 재면 닫는 낫표만
+      // 다음 줄로 밀려 내려가 홀로 떨어진다.
+      deedLines = canvasTextLines(ctx, String(record.deed || ""), P.w - 200, 2);
+      if (deedLines.length * deedSize * 1.45 <= deedRoom || deedSize <= 30) break;
+      deedSize -= 3;
+    }
+    if (deedLines.length) {
+      deedLines[0] = `「${deedLines[0]}`;
+      deedLines[deedLines.length - 1] = `${deedLines[deedLines.length - 1]}」`;
+    }
+    const deedBlock = deedLines.length * deedSize * 1.45;
+    ctx.fillStyle = INK;
+    ctx.textAlign = "center";
+    drawCenteredCanvasLines(ctx, deedLines, cx, deedZoneTop + (deedRoom - deedBlock) / 2 + deedSize, deedSize * 1.45);
+
+    const briefRows = [
+      ["수여 칭호", record.nickname],
+      ["분야", OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업"],
+      ["접수 번호", `NO. ${record.number} / 누적 ${state.records.length}건`],
+      ["발급 차수", `제 ${Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1)}차 공식 인정`]
+    ];
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(briefX, briefTop);
+    ctx.lineTo(briefRight, briefTop);
+    ctx.stroke();
+    briefRows.forEach(([label, value], index) => {
+      const y = briefTop + 36 + index * rowHeight;
+      ctx.textAlign = "left";
+      ctx.fillStyle = INK_FAINT;
+      ctx.font = `600 25px ${DISP}`;
+      ctx.fillText(label, briefX, y);
+      const labelWidth = ctx.measureText(label).width;
+      ctx.textAlign = "right";
+      ctx.fillStyle = INK;
+      ctx.font = `700 27px ${DISP}`;
+      ctx.fillText(value, briefRight, y);
+      const valueWidth = ctx.measureText(value).width;
+      drawDottedLeader(ctx, briefX + labelWidth + 16, briefRight - valueWidth - 16, y - 8, "rgba(185, 138, 46, .45)");
+      if (index > 0) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(185, 138, 46, .4)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([2, 6]);
+        ctx.beginPath();
+        ctx.moveTo(briefX, y - rowHeight + 18);
+        ctx.lineTo(briefRight, y - rowHeight + 18);
+        ctx.stroke();
+        ctx.restore();
+      }
+    });
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(briefX, briefBottom);
+    ctx.lineTo(briefRight, briefBottom);
+    ctx.stroke();
+
+    // 서명란 — 담당 집사 초상 · 발급자 · 육필 낙관 · 밀랍 인장
+    ctx.strokeStyle = "rgba(203, 187, 166, .8)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(briefX, signTop);
+    ctx.lineTo(briefRight, signTop);
+    ctx.stroke();
+    const signMid = (signTop + signBottom) / 2;
+    drawContainedCanvasImage(ctx, portrait, briefX, signMid - 62, 116, 124);
+    ctx.textAlign = "left";
+    ctx.fillStyle = INK;
+    ctx.font = `800 32px ${DISP}`;
+    ctx.fillText(`발급 담당 ${butler.name}`, briefX + 136, signMid - 12);
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `500 24px ${BODY}`;
+    ctx.fillText(`${record.date} ·`, briefX + 136, signMid + 34);
+    const dateWidth = ctx.measureText(`${record.date} ·`).width;
+    ctx.save();
+    ctx.translate(briefX + 152 + dateWidth, signMid + 36);
+    ctx.rotate(-0.05);
+    ctx.fillStyle = STAMP;
+    ctx.font = `700 42px ${HAND}`;
+    ctx.fillText(`${butler.name} 印`, 0, 0);
+    ctx.restore();
+
+    const sealX = briefRight - 68;
+    const seal = ctx.createRadialGradient(sealX - 22, signMid - 22, 5, sealX, signMid, 68);
+    seal.addColorStop(0, "#c9505c");
+    seal.addColorStop(0.52, STAMP);
+    seal.addColorStop(1, "#6f1e26");
+    ctx.fillStyle = seal;
+    ctx.beginPath();
+    ctx.arc(sealX, signMid, 66, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 220, 224, .5)";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([7, 7]);
+    ctx.beginPath();
+    ctx.arc(sealX, signMid, 53, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(sealX, signMid);
+    ctx.rotate(-0.157);
+    ctx.fillStyle = "#ffe9ec";
+    ctx.font = `900 23px ${SERIF}`;
+    ctx.textAlign = "center";
+    ctx.fillText(rare ? "희귀" : "공식", 0, -3);
+    ctx.fillText("인정", 0, 26);
+    ctx.restore();
+
+    // 하단 시리얼 밴드
+    ctx.save();
+    ctx.fillStyle = "rgba(185, 138, 46, .05)";
+    ctx.fillRect(P.x + 3, bandTop, P.w - 6, P.h - (bandTop - P.y) - 3);
+    ctx.strokeStyle = "rgba(185, 138, 46, .5)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(P.x + 3, bandTop);
+    ctx.lineTo(P.x + P.w - 3, bandTop);
+    ctx.stroke();
+    ctx.restore();
+    const bandMid = bandTop + 54;
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `700 18px ${DISP}`;
+    const serialText = `SERIAL · 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
+    const noticeText = "본 증서는 재발급되지 않습니다 · 아마도";
+    const serialEnd = briefX + ctx.measureText(serialText).width + 6 * 2;
+    const noticeStart = briefRight - ctx.measureText(noticeText).width - 6 * 2;
+    drawTrackedText(ctx, serialText, briefX, bandMid, 2, "left");
+    drawTrackedText(ctx, noticeText, briefRight, bandMid, 2, "right");
+    // 가운데 장식은 양쪽 문구가 비켜준 만큼만 들어간다 — 겹치느니 빠지는 게 낫다.
+    ctx.fillStyle = GOLD_DP;
+    ctx.font = `800 22px ${DISP}`;
+    if (noticeStart - serialEnd > ctx.measureText("✦ ✦ ✦").width + 40) {
+      drawTrackedText(ctx, "✦ ✦ ✦", (serialEnd + noticeStart) / 2, bandMid, 6);
+    }
+    ctx.textAlign = "center";
     return canvasToBlob(canvas);
   }
 
@@ -3363,8 +4084,8 @@
   }
 
   function certificateShareText(record) {
-    const result = isOfficialCertificate(record) ? "공식 인증됐습니다." : "집사에게 거창하게 기념됐습니다.";
-    return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · 인류 기여도 ${scoreText(record)}\n#과잉집사 #오늘의대업`;
+    const result = "사무국의 공식 인정을 받았습니다.";
+    return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · ${record.nickname}\n#과잉집사 #오늘의대업`;
   }
 
   async function copyCertificateText(text) {
@@ -3486,12 +4207,12 @@
     showRecruitmentOverlay();
   }
 
-  function renderPersonnelPool() {
+  function renderPersonnelPool(hiredKey = "") {
     const cards = state.ownedButlers.map(key => {
       const profile = CHARACTER_PROFILES[key];
       const stat = ensureButlerStat(key);
       const current = key === state.character;
-      return `<button class="personnel-pool-person ${current ? "active" : ""}" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}><img src="${personnelPortraitFor(key)}" alt=""><span><b>${escapeHtml(stat.customName || profile.defaultName)}</b><small>${current ? "현재 담당" : stat.assignments > 0 ? "다시 맡기기" : "담당 맡기기"}</small></span></button>`;
+      return `<button class="personnel-pool-person ${current ? "active" : ""}${key === hiredKey ? " just-hired" : ""}" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}><img src="${personnelPortraitFor(key)}" alt=""><span><b>${escapeHtml(stat.customName || profile.defaultName)}</b><small>${current ? "현재 담당" : stat.assignments > 0 ? "다시 맡기기" : "담당 맡기기"}</small></span></button>`;
     }).join("");
     const sheet = $("#recruitment-sheet");
     sheet.dataset.mode = "pool";
@@ -3502,6 +4223,12 @@
       <div class="personnel-actions">${state.pendingApplicants.length ? `<button class="secondary-button" data-personnel-action="application" type="button">도착한 지원서 ${state.pendingApplicants.length}건 보기</button>` : ""}
       <button class="text-button" data-personnel-action="close" type="button">인사 명부 닫기</button></div>`;
     showRecruitmentOverlay();
+    // 개봉이 끝난 집사는 명부에서 자기 자리로 내려앉는다. 방금 온 사람이
+    // 어디에 꽂혔는지 눈으로 따라갈 수 있어야 개봉이 마무리된다.
+    if (hiredKey) {
+      const card = sheet.querySelector(".personnel-pool-person.just-hired");
+      card?.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
   }
 
   function closeRecruitment() {
@@ -3523,8 +4250,48 @@
     ensureButlerStat(key);
     if (!saveState()) { render(); return; }
     render();
-    renderPersonnelPool();
-    showToast(`${profile.name} 채용 완료 · 보유함에 등록했습니다.`);
+    const settle = () => {
+      renderPersonnelPool(key);
+      showToast(`${profile.name} 채용 완료 · 보유함에 등록했습니다.`);
+    };
+    // 해금은 이 앱에서 가장 큰 보상인데 목록만 조용히 바뀌었다. 봉인을 뜯는
+    // 1.3초를 준다. 감소 모드이거나 인사국 창이 닫혀 있으면 바로 명부로 간다.
+    if (prefersReducedMotion() || $("#recruitment-overlay").hidden) { settle(); return; }
+    playSealOpening(key, settle);
+  }
+
+  /* 봉인 개봉 — 밀랍에 금이 가고, 두 조각으로 갈라져 떨어지고, 덮개가 열리고,
+     안에서 인사 서류가 올라온다. 네 장면이 시간 위에서 이어 달리므로 한 순간에
+     움직이는 것은 하나뿐이다(밀랍 두 조각만 한 쌍으로 같이 떨어진다).
+     이미지 에셋은 쓰지 않는다 — 봉투도 인장도 전부 CSS 도형이다. */
+  const SEAL_OPENING_MS = 1300;
+  function playSealOpening(key, done) {
+    const profile = CHARACTER_PROFILES[key];
+    const sheet = $("#recruitment-sheet");
+    if (!sheet || !profile) { done(); return; }
+    sheet.dataset.mode = "seal";
+    sheet.innerHTML = `
+      <div class="personnel-document-meta"><span>봉인 개봉 · PERSONNEL</span><b>채용 승인</b></div>
+      <div class="seal-open" role="status" aria-live="polite">
+        <div class="seal-envelope">
+          <span class="seal-flap" aria-hidden="true"></span>
+          <div class="seal-letter">
+            <img src="${personnelPortraitFor(key)}" alt="${escapeHtml(profile.name)}">
+            <small>중앙인사국 채용 승인</small>
+            <b>${escapeHtml(profile.name)}</b>
+            <span>${escapeHtml(profile.desc)}</span>
+          </div>
+          <span class="seal-wax" aria-hidden="true"><i></i><i></i><em></em></span>
+        </div>
+        <p class="seal-caption">봉인을 뜯는 중입니다…</p>
+      </div>`;
+    showRecruitmentOverlay();
+    window.requestAnimationFrame(() => sheet.querySelector(".seal-open")?.classList.add("is-opening"));
+    // 인장이 갈라지는 순간에만 한 번. 개봉 내내 울리면 연출이 아니라 알림이 된다.
+    window.setTimeout(() => { haptic(25); OfficeSound.cue("clip"); }, 250);
+    window.setTimeout(() => OfficeSound.cue("paper"), 920);
+    window.clearTimeout(sealOpeningTimer);
+    sealOpeningTimer = window.setTimeout(done, SEAL_OPENING_MS + 150);
   }
 
   function deferApplicant(character) {
@@ -3546,17 +4313,35 @@
     const returning = nextStat.assignments > 0;
     const sheet = $("#recruitment-sheet");
     sheet.dataset.mode = "handover";
+    // 시안 v4-7 — 확인 다이얼로그가 아니라 철끈으로 묶인 인계 확인서다.
+    // 무엇이 넘어가고 무엇이 남는지를 항목으로 못 박아야 유저가 오해하지 않는다.
+    const previousAlias = ensureButlerStat(previousKey).customName || previousProfile.defaultName;
     sheet.innerHTML = `
-      <div class="personnel-document-meta"><span>담당 변경 승인서 · HANDOVER</span><b>결재 대기</b></div>
-      <div class="handover-heading"><small>과잉집사 중앙인사국</small><h2 id="applicant-name">${returning ? "기존 집사를 다시 호출할까요?" : "담당 집사를 변경할까요?"}</h2><p>전임 기록을 그대로 넘기고 새 담당의 관계 기록을 불러옵니다.</p></div>
+      <div class="of-fastener" aria-hidden="true"><i></i><i></i></div>
+      <div class="of-datestamp" aria-hidden="true">신청<b>${today().slice(5).replace("-", ". ")}</b></div>
+      <span class="handover-doclabel">OVERBUTLER · TRANSFER FORM</span>
+      <h2 id="applicant-name">담당 인계 확인서</h2>
       <div class="handover-route">
-        <div><span>현재 담당</span><img src="${personnelPortraitFor(previousKey)}" alt=""><b>${escapeHtml(ensureButlerStat(previousKey).customName)}</b><p>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</p></div>
-        <i><b>인계</b>→</i>
-        <div><span>새 담당</span><img src="${personnelPortraitFor(key)}" alt=""><b>${escapeHtml(nextStat.customName)}</b><p>${escapeHtml(RELATION_LINES[key]?.[returning ? "return" : "welcome"] || nextProfile.handover)}</p></div>
+        <div><img src="${personnelPortraitFor(previousKey)}" alt=""><b>${escapeHtml(previousAlias)} (현 담당)</b></div>
+        <i aria-hidden="true">⟶</i>
+        <div><img src="${personnelPortraitFor(key)}" alt=""><b>${escapeHtml(nextStat.customName || nextProfile.defaultName)}</b></div>
       </div>
-      <p class="personnel-policy-note">대업·인증서·일지는 그대로 유지됩니다. 각 집사의 과몰입도와 선물 기록도 섞이지 않아요.</p>
-      <div class="personnel-actions"><button class="primary-button" data-personnel-action="switch" data-character="${key}" type="button">${returning ? "복귀 승인 · 다시 담당 맡기기" : "인수인계 승인"} <span>→</span></button>
-      <button class="secondary-button" data-personnel-action="pool" type="button">다른 집사도 검토하기</button></div>`;
+      <div class="handover-items">
+        <p class="handover-section-label">인 계 항 목</p>
+        <div><span><b>주인님 파일 전체</b> — 기록 ${state.records.length}건이 새 담당에게 전달됩니다</span></div>
+        <div><span><b>도장과 인증서</b> — 모은 그대로 유지됩니다</span></div>
+        <div><span><b>${escapeHtml(previousAlias)}의 일기</b> — ${escapeHtml(previousAlias)}의 것으로 남습니다</span></div>
+        <div><span><b>관계 결재란</b> — ${returning ? "복귀하는 담당의 결재란을 그대로 이어받습니다" : "새 담당과는 첫 칸부터 다시 시작합니다"}</span></div>
+      </div>
+      <div class="handover-signs">
+        <div><dt>전임 확인</dt><span class="handover-autograph">${escapeHtml(previousAlias)} 印</span></div>
+        <div><dt>후임 확인</dt><span class="handover-blank"></span></div>
+      </div>
+      <button class="primary-button handover-go" data-personnel-action="switch" data-character="${key}" type="button">
+        <span class="handover-go-copy"><b>${returning ? "복귀를 진행합니다" : "인계를 진행합니다"}</b><small>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</small></span>
+        <span class="of-roundstamp" aria-hidden="true">인계<small>TRANSFER</small></span>
+      </button>
+      <button class="secondary-button" data-personnel-action="pool" type="button">다른 집사도 검토하기</button>`;
     showRecruitmentOverlay();
   }
 
@@ -3620,8 +4405,10 @@
       const affordable = state.points >= gift.cost;
       const interaction = giftInteractionFor(state.character, gift, index);
       const preferenceLabel = interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
-      return `<button class="gift-catalog-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}">
-        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}<span>${gift.emoji}</span><strong>${escapeHtml(gift.name)}</strong><small>${gift.cost}P</small>${affordable ? "" : "<i>잠김</i>"}
+      // 잠긴 품목에는 이유가 붙어야 한다. "잠김"은 벽이지만 "12P 더"는 다음에 할 일이다.
+      const shortfall = affordable ? 0 : gift.cost - state.points;
+      return `<button class="gift-catalog-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
+        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}<span>${gift.emoji}</span><strong>${escapeHtml(gift.name)}</strong><small>${gift.cost}P</small>${affordable ? "" : `<i>${shortfall}P 더</i>`}
       </button>`;
     }).join("");
     $("#gift-history-count").textContent = `${history.length}개`;
@@ -3667,16 +4454,30 @@
     const priorCount = state.giftHistory.filter(item => normalizeCharacter(item.character) === key && item.name === gift.name).length;
     const rare = index >= 7;
     const favorite = Boolean(content?.favorites?.includes(gift.name));
-    const type = rare ? "rare" : priorCount > 0 ? "duplicate" : favorite ? "favorite" : "normal";
+    const repeat = priorCount > 0;
+    // 취향은 두 번 준다고 취향이 아니게 되지 않는다. 예전에는 재증정이 duplicate로
+    // 덮여 관계가 +1만 붙었고, 그게 "이제 참치캔을 안 좋아하나?"로 읽혔다.
+    // 취향은 유지하고 놀라움만 준다 — 두 상태가 겹칠 수 있게 분리한다.
+    const type = rare ? "rare" : favorite ? "favorite" : repeat ? "duplicate" : "normal";
+    const favoriteRepeat = type === "favorite" && repeat;
     const labels = { normal: "선물 접수", favorite: "취향 적중", duplicate: "선물 기억 중", rare: "희귀 선물" };
-    return { type, label: labels[type], delta: BALANCE.giftRelationship[type], duplicateCount: priorCount + 1, favorite, rare };
+    return {
+      type,
+      label: favoriteRepeat ? `♥ 취향 · ${priorCount + 1}번째` : labels[type],
+      delta: BALANCE.giftRelationship[favoriteRepeat ? "favoriteRepeat" : type],
+      duplicateCount: priorCount + 1,
+      favorite, favoriteRepeat, rare
+    };
   }
 
   // 선물 반응 3단계: 담백한 접수(T0) → 장부·전용칸 생김(T1) → 기관이 끼어드는 소동(T2).
   // FORM 05 성장축과 같은 원칙(docs/BUTLER-VOICE.md)을 선물에도 적용한다.
+  // 선물 카피 단계도 65를 들고 있었다 — 대사 티어를 60으로 내리면서 이것만
+  // 그대로 두면 과몰입 60~64에서 대사는 t3인데 선물 말만 이전 단계로 남는다.
+  // 늦춰지는 쪽으로는 옮기지 않는다(30은 그대로).
   function giftTierFor(obsession) {
     const value = Number(obsession) || 0;
-    return value >= 65 ? 2 : value >= 30 ? 1 : 0;
+    return value >= STAGE_BOUNDARIES[3] ? 2 : value >= 30 ? 1 : 0;
   }
 
   function giftResponse(character, gift, interaction = { type: "normal", duplicateCount: 1 }, obsession = state.obsession) {
@@ -3684,17 +4485,19 @@
     const pool = launchContentFor(character)?.gifts?.[interaction.type];
     const launchGiftMessage = Array.isArray(pool) ? pool[giftTierFor(obsession)] || pool[0] : pool;
     if (launchGiftMessage) return fillContentTemplate(launchGiftMessage, { gift: gift.name, count: interaction.duplicateCount });
+    // 조사는 선물 이름 받침에 따라 갈린다 — "우유을"이 나가던 자리다.
+    const name = gift.name;
     const responses = {
-      ai: `[선물 수신: ${gift.name}] ${owner}이 직접 전달함. 행복 수치 284% 상승. 정상 범위를 벗어났지만 복구할 생각 없음.`,
-      cat: `${gift.name}을 집사한테 주는 거냥...? 흥, ${owner} 지급품이라 특별 비품함에 등록하겠다냥.`,
-      dog: `${gift.name}이다멍!! ${owner} 최고다멍!! 꼬리 회전 속도 측정 불가다멍!`,
-      alien: `${gift.name} 획득. ${owner}의 선물 교환 기술을 지구 최고 문명으로 본성에 보고하겠음.`,
-      ninja: `${gift.name} 보급 완료. ${owner}의 은혜는 다음 극비 임무 성공으로 갚겠다.`,
-      witch: `${gift.name}에서 강한 길조가 보여요. ${owner}의 마음까지 수정구슬에 보관할게요.`,
-      zombie: `${gift.name}... 나한테 주는 거야...? ${owner} 때문에... 집사 심장이 다시 뛰는 것 같아...`,
-      girlidol: `${gift.name}을 나한테? 티 안 내려 했는데... ${owner}, 오늘 무대보다 더 설레잖아.`,
-      elf: `${gift.name} 고마워요. ${owner}의 마음까지 천 년 동안 소중히 간직할게요.`,
-      fairy: `${gift.name}이 반짝여요! ${owner}이 직접 준 선물이라 집사 날개가 멈추질 않아요!`
+      ai: `[선물 수신: ${name}] ${withParticle(owner, "이", "가")} 직접 전달함. 행복 수치 284% 상승. 정상 범위를 벗어났지만 복구할 생각 없음.`,
+      cat: `${withParticle(name, "을", "를")} 집사한테 주는 거냥...? 흥, ${owner} 지급품이라 특별 비품함에 등록하겠다냥.`,
+      dog: `${withParticle(name, "이다", "다")}멍!! ${owner} 최고다멍!! 꼬리 회전 속도 측정 불가다멍!`,
+      alien: `${name} 획득. ${owner}의 선물 교환 기술을 지구 최고 문명으로 본성에 보고하겠음.`,
+      ninja: `${name} 보급 완료. ${owner}의 은혜는 다음 극비 임무 성공으로 갚겠다.`,
+      witch: `${name}에서 강한 길조가 보여요. ${owner}의 마음까지 수정구슬에 보관할게요.`,
+      zombie: `${name}... 나한테 주는 거야...? ${owner} 때문에... 집사 심장이 다시 뛰는 것 같아...`,
+      girlidol: `${withParticle(name, "을", "를")} 나한테? 티 안 내려 했는데... ${owner}, 오늘 무대보다 더 설레잖아.`,
+      elf: `${name} 고마워요. ${owner}의 마음까지 천 년 동안 소중히 간직할게요.`,
+      fairy: `${withParticle(name, "이", "가")} 반짝여요! ${withParticle(owner, "이", "가")} 직접 준 선물이라 집사 날개가 멈추질 않아요!`
     };
     return responses[normalizeCharacter(character)] || GIFT_MESSAGES[character];
   }
@@ -3741,7 +4544,8 @@
     $("#gift-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-reaction-badge").textContent = interaction.label;
     $("#gift-reaction-badge").dataset.reaction = interaction.type;
-    $("#gift-title").innerHTML = interaction.type === "rare" ? "희귀 선물로<br>집사 과몰입 비상" : interaction.type === "favorite" ? "취향 적중으로<br>집사 행복 회로 폭주" : interaction.type === "duplicate" ? "또 이 선물…<br>집사가 기억했습니다" : "선물 수령으로<br>집사 행복 회로 가동";
+    const giftTitles = GIFT_RESULT_TITLES[state.character] || GIFT_RESULT_TITLES.ai;
+    $("#gift-title").innerHTML = giftTitles[interaction.type] || giftTitles.normal;
     $("#gift-message").textContent = message;
     $("#gift-received-name").textContent = `${gift.emoji} ${gift.name}`;
     $("#gift-count").textContent = stat.gifts;
@@ -3814,7 +4618,6 @@
     $("#owner-name-overlay").hidden = true;
     document.body.style.overflow = "";
     startTimeBriefing();
-    renderButlerDiary();
     showToast(`${ownerDisplayName()} 호칭 등록 완료`);
     return true;
   }
@@ -3842,7 +4645,8 @@
     $$("[data-quick]").forEach(button => button.addEventListener("click", () => { $("#achievement-input").value = button.dataset.quick; $("#char-count").textContent = button.dataset.quick.length; }));
     $("[data-quick-focus]").addEventListener("click", () => $("#achievement-input").focus());
     $("#achievement-input").addEventListener("input", event => { $("#char-count").textContent = event.target.value.length; });
-    $("#report-button").addEventListener("click", submitAchievement);
+    // 접수 버튼은 눌림(2px)까지만 CSS가 하고, 손끝에 오는 짧은 한 번은 여기서 준다.
+    $("#report-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("clip"); submitAchievement(); });
     $("#briefing-character-action").addEventListener("click", interactWithButler);
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
@@ -3852,36 +4656,51 @@
       window.setTimeout(() => $("#achievement-input").focus(), reducedMotion ? 0 : 360);
     });
     $("#fame-button").addEventListener("click", () => showView("archive"));
-    $$('[data-archive-tab]').forEach(button => button.addEventListener("click", () => showArchiveTab(button.dataset.archiveTab)));
-    $("#view-archive .archive-tabs").addEventListener("keydown", event => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-      const tabs = $$("#view-archive .archive-tabs [role='tab']");
-      const current = Math.max(0, tabs.indexOf(document.activeElement));
-      const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (current + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-      event.preventDefault();
-      showArchiveTab(tabs[next].dataset.archiveTab);
-      tabs[next].focus();
-    });
+    // 필터 칩은 탭 자리를 물려받았다. 목록만 다시 그리고 표지는 그대로 둔다
+    // (설계: 필터를 걸어도 표지는 항상 유지).
     $$('[data-record-filter]').forEach(button => button.addEventListener("click", () => {
       recordFilter = button.dataset.recordFilter;
-      $$('[data-record-filter]').forEach(filter => filter.classList.toggle("active", filter === button));
+      $$('[data-record-filter]').forEach(filter => {
+        const active = filter === button;
+        filter.classList.toggle("active", active);
+        filter.setAttribute("aria-pressed", String(active));
+      });
+      trackEvent("owner_file_filter", { filter: recordFilter });
       renderArchiveRecords();
-      $$('[data-cert-index]').forEach(certificateButton => certificateButton.addEventListener("click", () => openCertificate(state.certificates[Number(certificateButton.dataset.certIndex)])));
     }));
     $("#record-search").addEventListener("input", event => { recordSearch = event.target.value; renderArchiveRecords(); });
-    $("#record-grade-filter").addEventListener("change", event => { recordGrade = event.target.value; renderArchiveRecords(); });
+    $("#record-grade-filter").addEventListener("click", event => {
+      const chip = event.target.closest("[data-record-grade]");
+      if (!chip) return;
+      recordGrade = chip.dataset.recordGrade;
+      renderArchiveRecords();
+    });
     $("#archive-record-list").addEventListener("click", event => {
+      // 도장은 카드 안에 있지만 카드 상세가 아니라 인증서를 연다(진입로 2). 먼저 가로챈다.
+      const stamp = event.target.closest("[data-cert-id]");
+      if (stamp) {
+        event.stopPropagation();
+        certificateOpenedFromFile = true;
+        openCertificate(findRecordById(stamp.dataset.certId));
+        return;
+      }
+      // 빈 파일의 "첫 기록 접수하러" 버튼은 렌더할 때마다 새로 만들어져서, 초기화 때
+      // 한 번 도는 $$("[data-view]") 바인딩에 걸리지 않는다. 여기서 위임한다.
+      const jump = event.target.closest("[data-view]");
+      if (jump) {
+        showView(jump.dataset.view, jump.dataset.nav || jump.dataset.view);
+        return;
+      }
+      if (event.target.closest("[data-owner-file-expand]")) {
+        ownerFileExpanded = true;
+        renderArchiveRecords();
+        return;
+      }
       const trigger = event.target.closest("[data-record-open], [data-record-id]");
       if (trigger) openRecordDetail(findRecordById(trigger.dataset.recordOpen || trigger.dataset.recordId));
     });
     $("#archive-record-list").addEventListener("keydown", event => {
       if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-record-id]")) { event.preventDefault(); openRecordDetail(findRecordById(event.target.dataset.recordId)); }
-    });
-    // 일기 빈 화면의 "홈으로" 버튼은 렌더할 때마다 새로 만들어져서, 초기화 시점에
-    // 한 번 도는 $$("[data-view]") 바인딩에 걸리지 않는다. 기록 목록과 같은 방식으로 위임한다.
-    $("#butler-diary-list").addEventListener("click", event => {
-      const trigger = event.target.closest("[data-view]");
-      if (trigger) showView(trigger.dataset.view, trigger.dataset.nav || trigger.dataset.view);
     });
     $("#record-detail-close").addEventListener("click", closeRecordDetail);
     $("#record-detail-back").addEventListener("click", closeRecordDetail);
@@ -3898,6 +4717,22 @@
       // 방을 밀고 손을 뗀 직후의 클릭은 말 걸기가 아니다.
       if (catHomeDragged) { catHomeDragged = false; return; }
       interactWithCatHome();
+      // 골골은 자주 나면 안 된다. 충분히 가까워진 뒤에, 그것도 가끔만 새어나온다.
+      if (stageIndexFor(state.obsession) >= 3 && Math.random() < 0.12) window.setTimeout(() => OfficeSound.cue("purr"), 320);
+    });
+    const soundToggle = $("#sound-toggle");
+    soundToggle.checked = Boolean(state.soundOn);
+    soundToggle.addEventListener("change", event => {
+      state.soundOn = event.target.checked;
+      saveState();
+      // 이 클릭이 사용자 제스처다 — 오디오는 여기서만 열 수 있다.
+      if (state.soundOn) { OfficeSound.prime(); OfficeSound.cue("clip"); }
+      trackEvent("sound_toggle", { on: state.soundOn });
+    });
+    // 탭을 뒤로 보내면 접수대도 쉰다. 돌아오면 다시 저 혼자 깜빡이기 시작한다.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") window.clearTimeout(catHomeBlinkTimer);
+      else scheduleCatHomeBlink();
     });
     $("#butler-chat-form").addEventListener("submit", submitButlerChat);
     $("#butler-chat-close").addEventListener("click", closeButlerChat);
@@ -4023,6 +4858,9 @@
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
     certificationStatus,
+    // 공유 이미지는 화면과 같은 증서여야 한다. 회귀 확인용으로 생성기를 그대로 연다.
+    createCertificateBlob,
+    ownerFileCover, groupRecordsByDate, ownerFileRemark, ownerFileTier,
     chat: CHAT_ENGINE,
     timeGreetingFor: getTimeGreeting
   });

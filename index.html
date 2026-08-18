@@ -32,6 +32,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/subsets/Paperlogy-dynamic-subset.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;800;900&amp;display=swap">
+  <!-- 세트④ — 기계 인쇄=Paperlogy / 공문=Song Myung / 집사 육필=Gaegu.
+       Song Myung은 400 단일 웨이트만 존재하므로 굵기를 요청하지 않는다. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&amp;family=Gaegu:wght@400;700&amp;display=swap">
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="home-final.css">
   <link rel="stylesheet" href="records-final.css">
@@ -62,7 +65,7 @@
           <p class="assignment-copy">주인님의 사소한 행동을 대업으로 기록할 전담 직원을 정식 배정합니다.</p>
           <div class="assignment-character-stage">
             <span class="assignment-seal" aria-hidden="true">전담<br>배정</span>
-            <img class="assignment-character" src="design/character-assets/cat-butler/ui-poses/cat-base.png" data-butler-pose="base" alt="클립보드를 든 고양이 집사">
+            <img class="assignment-character" src="design/character-assets/cat-butler/ui-poses/cat-base.webp" data-butler-pose="base" alt="클립보드를 든 고양이 집사">
           </div>
           <div class="assignment-profile">
             <span class="role-chip">오늘부터 전담 집사</span>
@@ -90,7 +93,7 @@
     <main class="main-screen home-active" id="main-screen" data-current-view="home" hidden>
       <header class="app-header">
         <div class="brand-lockup">
-          <div class="header-portrait"><img src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사"></div>
+          <div class="header-portrait"><img src="design/character-assets/cat-butler/ui-poses/cat-base.webp" data-butler-pose="base" alt="고양이 집사"></div>
           <div>
             <strong>과잉집사</strong>
             <span>주인님 전용 <i id="header-butler-type">AI 집사</i> · <b id="header-level">과몰입 5</b></span>
@@ -107,25 +110,31 @@
             <small>집사 사무국</small>
           </div>
           <div class="home-header-right">
-            <div class="office-running"><i></i> 사무국 정상 운영 중</div>
+            <div class="office-regno">금일 접수<b id="home-regno">제 2026-0000호</b></div>
           </div>
         </header>
 
-        <p class="english-label home-reception-label">RECEPTION DESK · FORM 01</p>
-
         <section class="home-butler-room" id="home-butler-room" aria-label="집사 사무국 접수대" hidden>
   <div class="cat-home-room" id="cat-home-room">
+              <p class="office-counter" id="home-counter-plate">창구 01 · 접수 진행 중</p>
               <div class="cat-home-world" id="cat-home-world">
                 <div class="cat-home-background" aria-hidden="true"></div>
                 <button class="cat-home-character" id="cat-home-character" type="button" aria-label="고양이 집사에게 말 걸기">
-                  <img id="cat-home-character-image" src="design/character-assets/cat-butler/desk-poses/cat-desk-base.png" alt="책상 뒤에 앉아 있는 고양이 집사">
+                  <img id="cat-home-character-image" src="design/character-assets/cat-butler/desk-poses/cat-desk-base.webp" alt="책상 뒤에 앉아 있는 고양이 집사">
                 </button>
                 <div class="cat-home-foreground" aria-hidden="true"></div>
-                <p class="cat-home-speech" id="cat-home-speech" role="status" aria-live="polite"></p>
               </div>
               <span class="room-pan-cue room-pan-cue-left" aria-hidden="true">‹</span>
               <span class="room-pan-cue room-pan-cue-right" aria-hidden="true">›</span>
               <p class="room-pan-hint" id="room-pan-hint">좌우로 밀어 사무국을 둘러보세요</p>
+            </div>
+            <!-- 클립은 접수대에 박혀 있고 그 아래로 종이만 갈린다. 그래서 클립은
+                 바깥에, 종이(테두리·바탕·본문)는 안쪽 레이어에 둔다. -->
+            <div class="reception-slip" id="cat-home-speech" role="status" aria-live="polite">
+              <span class="of-clip" aria-hidden="true"></span>
+              <div class="reception-slip-paper" id="cat-home-speech-paper">
+                <p id="cat-home-speech-text"></p>
+              </div>
             </div>
         </section>
 
@@ -134,13 +143,13 @@
           <span class="briefing-index" hidden>담당 집사</span>
           <span class="hero-paperclip" aria-hidden="true"></span>
           <button class="briefing-character" id="briefing-character-action" type="button" aria-label="요정 집사에게 말 걸기" aria-describedby="briefing-message">
-            <img id="briefing-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" data-butler-pose="base" alt="요정 집사">
+            <img id="briefing-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-base.webp" data-butler-pose="base" alt="고양이 집사">
             <span hidden>톡톡 · 말 걸기</span>
           </button>
           <div class="briefing-panel">
             <small id="home-butler-role-title" hidden>기록·판단·과잉 칭찬 담당</small>
             <h1 id="home-butler-name" hidden>요정 집사</h1>
-            <p class="butler-role" id="home-butler-desc" hidden>사소한 일에도 별가루를 뿌리며 대업으로 만들어버림</p>
+            <p class="butler-role" id="home-butler-desc" hidden>도도한 척하며 규정 핑계로 특별대우</p>
             <div class="home-relationship-status" hidden><span id="home-relationship-stage">첫 만남</span><small id="home-relationship-next">다음 관계까지 15</small></div>
             <div class="briefing-speech" id="briefing-message" aria-live="polite">작은 일도 반짝이는 대업으로 만들어드릴게요!</div>
             <button class="first-deed-guide" id="first-deed-guide" type="button" hidden>첫 대업 접수하기 <span>↓</span></button>
@@ -151,14 +160,14 @@
 
         <section class="home-hero">
           <span id="entry-kicker">오늘 이야기 접수처 · 창구 01</span>
-          <i>금일 접수</i>
-          <h1 id="home-title">오늘은 어떻게 보내셨어요?</h1>
-          <p id="entry-description">잘한 일도, 힘들었던 일도, 별일 없던 하루도 편하게 들려주세요.</p>
+          <i class="of-datestamp" aria-hidden="true">접수<b id="home-datestamp">08. 17</b></i>
+          <h1 id="home-title">오늘은 어떻게<br>보내셨나요?</h1>
+          <p id="entry-description">잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.</p>
         </section>
 
         <section class="entry-form document-card">
-          <span class="file-tab burgundy">대업 접수서 · FORM 01</span>
-          <div class="field-heading"><strong>오늘 이야기</strong><span><b id="char-count">0</b>/160자</span></div>
+          <div class="of-punch" aria-hidden="true"><i></i><i></i></div>
+          <div class="field-heading"><strong>대업 접수서 · FORM 01</strong><span><b id="char-count">0</b>/160자</span></div>
           <div class="achievement-field">
             <label class="visually-hidden" for="achievement-input">오늘 이야기 입력</label>
             <textarea id="achievement-input" maxlength="160" rows="3" placeholder="예: 씻었어 / 오늘 좀 힘들었는데 집 와서 씻었어"></textarea>
@@ -168,7 +177,7 @@
             <button type="button" data-quick="물 한 잔 마심"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10l-1 18H8L7 3Z"/><path d="M8 9c3 1 5-1 8 0"/></svg><span>물 마심</span></button>
             <button type="button" data-quick="미뤘던 답장 보냄"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><span>답장함</span></button>
             <button type="button" data-quick="씻음"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14M8 11V7a4 4 0 0 1 7-2"/><path d="M8 15v1M12 15v2M16 15v1"/></svg><span>씻음</span></button>
-            <button type="button" data-quick-focus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>추가</span></button>
+            <button type="button" data-quick-focus><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>+ 추가</span></button>
           </div>
           <div class="entry-footnote">
             <div class="stamp-progress">
@@ -178,7 +187,7 @@
             </div>
             <div class="absurd-status"><span>집사 과몰입 심사</span><strong id="urgency-copy">이유 없이 최상</strong></div>
           </div>
-          <button class="report-button" id="report-button" type="button"><b id="report-button-label">집사에게 들려주기</b><span>→</span></button>
+          <button class="report-button" id="report-button" type="button"><span class="report-ticket-inner"><b id="report-button-label">오늘 기록하기</b><small>FORM 01 · 접수증은 집사가 발행합니다</small></span></button>
           <p class="form-note">비슷한 행동은 하루 한 번만 도장에 반영됩니다. 칭찬은 매번 정상 지급됩니다.</p>
           <section class="gentle-note" id="gentle-note" aria-live="polite" hidden>
             <header><span id="gentle-note-kicker">고양이 집사</span></header>
@@ -208,7 +217,7 @@
           <span class="report-paperclip" aria-hidden="true"></span>
           <div class="report-title-block"><h1 id="weekly-report-title">주간 대업 보고서</h1><p id="weekly-report-period"></p></div>
           <div class="report-hero">
-            <div class="report-character"><img id="report-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" alt="주간 보고 담당 집사"></div>
+            <div class="report-character"><img id="report-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-base.webp" alt="주간 보고 담당 집사"></div>
             <div class="report-intro"><small>이번 주 담당 집사</small><h2 id="report-butler-name">요정 집사</h2><p id="report-butler-intro">이번 주도 작은 대업들이 모여 위대한 기록이 되었습니다.</p></div>
             <div class="report-memo">작은 행동도<br>대업이 될 수 있어요!<br>보고만 하세요.</div>
           </div>
@@ -219,7 +228,7 @@
           <dl class="weekly-summary">
             <div><i>✓</i><dt>완료한 대업</dt><dd><b id="weekly-deeds">0</b>건</dd><small>이번 주 접수</small></div>
             <div><i>▣</i><dt>공식 대업 달성</dt><dd><b id="weekly-certificates">0</b>건</dd><small>사무국 인증</small></div>
-            <div><i>☆</i><dt>획득한 명성</dt><dd><b id="weekly-fame">0</b>P</dd><small>누적 기록 기준</small></div>
+            <div><i>☆</i><dt>획득한 명성</dt><dd><b id="weekly-fame">0</b>건</dd><small>누적 기록 기준</small></div>
           </dl>
           <section class="weekly-comment">
             <span aria-hidden="true">GOOD<br>BUTLER</span>
@@ -235,49 +244,54 @@
             <strong>과잉집사</strong>
             <span>OVERBUTLER DUTY OFFICE</span>
           </div>
-          <div class="archive-office-running"><i></i> 사무국 정상 운영 중</div>
+          <div class="office-regno">보관 문서<b id="archive-regno">총 0건</b></div>
         </header>
 
-        <section class="archive-butler-brief document-card">
-          <span class="archive-paperclip" aria-hidden="true"></span>
-          <div class="archive-butler-portrait">
-            <img id="archive-butler-image" src="design/character-assets/fairy-butler/ui-poses/fairy-base.png" alt="요정 집사">
+        <section class="owner-file-folder">
+          <div class="record-filters" id="record-filters" role="group" aria-label="기록 분류">
+            <button class="active" type="button" data-record-filter="all">전체</button>
+            <button type="button" data-record-filter="today">오늘</button>
+            <button type="button" data-record-filter="official">공식</button>
+            <button type="button" data-record-filter="praise">반복</button>
           </div>
-          <div class="archive-butler-copy">
-            <small id="archive-butler-role">금일 기록 담당</small>
-            <h2 id="archive-butler-name">요정 집사</h2>
-            <p id="archive-butler-message">작은 기록도 빠짐없이 반짝이게 보관해둘게요.</p>
+          <div class="of-fastener" aria-hidden="true"><i></i><i></i></div>
+          <div class="owner-file-doc">
+            <div class="of-punch" aria-hidden="true"><i></i><i></i></div>
+            <span class="of-clip" aria-hidden="true"></span>
+            <div class="of-datestamp" aria-hidden="true">등록<b id="owner-file-opened-stamp">08. 17</b></div>
+            <div class="owner-file-head">
+              <img id="archive-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-base.webp" alt="고양이 집사">
+              <div>
+                <span class="owner-file-role" id="archive-butler-role">담당 집사 작성 · 언제든 열람 가능</span>
+                <h1 id="archive-view-title">주인님 파일</h1>
+                <span class="owner-file-by" id="archive-butler-name">담당 집사</span>
+              </div>
+            </div>
+            <dl class="owner-file-toc">
+              <div><dt>파일 두께</dt><span class="dots" aria-hidden="true"></span><dd><b id="owner-file-thickness">0</b><em>건</em></dd></div>
+              <div><dt>함께한 날</dt><span class="dots" aria-hidden="true"></span><dd><b id="owner-file-days">0</b><em>일</em></dd></div>
+              <div><dt>최다 대업</dt><span class="dots" aria-hidden="true"></span><dd id="owner-file-top">아직 없음</dd></div>
+              <div><dt>공식 인정</dt><span class="dots" aria-hidden="true"></span><dd><b id="owner-file-official">0</b><em>건</em></dd></div>
+            </dl>
+            <div class="owner-file-remark">
+              <span class="of-staple" aria-hidden="true"></span>
+              <span>집사 소견</span>
+              <p id="owner-file-remark"></p>
+            </div>
           </div>
-          <div class="archive-memo" aria-hidden="true">작은 기록이<br>쌓이면 대업이<br>됩니다!</div>
-          <div class="archive-box-art" aria-hidden="true"><b></b><b></b><b></b><span>ARCHIVE<br><small>OVERBUTLER</small></span></div>
         </section>
 
         <section class="archive-workspace">
           <div class="archive-title-row">
-            <div>
-              <span id="archive-kicker">RECORD DESK · FILE 02</span>
-              <h1 id="archive-view-title">오늘의 기록</h1>
-            </div>
             <div class="archive-title-aside">
               <time id="archive-date"></time>
               <button class="archive-report-link" type="button" data-view="report" data-nav="records">주간 보고서 →</button>
             </div>
           </div>
-          <div class="archive-tabs" role="tablist" aria-label="기록 분류">
-            <button type="button" id="archive-tab-records" role="tab" aria-selected="false" aria-controls="archive-records" tabindex="-1" data-archive-tab="records">기록</button>
-            <button type="button" id="archive-tab-diary" role="tab" aria-selected="false" aria-controls="archive-diary" tabindex="-1" data-archive-tab="diary">집사 일기</button>
-            <button class="active" type="button" id="archive-tab-certificates" role="tab" aria-selected="true" aria-controls="archive-certificates" data-archive-tab="certificates">공식 인증서</button>
-          </div>
-          <div class="archive-panel" id="archive-records" role="tabpanel" aria-labelledby="archive-tab-records" aria-hidden="true">
-            <div class="record-filters" id="record-filters" role="group" aria-label="기록 필터">
-              <button class="active" type="button" data-record-filter="all">전체</button>
-              <button type="button" data-record-filter="today">오늘</button>
-              <button type="button" data-record-filter="official">공식 인정</button>
-              <button type="button" data-record-filter="praise">칭찬 기록</button>
-            </div>
+          <div class="archive-panel active" id="archive-records" role="region" aria-label="주인님 파일 본문">
             <div class="record-find-tools">
               <label class="record-search"><span>기록 찾기</span><input id="record-search" type="search" maxlength="40" placeholder="대업명·칭호 검색" autocomplete="off"></label>
-              <label class="record-grade-filter"><span>등급</span><select id="record-grade-filter"><option value="all">전체 등급</option></select></label>
+              <div class="record-grade-filter" role="group" aria-label="등급 분류"><span>등급</span><div class="record-grade-chips" id="record-grade-filter"><button class="active" type="button" data-record-grade="all">전체</button><button type="button" data-record-grade="daily">일상</button><button type="button" data-record-grade="rare">희귀</button><button type="button" data-record-grade="official">공식 인정</button></div></div>
             </div>
             <p class="record-legend" id="record-legend"></p>
             <div class="archive-record-list" id="archive-record-list"></div>
@@ -286,15 +300,10 @@
               <dl>
                 <div><dt>오늘 접수</dt><dd><b id="records-today-count">0</b>건</dd></div>
                 <div><dt>공식 인정</dt><dd><b id="records-official-count">0</b>건</dd></div>
-                <div><dt>누적 명성</dt><dd><b id="records-fame-count">0</b>P</dd></div>
+                <div><dt>누적 명성</dt><dd><b id="records-fame-count">0</b>건</dd></div>
               </dl>
             </section>
           </div>
-          <div class="archive-panel" id="archive-diary" role="tabpanel" aria-labelledby="archive-tab-diary" aria-hidden="true">
-            <div class="diary-intro"><span>DAILY OBSERVATION LOG</span><h2>집사가 몰래 쓴 일지</h2><p>그날의 대업과 당시 담당 집사의 속마음을 보관합니다.</p></div>
-            <div class="butler-diary-list" id="butler-diary-list"></div>
-          </div>
-          <div class="archive-panel active" id="archive-certificates" role="tabpanel" aria-labelledby="archive-tab-certificates" aria-hidden="false"></div>
         </section>
       </section>
 
@@ -304,68 +313,78 @@
           <button class="manager-details-back" id="manager-details-back" type="button">← CAT HOME으로</button>
         <header class="manager-office-header">
           <div class="manager-logo-lockup"><strong>과잉집사</strong><span>OVERBUTLER DUTY OFFICE</span></div>
-          <div class="manager-office-running"><i></i> 사무국 정상 운영 중</div>
+          <div class="office-regno">인사 기록<b>NO. <span id="manager-file-number">01</span></b></div>
         </header>
 
         <section class="personnel-card document-card">
-          <div class="personnel-heading"><span>담당 집사 기록카드</span><small>PERSONNEL NO.<b id="manager-file-number">01</b></small></div>
-          <span class="personnel-paperclip" aria-hidden="true"></span>
+          <div class="personnel-heading"><span>인 사 기 록 카 드</span><small id="manager-status-label">전담 근무 중</small></div>
+          <span class="of-clip" aria-hidden="true"></span>
+          <div class="of-punch" aria-hidden="true"><i></i><i></i></div>
+          <div class="of-datestamp" aria-hidden="true">발령<b id="manager-posted-stamp">08. 17</b></div>
           <div class="personnel-grid">
             <div class="manager-character-stage">
-              <img src="design/character-assets/ai-butler/ui-poses/ai-base.png" data-butler-pose="base" alt="AI 집사">
-              <div class="manager-nameplate">현 담당 · 과잉 칭찬 근무 중</div>
+              <i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i>
+              <img src="design/character-assets/cat-butler/ui-poses/cat-base.webp" data-butler-pose="base" alt="고양이 집사">
             </div>
             <div class="manager-profile-copy">
-              <div class="manager-status-line"><span id="manager-role-title">현 담당 집사</span><b id="manager-status-label">전담 중</b></div>
-              <h1 id="manager-title"><span id="manager-butler-name">오류 난 AI 집사</span><small id="manager-butler-symbol">✦</small></h1>
-              <p id="manager-butler-desc">감정이 없어야 하는데 주인님 일에는 자꾸 과열됨</p>
-              <dl class="manager-facts">
-                <div><dt>호칭</dt><dd id="manager-butler-alias">오류봇</dd></div>
-                <div><dt>성격</dt><dd id="manager-butler-personality">허술한 과몰입형</dd></div>
-                <div><dt>특기</dt><dd id="manager-butler-specialty">작은 일을 대업으로 판정</dd></div>
-              </dl>
+              <div class="manager-status-line"><span id="manager-role-title">현 담당 집사</span></div>
+              <h1 id="manager-title"><span id="manager-butler-name">고양이 집사</span><small id="manager-butler-symbol" hidden>✦</small></h1>
+              <p id="manager-butler-desc">도도한 척하며 규정 핑계로 특별대우</p>
+              <p class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</p>
             </div>
           </div>
-          <div class="manager-handnote" id="manager-handnote">작은 것도 놓치지 않을게요. 주인님의 대업, 끝까지 책임지겠습니다.</div>
+          <p class="manager-section-label">기 본 정 보</p>
+          <dl class="manager-facts">
+            <div><dt>호칭</dt><dd><span class="of-script" id="manager-butler-alias">치즈냥</span></dd></div>
+            <div><dt>성격</dt><dd id="manager-butler-personality">허술한 과몰입형</dd></div>
+            <div><dt>특기</dt><dd id="manager-butler-specialty">작은 일을 대업으로 판정</dd></div>
+          </dl>
+          <p class="manager-section-label">근 무 현 황</p>
+          <dl class="manager-stats">
+            <div><dt id="stat-deeds">0</dt><dd>처리 대업</dd></div>
+            <div><dt id="stat-gifts">0</dt><dd>받은 선물</dd></div>
+            <div><dt id="stat-days">1</dt><dd>근무 일차</dd></div>
+          </dl>
           <div class="manager-obsession">
-            <div class="obsession-heading"><span id="obsession-label">과몰입도 · 첫 만남</span><b><span id="obsession-value">5</span> / 100</b></div>
-            <div class="obsession-track"><i id="obsession-fill"></i></div>
+            <div class="obsession-heading"><span id="obsession-label">관계 결재란</span><b class="of-script" id="relationship-next-copy">다음 관계까지 과몰입 15</b></div>
+            <div class="stage-list relationship-approval" id="stage-list"></div>
             <div class="relationship-summary">
               <span id="relationship-stage-badge">반가운 시작</span>
               <strong id="relationship-stage-title">첫 만남</strong>
               <p id="relationship-stage-summary">처음부터 다정한 집사가 작은 이야기도 귀 기울여 듣습니다.</p>
-              <small id="relationship-next-copy">다음 관계까지 과몰입 15</small>
             </div>
           </div>
         </section>
 
-          <button class="manager-gift-button" id="give-gift-button" type="button">
-            <span aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 13h22v15H5zM3 9h26v6H3zM16 9v19M9 9c-3-2-3-6 0-6 4 0 7 6 7 6M23 9c3-2 3-6 0-6-4 0-7 6-7 6"/></svg></span>
-            <b>집사에게 선물 전달</b>
-            <small>보유 <b id="manager-gift-points">0</b>P</small>
-            <i aria-hidden="true">›</i>
+          <button class="manager-gift-button gift-parcel-card" id="give-gift-button" type="button">
+            <span class="gift-parcel-tag" aria-hidden="true">두근두근</span>
+            <span class="gift-parcel" aria-hidden="true"><i></i></span>
+            <span class="gift-parcel-copy">
+              <b>집사에게 선물 보내기</b>
+              <span class="gift-parcel-say" id="manager-gift-say">안 기다리는 척 기다리는 중이다냥</span>
+            </span>
+            <span class="gift-parcel-value"><b id="manager-gift-points">0</b><small>보유 포인트 ›</small></span>
           </button>
         <section class="butler-roster-card document-card">
           <div class="manager-section-title"><h2>우리 집사들 <span id="manager-roster-count">0</span>명</h2><small>담당을 눌러 인수인계할 수 있어요.</small></div>
           <div class="manager-roster" id="manager-roster"></div>
+          <p class="roster-note of-script">✎ 봉인된 서류는 사무국 금고에 보관 중입니다. 열어보고 싶으면 대업을 모으세요.</p>
         </section>
 
         <section class="manager-work-card document-card">
           <div class="manager-section-title"><h2>근무 기록</h2><small>담당 집사별 기록은 따로 보존됩니다.</small></div>
-          <dl class="manager-stats">
-            <div><dt id="stat-deeds">0</dt><dd>세운 대업</dd></div>
-            <div><dt id="stat-gifts">0</dt><dd>받은 선물</dd></div>
-            <div><dt id="stat-days">1</dt><dd>함께한 날</dd></div>
-          </dl>
           <div class="manager-duty-list" id="manager-duty-list"></div>
-        </section>
-
-        <section class="stages-card document-card">
-          <div class="manager-section-title"><h2>과몰입 진행 기록</h2><small>관계가 깊어질수록 숨기던 마음이 조금씩 들킵니다.</small></div>
-          <div class="stage-list" id="stage-list"></div>
         </section>
         <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 신규 지원 조건 확인</strong><span id="recruit-description">주인님의 명성이 업계에 퍼지고 있습니다.</span></button>
         <button class="manager-change-button" id="manager-change-button" type="button">담당 변경 및 인수인계 <span>›</span></button>
+        <section class="office-settings document-card" aria-label="사무국 설정">
+          <div class="manager-section-title"><h2>사무국 설정</h2><small>기기 안에만 저장됩니다.</small></div>
+          <label class="office-toggle" for="sound-toggle">
+            <span><b>사무실 소리</b><small>종이·클립·도장 소리. 기본은 꺼져 있습니다.</small></span>
+            <input id="sound-toggle" type="checkbox">
+            <i aria-hidden="true"></i>
+          </label>
+        </section>
         <footer class="app-information" aria-label="앱 정보">
           <div><strong>과잉집사</strong><span>버전 <b id="app-version">2.18.0</b> · 기기 안에 기록 저장</span></div>
           <nav aria-label="정책 문서"><a href="privacy.html" target="_blank" rel="noopener" data-analytics-event="privacy_open">개인정보 처리방침</a><a href="terms.html" target="_blank" rel="noopener" data-analytics-event="terms_open">이용약관</a></nav>
@@ -375,9 +394,8 @@
 
       <nav class="bottom-nav" aria-label="주 메뉴">
         <button class="active" type="button" data-view="home" data-nav="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3V11Z"/></svg><span>홈</span></button>
-        <button type="button" data-view="archive" data-archive-tab="records" data-nav="records"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8M8 14h6"/></svg><span>기록</span></button>
+        <button type="button" data-view="archive" data-nav="records"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8M8 14h6"/></svg><span>파일</span></button>
         <button type="button" data-view="manager" data-nav="manager"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8 4 5v7l4 3M17 8l3-3v7l-4 3M8 9h8v6H8zM12 15v6"/><path d="m8 18 4 3 4-3"/></svg><span>집사</span></button>
-        <button type="button" data-view="archive" data-archive-tab="diary" data-nav="diary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v16H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M9 3v18M12 8h4M12 12h4"/></svg><span>집사 일기</span></button>
       </nav>
     </main>
   </div>
@@ -397,7 +415,7 @@
           <section><span>03 · 당시 집사의 한마디</span><div id="record-detail-reactions"></div></section>
         </div>
         <section class="record-detail-hero">
-          <div class="record-detail-portrait"><img id="record-detail-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt=""></div>
+          <div class="record-detail-portrait"><img id="record-detail-image" src="design/character-assets/cat-butler/ui-poses/cat-base.webp" alt=""></div>
           <div class="record-detail-title-copy"><small id="record-detail-grade">국가적 성취</small><h2 id="record-detail-title">침대에서 일어남</h2><p id="record-detail-nickname">#중력을 이겨낸 자</p></div>
         </section>
         <dl class="record-detail-facts">
@@ -414,18 +432,27 @@
 
   <div class="overlay analysis-lab" id="analysis-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-title" hidden>
     <div class="analysis-sheet">
-      <div class="analysis-top"><span>OVERBUTLER ANALYSIS LAB</span><b><i></i> 긴급 분석 중</b></div>
-      <div class="scanner"><img id="analysis-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-analysis.png" alt="클립보드를 분석하는 AI 집사"><span class="scan-beam" aria-hidden="true"></span></div>
-      <h2 id="analysis-title">대업 가치 분석 중</h2>
-      <p class="analysis-deed">“<b id="analysis-target"></b>”</p>
-      <p id="analysis-description" hidden></p>
+      <span class="of-clip" aria-hidden="true"></span>
+      <div class="analysis-top"><span>대 업 심 사 표</span><b><i></i> 심사 진행 중</b></div>
+      <div class="scanner" hidden><img id="analysis-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-analysis.webp" alt=""><span class="scan-beam" aria-hidden="true"></span></div>
+      <h2 id="analysis-title" class="visually-hidden">대업 가치 분석 중</h2>
+      <dl class="analysis-deed">
+        <span class="of-staple" aria-hidden="true"></span>
+        <dt>접 수 내 용</dt>
+        <dd>“<b id="analysis-target"></b>”</dd>
+      </dl>
       <ol class="analysis-steps" id="analysis-steps">
         <li><b>행동 완료 여부 확인</b><span>대기</span></li>
         <li><b>국가 기여도 과장</b><span>대기</span></li>
         <li><b>역사적 의미 억지로 찾기</b><span>대기</span></li>
         <li><b>담당 집사 감정 회로 과열</b><span>대기</span></li>
       </ol>
-      <div class="analysis-progress"><div><strong>집사 과몰입 심사 진행</strong><span id="analysis-percent">0%</span></div><b><i id="analysis-fill"></i></b></div>
+      <div class="analysis-note">
+        <span class="of-staple" aria-hidden="true"></span>
+        <span>✎ 심사 중 혼잣말</span>
+        <p id="analysis-description"></p>
+      </div>
+      <div class="analysis-progress"><div><strong>결과서 작성 중</strong><span id="analysis-percent">0%</span></div><b><i id="analysis-fill"></i></b></div>
       <p class="analysis-footnote">화면을 누르면 즉시 결재됩니다.</p>
     </div>
   </div>
@@ -437,33 +464,33 @@
         <small><i></i> 집사 결재 완료</small>
       </header>
       <article class="praise-result-document">
-        <div class="reaction-document-meta"><span id="result-form-label">대업 심사 결과서 · FORM 05</span><b id="result-mode-badge">일반 주접</b></div>
+        <span class="of-clip" aria-hidden="true"></span>
+        <div class="reaction-document-meta"><span id="result-form-label">대 업 심 사 결 과 서</span><b id="result-mode-badge">금일 발행</b></div>
+        <div class="reaction-stamp" id="result-stamp" aria-label="심사 결과 도장">칭찬<br>승인</div>
         <div class="praise-result-hero">
           <div class="praise-result-character-stage">
-            <span class="reaction-spark spark-one" aria-hidden="true">✦</span>
-            <span class="reaction-spark spark-two" aria-hidden="true">✧</span>
-            <img id="result-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-praise.png" alt="칭찬하는 AI 집사">
+            <img id="result-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-praise.webp" alt="칭찬하는 고양이 집사">
           </div>
           <div class="praise-result-summary">
-            <small id="result-butler-name">오류봇 담당 집사</small>
-            <h1 id="result-title">집사 주접<br>승인</h1>
-            <p id="result-verdict">검토 결과, 공식적으로 떠받들기로 결정했습니다.</p>
-            <div class="reaction-stamp" id="result-stamp" aria-label="칭찬 승인">칭찬<br>승인</div>
+            <small id="result-butler-name">일상 대업</small>
+            <h1 id="result-title">중력을 이겨낸 자</h1>
+            <p class="praise-result-deedline" id="result-deed">“침대에서 일어남”</p>
           </div>
         </div>
-        <div class="praise-result-deed"><small>접수된 대업</small><strong id="result-deed">침대에서 일어남</strong><span id="result-record-status">도장 +1</span></div>
-        <blockquote id="result-report">주인님께서 무려 침대에서 일어나셨습니다. 집사 감정 회로가 과열되었습니다.</blockquote>
+        <div class="praise-result-line">
+          <span class="of-staple" aria-hidden="true"></span>
+          <blockquote id="result-report">침대에서 일어남 확인했다냥. 이걸 공식 대업으로 올리냐고? …집사가 이미 도장 찍었다냥.</blockquote>
+        </div>
         <div class="rare-verdict-note" id="result-rare-note" hidden><span>RARE VERDICT</span><strong>사무국 최초 측정 포기</strong><p>너무 위대하여 통상적인 점수 체계 적용을 중단했습니다.</p></div>
         <section class="relationship-result" id="result-relationship-result" aria-live="polite">
-          <span id="result-relationship-kicker">관계 기록 업데이트 · +3</span>
-          <div><strong id="result-relationship-stage">업무상 관심</strong><small id="result-relationship-next">다음 관계까지 15</small></div>
-          <b><i id="result-relationship-fill"></i></b>
+          <span class="relationship-line" id="result-relationship-kicker">관계 +3 · 첫 만남</span>
+          <div class="relationship-approval" id="result-relationship-approval" hidden></div>
           <p id="result-relationship-message">집사가 이번 대업을 관계 기록에 추가했습니다.</p>
         </section>
         <dl class="praise-result-metrics">
-          <div><dt>대업 등급</dt><dd id="result-grade">국가적 성취</dd></div>
-          <div><dt>인류 기여도</dt><dd id="result-score">98점</dd></div>
-          <div><dt>획득 칭호</dt><dd id="result-nickname">중력을 이겨낸 자</dd></div>
+          <div><dt>접수 번호</dt><dd id="result-intake">NO. 1</dd></div>
+          <div><dt>판정</dt><dd id="result-verdict">칭찬 지급</dd></div>
+          <div><dt>도장</dt><dd id="result-record-status">1 / 5</dd></div>
         </dl>
         <button class="primary-button" id="result-certificate-button" type="button">공식 인증서 발급 <span>→</span></button>
         <button class="text-button" id="result-close" type="button">기록만 하고 홈으로</button>
@@ -477,31 +504,44 @@
       <header class="certificate-screen-header">
         <button type="button" data-certificate-close aria-label="인증서 닫기">←</button>
         <div><strong>과잉집사</strong><span>OVERBUTLER DUTY OFFICE</span></div>
-        <small><i></i> 사무국 정상 운영 중</small>
+        <div class="office-regno">공식 문서<b id="certificate-regno">제 2026-000001호</b></div>
       </header>
-      <div class="certificate-page-title"><span>✦</span><div><h1 id="certificate-screen-title">공식 대업 인증서</h1><p id="certificate-screen-copy">당신의 대업을 공식적으로 인증합니다.</p></div><span>✦</span></div>
-      <article class="certificate" id="certificate-card">
-        <div class="certificate-crest" aria-hidden="true"><span>OB</span></div>
+      <div class="certificate-page-title"><div><h1 id="certificate-screen-title">공식 인정 증서</h1><p id="certificate-screen-copy">당신의 대업을 공식적으로 인증합니다.</p></div></div>
+      <div class="certframe">
+      <article class="certificate certpaper" id="certificate-card">
+        <div class="cert-watermark" aria-hidden="true"><b>OB</b></div>
+        <span class="cert-sidetext left" aria-hidden="true">OVERBUTLER DUTY OFFICE · OFFICIAL</span>
+        <span class="cert-sidetext right" aria-hidden="true">OVERBUTLER DUTY OFFICE · OFFICIAL</span>
+        <span class="cert-corner tl" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <span class="cert-corner tr" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <span class="cert-corner bl" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <span class="cert-corner br" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8"/></svg></span>
+        <div class="certificate-crest" aria-hidden="true"><span class="cert-ribbon left"></span><span class="cert-ribbon right"></span><div class="cert-coin"><i>OB</i></div></div>
         <p class="certificate-overline">OVERBUTLER DUTY OFFICE</p>
-        <h2 id="certificate-title">공식 대업 인증서</h2>
-        <p class="certificate-declaration" id="certificate-declaration">이 증서는 아래의 대업 달성을 엄숙하게 인증합니다</p>
+        <h2 id="certificate-title">공식 인정 증서</h2>
+        <div class="cert-rule" aria-hidden="true"><i></i></div>
+        <p class="certificate-declaration" id="certificate-declaration">아래의 기록이 사무국의 공식 인정을 받았음을 기쁘게 증명합니다</p>
         <p class="certificate-recipient"><strong id="certificate-owner-name">주인님</strong> 귀하</p>
-        <small id="certificate-number">문서번호 대업-2026-000001</small>
-        <hr>
-        <p class="certificate-grade" id="certificate-grade">인류사적 대업</p>
+        <div><span class="certificate-grade goldchip" id="certificate-grade">이번 인정 사유 · 인류사적 대업</span></div>
         <h3 id="certificate-deed">침대에서 일어남</h3>
-        <p class="certificate-nickname" id="certificate-nickname">― 중력을 이겨낸 자 ―</p>
-        <dl class="certificate-metrics">
-          <div><dt>공식 난이도</dt><dd id="certificate-difficulty">★★★★★</dd></div>
-          <div><dt>인류 기여도</dt><dd id="certificate-score">98점</dd></div>
+        <dl class="certificate-brief">
+          <div><dt>수여 칭호</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-nickname">중력을 이겨낸 자</dd></div>
+          <div><dt>분야</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-field">일상 대업</dd></div>
+          <div><dt>접수 번호</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-intake">NO. 1</dd></div>
+          <div><dt>발급 차수</dt><span class="dots" aria-hidden="true"></span><dd id="certificate-issue">제 1차 공식 인정</dd></div>
         </dl>
         <div class="certificate-signoff">
-          <img id="certificate-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-praise.png" alt="감격한 AI 집사">
-          <p><small>발급 담당 집사</small><br><strong id="certificate-butler-name">오류봇</strong><br><span id="certificate-date"></span><i>OVERBUTLER SIGNATURE</i></p>
-          <div class="official-stamp" aria-label="공식 대업 인증"><span>공식<br>대업<br>인증</span></div>
+          <img id="certificate-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-praise.webp" alt="감격한 고양이 집사">
+          <p><strong id="certificate-butler-name">발급 담당 치즈냥</strong><span id="certificate-date"></span> · <i class="certificate-autograph" id="certificate-autograph">치즈냥 印</i></p>
+          <div class="official-stamp" aria-label="공식 대업 인증"><span>공식<br>인정</span></div>
         </div>
-        <blockquote id="certificate-report">“긴급 알림: 주인님께서 침대에서 일어남에 성공했습니다.”</blockquote>
+        <div class="certificate-serialband">
+          <span id="certificate-number">SERIAL · 대업-2026-000001</span>
+          <b aria-hidden="true">✦ ✦ ✦</b>
+          <span>본 증서는 재발급되지 않습니다 · 아마도</span>
+        </div>
       </article>
+      </div>
       <div class="certificate-actions">
         <button class="secondary-button" id="save-certificate" type="button">⇩ 인증서 저장하기</button>
         <button class="primary-button" id="share-certificate" type="button">↗ 인증서 공유하기</button>
@@ -516,7 +556,7 @@
       <header class="recruitment-office-header">
         <button type="button" data-personnel-action="close" aria-label="중앙인사국 닫기">←</button>
         <div><strong>과잉집사</strong><span>CENTRAL PERSONNEL OFFICE</span></div>
-        <small><i></i> 인사 결재 중</small>
+        <div class="office-regno">인계 서류<b>FORM T-01</b></div>
       </header>
       <div class="recruitment-sheet document-card" id="recruitment-sheet" data-mode="application">
         <div class="personnel-document-meta"><span>신규 지원서 · PERSONNEL</span><b>접수 완료</b></div>
@@ -552,8 +592,8 @@
         <div class="gift-desk-title"><span>선물 접수처 · FORM G-01</span><h1 id="gift-desk-title">집사에게 선물하기</h1><p>선물을 집사에게 직접 끌어다 주세요.</p></div>
         <div class="gift-drop-zone" id="gift-drop-zone">
           <span class="gift-drop-status" id="gift-drop-status">선물을 여기로 끌어주세요</span>
-          <img id="gift-desk-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-base.png" alt="선물 데스크의 AI 집사">
-          <strong id="gift-desk-butler-name">오류봇</strong>
+          <img id="gift-desk-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-base.webp" alt="선물 데스크의 고양이 집사">
+          <strong id="gift-desk-butler-name">치즈냥</strong>
           <p id="gift-desk-butler-line">[대기] 선물 접수 모듈 준비 완료.</p>
         </div>
         <div class="gift-list-heading"><h2>집사 취향 목록</h2><small>길게 눌러 끌거나 한 번 눌러 선택</small></div>
@@ -574,26 +614,25 @@
         <div class="gift-reaction-hero">
           <div class="gift-character-stage">
             <span class="gift-ribbon" aria-hidden="true"></span>
-            <img id="gift-butler-image" src="design/character-assets/ai-butler/ui-poses/ai-gift.png" alt="선물을 받은 AI 집사">
+            <img id="gift-butler-image" src="design/character-assets/cat-butler/ui-poses/cat-gift.webp" alt="선물을 받은 고양이 집사">
             <div class="reaction-stamp" aria-label="선물 수령 완료">수령<br>완료</div>
           </div>
           <div class="gift-reaction-copy">
             <small class="gift-overline">담당 집사 공식 반응</small>
             <span class="gift-reaction-badge" id="gift-reaction-badge" data-reaction="normal">선물 접수</span>
-            <h1 id="gift-title">선물 수령으로<br>집사 행복 회로 폭주</h1>
-            <p><strong id="gift-butler-name">오류봇</strong> 집사가 <b id="gift-received-name">선물</b>을 안전하게 인수했습니다.</p>
+            <h1 id="gift-title">선물 수령 ·<br>집사 반응 확인 중</h1>
+            <p><strong id="gift-butler-name">치즈냥</strong> 집사가 <b id="gift-received-name">선물</b>을 안전하게 인수했습니다.</p>
           </div>
         </div>
-        <blockquote id="gift-message">[선물 수신] 행복 수치 최대치 도달. 감사 표현 모듈 무한 반복 중.</blockquote>
+        <blockquote id="gift-message">이걸 집사한테 주는 거냥...? 흥, 딱히 꼬리가 올라간 건 아니다냥.</blockquote>
         <section class="relationship-result" id="gift-relationship-result" aria-live="polite">
-          <span id="gift-relationship-kicker">관계 기록 업데이트 · +3</span>
-          <div><strong id="gift-relationship-stage">첫 만남</strong><small id="gift-relationship-next">다음 관계까지 15</small></div>
-          <b><i id="gift-relationship-fill"></i></b>
+          <span class="relationship-line" id="gift-relationship-kicker">관계 +3 · 첫 만남</span>
+          <div class="relationship-approval" id="gift-relationship-approval" hidden></div>
           <p id="gift-relationship-message">집사가 선물 받은 순간을 관계 기록에 추가했습니다.</p>
         </section>
         <dl class="gift-result-metrics">
           <div><dt>누적 선물</dt><dd><b id="gift-count">1</b>개</dd></div>
-          <div><dt>현재 과몰입도</dt><dd><b id="gift-obsession">9</b>/100</dd></div>
+          <div><dt>현재 과몰입도</dt><dd><b id="gift-obsession">9</b></dd></div>
         </dl>
         <button class="primary-button" id="gift-close" type="button">집사 근무 복귀 <span>→</span></button>
       </article>

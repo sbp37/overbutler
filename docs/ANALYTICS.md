@@ -14,6 +14,7 @@ Current event names:
 - `app_open`
 - `onboarding_complete`
 - `view_change`
+- `owner_file_filter`
 - `butler_interaction`
 - `achievement_submit`
 - `achievement_complete`
@@ -26,7 +27,13 @@ Current event names:
 - `privacy_open`
 - `terms_open`
 
-Allowed properties are limited to non-user text such as character key, view/tab, achievement category/verdict, interaction source, official status, gift reaction type, relationship stage index, onboarding state, and preview state.
+Allowed properties are limited to non-user text such as character key, view/tab, owner-file filter chip, achievement category/verdict, interaction source, official status, gift reaction type, relationship stage index, onboarding state, and preview state.
+
+The archive tab switch is gone. Records, diary and certificates were merged into one
+"owner file" document on 2026-08-17, so tab changes inside that screen are now filter
+chip changes and report as `owner_file_filter` with a `filter` property
+(`all` / `today` / `official` / `praise`). `view_change` still carries `tab` for the
+bottom navigation slot that opened a view.
 
 Connect an external provider only after the provider, consent requirement, retention period, and privacy-policy changes are approved.
 

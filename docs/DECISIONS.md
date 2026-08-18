@@ -65,6 +65,17 @@ Use the format:
   **Decision**: Package Apps in Toss through an isolated official SDK adapter, then package iOS and Android from the approved local web build instead of wrapping a remote URL.
   **Reason**: Platform-specific configuration must not destabilize the public web app, the Toss bundle has a strict size limit, and native stores require a complete app-like submission rather than a thin website wrapper.
 
+- **Date**: 2026-08-17
+  **Decision**: Merge the archive's three tabs (records, diary, certificates) into a single
+  "owner file" document, and supersede the RECORDS/DIARY LOCKED entries that required the
+  tab structure.
+  **Reason**: The app recognised each deed but never accumulated them — day 3 and day 30 looked
+  identical, and a user's own story was split across three tabs. One scrolling file makes the
+  record grow visibly thicker, and it removes a screen instead of adding one. The certificate
+  tab's role as sole entry point is replaced by three paths (filter chip, card stamp, record
+  detail), and the next-day diary seal is reused untouched. This supersedes a LOCKED area, so
+  it was made only on the explicit request of the project owner.
+
 ## Future additions
 
 Append future entries with the same three-field format so decisions remain searchable and easy to audit.
