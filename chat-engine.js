@@ -480,12 +480,49 @@
   };
 
   // 기록명은 사용자 입력에 따라 달라지므로 조사를 받침에 맞춰 고른다.
+  /* 조사는 앞말의 받침으로 정해진다. 따옴표로 감싼 말을 넘기면 마지막 글자가
+     따옴표라 늘 받침 없는 쪽으로 붙었다 — 인용 부호·괄호·공백은 건너뛰고
+     실제 마지막 한글 글자를 본다. */
   function particle(word, withJong, withoutJong) {
     const text = String(word || "").trim();
-    const code = text.charCodeAt(text.length - 1);
-    if (!text || Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return `${text}${withoutJong}`;
+    const bare = text.replace(/[\s'"`’‘”“()\[\]<>{}.,!?~·…]+$/u, "");
+    const code = bare.charCodeAt(bare.length - 1);
+    if (!bare || Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return `${text}${withoutJong}`;
     return `${text}${(code - 0xac00) % 28 !== 0 ? withJong : withoutJong}`;
   }
+
+  /* 돌봄을 거른 보고는 대업이 아니라 걱정 사유다. CAT-FIRST — 고양이만 변주를
+     갖고, 나머지 캐릭터는 중립 공용문 하나를 쓴다. 어느 쪽도 "안 한 일"을
+     칭찬하지 않고, 대신 지금 할 수 있는 아주 작은 것 하나를 가리킨다. */
+  const CAT_SKIPPED_CARE = {
+    meal: [
+      "밥을 걸렀냥…? 그건 대업이 아니라 걱정 사유다냥. 지금이라도 뭐 하나 물고 와라냥.",
+      "끼니를 건너뛴 건 접수 못 한다냥. 대신 걱정란에 적어뒀다냥. 아무거나 좋으니 좀 먹어라냥.",
+      "안 먹었다는 보고는 칭찬할 수가 없다냥. 규정이 아니라 집사가 싫어서다냥. 뭐라도 챙겨라냥.",
+      "빈속으로 버틴 거냥? 그건 장부에 못 올린다냥. 물이라도 한 잔 먼저 마셔라냥."
+    ],
+    hygiene: [
+      "못 씻었다는 건 대업란에 못 올린다냥. 오늘 그만큼 힘들었냥? 그거부터 듣고 싶다냥.",
+      "씻는 걸 건너뛴 날도 있다냥. 대업은 아니지만 혼낼 일도 아니다냥. 무리하지 마라냥.",
+      "그건 접수 안 하고 걱정란에만 적어두겠다냥. 여유 생기면 세수라도 한 번 해라냥."
+    ],
+    rest: [
+      "잠을 못 잤다는 건 대업이 아니다냥. 오늘 제일 급한 안건이다냥. 좀 누워라냥.",
+      "밤을 샜냥…? 그건 칭찬할 수가 없다냥. 집사 걱정란만 길어진다냥.",
+      "못 잔 건 접수 못 한다냥. 대신 오늘 할 일 목록을 반으로 줄여주겠다냥."
+    ]
+  };
+  const NEUTRAL_SKIPPED_CARE = {
+    meal: "식사를 거른 건 대업으로 접수하지 않습니다. 지금이라도 간단한 것부터 챙겨주세요.",
+    hygiene: "씻는 걸 건너뛴 날도 있습니다. 대업은 아니지만 탓할 일도 아니에요. 무리하지 마세요.",
+    rest: "잠을 제대로 못 잔 건 칭찬할 수 없습니다. 오늘은 회복이 가장 급한 일입니다."
+  };
+  // 감정과 성취가 한 문장에 섞이면 감정을 먼저 받고 성취는 부기로 붙인다.
+  const SKIPPED_CARE_PREFIX = { meal: "밥은 걸렀지만", hygiene: "씻는 건 건너뛰었지만", rest: "잠은 못 잤지만" };
+  const CAT_SKIPPED_WITH_WIN = (careType, title) =>
+    `${SKIPPED_CARE_PREFIX[careType] || "그건 걸렀지만"} ${particle(`‘${title}’`, "은", "는")} 접수했다냥. …순서는 집사가 정한다냥. 걱정이 먼저다냥.`;
+  const NEUTRAL_SKIPPED_WITH_WIN = (careType, title) =>
+    `${SKIPPED_CARE_PREFIX[careType] || "그건 걸렀지만"} ${particle(`‘${title}’`, "은", "는")} 접수했습니다. 다만 순서는 걱정이 먼저입니다.`;
 
   const ACTIVITY_RESPONSE = {
     cat: title => `이야기 속에서 ${particle(`‘${title}’`, "을", "를")} 발견했다냥. 흥, 이건 집사가 대업으로 잘 다듬어두겠다냥.`,
@@ -543,6 +580,7 @@
     let intent = "fallback";
     if (intents.includes("commute") && /집|퇴근/.test(text)) intent = "home_arrival";
     else if (intents.includes("tired") && (intents.includes("work") || /오늘|하루/.test(text))) intent = "hard_day";
+    else if (intents.includes("skipped_care")) intent = "skipped_care";
     else if (intents.includes("no_motivation")) intent = "no_motivation";
     else if (intents.includes("sleep")) intent = "sleep";
     else if (intents.includes("goodbye")) intent = "goodbye";
@@ -583,7 +621,9 @@
     // 문장 전체를 읽었다는 신호(toneShift/futurePlans/여러 완료 행동)가 있으면, 그 문장
     // 전용으로 고른 대사를 쓰고 RESPONSE_POOLS/relationshipLinesFor의 일반 변주는
     // 건너뛴다 — 그 풀들은 "힘든 하루"류 단일 감정 대사라 이 신호를 못 담는다.
-    const toneShiftOverride = key === "cat" && result.toneShift;
+    // 돌봄을 거른 보고는 어떤 일반 변주보다 먼저다 — 이 문장에는 걱정으로만 답한다.
+    const skippedCareType = result.intent === "skipped_care" ? (result.skippedCare?.[0]?.type || "meal") : "";
+    const toneShiftOverride = key === "cat" && !skippedCareType && result.toneShift;
     const futurePlanOverride = key === "cat" && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
     const multiActivityOverride = key === "cat" && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
@@ -593,20 +633,31 @@
     // 덮이면 안 된다 — home_arrival 풀이 있는 캐릭터에서 브릿지가 통째로 사라진다.
     const bridgeOverride = result.intent === "home_arrival" && hasHardDayContext;
     let base = bridgeOverride ? BRIDGES[key] : (LINES[key][result.intent] || LINES[key].fallback);
+    if (skippedCareType) {
+      // 성취가 같이 잡혔으면 걱정을 먼저 말하고 성취는 부기로 붙인다.
+      base = result.achievementCandidate && result.achievementTitle
+        ? (key === "cat" ? CAT_SKIPPED_WITH_WIN : NEUTRAL_SKIPPED_WITH_WIN)(skippedCareType, result.achievementTitle)
+        : (key === "cat" ? "" : NEUTRAL_SKIPPED_CARE[skippedCareType] || NEUTRAL_SKIPPED_CARE.meal);
+      if (key === "cat" && !base) base = (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal)[0];
+    }
     if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
     else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.mood, result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general(result.mood);
     else if (futurePlanOverride) base = CAT_FUTURE_PLAN_ONLY(result.futurePlans[0].snippet);
     else if (multiActivityOverride) base = CAT_MULTI_ACTIVITY(result.activities, result.achievementTitle);
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
-    const bypassPools = toneShiftOverride || futurePlanOverride || multiActivityOverride || bridgeOverride;
+    const bypassPools = Boolean(skippedCareType) || toneShiftOverride || futurePlanOverride || multiActivityOverride || bridgeOverride;
     const endings = ENDINGS[key] || ENDINGS.cat;
-    const extra = bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)];
+    // 고양이는 걱정 문장도 변주를 갖는다. 성취가 같이 잡힌 경우는 한 문장으로 고정한다.
+    const skippedCareLines = skippedCareType && key === "cat" && !(result.achievementCandidate && result.achievementTitle)
+      ? (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal) : null;
+    const extra = skippedCareLines || (bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${tail}`])
       : [base, `${base}\n${tail}`];
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
-    if (result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
+    // 걱정 응답은 이미 성취를 문장 안에서 다뤘다 — 여기서 또 붙이면 두 번 말한다.
+    if (!skippedCareType && result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
     const nextMemory = {
       character: key,
       lastMood: result.mood || memory.lastMood,

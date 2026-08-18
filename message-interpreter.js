@@ -44,6 +44,86 @@
   // "앞에 부정 표현이 있고, 그 뒤에 이 신호가 있을 때"만 참고한다.
   const POSITIVE_TONE_HINT = /ㅋ{2,}|ㅎ{2,}|히히|헤헤|풀렸|풀림|다행|좋음|신남|개좋아|살아났|나아졌|괜찮아졌/;
 
+  /* ── 부정 하드 가드 ──
+     "밥 먹기 귀찮아서 안 먹었어"가 「식사 했음」으로 뚫렸다. 원인은 부정을 정규식
+     매치에 딱 붙은 14자 창에서만 봤다는 것이다. 식사 규칙은 lazy라 "밥 먹"에서
+     끊기고, 진짜 부정("안 먹었어")은 그 창 밖에 있었다. "못"은 아예 표에 없었다.
+
+     그래서 부정은 매치 주변이 아니라 그 동사가 속한 "절" 전체에서 본다.
+     절 경계는 미래형 판정용 CLAUSE_BOUNDARY와 따로 둔다 — 저쪽에 "-는데"를
+     넣으면 미래형 스코프가 같이 흔들리고, 이쪽에 "-서"를 넣으면
+     "귀찮아서 | 안 먹었어"로 갈라져 정작 잡아야 할 문장이 다시 새어나간다. */
+  const NEGATION_CLAUSE_BOUNDARY = /[.!?~,;]|(?:는데|은데|ㄴ데|지만|대신|반면)\s*|고\s|다가\s|그리고|그러다|근데|그런데|하지만|다행히|결국|그래서/g;
+  // "안 그래도 씻었어"의 "안 그래도"처럼 부정이 아닌 관용구는 먼저 지운다.
+  const NEGATION_FALSE_FRIEND = /안\s*그래도|안\s*그래|안녕|안내|안심|안전|안쪽|안경|못지않|못지\s*않|못해도/g;
+  const NEGATION_CUE = [
+    /(?:^|[\s"'`([])(?:안|못)\s+[가-힣]/,          // 띄어쓴 "안 먹었어" / "못 씻었어"
+    /안(?:먹|씻|자|잤|갔|가|했|함|해|입|치|쉬|썼|봤|잤)/, // 붙여쓴 "안먹었어요"
+    /못(?:먹|씻|자|잤|갔|가|했|함|해|일어|끝|잤)/,
+    /(?:지|진|지는|지도|질)\s*(?:않|못)/,          // "-지 않았다" / "-지 못했다"
+    /걸렀|거르|거른|굶었|굶고|굶어|굶는|빼먹|스킵|건너뛰|패스했|생략했/
+  ];
+  // 돌봄 행동 — 이걸 부정하면 대업이 아니라 걱정 사유다.
+  const CARE_TYPES = new Set(["meal", "hygiene", "rest"]);
+  // 완료 근거. 이게 절에 없으면 그 행동이 끝났다는 증거가 없다("설거지"만 적힌
+  // 문장은 할 예정일 수도 있다). 빠른 입력 칩("씻음", "물 한 잔 마심")은
+  // 받침 ㅁ 명사형이라 아래 endsWithNominalizer가 따로 받는다.
+  const COMPLETION_MARK = /함|완료|끝냈|끝났|마쳤|마무리|해냄|다녀옴/;
+  // 확신이 없는 서술. 이게 있으면 칭호를 뽑지 않는다.
+  const UNCERTAIN_MARK = /것\s*같|인가|려나|할까|모르겠|아마|긴가민가|같기도|한\s*듯/;
+
+  /* 과거 시제는 어미가 아니라 받침으로 잡는다. "갔/왔/했/었/봤/줬/썼"은 전부
+     받침 ㅆ(종성 20번)이라, 어미 목록을 나열하면 반드시 빠지는 게 생긴다
+     — 실제로 "결혼식 갔는데"가 '았|었'만 보던 목록에서 새어나갔다.
+     "있/없"은 진행·상태라 완료 근거로 치지 않는다. */
+  function hasPastTense(clause) {
+    const value = String(clause || "");
+    for (const char of value) {
+      if (char === "있" || char === "없") continue;
+      const code = char.charCodeAt(0);
+      if (code < 0xac00 || code > 0xd7a3) continue;
+      if ((code - 0xac00) % 28 === 20) return true;
+    }
+    return false;
+  }
+
+  // 절 끝이 받침 ㅁ 명사형인가 — "씻음 / 마심 / 보냄 / 일어남".
+  function endsWithNominalizer(clause) {
+    const last = String(clause || "").replace(/[.!?~\s]+$/, "").slice(-1);
+    if (!last) return false;
+    const code = last.charCodeAt(0);
+    if (code < 0xac00 || code > 0xd7a3) return false;
+    return (code - 0xac00) % 28 === 16;
+  }
+
+  // 텍스트를 부정 스코프 단위로 자른다. 각 조각은 [시작, 끝) 범위를 들고 있다.
+  function negationClauses(text) {
+    const boundaries = [];
+    const matcher = new RegExp(NEGATION_CLAUSE_BOUNDARY.source, "g");
+    let match;
+    while ((match = matcher.exec(text))) {
+      boundaries.push(match.index + match[0].length);
+      if (!match[0].length) matcher.lastIndex += 1;
+    }
+    const clauses = [];
+    let start = 0;
+    for (const end of [...boundaries, text.length]) {
+      if (end <= start) continue;
+      clauses.push({ start, end, text: text.slice(start, end) });
+      start = end;
+    }
+    return clauses.length ? clauses : [{ start: 0, end: text.length, text }];
+  }
+
+  function clauseFor(clauses, index) {
+    return clauses.find(clause => index >= clause.start && index < clause.end) || clauses[clauses.length - 1];
+  }
+
+  function isNegatedClause(clause) {
+    const cleaned = String(clause || "").replace(NEGATION_FALSE_FRIEND, " ");
+    return NEGATION_CUE.some(pattern => pattern.test(cleaned));
+  }
+
   const ACTIVITY_RULES = [
     ["social", "결혼식 다녀옴", /결혼식(?:에|을)?\s*(?:갔|다녀|참석)/i],
     ["commute", "집에 도착함", /(?:이제|방금)?\s*(?:집에?|집으로)\s*(?:왔|도착|이야|이다|임)|퇴근\s*(?:했|완료|함)/i],
@@ -79,7 +159,7 @@
   // 매치 위치까지 돌려주는 내부 버전. 활동 규칙은 위치를 알아야 뒤에 미래형 어미가
   // 붙었는지(=아직 안 한 계획인지) 확인할 수 있어서 boolean만 주던 matchesActive를
   // 감싸는 형태로 바꿨다. 부정 인식(안/못/아니) 로직은 그대로다.
-  function activeMatches(text, pattern, respectActionNegation = false) {
+  function activeMatches(text, pattern, respectActionNegation = false, includeNegated = false) {
     const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
     const matcher = new RegExp(pattern.source, flags);
     const results = [];
@@ -91,8 +171,11 @@
       const prefixed = /(?:별로|전혀|하나도|생각보다)?\s*안\s*$/.test(before);
       const suffixed = /(?:진|지는|지도|지)\s*(?:않|않았|않아)|(?:건|것은|건은)?\s*아니|아닌데|아니야/.test(around);
       const actionNegated = /(?:안|못)\s*(?:했|함|갔|다녀|먹|마셨|완료)/.test(match[0]) || /^(?:은|는|을|를)?\s*(?:안|못)\s*(?:했|함|갔|먹|마셨|완료)/.test(tail);
-      if (!prefixed && !suffixed && !(respectActionNegation && actionNegated)) {
-        results.push({ index: match.index, end: match.index + match[0].length, text: match[0] });
+      const negated = prefixed || suffixed || (respectActionNegation && actionNegated);
+      // 걸러진 매치도 필요할 때가 있다 — 활동 규칙은 "부정됐다"는 사실 자체를
+      // 걱정 응답의 근거로 써야 해서, 조용히 버리면 그 문장이 무응답이 된다.
+      if (!negated || includeNegated) {
+        results.push({ index: match.index, end: match.index + match[0].length, text: match[0], negated });
       }
       if (!match[0].length) matcher.lastIndex += 1;
     }
@@ -102,6 +185,14 @@
   function matchesActive(text, pattern, respectActionNegation = false) {
     return activeMatches(text, pattern, respectActionNegation).length > 0;
   }
+
+  /* 어휘 자체가 "안 했다"인 표현들. 활동 규칙은 동사를 찾는데, "밥은 걸렀지만"에는
+     찾을 동사가 없어서 절 가드까지 도달하지 못한다. 그래서 이 셋만 따로 본다. */
+  const SKIPPED_CARE_RULES = [
+    ["meal", "식사 챙김", /(?:밥|끼니|아침|점심|저녁|식사)[^.!?]{0,8}(?:걸렀|거르|거른|굶|건너뛰|스킵|빼먹)|굶었|굶고|굶어|끼니\s*(?:를)?\s*(?:걸|거르)/],
+    ["hygiene", "씻기 완료", /씻(?:는|기)?\s*(?:것)?\s*(?:을|를)?\s*(?:걸렀|건너뛰|스킵)|샤워\s*(?:를)?\s*(?:걸렀|스킵|건너뛰)|양치\s*(?:를)?\s*(?:걸렀|스킵|빼먹)/],
+    ["rest", "충분히 쉬기", /잠\s*(?:을|도)?\s*(?:거의)?\s*(?:못|안)\s*(?:잤|자|잠)|밤\s*(?:을)?\s*샜|밤새웠|한숨도\s*못\s*잤|잠\s*못\s*들/]
+  ];
 
   // 활동 매치 바로 뒤(FUTURE_WINDOW자 안)에 미래형 어미가 있으면 "완료"가 아니라
   // "계획"이다. 미래형 어미가 시작되는 절대 위치까지 돌려줘서 자연스러운 인용 스니펫을
@@ -159,8 +250,21 @@
     for (const [intent, pattern] of CONVERSATION) if (matchesActive(text, pattern)) intents.push(intent);
 
     const futurePlans = [];
+    // 부정된 행동은 따로 모은다. 칭찬으로 이어지지 않게 막는 것이 1차 목적이고,
+    // 돌봄 행동이면 걱정 응답의 근거가 되므로 버리지 않고 들고 나간다.
+    const negatedActivities = [];
+    const clauses = negationClauses(text);
+    const completedClauses = new Set();
     for (const [type, label, pattern] of ACTIVITY_RULES) {
-      for (const found of activeMatches(text, pattern, true)) {
+      for (const found of activeMatches(text, pattern, true, true)) {
+        const clause = clauseFor(clauses, found.index);
+        // 하드 가드 — 이 행동이 속한 절이 부정이면 어떤 경로로도 대업이 될 수 없다.
+        if (found.negated || isNegatedClause(clause.text)) {
+          if (!negatedActivities.some(item => item.label === label)) {
+            negatedActivities.push({ type, label, snippet: cleanSnippet(clause.text) });
+          }
+          continue;
+        }
         const futureEnd = futureMarkerAfter(text, found.end);
         if (futureEnd !== null) {
           if (!futurePlans.some(plan => plan.label === label)) {
@@ -171,6 +275,7 @@
         if (!activities.includes(label)) {
           activities.push(label);
           activityTypes.push(type);
+          if (COMPLETION_MARK.test(clause.text) || hasPastTense(clause.text) || endsWithNominalizer(clause.text)) completedClauses.add(label);
         }
       }
     }
@@ -197,11 +302,32 @@
     if (activityTypes.includes("social")) intents.push("social");
     if (activities.length) intents.push("activity");
 
+    // 돌봄을 걸렀다는 보고는 대업이 아니라 걱정 사유다. no_motivation("아무것도
+    // 하기 싫다")과는 다른 사실이라 인텐트를 따로 둔다 — 바빠서 점심을 거른
+    // 사람에게 "아무것도 하기 싫은 날도 있다"고 답하면 못 알아들은 것이다.
+    for (const [type, label, pattern] of SKIPPED_CARE_RULES) {
+      if (!pattern.test(text)) continue;
+      if (!negatedActivities.some(item => item.label === label)) {
+        negatedActivities.push({ type, label, snippet: cleanSnippet(clauseFor(clauses, text.search(pattern)).text) });
+      }
+    }
+    const skippedCare = negatedActivities.filter(item => CARE_TYPES.has(item.type));
+    if (skippedCare.length) {
+      intents.push("skipped_care");
+      moods.push("worried");
+      sentiments.push("negative");
+    }
+
     const moodPriority = ["tired", "sad", "angry", "worried", "low", "hungry", "bored", "happy", "affection"];
     const mood = moodPriority.find(item => moods.includes(item)) || null;
     const negative = sentiments.includes("negative");
     const meaningfulActivity = activityTypes.some(type => !["rest", "commute"].includes(type));
-    const achievementCandidate = meaningfulActivity && !(nothing && activities.every((_, index) => activityTypes[index] === "rest"));
+    // 완료 근거가 없거나 불확실한 서술이면 대업 경로로 보내지 않는다. 칭호가 틀리는
+    // 것은 칭호가 없는 것보다 훨씬 아프다 — "설거지"만 적힌 문장은 아직 할 일일 수도 있다.
+    const completedMeaningful = activities.some((label, index) => !["rest", "commute"].includes(activityTypes[index]) && completedClauses.has(label));
+    const uncertain = UNCERTAIN_MARK.test(text);
+    const achievementCandidate = meaningfulActivity && completedMeaningful && !uncertain
+      && !(nothing && activities.every((_, index) => activityTypes[index] === "rest"));
     if (achievementCandidate) intents.push("achievement");
     if (!intents.length) intents.push("freeform");
     const uniqueIntents = [...new Set(intents)];
@@ -242,6 +368,8 @@
       activities,
       activityTypes,
       futurePlans,
+      negatedActivities,
+      skippedCare,
       mood,
       toneShift,
       sentiment,
