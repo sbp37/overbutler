@@ -558,7 +558,8 @@
   color: var(--stamp-red);
   font: 800 8.5px/1.2 var(--disp);
   text-align: center;
-  transform: rotate(8deg);
+  rotate: 8deg;
+  transform: none;
 }
 #view-archive .record-cert-stamp:active { background: rgba(157, 47, 58, .12); }
 #view-archive #archive-record-list .office-record-card.official:after { display: none; }
@@ -897,7 +898,7 @@
 /* 판정 문구는 판정마다 바뀌므로(칭찬 승인 / 과몰입 폭주 / 희귀 채택) 글자 도장은
    그대로 두고, 결재가 끝났다는 표시로 서류 자체에 사무국 도장을 한 번 찍는다.
    가운데가 비어 있어 아래 항목이 그대로 읽힌다. */
-.reaction-stamp { border-color: var(--stamp-red); color: var(--stamp-red); transform: rotate(-11deg); }
+.reaction-stamp { border-color: var(--stamp-red); color: var(--stamp-red); rotate: -11deg; transform: none; animation: none; }
 .praise-result-document { position: relative; }
 .praise-result-document:before {
   content: "";
@@ -1731,11 +1732,11 @@
 }
 
 /* 도장이 내려앉는다. 이 연출은 단계가 실제로 오른 날에만 붙는다. */
+/* 결재란 도장도 다른 도장과 같은 손으로 찍힌다 — 같은 곡선, 같은 0.18초. */
 @keyframes approval-stamp-land {
-  0% { transform: scale(2.5); opacity: 0; }
-  45% { transform: scale(.9); opacity: 1; }
-  72% { transform: scale(1.07); }
-  100% { transform: scale(1); }
+  0% { transform: scale(1.6); opacity: 0; }
+  55% { transform: scale(.96); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 @keyframes approval-stamp-ring {
   0% { box-shadow: 0 0 0 0 rgba(157, 47, 58, .32); }
@@ -1743,8 +1744,8 @@
 }
 #result-relationship-approval > span.just-inked i,
 #gift-relationship-approval > span.just-inked i {
-  animation: approval-stamp-land .46s cubic-bezier(.22, .9, .28, 1) both,
-             approval-stamp-ring .6s ease-out .2s both;
+  animation: approval-stamp-land .18s cubic-bezier(.2, .85, .3, 1) both,
+             approval-stamp-ring .42s ease-out .12s both;
 }
 #result-relationship-approval > span.just-inked b,
 #gift-relationship-approval > span.just-inked b { color: var(--stamp-red); }
@@ -2407,7 +2408,9 @@
   border-radius: 50%;
   background: radial-gradient(circle at 34% 28%, #c9505c 0%, var(--stamp-red) 52%, #6f1e26 100%);
   box-shadow: 0 2px 5px rgba(90, 20, 26, .4), inset 0 1px 2px rgba(255, 200, 205, .45), inset 0 -2px 3px rgba(60, 12, 17, .5);
-  transform: rotate(-9deg);
+  rotate: -9deg;
+  transform: none;
+  animation: none;
 }
 #certificate-card.certpaper .official-stamp:before {
   content: "";
@@ -2744,10 +2747,12 @@
   font: 800 9px/1.2 var(--disp);
   animation: none;
 }
-#analysis-overlay .analysis-steps li.done:nth-child(1) span { transform: rotate(-9deg); }
-#analysis-overlay .analysis-steps li.done:nth-child(2) span { transform: rotate(6deg); }
-#analysis-overlay .analysis-steps li.done:nth-child(3) span { transform: rotate(-4deg); }
-#analysis-overlay .analysis-steps li.done:nth-child(4) span { transform: rotate(8deg); }
+/* 기울기는 rotate 속성이 든다 — 착지 애니가 transform을 쓰기 때문에
+   같은 속성에 두면 둘 중 하나가 사라진다. */
+#analysis-overlay .analysis-steps li.done:nth-child(1) span { rotate: -9deg; transform: none; }
+#analysis-overlay .analysis-steps li.done:nth-child(2) span { rotate: 6deg; transform: none; }
+#analysis-overlay .analysis-steps li.done:nth-child(3) span { rotate: -4deg; transform: none; }
+#analysis-overlay .analysis-steps li.done:nth-child(4) span { rotate: 8deg; transform: none; }
 @keyframes office-review-spin { to { transform: rotate(360deg); } }
 
 /* 심사 중 혼잣말 — 유저가 방금 쓴 문장에 반응하는 담당자의 육필. */
@@ -3333,3 +3338,34 @@
 .gift-overlay .gift-receipt > blockquote { margin-top: 10px; padding: 12px 14px; }
 .gift-overlay #gift-close { margin-top: 10px; min-height: 46px; padding: 12px 14px; }
 .gift-overlay .reaction-footnote { margin-top: 8px; }
+
+/* ═══════════ P2-1 도장 쾅 ═══════════
+   이 앱의 절정은 전부 도장이다. 그런데 도장이 그냥 나타나기만 했다.
+   내려앉게 만든다 — 1.6배에서 떨어져 0.18초 만에 착지하고, 그 힘으로
+   종이가 한 번 흔들린다. 회전은 transform이 아니라 rotate 속성이 들고 있어서
+   착지 애니가 각 도장의 기존 기울기를 덮어쓰지 않는다.
+   전부 transform/opacity만 쓴다 — 레이아웃을 건드리는 속성은 없다. */
+@keyframes office-stamp-land {
+  0% { transform: scale(1.6); opacity: 0; }
+  55% { transform: scale(.96); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes office-paper-jolt {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  40% { transform: translate3d(0, 1.5px, 0); }
+  75% { transform: translate3d(0, -1px, 0); }
+}
+.ink-land { animation: office-stamp-land .18s cubic-bezier(.2, .85, .3, 1) both; }
+.paper-jolt { animation: office-paper-jolt .18s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .ink-land,
+  .paper-jolt { animation: none; }
+}
+
+/* 인증서 도장은 #id로 잠겨 있어 공용 .ink-land가 못 이긴다. 같은 무게로 한 번 더 쓴다. */
+#certificate-card.certpaper .official-stamp.ink-land {
+  animation: office-stamp-land .18s cubic-bezier(.2, .85, .3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  #certificate-card.certpaper .official-stamp.ink-land { animation: none; }
+}

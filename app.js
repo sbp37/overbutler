@@ -1235,6 +1235,36 @@
   }
 
   function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+
+  /* ── 연출 공통 ──
+     이 앱의 생동감은 이펙트가 아니라 "저 집사가 저 방에서 일하고 있다"에서 나온다.
+     그래서 움직이는 것은 종이·도장·클립뿐이고, 전부 transform/opacity만 쓴다.
+     감소 모드에서는 애니를 붙이지 않는다 — 최종 상태는 이미 CSS가 그리고 있으므로
+     클래스를 안 붙이는 것만으로 즉시 최종 상태가 된다. */
+  const reduceMotionQuery = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function prefersReducedMotion() { return Boolean(reduceMotionQuery?.matches); }
+  // 진동은 화면 움직임은 아니지만 같은 "자극 줄이기" 요청으로 본다.
+  function haptic(duration) {
+    if (prefersReducedMotion()) return;
+    try { navigator.vibrate?.(duration); } catch { /* 지원 안 하는 기기는 조용히 넘어간다 */ }
+  }
+  // 같은 요소에 다시 붙이려면 클래스를 떼고 리플로우를 한 번 강제해야 애니가 되감긴다.
+  function restartAnimation(element, className) {
+    if (!element) return;
+    element.classList.remove(className);
+    void element.offsetWidth;
+    element.classList.add(className);
+  }
+  // 도장이 찍힌다 — 도장이 내려앉고, 그 힘으로 종이가 한 번 흔들린다.
+  // 둘은 별개 연출이 아니라 한 동작이라 같이 간다(둘 다 transform 한 겹).
+  function inkStamp(element, options = {}) {
+    if (!element) return;
+    const paper = options.paper === null ? null : (options.paper || element.parentElement);
+    if (prefersReducedMotion()) return;
+    restartAnimation(element, "ink-land");
+    if (paper) restartAnimation(paper, "paper-jolt");
+    haptic(options.vibrate ?? 25);
+  }
   function today() { return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/\. /g, ".").replace(/\.$/, ""); }
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
   // 해석기가 만든 기록명은 이미 "…완료" 같은 완결형인 경우가 많다.
@@ -1735,6 +1765,8 @@
     $("#main-screen").classList.toggle("home-active", name === "home");
     $("#main-screen").dataset.currentView = name;
     if (name === "home" && state.character === "cat") window.requestAnimationFrame(configureCatHome);
+    // 이번 세션에 새로 생긴 공식 인정 도장은 파일을 펼치는 이 순간에 찍힌다.
+    if (name === "archive") window.setTimeout(inkPendingOfficialStamps, 280);
     trackEvent("view_change", { view: name, tab: navKey });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1814,6 +1846,12 @@
       // 다만 마지막 칸에 올라선 날은 그 칸 자체가 승인되므로 거기에 도장이 내려앉는다.
       const inked = nextIndex >= RELATIONSHIP_STAGES.length - 1 ? nextIndex : nextIndex - 1;
       approval.innerHTML = upgraded ? relationshipApprovalMarkup(after, inked) : "";
+      // 도장 자체는 .just-inked가 CSS에서 찍는다. 여기서는 그 힘으로 흔들릴 종이와
+      // 손끝에 오는 진동만 얹는다. 결재란은 방금 새로 그려져서 되감을 필요가 없다.
+      if (upgraded && !prefersReducedMotion()) {
+        restartAnimation(element, "paper-jolt");
+        haptic(25);
+      }
     }
     const message = $(`#${prefix}-relationship-message`);
     message.hidden = !upgraded;
@@ -2268,6 +2306,10 @@
   // 최근 14일 그룹만 먼저 그린다. 기록이 쌓여도 진입 시 한 번에 다 그리지 않는다.
   const OWNER_FILE_RECENT_GROUPS = 14;
   let ownerFileExpanded = false;
+  // 세션 안에서만 산다 — 저장하지 않는다. 앱을 다시 열면 도장은 그냥 찍혀 있는 상태다.
+  const seenOfficialStampIds = new Set();
+  const pendingOfficialStampIds = new Set();
+  let archiveStampsSeeded = false;
 
   function ownerFileDateLabel(date) {
     const parts = String(date).split(".");
@@ -2383,6 +2425,35 @@
     const hidden = groups.length - shown.length;
     list.innerHTML = shown.map(group => ownerFileGroupMarkup(group, officialIds)).join("")
       + (hidden > 0 ? `<button class="file-expand-button" type="button" data-owner-file-expand>이전 기록 펼치기 <span>${hidden}일</span></button>` : "");
+    inkNewOfficialStamps(list);
+  }
+
+  // 파일의 공식 인정 도장은 열 때마다 다시 찍히면 안 된다 — 이미 찍혀 있던 도장이
+  // 스크롤할 때마다 튀면 사무국이 아니라 게임 화면이 된다. 이번 세션에서 처음
+  // 생긴 도장 하나만 기다렸다가, 파일을 실제로 펼친 순간에 찍는다. 도장이 결과서
+  // 뒤에서 혼자 찍히면 아무도 못 본다. 첫 렌더는 조용히 명단만 채운다.
+  function inkNewOfficialStamps(list) {
+    const first = !archiveStampsSeeded;
+    archiveStampsSeeded = true;
+    list.querySelectorAll(".record-cert-stamp").forEach(stamp => {
+      const id = stamp.dataset.certId;
+      if (seenOfficialStampIds.has(id)) return;
+      seenOfficialStampIds.add(id);
+      if (!first) pendingOfficialStampIds.add(id);
+    });
+    if ($("#view-archive")?.classList.contains("active")) inkPendingOfficialStamps();
+  }
+
+  function inkPendingOfficialStamps() {
+    if (!pendingOfficialStampIds.size) return;
+    const list = $("#archive-record-list");
+    if (!list) return;
+    [...pendingOfficialStampIds].forEach(id => {
+      const stamp = list.querySelector(`.record-cert-stamp[data-cert-id="${CSS.escape(id)}"]`);
+      if (!stamp) return;
+      pendingOfficialStampIds.delete(id);
+      inkStamp(stamp, { paper: stamp.closest(".office-record-card") });
+    });
   }
 
   function findRecordById(id) {
@@ -2878,7 +2949,14 @@
     const pacing = analysisPacingFor(pendingEvaluation.verdictType);
     analysisRunsThisSession += 1;
     steps.forEach((step, index) => analysisTimers.push(window.setTimeout(() => {
-      if (index > 0) { steps[index - 1].className = "done"; steps[index - 1].querySelector("span").textContent = "통과"; }
+      if (index > 0) {
+        const passed = steps[index - 1];
+        passed.className = "done";
+        passed.querySelector("span").textContent = "통과";
+        // 통과 도장은 항목마다 하나씩 내려앉는다. 항목 간격(pacing.gap)이 최소 185ms라
+        // 0.18초짜리 착지가 서로 겹치지 않는다 — 저사양 기기에서도 한 번에 하나만 움직인다.
+        inkStamp(passed.querySelector("span"), { paper: passed });
+      }
       step.className = "active";
       const label = step.querySelector("span");
       label.innerHTML = "심사<br>중";
@@ -3202,6 +3280,8 @@
     setPoseImage($("#certificate-butler-image"), butler.character, record.pose || "praise");
     $("#certificate-overlay").hidden = false;
     document.body.style.overflow = "hidden";
+    // 공식 인정 도장은 증서를 열 때마다 새로 찍힌다. 종이는 서명란이 흔들린다.
+    window.setTimeout(() => inkStamp($("#certificate-card .official-stamp"), { paper: $("#certificate-card .certificate-signoff") }), 260);
     currentCertificateImagePromise = createCertificateBlob(record).catch(() => null);
   }
 
@@ -3265,6 +3345,9 @@
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
     window.requestAnimationFrame(() => reportNode.classList.add("is-inked"));
+    // 승인 도장은 결과서가 자리를 잡은 다음 내려앉는다. 종이가 아직 떠오르는 중에
+    // 찍으면 두 움직임이 겹쳐서 둘 다 안 보인다.
+    window.setTimeout(() => inkStamp($("#result-stamp"), { paper: $("#result-stamp").closest(".reaction-verdict-row") || $("#result-stamp").parentElement }), 240);
   }
 
   function closePraiseResult() {
@@ -4313,7 +4396,8 @@
     $$("[data-quick]").forEach(button => button.addEventListener("click", () => { $("#achievement-input").value = button.dataset.quick; $("#char-count").textContent = button.dataset.quick.length; }));
     $("[data-quick-focus]").addEventListener("click", () => $("#achievement-input").focus());
     $("#achievement-input").addEventListener("input", event => { $("#char-count").textContent = event.target.value.length; });
-    $("#report-button").addEventListener("click", submitAchievement);
+    // 접수 버튼은 눌림(2px)까지만 CSS가 하고, 손끝에 오는 짧은 한 번은 여기서 준다.
+    $("#report-button").addEventListener("click", () => { haptic(15); submitAchievement(); });
     $("#briefing-character-action").addEventListener("click", interactWithButler);
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
