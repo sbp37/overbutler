@@ -7,7 +7,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "quiet_day", "no_motivation", "work", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
+  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "quiet_day", "no_motivation", "work", "work_done", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
   const MOOD_TYPES = ["tired", "sad", "angry", "worried", "low", "hungry", "bored", "happy", "affection"];
 
   const EMOTIONS = [
@@ -158,7 +158,8 @@
     ["activity", "빨래 완료", /빨래/i],
     ["activity", "청소 완료", /청소|방\s*정리|정리\s*했/i],
     ["activity", "답장 완료", /답장|연락\s*(?:했|함)|메일\s*(?:보냈|완료)/i],
-    ["achievement", "발표 완료", /발표(?:를|는)?\s*(?:했|함|마쳤|끝)/i],
+    // "발표 잘 끝냈어"의 "잘" 하나에 깨지지 않게 짧은 부사 자리를 허용한다.
+    ["achievement", "발표 완료", /발표(?:를|는|도)?[^.!?]{0,6}?(?:했|함|마쳤|끝)/i],
     ["activity", "외출 일정 완료", /다녀왔|갔다\s*왔|외출/i]
   ];
 
@@ -304,7 +305,20 @@
     const rest = /누워|쉬었|휴식|낮잠|뒹굴/i.test(text);
     if (quietDay) intents.push("quiet_day");
     if (rest) intents.push("rest");
-    if (/회사|업무|출근|퇴근|야근|발표|회의/i.test(text)) intents.push("work");
+    // 업무 키워드 하나로 work를 밀어넣으면 "내일 발표 잘 됐으면 좋겠다"(희망)에도
+    // 출근 인사가 나간다. 키워드가 든 절을 보고 갈래를 나눈다:
+    // 희망·예정 절이면 업무 인텐트 자체를 만들지 않고,
+    // 완료 절이면 work_done(다녀온 사람), 나머지만 work(가는 사람)다.
+    const workKeyword = /회사|업무|출근|퇴근|야근|발표|회의/i.exec(text);
+    if (workKeyword) {
+      const workClause = clauseFor(clauses, workKeyword.index).text;
+      const hopeful = /(?:었|았|됐)으면|좋겠|바라|기원|예정/.test(workClause);
+      if (!hopeful) {
+        intents.push("work");
+        // 출근·퇴근은 이동 자체가 화제라 완료형이어도 기존 흐름(commute/귀가)을 탄다.
+        if (hasPastTense(workClause) && !/출근|퇴근/.test(workClause)) intents.push("work_done");
+      }
+    }
     if (activityTypes.includes("commute")) intents.push("commute");
     if (activityTypes.includes("meal")) intents.push("meal");
     if (activityTypes.includes("exercise")) intents.push("exercise");
