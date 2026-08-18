@@ -24,10 +24,11 @@ Current event names:
 - `gift_desk_open`
 - `gift_given`
 - `butler_switch`
+- `sound_toggle`
 - `privacy_open`
 - `terms_open`
 
-Allowed properties are limited to non-user text such as character key, view/tab, owner-file filter chip, achievement category/verdict, interaction source, official status, gift reaction type, relationship stage index, onboarding state, and preview state.
+Allowed properties are limited to non-user text such as character key, view/tab, owner-file filter chip, sound on/off, achievement category/verdict, interaction source, official status, gift reaction type, relationship stage index, onboarding state, and preview state.
 
 The archive tab switch is gone. Records, diary and certificates were merged into one
 "owner file" document on 2026-08-17, so tab changes inside that screen are now filter

@@ -76,6 +76,70 @@ Use the format:
   detail), and the next-day diary seal is reused untouched. This supersedes a LOCKED area, so
   it was made only on the explicit request of the project owner.
 
+- **Date**: 2026-08-17
+  **Decision**: Adopt one document system for every screen — material hierarchy (grid paper <
+  kraft < ivory < memo < gold), three font roles (machine print / official document / butler's
+  handwriting), and five character-neutral CSS office parts — and replace FORM 04's dark
+  analysis lab with a daylight paper review sheet.
+  **Reason**: Each screen had grown its own colour world, so the app read as several products.
+  Gold is reserved for certificates because everyday gold makes the certificate ordinary, and
+  the handwriting face marks only what the butler wrote by hand, so "who wrote this" stays
+  legible. The dark FORM 04 was enjoyable once or twice and then became a gate to clear every
+  day; superseding it was an explicit project-owner decision.
+
+- **Date**: 2026-08-18
+  **Decision**: Keep the relationship scale in one place — `RELATIONSHIP_BOUNDARIES =
+  [0, 18, 40, 60, 80, 100]` in `chat-engine.js` — and map the screen's six stages, the dialogue
+  tiers, and the gift-copy tiers onto it. Thresholds may only move earlier, never later.
+  **Reason**: The screen used `(index+1)*20` while dialogue used 18/65, so a user could sound
+  close to the butler while the stage had not moved. Moving a threshold later would take an
+  earned line away from existing accounts, so t2 stayed at 18 and only t3 came forward (65 → 60).
+  Verified across obsession 0–100 that no point regresses.
+
+- **Date**: 2026-08-18
+  **Decision**: Show the relationship as an approval row rather than a 100-point bar, expand it
+  only on an actual stage-up, and mask unreached stage names as 「?」.
+  **Reason**: A bar turns a relationship into a progress metric, and printing the future stage
+  names turns it into a checklist — arriving somewhere stops being an event. The 100-point scale
+  is now internal only; the screen says "about N more deeds to the next cell".
+
+- **Date**: 2026-08-18
+  **Decision**: Ship one certificate lineage — the official recognition certificate — on screen
+  and in the shared PNG, and never print scores or star ratings on it.
+  **Reason**: Two parallel certificate paths meant the same achievement produced different
+  documents. The bureau recognises work; it does not grade it, and a number would turn the
+  certificate into a report card. The shared image is the only free acquisition channel, so it
+  must be the same document the user saw.
+
+- **Date**: 2026-08-18
+  **Decision**: Scope negation to the clause containing the verb, never to a fixed window around
+  the regex match, and let a negated action reach neither praise nor the title/category pools.
+  **Reason**: "밥 먹기 귀찮아서 안 먹었어" was issued as 「생존 연료를 충전한 자」. The guard only
+  looked 14 characters around the match, and the meal rule is lazy, so the real negation sat
+  outside it; "못" was missing from the table entirely. One misunderstanding of this kind breaks
+  the app's whole promise that the butler understands, so the guard has to hold at clause level.
+
+- **Date**: 2026-08-18
+  **Decision**: Add a `skipped_care` intent for negated care actions (meal, hygiene, sleep)
+  instead of widening `no_motivation`, with a cat-specific pool and one neutral line for the
+  other characters.
+  **Reason**: `no_motivation` is a feeling ("I don't want to do anything"); skipping lunch is a
+  fact. Answering someone who was too busy to eat with "some days you don't want to do anything"
+  is still not understanding them, and the reply needs a different shape — concern plus one
+  small thing they can do now.
+
+- **Date**: 2026-08-18
+  **Decision**: Convert runtime-referenced images to WebP at quality 90 (lossless for the two
+  paper parts), keep the PNG originals in the repo, and leave five brand PNGs unconverted —
+  favicon, app icon, apple-touch icon, launch splash, and the share card.
+  **Reason**: The Toss Apps `.ait` limit is 100MB and runtime images alone were 18.9MB; the
+  conversion removed 15.09MB (-79.7%) with alpha preserved exactly. Quality 85 would have saved
+  another 0.4MB, which buys nothing against a 100MB ceiling while the character faces are the
+  product. Safari requires PNG for the startup image, and several link-preview scrapers
+  (KakaoTalk among them) do not render WebP — the share card is the only free acquisition
+  channel, so it does not take that risk. Originals stay because the problem is the deploy
+  bundle, not the repository.
+
 ## Future additions
 
 Append future entries with the same three-field format so decisions remain searchable and easy to audit.
