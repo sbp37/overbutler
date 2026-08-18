@@ -1,0 +1,25 @@
+# 배포 번들에서만 빼는 목록이다. 저장소에서는 아무것도 지우지 않는다.
+# 토스 앱스 .ait 한도가 100MB인데 배포 루트가 213MB였고, 그중 런타임이 실제로
+# 참조하는 건 4MB뿐이었다. 여기 적힌 것들은 참조가 0개인 걸 확인하고 뺐다.
+
+# 시안·목업·컨셉보드 — 작업 자료지 앱이 읽는 파일이 아니다.
+design/overbutler-mockups/
+design/overbutler-deadpan-mockups/
+design/overbutler-doodle-mockups/
+design/overbutler-product-ui/
+design/overbutler-v2/
+design/character-concept-board/
+
+# 캐릭터 원본 png. 런타임은 전부 webp를 읽는다(2026-08-18 전환).
+# 원본은 리터치·재출력에 필요해서 저장소에는 남기고 배포에서만 뺀다.
+design/character-assets/**/*.png
+
+# 옛 빌드와 실험용 사본. dist/index.html은 초기 릴리스 버전이라
+# 배포되면 옛날 앱이 공개 URL로 접근 가능해진다.
+dist/
+prototype/
+imported-live/
+
+# 에이전트 작업용
+.codex-bridge/
+docs/
