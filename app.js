@@ -2507,7 +2507,7 @@
     const officialIds = new Set((state.certificates || []).map(record => String(record.id)));
     const groups = new Map();
     const bucket = date => {
-      if (!groups.has(date)) groups.set(date, { date, records: [], diaryEntries: [], hasOfficial: false });
+      if (!groups.has(date)) groups.set(date, { date, records: [], diaryEntries: [], giftLetters: [], hasOfficial: false });
       return groups.get(date);
     };
     records.forEach(record => {
@@ -2517,6 +2517,9 @@
     });
     // 일지는 기록이 없는 날에도 남을 수 있어 별도로 넣는다. 캐릭터는 저장된 값을 그대로 쓴다.
     diary.forEach(entry => bucket(entry.date || "날짜 미상").diaryEntries.push(entry));
+    // 감사 편지 — 희귀 선물에만 동봉된다. unshift로 쌓이므로 시간순으로 뒤집는다.
+    (state.giftHistory || []).filter(item => item.reactionType === "rare").reverse()
+      .forEach(item => bucket(item.date || "날짜 미상").giftLetters.push(item));
     return [...groups.values()].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
   }
 
@@ -2590,12 +2593,25 @@
     </article>`;
   }
 
+  // 편지는 그날의 기념 서류다. 예전 항목(letter가 없던 시절의 희귀 선물)은
+  // 그때 무슨 문장이었는지 알 수 없으므로 중립 문구로만 표시한다 — 지어내지 않는다.
+  function giftLetterMarkup(item) {
+    const letter = storedText(item.letter) || fillContentTemplate(NEUTRAL_GIFT_LETTER, { gift: item.name });
+    return `<aside class="gift-letter-note">
+      <span class="gift-letter-seal" aria-hidden="true">封</span>
+      <span>✉ 감사 편지 · ${item.emoji} ${escapeHtml(item.name)}</span>
+      <p>${escapeHtml(letter)}</p>
+      <small>${escapeHtml(item.butlerName || "담당 집사")} 씀 · 특별 수령 기록</small>
+    </aside>`;
+  }
+
   function ownerFileGroupMarkup(group, officialIds) {
     const cards = group.records.map(record => ownerFileRecordCard(record, officialIds)).join("");
+    const letters = (group.giftLetters || []).map(giftLetterMarkup).join("");
     const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
     return `<section class="file-date-group" data-file-date="${escapeHtml(group.date)}" aria-label="${escapeHtml(group.date)} 기록">
       <div class="file-date-divider"><span>${escapeHtml(ownerFileDateLabel(group.date))}</span></div>
-      ${cards}${notes}
+      ${cards}${letters}${notes}
     </section>`;
   }
 
@@ -2623,9 +2639,10 @@
       .map(group => ({
         ...group,
         records: group.records.filter(keep).slice().reverse(),
-        diaryEntries: narrowed ? [] : group.diaryEntries
+        diaryEntries: narrowed ? [] : group.diaryEntries,
+        giftLetters: narrowed ? [] : group.giftLetters
       }))
-      .filter(group => group.records.length || group.diaryEntries.length);
+      .filter(group => group.records.length || group.diaryEntries.length || group.giftLetters?.length);
 
     const list = $("#archive-record-list");
     if (!groups.length) {
@@ -4629,6 +4646,24 @@
     return responses[normalizeCharacter(character)] || GIFT_MESSAGES[character];
   }
 
+  /* ── 감사 편지 — 기억으로 남는 것 ──
+     희귀 선물(특별선물·스페셜)의 반응은 한 화면 보고 사라졌다. 값이 큰 선물일수록
+     남는 게 있어야 한다: 집사가 감사 편지를 써서 주인님 파일에 넣는다. 편지는
+     일기와 같은 원칙으로 쓴 시점의 문장을 그대로 저장한다 — 나중에 말투 풀이
+     바뀌어도 그날 받은 편지는 그날 그대로다. CAT-FIRST: 고양이만 변주 3, 나머지는
+     중립 한 줄. */
+  const CAT_GIFT_LETTERS = [
+    "{gift}… 이런 건 받아본 적 없다냥. 규정상 쓰는 편지는 아니다냥. 그냥 쓰고 싶었다냥. 이 종이는 네 파일 맨 안쪽에 넣어두겠다냥.",
+    "{gift}을 받고 잠깐 업무가 손에 안 잡혔다냥. 5분 정도다냥. …7분이다냥. 오늘 일은 장부 말고 여기에도 적어둔다냥. 잊지 않으려고다냥.",
+    "{gift}은 비품함이 아니라 집사 서랍에 넣었다냥. 규정 위반인 건 아는데, 이건 사무국 물건이 아니다냥. 네가 준 거니까다냥."
+  ];
+  const NEUTRAL_GIFT_LETTER = "{gift}을 소중히 받았습니다. 이날의 마음은 담당 집사가 파일에 따로 보관합니다.";
+
+  function giftMemoryLetter(character, gift) {
+    const template = normalizeCharacter(character) === "cat" ? randomItem(CAT_GIFT_LETTERS) : NEUTRAL_GIFT_LETTER;
+    return fillContentTemplate(template, { gift: gift.name });
+  }
+
   function giveGift(index = selectedGiftIndex) {
     if (giftTransferActive) return;
     const gift = giftCatalogFor()[index];
@@ -4644,11 +4679,14 @@
     stat.gifts += 1;
     stat.obsession = state.obsession;
     stat.customName = state.butlerName;
+    // 희귀 선물에는 편지가 동봉된다. 지금 이 순간의 문장을 그대로 저장한다.
+    const letter = interaction.type === "rare" ? giftMemoryLetter(state.character, gift) : "";
     state.giftHistory.unshift({
       id: `${Date.now()}-gift`, character: state.character, butlerName: state.butlerName,
       emoji: gift.emoji, name: gift.name, cost: gift.cost, date: today(), at: new Date().toISOString(),
       reactionType: interaction.type, duplicateCount: interaction.duplicateCount, obsessionGain: interaction.delta,
-      relationshipBefore: previousObsession, relationshipAfter: state.obsession
+      relationshipBefore: previousObsession, relationshipAfter: state.obsession,
+      ...(letter ? { letter } : {})
     });
     state.giftHistory = state.giftHistory.slice(0, 100);
     markActiveDay(state.character);
@@ -4667,6 +4705,8 @@
     typeMessage($("#briefing-message"), message);
     renderManager();
     renderRelationshipStatus();
+    // 편지가 파일에 들어가는 건 이번이 처음이라, 선물 후에도 파일을 다시 그려야 한다.
+    renderArchive();
     $("#header-level").textContent = `과몰입 ${state.obsession}`;
     $("#gift-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-reaction-badge").textContent = interaction.label;
@@ -4680,10 +4720,14 @@
     renderRelationshipResult("gift", previousObsession, state.obsession, interaction.delta, "gift");
     setPoseImage($("#gift-butler-image"), state.character, "gift");
     // 흔적은 사는 순간 만들어진다 — 홈에 돌아오면 책상 위에 놓여 있다.
-    if (state.character === "cat") {
-      renderCatRoomGifts();
-      const footnote = $("#gift-overlay .reaction-footnote");
-      if (footnote) footnote.textContent = "보낸 선물은 집사 책상 위에 올라갑니다. 사무국에서 확인해보세요.";
+    if (state.character === "cat") renderCatRoomGifts();
+    const footnote = $("#gift-overlay .reaction-footnote");
+    if (footnote) {
+      footnote.textContent = interaction.type === "rare"
+        ? "집사가 감사 편지를 써서 주인님 파일에 넣어뒀습니다."
+        : state.character === "cat"
+          ? "보낸 선물은 집사 책상 위에 올라갑니다. 사무국에서 확인해보세요."
+          : "선물 내역과 집사별 과몰입도는 담당 기록에 보존됩니다.";
     }
     closeGiftDesk();
     $("#gift-overlay").hidden = false;
