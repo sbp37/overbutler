@@ -3404,3 +3404,150 @@
   #view-home .reception-slip-paper.slip-in,
   #view-home .reception-slip .of-clip.slip-wobble { animation: none; }
 }
+
+/* ═══════════ P2-5 봉인 개봉 ═══════════
+   집사 해금은 이 앱 최대 보상인데 목록이 조용히 바뀌기만 했다. 봉투를 뜯는
+   1.3초를 준다. 네 장면이 시간 위에서 이어 달려서 한 순간에 움직이는 것은
+   하나뿐이다 — 금 → 갈라짐 → 덮개 → 서류. 밀랍 두 조각만 한 쌍으로 같이 떨어진다.
+   이미지 에셋은 쓰지 않는다. 봉투도 인장도 전부 CSS 도형이다. */
+#recruitment-sheet[data-mode="seal"] { min-height: 380px; }
+.seal-open {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  margin: 18px 0 8px;
+}
+.seal-envelope {
+  position: relative;
+  width: min(100%, 260px);
+  height: 272px;
+  perspective: 640px;
+}
+/* 봉투 몸통 — 크라프트 한 장. 서류는 이 뒤에서 올라온다. */
+.seal-envelope:after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  height: 132px;
+  border: 1.5px solid var(--kraft-deep);
+  border-radius: 2px;
+  background: var(--kraft);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .16), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+/* 덮개 — 위쪽 모서리를 축으로 열린다. */
+.seal-flap {
+  position: absolute;
+  right: 0;
+  bottom: 132px;
+  left: 0;
+  /* 열린 덮개는 서류 뒤로 넘어가야 한다 — 위에 남으면 방금 나온 인사 서류를 덮는다. */
+  z-index: 1;
+  height: 74px;
+  border: 1.5px solid var(--kraft-deep);
+  background: #c8a672;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: 50% 0;
+  transform: rotateX(0deg);
+}
+/* 밀랍 인장 — 덮개 끝을 물고 있다. em은 갈라지는 금, i 두 개는 떨어지는 조각. */
+.seal-wax {
+  position: absolute;
+  bottom: 108px;
+  left: 50%;
+  z-index: 6;
+  width: 46px;
+  height: 46px;
+  margin-left: -23px;
+}
+.seal-wax i {
+  position: absolute;
+  top: 0;
+  width: 23px;
+  height: 46px;
+  background: radial-gradient(circle at 42% 34%, #c9505c 0%, var(--stamp-red) 55%, #6f1e26 100%);
+  box-shadow: inset 0 1px 2px rgba(255, 200, 205, .35);
+}
+.seal-wax i:nth-child(1) { left: 0; border-radius: 23px 0 0 23px; }
+.seal-wax i:nth-child(2) { right: 0; border-radius: 0 23px 23px 0; }
+.seal-wax em {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: #4a1017;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+}
+/* 인사 서류 — 봉투 안에서 올라온다. */
+.seal-letter {
+  position: absolute;
+  right: 12px;
+  /* 봉투 몸통 윗변이 바닥에서 132px이다. 서류 본문이 그 선 위에서 끝나야
+     마지막 줄이 잘리지 않는다 — 아래 여백만 몸통 뒤로 숨는다. */
+  bottom: 114px;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  padding: 12px 12px 22px;
+  border: 1px solid var(--doc-line);
+  background: var(--ivory);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .1);
+  opacity: 0;
+  transform: translate3d(0, 46px, 0);
+}
+.seal-letter img { width: 56px; height: 66px; object-fit: contain; }
+.seal-letter small { color: var(--ink-faint); font: 700 8.5px/1 var(--disp); letter-spacing: .14em; }
+.seal-letter b { color: var(--ink); font: 800 17px/1.2 var(--disp); letter-spacing: -.03em; }
+.seal-letter span { color: var(--ink-soft); font: 600 11px/1.4 var(--disp); text-align: center; word-break: keep-all; }
+.seal-caption { margin: 0; color: var(--ink-faint); font: 700 12px/1 var(--hand); }
+
+@keyframes seal-crack { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes seal-shard-left {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  to { transform: translate3d(-13px, 16px, 0) rotate(-24deg); opacity: 0; }
+}
+@keyframes seal-shard-right {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  to { transform: translate3d(13px, 16px, 0) rotate(24deg); opacity: 0; }
+}
+/* 금은 조각과 함께 사라진다 — 조각이 떨어졌는데 금만 공중에 남으면 안 된다. */
+@keyframes seal-crack-fade { to { opacity: 0; } }
+@keyframes seal-flap-open { from { transform: rotateX(0deg); } to { transform: rotateX(-165deg); } }
+@keyframes seal-letter-rise {
+  from { opacity: 0; transform: translate3d(0, 46px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.seal-open.is-opening .seal-wax em { animation: seal-crack .25s ease-in both, seal-crack-fade .12s linear .25s both; }
+.seal-open.is-opening .seal-wax i:nth-child(1) { animation: seal-shard-left .3s ease-in .25s both; }
+.seal-open.is-opening .seal-wax i:nth-child(2) { animation: seal-shard-right .3s ease-in .25s both; }
+.seal-open.is-opening .seal-flap { animation: seal-flap-open .35s cubic-bezier(.3, .8, .3, 1) .55s both; }
+.seal-open.is-opening .seal-letter { animation: seal-letter-rise .4s cubic-bezier(.2, .85, .3, 1) .9s both; }
+
+/* 명부에 막 꽂힌 사람 — 어디에 꽂혔는지 한 번만 알려준다. */
+@keyframes personnel-settle {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.personnel-pool-person.just-hired {
+  border-color: var(--stamp-red);
+  animation: personnel-settle .3s cubic-bezier(.2, .85, .3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seal-open.is-opening .seal-wax,
+  .seal-open.is-opening .seal-wax em,
+  .seal-open.is-opening .seal-wax i,
+  .seal-open.is-opening .seal-flap,
+  .seal-open.is-opening .seal-letter,
+  .personnel-pool-person.just-hired { animation: none; }
+  .seal-open.is-opening .seal-letter { opacity: 1; transform: none; }
+}

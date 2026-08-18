@@ -949,6 +949,7 @@
   let catHomeSpeechTimer = null;
   let catHomeBlinkTimer = null;
   let catHomeSlipTimer = null;
+  let sealOpeningTimer = null;
   let catHomePendingReaction = "";
   let chatReplyTimer = null;
 
@@ -4045,12 +4046,12 @@
     showRecruitmentOverlay();
   }
 
-  function renderPersonnelPool() {
+  function renderPersonnelPool(hiredKey = "") {
     const cards = state.ownedButlers.map(key => {
       const profile = CHARACTER_PROFILES[key];
       const stat = ensureButlerStat(key);
       const current = key === state.character;
-      return `<button class="personnel-pool-person ${current ? "active" : ""}" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}><img src="${personnelPortraitFor(key)}" alt=""><span><b>${escapeHtml(stat.customName || profile.defaultName)}</b><small>${current ? "현재 담당" : stat.assignments > 0 ? "다시 맡기기" : "담당 맡기기"}</small></span></button>`;
+      return `<button class="personnel-pool-person ${current ? "active" : ""}${key === hiredKey ? " just-hired" : ""}" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}><img src="${personnelPortraitFor(key)}" alt=""><span><b>${escapeHtml(stat.customName || profile.defaultName)}</b><small>${current ? "현재 담당" : stat.assignments > 0 ? "다시 맡기기" : "담당 맡기기"}</small></span></button>`;
     }).join("");
     const sheet = $("#recruitment-sheet");
     sheet.dataset.mode = "pool";
@@ -4061,6 +4062,12 @@
       <div class="personnel-actions">${state.pendingApplicants.length ? `<button class="secondary-button" data-personnel-action="application" type="button">도착한 지원서 ${state.pendingApplicants.length}건 보기</button>` : ""}
       <button class="text-button" data-personnel-action="close" type="button">인사 명부 닫기</button></div>`;
     showRecruitmentOverlay();
+    // 개봉이 끝난 집사는 명부에서 자기 자리로 내려앉는다. 방금 온 사람이
+    // 어디에 꽂혔는지 눈으로 따라갈 수 있어야 개봉이 마무리된다.
+    if (hiredKey) {
+      const card = sheet.querySelector(".personnel-pool-person.just-hired");
+      card?.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
   }
 
   function closeRecruitment() {
@@ -4082,8 +4089,47 @@
     ensureButlerStat(key);
     if (!saveState()) { render(); return; }
     render();
-    renderPersonnelPool();
-    showToast(`${profile.name} 채용 완료 · 보유함에 등록했습니다.`);
+    const settle = () => {
+      renderPersonnelPool(key);
+      showToast(`${profile.name} 채용 완료 · 보유함에 등록했습니다.`);
+    };
+    // 해금은 이 앱에서 가장 큰 보상인데 목록만 조용히 바뀌었다. 봉인을 뜯는
+    // 1.3초를 준다. 감소 모드이거나 인사국 창이 닫혀 있으면 바로 명부로 간다.
+    if (prefersReducedMotion() || $("#recruitment-overlay").hidden) { settle(); return; }
+    playSealOpening(key, settle);
+  }
+
+  /* 봉인 개봉 — 밀랍에 금이 가고, 두 조각으로 갈라져 떨어지고, 덮개가 열리고,
+     안에서 인사 서류가 올라온다. 네 장면이 시간 위에서 이어 달리므로 한 순간에
+     움직이는 것은 하나뿐이다(밀랍 두 조각만 한 쌍으로 같이 떨어진다).
+     이미지 에셋은 쓰지 않는다 — 봉투도 인장도 전부 CSS 도형이다. */
+  const SEAL_OPENING_MS = 1300;
+  function playSealOpening(key, done) {
+    const profile = CHARACTER_PROFILES[key];
+    const sheet = $("#recruitment-sheet");
+    if (!sheet || !profile) { done(); return; }
+    sheet.dataset.mode = "seal";
+    sheet.innerHTML = `
+      <div class="personnel-document-meta"><span>봉인 개봉 · PERSONNEL</span><b>채용 승인</b></div>
+      <div class="seal-open" role="status" aria-live="polite">
+        <div class="seal-envelope">
+          <span class="seal-flap" aria-hidden="true"></span>
+          <div class="seal-letter">
+            <img src="${personnelPortraitFor(key)}" alt="${escapeHtml(profile.name)}">
+            <small>중앙인사국 채용 승인</small>
+            <b>${escapeHtml(profile.name)}</b>
+            <span>${escapeHtml(profile.desc)}</span>
+          </div>
+          <span class="seal-wax" aria-hidden="true"><i></i><i></i><em></em></span>
+        </div>
+        <p class="seal-caption">봉인을 뜯는 중입니다…</p>
+      </div>`;
+    showRecruitmentOverlay();
+    window.requestAnimationFrame(() => sheet.querySelector(".seal-open")?.classList.add("is-opening"));
+    // 인장이 갈라지는 순간에만 한 번. 개봉 내내 울리면 연출이 아니라 알림이 된다.
+    window.setTimeout(() => haptic(25), 250);
+    window.clearTimeout(sealOpeningTimer);
+    sealOpeningTimer = window.setTimeout(done, SEAL_OPENING_MS + 150);
   }
 
   function deferApplicant(character) {
