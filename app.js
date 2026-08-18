@@ -2719,6 +2719,51 @@
     openCertificate(record);
   }
 
+  /* ── 선물의 흔적 ──
+     선물을 사면 반응 한 화면 보고 끝이었다 — 책상 위에 참치캔이 남지 않았다.
+     구매가 세계에 흔적을 남겨야 선물이 "소비"가 아니라 "수집"이 된다.
+     저장 키는 늘리지 않는다: giftHistory에서 종류별로 파생한다.
+     슬롯은 책상 윗면 라인(bottom 28.5%)의 캐릭터 양옆 — 책상 앞판 클립(y72~80%)에
+     안 가리고, 월드 안에 있어서 방을 밀면 같이 밀린다. */
+  const CAT_ROOM_GIFT_SLOTS = [
+    { left: 34, bottom: 29 }, { left: 64, bottom: 29 }, { left: 27, bottom: 28.5 },
+    { left: 71, bottom: 28.5 }, { left: 20, bottom: 28.5 }, { left: 78, bottom: 28.5 },
+    { left: 13, bottom: 28 }, { left: 85, bottom: 28 }, { left: 92, bottom: 28 }
+  ];
+  const CAT_ROOM_GIFT_LINES = [
+    "네가 준 {gift}… 잘 있다냥. 가끔 보는 건 재고 관리다냥.",
+    "{gift} 자리는 여기로 정했다냥. 집사 눈에 제일 잘 보이는 자리… 우연이다냥.",
+    "{gift}은 공식 비품으로 등록해뒀다냥. 회수 신청은 기각이다냥."
+  ];
+  let renderedRoomGiftNames = null;
+
+  function catRoomGiftItems() {
+    if (state.character !== "cat") return [];
+    const counts = new Map();
+    state.giftHistory.filter(item => normalizeCharacter(item.character) === "cat").forEach(item => {
+      counts.set(item.name, { emoji: item.emoji, count: (counts.get(item.name)?.count || 0) + 1 });
+    });
+    // 카탈로그 순서 = 책상에 놓이는 순서. 같은 선물은 하나만 놓고 개수를 단다.
+    return giftCatalogFor("cat")
+      .filter(gift => counts.has(gift.name))
+      .map(gift => ({ name: gift.name, emoji: gift.emoji, count: counts.get(gift.name).count }))
+      .slice(0, CAT_ROOM_GIFT_SLOTS.length);
+  }
+
+  function renderCatRoomGifts() {
+    const layer = $("#cat-room-gifts");
+    if (!layer) return;
+    const items = catRoomGiftItems();
+    const previous = renderedRoomGiftNames;
+    renderedRoomGiftNames = new Set(items.map(item => item.name));
+    layer.innerHTML = items.map((item, index) => {
+      const slot = CAT_ROOM_GIFT_SLOTS[index];
+      // 이번 세션에 새로 놓인 것만 내려앉는 연출을 붙인다. 첫 렌더는 조용히 이미 놓여 있다.
+      const fresh = previous !== null && !previous.has(item.name) && !prefersReducedMotion();
+      return `<button class="cat-room-gift${fresh ? " just-placed" : ""}" type="button" style="left:${slot.left}%;bottom:${slot.bottom}%" data-room-gift="${escapeHtml(item.name)}" aria-label="${escapeHtml(item.name)}${item.count > 1 ? ` ${item.count}개` : ""}">${item.emoji}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
+    }).join("");
+  }
+
   function catHomeBounds() {
     const room = $("#cat-home-room");
     const world = $("#cat-home-world");
@@ -2810,6 +2855,7 @@
       } else setCatHomeOffset(catHomeOffsetX);
     });
     scheduleCatHomeBlink();
+    renderCatRoomGifts();
   }
 
   // 연타하면 같은 말이 계속 나왔다. 단계당 두 줄뿐이라 A·B가 번갈아 나온 게
@@ -4615,6 +4661,12 @@
     $("#gift-obsession").textContent = state.obsession;
     renderRelationshipResult("gift", previousObsession, state.obsession, interaction.delta, "gift");
     setPoseImage($("#gift-butler-image"), state.character, "gift");
+    // 흔적은 사는 순간 만들어진다 — 홈에 돌아오면 책상 위에 놓여 있다.
+    if (state.character === "cat") {
+      renderCatRoomGifts();
+      const footnote = $("#gift-overlay .reaction-footnote");
+      if (footnote) footnote.textContent = "보낸 선물은 집사 책상 위에 올라갑니다. 사무국에서 확인해보세요.";
+    }
     closeGiftDesk();
     $("#gift-overlay").hidden = false;
     document.body.style.overflow = "hidden";
@@ -4712,6 +4764,13 @@
     $("#report-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("clip"); submitAchievement(); });
     $("#briefing-character-action").addEventListener("click", interactWithButler);
     $("#diary-open-note").addEventListener("click", () => { haptic(15); OfficeSound.cue("paper"); openPendingDiary(); });
+    $("#cat-room-gifts").addEventListener("click", event => {
+      const item = event.target.closest("[data-room-gift]");
+      if (!item) return;
+      if (catHomeDragged) { catHomeDragged = false; return; }
+      const line = randomItem(CAT_ROOM_GIFT_LINES).replaceAll("{gift}", item.dataset.roomGift);
+      showCatHomeSpeech(fillContentTemplate(line));
+    });
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
       const entry = $("#view-home .entry-form");

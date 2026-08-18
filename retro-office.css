@@ -3648,3 +3648,46 @@
   color: #5c4c36;
   font: 700 13px/1.3 var(--hand);
 }
+
+/* ═══════════ 선물의 흔적 — 책상 위에 남는 선물 ═══════════
+   사준 것이 방에 영구히 보인다. 스티커가 아니라 책상에 놓인 물건으로
+   읽히도록 그림자를 바닥에 깔고, 살짝씩 기울인다. */
+.cat-room-gifts { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.cat-room-gift {
+  position: absolute;
+  z-index: 3;
+  padding: 2px;
+  border: 0;
+  background: none;
+  font-size: 23px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 2px rgba(60, 40, 28, .28));
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateX(-50%);
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-room-gift:nth-child(odd) { rotate: -5deg; }
+.cat-room-gift:nth-child(even) { rotate: 4deg; }
+.cat-room-gift:nth-child(3n) { rotate: 8deg; }
+.cat-room-gift > i {
+  position: absolute;
+  right: -8px;
+  bottom: -4px;
+  padding: 1px 3px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 2px;
+  background: var(--kraft);
+  color: #4a3a22;
+  font: 800 8px/1 var(--disp);
+  font-style: normal;
+}
+.cat-room-gift:focus-visible { outline: 2px solid rgba(116, 25, 42, .5); outline-offset: 2px; }
+/* 새로 놓인 물건은 책상에 살짝 내려앉는다 — 도장과 같은 문법, 더 작게. */
+@keyframes room-gift-place {
+  0% { transform: translateX(-50%) translateY(-10px) scale(1.25); opacity: 0; }
+  60% { transform: translateX(-50%) translateY(1px) scale(.98); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+}
+.cat-room-gift.just-placed { animation: room-gift-place .32s cubic-bezier(.2, .85, .3, 1) both; }
+@media (prefers-reduced-motion: reduce) { .cat-room-gift.just-placed { animation: none; } }
