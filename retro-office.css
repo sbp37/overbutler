@@ -766,8 +766,6 @@
   letter-spacing: .1em;
 }
 #manager-details .obsession-heading b { color: var(--tab-manager); }
-#manager-details .obsession-track { border-radius: 0; background: #e2d7ca; }
-#manager-details .obsession-track i { border-radius: 0; background: var(--tab-manager); }
 #manager-details .relationship-summary {
   border-radius: 2px;
   border-color: #d3c4b3;
@@ -879,8 +877,6 @@
 .praise-result-document blockquote { background: var(--doc-paper); }
 #result-relationship-result { background: #f9f2e8; }
 #result-relationship-result > span { color: var(--burgundy); }
-#result-relationship-result b { border-radius: 0; background: #e2d7ca; }
-#result-relationship-result b i { border-radius: 0; background: var(--burgundy); }
 .praise-result-metrics { background: var(--doc-paper); }
 .praise-result-metrics dt { color: #8a7b71; }
 .praise-result-metrics > div:nth-child(2) dd { color: var(--burgundy); }
@@ -932,8 +928,6 @@
 .gift-receipt blockquote { background: var(--doc-paper); }
 #gift-relationship-result { background: #f9f2e8; }
 #gift-relationship-result > span { color: var(--tab-manager); }
-#gift-relationship-result b { border-radius: 0; background: #e2d7ca; }
-#gift-relationship-result b i { border-radius: 0; background: var(--tab-manager); }
 .gift-result-metrics { border-radius: 3px; border-color: #d3c4b3; background: var(--doc-paper); }
 .gift-result-metrics dt { color: #8a7b71; }
 .gift-result-metrics dd b { color: var(--tab-manager); }
@@ -1620,19 +1614,34 @@
   letter-spacing: .16em;
 }
 #manager-details #relationship-next-copy { color: var(--ink-faint); font: 700 13px/1 var(--hand); }
-#manager-details .stage-list {
+
+/* ── 관계 결재란 ──
+   관계는 화면마다 다르게 생기면 안 된다. 집사 카드·결과서·선물 결과가
+   전부 같은 결재란 한 줄을 본다. 그래서 규칙을 여기 한 곳에만 쓰고
+   세 곳의 선택자를 함께 묶는다. 아직 지나지 않은 칸은 이름을 가린
+   「?」로 남는다 — 다음 칸이 뭔지 미리 읽히면 도착이 사건이 아니게 된다. */
+#manager-details .stage-list,
+#result-relationship-approval,
+#gift-relationship-approval {
   display: flex;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
   border: 1px solid var(--doc-line);
   border-radius: 2px;
+  background: var(--ivory);
 }
-#manager-details .stage-list > span {
+#manager-details .stage-list > span,
+#result-relationship-approval > span,
+#gift-relationship-approval > span {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 5px;
   align-items: center;
+  justify-content: flex-start;
   min-width: 0;
+  min-height: 0;
   padding: 7px 2px 8px;
   border: 0;
   border-radius: 0;
@@ -1641,9 +1650,22 @@
   font: 600 8.5px/1.1 var(--disp);
   text-align: center;
 }
-#manager-details .stage-list > span + span { border-left: 1px solid var(--doc-line-soft); }
-#manager-details .stage-list > span b { font: inherit; color: inherit; }
-#manager-details .stage-list > span i {
+#manager-details .stage-list > span + span,
+#result-relationship-approval > span + span,
+#gift-relationship-approval > span + span { border-left: 1px solid var(--doc-line-soft); }
+#manager-details .stage-list > span b,
+#result-relationship-approval > span b,
+#gift-relationship-approval > span b {
+  display: block;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: -.02em;
+  word-break: keep-all;
+}
+#manager-details .stage-list > span i,
+#result-relationship-approval > span i,
+#gift-relationship-approval > span i {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1654,24 +1676,107 @@
   color: var(--ink-faint);
   font: 800 9px/1 var(--disp);
   font-style: normal;
+  opacity: 1;
 }
-#manager-details .stage-list > span.done i {
+/* 도장 자국은 조금씩 삐뚤어야 손으로 찍은 것처럼 보인다.
+   transform이 아니라 rotate 속성으로 기울인다 — 도장이 내려앉는 연출이
+   transform: scale을 쓰기 때문에, 둘이 서로를 덮어쓰면 안 된다. */
+#manager-details .stage-list > span.done i,
+#result-relationship-approval > span.done i,
+#gift-relationship-approval > span.done i {
   border: 2px solid var(--stamp-red);
   background: rgba(157, 47, 58, .06);
   color: var(--stamp-red);
 }
-#manager-details .stage-list > span.done:nth-child(1) i { transform: rotate(-10deg); }
-#manager-details .stage-list > span.done:nth-child(2) i { transform: rotate(7deg); }
-#manager-details .stage-list > span.done:nth-child(3) i { transform: rotate(-5deg); }
-#manager-details .stage-list > span.now i { border: 1.5px dashed var(--stamp-red); color: var(--stamp-red); }
-#manager-details .stage-list > span.now { color: var(--stamp-red); }
+#manager-details .stage-list > span.done:nth-child(1) i,
+#result-relationship-approval > span.done:nth-child(1) i,
+#gift-relationship-approval > span.done:nth-child(1) i { rotate: -10deg; }
+#manager-details .stage-list > span.done:nth-child(2) i,
+#result-relationship-approval > span.done:nth-child(2) i,
+#gift-relationship-approval > span.done:nth-child(2) i { rotate: 7deg; }
+#manager-details .stage-list > span.done:nth-child(3) i,
+#result-relationship-approval > span.done:nth-child(3) i,
+#gift-relationship-approval > span.done:nth-child(3) i { rotate: -5deg; }
+#manager-details .stage-list > span.done:nth-child(5) i,
+#result-relationship-approval > span.done:nth-child(5) i,
+#gift-relationship-approval > span.done:nth-child(5) i { rotate: 6deg; }
+#manager-details .stage-list > span.now,
+#result-relationship-approval > span.now,
+#gift-relationship-approval > span.now { color: var(--stamp-red); }
+#manager-details .stage-list > span.now i,
+#result-relationship-approval > span.now i,
+#gift-relationship-approval > span.now i { border: 1.5px dashed var(--stamp-red); color: var(--stamp-red); }
+/* 아직 안 지난 칸 — 결재란은 비어 있고 이름도 아직 안 적혔다. */
+#manager-details .stage-list > span.locked,
+#result-relationship-approval > span.locked,
+#gift-relationship-approval > span.locked { color: #b3a493; }
+#manager-details .stage-list > span.locked i,
+#result-relationship-approval > span.locked i,
+#gift-relationship-approval > span.locked i {
+  border-color: var(--doc-line-soft);
+  color: #c3b6a6;
+}
+
+/* 도장이 내려앉는다. 이 연출은 단계가 실제로 오른 날에만 붙는다. */
+@keyframes approval-stamp-land {
+  0% { transform: scale(2.5); opacity: 0; }
+  45% { transform: scale(.9); opacity: 1; }
+  72% { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+@keyframes approval-stamp-ring {
+  0% { box-shadow: 0 0 0 0 rgba(157, 47, 58, .32); }
+  100% { box-shadow: 0 0 0 13px rgba(157, 47, 58, 0); }
+}
+#result-relationship-approval > span.just-inked i,
+#gift-relationship-approval > span.just-inked i {
+  animation: approval-stamp-land .46s cubic-bezier(.22, .9, .28, 1) both,
+             approval-stamp-ring .6s ease-out .2s both;
+}
+#result-relationship-approval > span.just-inked b,
+#gift-relationship-approval > span.just-inked b { color: var(--stamp-red); }
+@media (prefers-reduced-motion: reduce) {
+  #result-relationship-approval > span.just-inked i,
+  #gift-relationship-approval > span.just-inked i { animation: none; }
+}
+
+/* 결과서·선물 결과의 관계 칸 — 평소에는 한 줄로 끝난다.
+   결재란과 집사의 말은 단계가 오른 날에만 펼쳐지므로, 읽는 순서는
+   상승 알림 → 결재란 → 집사의 말이 되어야 한다. 예전 규칙이 문장을
+   맨 위로 끌어올리던 order를 여기서 되돌린다. */
+#result-relationship-result,
+#gift-relationship-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+#result-relationship-result > span.relationship-line,
+#gift-relationship-result > span.relationship-line {
+  order: 0;
+  display: block;
+  margin: 0;
+  font: 800 11px/1.3 var(--disp);
+  letter-spacing: .05em;
+}
+#result-relationship-result > #result-relationship-approval,
+#gift-relationship-result > #gift-relationship-approval { order: 1; margin: 8px 0 0; }
+#result-relationship-result > p,
+#gift-relationship-result > p {
+  order: 2;
+  margin: 9px 0 0;
+  color: #584845;
+  font: 700 14px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#result-relationship-result > [hidden],
+#gift-relationship-result > [hidden] { display: none; }
+
 #manager-details .relationship-summary {
   margin-top: 10px;
   padding: 0;
   border: 0;
   background: none;
 }
-#manager-details .obsession-track { margin-top: 8px; }
 
 /* 선물 전달 줄 */
 #manager-details .manager-gift-button {
@@ -1843,7 +1948,6 @@
 #view-manager .manager-obsession { display: block; padding: 0; }
 #view-manager .manager-obsession .relationship-summary { order: 0; margin-top: 10px; }
 #view-manager .manager-obsession .obsession-heading { order: 0; margin-top: 0; padding-top: 0; border-top: 0; }
-#view-manager .manager-obsession .obsession-track { order: 0; margin-top: 8px; }
 #manager-details .relationship-summary > strong { display: block; margin-top: 4px; }
 
 /* 명부는 타일이 아니라 서류 한 장씩 쌓인 목록이다. */

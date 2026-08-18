@@ -12,10 +12,14 @@
   // 옛 캐릭터 키로 저장된 대화 기록이 넘어와도 같은 집사로 이어지게 한다. app.js와 같은 표를 쓴다.
   const LEGACY_CHARACTER_ALIASES = { fox: "zombie", star: "girlidol" };
 
-  // 관계 티어 경계. 대업당 +3이라 이 숫자가 곧 "며칠째에 처음 보이는가"를 정한다.
-  // 대사(relationshipLinesFor)와 주인님 파일 표지 소견이 같은 기준을 써야 해서
-  // 내보낸다 — 두 곳에 같은 숫자를 따로 적어두면 반드시 어긋난다.
-  const TIER_THRESHOLDS = Object.freeze({ t2: 18, t3: 65 });
+  // 관계 단계 경계 — 화면의 6단계와 대사 티어가 같은 눈금을 쓰게 하려고 여기 한 곳에만 둔다.
+  // chat-engine이 app.js보다 먼저 로드되므로 정의는 이쪽에 있고 app.js가 읽어 쓴다.
+  // 대업당 +3이라 이 숫자가 곧 "며칠째에 그 단계가 되는가"를 정한다.
+  const RELATIONSHIP_BOUNDARIES = Object.freeze([0, 18, 40, 60, 80, 100]);
+  // 대사 티어는 단계 경계 위에 얹는다 — 2단계(익숙해짐) 진입에서 말투가 풀리고,
+  // 4단계(챙김 받는 중) 진입에서 먼저 챙기는 말이 열린다. 예전에는 18/65라
+  // 화면 단계와 어긋나, 말투만 친해지고 단계는 그대로인 구간이 있었다.
+  const TIER_THRESHOLDS = Object.freeze({ t2: RELATIONSHIP_BOUNDARIES[1], t3: RELATIONSHIP_BOUNDARIES[3] });
 
   const INTENTS = [
     ["hard_day", /(?:오늘|회사|하루).*(?:너무\s*)?(?:힘들|고생|지치)|(?:힘들|고생|지치).*(?:오늘|회사|하루)/i, "힘든 하루", "tired"],
@@ -626,5 +630,5 @@
     return "night";
   }
 
-  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, classify, respond, normalizeMemory, timeSlotForHour, TIER_THRESHOLDS, intents: Object.freeze(INTENTS.map(item => item[0])) });
+  return Object.freeze({ analyzeUserMessage: interpreter?.analyzeUserMessage, classify, respond, normalizeMemory, timeSlotForHour, TIER_THRESHOLDS, RELATIONSHIP_BOUNDARIES, intents: Object.freeze(INTENTS.map(item => item[0])) });
 });

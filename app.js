@@ -23,6 +23,8 @@
     { name: "전담 확정", badge: "전담 유지", summary: "업무 연속성을 핑계로 계속 전담하겠다고 주장합니다.", upgrade: "전담 유지 타당성 보고서가 사무국에서 정식 승인됐습니다." }
   ];
   const STAGES = RELATIONSHIP_STAGES.map(stage => stage.name);
+  // 단계 경계는 chat-engine이 들고 있다. 화면 단계와 대사 티어가 같은 눈금을 쓰기 위해서다.
+  const STAGE_BOUNDARIES = CHAT_ENGINE?.RELATIONSHIP_BOUNDARIES || [0, 18, 40, 60, 80, 100];
   // 집사 대사 작성 규칙. 상세: docs/BUTLER-VOICE.md
   const BUTLER_CONTENT_RULES = Object.freeze({
     volume: "다정함은 1일차부터 충분히, 과장은 절제해서. 자라는 것은 볼륨이 아니라 새어나오는 마음이다.",
@@ -38,7 +40,8 @@
   const BALANCE = Object.freeze({
     deedPoints: Object.freeze({ praise: 12, power: 14, rare: 20, duplicate: 3 }),
     deedRelationship: Object.freeze({ praise: 3, power: 4, rare: 6, duplicate: 1 }),
-    giftRelationship: Object.freeze({ normal: 3, favorite: 5, duplicate: 1, rare: 8 }),
+    // favoriteRepeat — 취향 선물을 또 줬을 때. 취향이라는 사실은 그대로고 놀라움만 준다.
+    giftRelationship: Object.freeze({ normal: 3, favorite: 5, favoriteRepeat: 2, duplicate: 1, rare: 8 }),
     giftCosts: Object.freeze([10, 20, 35, 55, 80, 110, 150, 210, 300]),
     rareRollDivisor: 31,
     rarePityAfter: 24,
@@ -1216,17 +1219,24 @@
   }
   function officialRecords() { return state.records.filter(record => record.stampEligible !== false); }
   function scoreText(record) { return record?.scoreLabel || `${record?.score ?? 99}점`; }
-  function stageIndexFor(obsession) { return Math.min(STAGES.length - 1, Math.floor(clamp(obsession, 0, 100) / 20)); }
+  function stageIndexFor(obsession) {
+    const value = clamp(obsession, 0, 100);
+    let index = 0;
+    STAGE_BOUNDARIES.forEach((boundary, position) => { if (value >= boundary) index = position; });
+    return Math.min(RELATIONSHIP_STAGES.length - 1, index);
+  }
   function relationshipStageFor(obsession) { return RELATIONSHIP_STAGES[stageIndexFor(obsession)]; }
   function pointsToNextStage(obsession) {
     const index = stageIndexFor(obsession);
-    return index >= RELATIONSHIP_STAGES.length - 1 ? 0 : (index + 1) * 20 - clamp(obsession, 0, 100);
+    return index >= RELATIONSHIP_STAGES.length - 1 ? 0 : STAGE_BOUNDARIES[index + 1] - clamp(obsession, 0, 100);
   }
   function relationshipProgress(obsession) {
     const value = clamp(obsession, 0, 100);
     const index = stageIndexFor(value);
     if (index >= RELATIONSHIP_STAGES.length - 1) return 100;
-    return Math.round(((value - index * 20) / 20) * 100);
+    const from = STAGE_BOUNDARIES[index];
+    const span = Math.max(1, STAGE_BOUNDARIES[index + 1] - from);
+    return Math.round(((value - from) / span) * 100);
   }
 
   function assetFor(character, pose) {
@@ -1725,13 +1735,33 @@
     const stage = relationshipStageFor(state.obsession);
     const remaining = pointsToNextStage(state.obsession);
     $("#home-relationship-stage").textContent = stage.name;
-    $("#home-relationship-next").textContent = remaining ? `다음 관계까지 ${remaining}` : "최고 관계 도달";
+    $("#home-relationship-next").textContent = remaining ? "다음 칸 결재 대기" : "최고 관계 도달";
     $("#relationship-stage-badge").textContent = stage.badge;
     $("#relationship-stage-title").textContent = stage.name;
     // 관계 칸의 주인공은 숫자가 아니라 집사의 말이다. 캐릭터 대사가 있으면 그걸 쓰고,
     // 없는 캐릭터에서만 시스템 설명문으로 떨어진다.
     $("#relationship-stage-summary").textContent = relationshipStageLine() || stage.summary;
-    $("#relationship-next-copy").textContent = remaining ? `다음 관계까지 과몰입 ${remaining}` : "집사 과몰입이 최고 단계에 도달했습니다.";
+    // 100점 눈금은 화면에 내보내지 않는다. 남은 거리는 주인님이 실제로 하는 일
+    // — 대업 몇 건 — 으로 환산해서 적는다. 대업마다 값이 달라서 어림수임을 밝힌다.
+    const deedsLeft = Math.ceil(remaining / BALANCE.deedRelationship.praise);
+    $("#relationship-next-copy").textContent = remaining ? `다음 칸까지 대업 ${deedsLeft}건쯤` : "마지막 칸까지 결재 완료";
+  }
+
+  // 관계는 막대가 아니라 결재란이다 — 지나온 칸에는 도장이 찍혀 있고, 지금 칸은
+  // 아직 점선이다. 아직 도달하지 않은 칸의 이름은 가린다: 다음에 무엇이 오는지를
+  // 미리 읽히면 관계가 목표 목록이 되고, 도착했을 때의 놀라움이 사라진다.
+  function relationshipApprovalMarkup(obsession, justInked = -1) {
+    const index = stageIndexFor(obsession);
+    // 마지막 칸은 도달하는 순간이 곧 완료다 — 그 위로 더 갈 눈금이 없으니
+    // 점선으로 두면 "아직 진행 중"이라는 거짓말이 된다.
+    const last = RELATIONSHIP_STAGES.length - 1;
+    return RELATIONSHIP_STAGES.map((stage, position) => {
+      const reached = position < index || (position === index && index === last);
+      const status = reached ? "done" : position === index ? "now" : "locked";
+      const label = position <= index ? escapeHtml(stage.name) : "「?」";
+      const landing = position === justInked ? " just-inked" : "";
+      return `<span class="${status}${landing}"><i>${status === "done" ? "印" : "·"}</i><b>${label}</b></span>`;
+    }).join("");
   }
 
   function renderRelationshipResult(prefix, before, after, delta, source) {
@@ -1739,18 +1769,26 @@
     if (!element) return;
     const previousStage = relationshipStageFor(before);
     const currentStage = relationshipStageFor(after);
-    const upgraded = stageIndexFor(after) > stageIndexFor(before);
-    const remaining = pointsToNextStage(after);
+    const nextIndex = stageIndexFor(after);
+    const upgraded = nextIndex > stageIndexFor(before);
     element.classList.toggle("upgraded", upgraded);
-    $(`#${prefix}-relationship-kicker`).textContent = upgraded ? `관계 단계 상승 · +${delta}` : `관계 기록 업데이트 · +${delta}`;
-    $(`#${prefix}-relationship-stage`).textContent = currentStage.name;
-    $(`#${prefix}-relationship-next`).textContent = remaining ? `다음 관계까지 ${remaining}` : "최고 관계 도달";
-    $(`#${prefix}-relationship-fill`).style.width = `${relationshipProgress(after)}%`;
-    $(`#${prefix}-relationship-message`).textContent = upgraded
-      ? `${previousStage.name} → ${currentStage.name}. ${relationshipStageLine(state.character, after) || templateOwner(currentStage.upgrade)}`
-      : source === "gift"
-        ? `${state.butlerName} 집사가 선물 받은 순간을 관계 기록에 소중히 추가했습니다.`
-        : `${state.butlerName} 집사가 이번 대업을 다시 꺼내볼 기억으로 관계 기록에 추가했습니다.`;
+    // 평소에는 한 줄이면 된다. 결재란을 매번 펼치면 단계가 오른 날이 특별해지지 않는다.
+    $(`#${prefix}-relationship-kicker`).textContent = upgraded
+      ? `관계 단계 상승 · ${previousStage.name} → ${currentStage.name}`
+      : `관계 +${delta} · ${currentStage.name}`;
+    const approval = $(`#${prefix}-relationship-approval`);
+    if (approval) {
+      approval.hidden = !upgraded;
+      // 방금 승인된 칸은 직전 단계다 — 새 단계는 아직 진행 중이라 점선으로 남는다.
+      // 다만 마지막 칸에 올라선 날은 그 칸 자체가 승인되므로 거기에 도장이 내려앉는다.
+      const inked = nextIndex >= RELATIONSHIP_STAGES.length - 1 ? nextIndex : nextIndex - 1;
+      approval.innerHTML = upgraded ? relationshipApprovalMarkup(after, inked) : "";
+    }
+    const message = $(`#${prefix}-relationship-message`);
+    message.hidden = !upgraded;
+    message.textContent = upgraded
+      ? relationshipStageLine(state.character, after) || templateOwner(currentStage.upgrade)
+      : "";
   }
 
   function isFirstDeedPending() {
@@ -2573,8 +2611,6 @@
     $("#manager-butler-specialty").textContent = profile.specialty || profile.desc;
     $("#manager-butler-symbol").textContent = "✦";
     $("#manager-handnote").textContent = profile.briefings[0];
-    $("#obsession-value").textContent = state.obsession;
-    $("#obsession-fill").style.width = `${state.obsession}%`;
     $("#obsession-label").textContent = "관계 결재란";
     const posted = [...stat.activeDates].sort()[0] || today();
     $("#manager-posted-stamp").textContent = posted.slice(5).replace("-", ". ");
@@ -2601,12 +2637,7 @@
     }).join("") + sealedApplicantMarkup();
     const recentDuties = state.diary.filter(entry => normalizeCharacter(entry.butler?.character || entry.character) === state.character).slice(-3).reverse();
     $("#manager-duty-list").innerHTML = recentDuties.length ? recentDuties.map((entry, index) => `<div><i>${index === 0 ? "오늘 담당" : "기록"}</i><span>${escapeHtml(entry.deed || entry.todos?.[0] || "대업 기록")}</span><time>${escapeHtml(entry.date || "")}</time></div>`).join("") : '<div class="manager-duty-empty">아직 이 집사의 근무 기록이 없습니다.</div>';
-    // 관계는 막대가 아니라 결재란이다 — 지나온 칸에는 도장이 찍혀 있고, 지금 칸은
-    // 아직 점선이다. 다음 칸이 비어 있다는 사실 자체가 다음에 올 것을 말한다.
-    $("#stage-list").innerHTML = RELATIONSHIP_STAGES.map((stage, index) => {
-      const state_ = index < stageIndex ? "done" : index === stageIndex ? "now" : "locked";
-      return `<span class="${state_}"><i>${state_ === "done" ? "印" : "·"}</i><b>${escapeHtml(stage.name)}</b></span>`;
-    }).join("");
+    $("#stage-list").innerHTML = relationshipApprovalMarkup(state.obsession);
     const next = APPLICANT_ORDER.find(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
     const requirement = next ? applicantStatus(next) : null;
     if (state.pendingApplicants.length) {
@@ -4059,9 +4090,20 @@
     const priorCount = state.giftHistory.filter(item => normalizeCharacter(item.character) === key && item.name === gift.name).length;
     const rare = index >= 7;
     const favorite = Boolean(content?.favorites?.includes(gift.name));
-    const type = rare ? "rare" : priorCount > 0 ? "duplicate" : favorite ? "favorite" : "normal";
+    const repeat = priorCount > 0;
+    // 취향은 두 번 준다고 취향이 아니게 되지 않는다. 예전에는 재증정이 duplicate로
+    // 덮여 관계가 +1만 붙었고, 그게 "이제 참치캔을 안 좋아하나?"로 읽혔다.
+    // 취향은 유지하고 놀라움만 준다 — 두 상태가 겹칠 수 있게 분리한다.
+    const type = rare ? "rare" : favorite ? "favorite" : repeat ? "duplicate" : "normal";
+    const favoriteRepeat = type === "favorite" && repeat;
     const labels = { normal: "선물 접수", favorite: "취향 적중", duplicate: "선물 기억 중", rare: "희귀 선물" };
-    return { type, label: labels[type], delta: BALANCE.giftRelationship[type], duplicateCount: priorCount + 1, favorite, rare };
+    return {
+      type,
+      label: favoriteRepeat ? `♥ 취향 · ${priorCount + 1}번째` : labels[type],
+      delta: BALANCE.giftRelationship[favoriteRepeat ? "favoriteRepeat" : type],
+      duplicateCount: priorCount + 1,
+      favorite, favoriteRepeat, rare
+    };
   }
 
   // 선물 반응 3단계: 담백한 접수(T0) → 장부·전용칸 생김(T1) → 기관이 끼어드는 소동(T2).
