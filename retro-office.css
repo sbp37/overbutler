@@ -716,8 +716,8 @@
   padding: 0;
   border: 0;
   background: var(--stamp-red);
-  -webkit-mask-image: url("design/paper-assets/stamp-approved.png");
-  mask-image: url("design/paper-assets/stamp-approved.png");
+  -webkit-mask-image: url("design/paper-assets/stamp-approved.webp");
+  mask-image: url("design/paper-assets/stamp-approved.webp");
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -912,8 +912,8 @@
   width: 84px;
   height: 84px;
   background: var(--stamp-red);
-  -webkit-mask-image: url("design/paper-assets/stamp-approved.png");
-  mask-image: url("design/paper-assets/stamp-approved.png");
+  -webkit-mask-image: url("design/paper-assets/stamp-approved.webp");
+  mask-image: url("design/paper-assets/stamp-approved.webp");
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -1001,7 +1001,7 @@
   bottom: -10px;
   width: 66px;
   height: 86px;
-  background: url("design/paper-assets/memo-note.png") no-repeat center / contain;
+  background: url("design/paper-assets/memo-note.webp") no-repeat center / contain;
   transform: rotate(6deg);
   pointer-events: none;
 }

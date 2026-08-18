@@ -237,27 +237,27 @@
   const OVERBUTLER_ASSETS = {
     ai: {
       _available: true,
-      base: "design/character-assets/ai-butler/ui-poses/ai-base.png",
-      analysis: "design/character-assets/ai-butler/ui-poses/ai-analysis.png",
-      praise: "design/character-assets/ai-butler/ui-poses/ai-praise.png",
-      power: "design/character-assets/ai-butler/ui-poses/ai-power.png",
-      gift: "design/character-assets/ai-butler/ui-poses/ai-gift.png"
+      base: "design/character-assets/ai-butler/ui-poses/ai-base.webp",
+      analysis: "design/character-assets/ai-butler/ui-poses/ai-analysis.webp",
+      praise: "design/character-assets/ai-butler/ui-poses/ai-praise.webp",
+      power: "design/character-assets/ai-butler/ui-poses/ai-power.webp",
+      gift: "design/character-assets/ai-butler/ui-poses/ai-gift.webp"
     },
     cat: {
       _available: true,
-      base: "design/character-assets/cat-butler/ui-poses/cat-base.png",
-      analysis: "design/character-assets/cat-butler/ui-poses/cat-analysis.png",
-      praise: "design/character-assets/cat-butler/ui-poses/cat-praise.png",
-      power: "design/character-assets/cat-butler/ui-poses/cat-power.png",
-      gift: "design/character-assets/cat-butler/ui-poses/cat-gift.png"
+      base: "design/character-assets/cat-butler/ui-poses/cat-base.webp",
+      analysis: "design/character-assets/cat-butler/ui-poses/cat-analysis.webp",
+      praise: "design/character-assets/cat-butler/ui-poses/cat-praise.webp",
+      power: "design/character-assets/cat-butler/ui-poses/cat-power.webp",
+      gift: "design/character-assets/cat-butler/ui-poses/cat-gift.webp"
     },
     dog: {
       _available: true,
-      base: "design/character-assets/dog-butler/ui-poses/dog-base.png",
-      analysis: "design/character-assets/dog-butler/ui-poses/dog-analysis.png",
-      praise: "design/character-assets/dog-butler/ui-poses/dog-praise.png",
-      power: "design/character-assets/dog-butler/ui-poses/dog-power.png",
-      gift: "design/character-assets/dog-butler/ui-poses/dog-gift.png"
+      base: "design/character-assets/dog-butler/ui-poses/dog-base.webp",
+      analysis: "design/character-assets/dog-butler/ui-poses/dog-analysis.webp",
+      praise: "design/character-assets/dog-butler/ui-poses/dog-praise.webp",
+      power: "design/character-assets/dog-butler/ui-poses/dog-power.webp",
+      gift: "design/character-assets/dog-butler/ui-poses/dog-gift.webp"
     },
     alien: { _available: false },
     ninja: { _available: false },
@@ -265,32 +265,32 @@
     zombie: { _available: false },
     girlidol: {
       _available: true,
-      base: "design/character-assets/idol-butler/ui-poses/idol-base.png",
-      analysis: "design/character-assets/idol-butler/ui-poses/idol-analysis.png",
-      praise: "design/character-assets/idol-butler/ui-poses/idol-praise.png",
-      power: "design/character-assets/idol-butler/ui-poses/idol-power.png",
-      gift: "design/character-assets/idol-butler/ui-poses/idol-gift.png"
+      base: "design/character-assets/idol-butler/ui-poses/idol-base.webp",
+      analysis: "design/character-assets/idol-butler/ui-poses/idol-analysis.webp",
+      praise: "design/character-assets/idol-butler/ui-poses/idol-praise.webp",
+      power: "design/character-assets/idol-butler/ui-poses/idol-power.webp",
+      gift: "design/character-assets/idol-butler/ui-poses/idol-gift.webp"
     },
     elf: { _available: false },
     fairy: {
       _available: true,
-      base: "design/character-assets/fairy-butler/ui-poses/fairy-base.png",
-      analysis: "design/character-assets/fairy-butler/ui-poses/fairy-analysis.png",
-      praise: "design/character-assets/fairy-butler/ui-poses/fairy-praise.png",
-      power: "design/character-assets/fairy-butler/ui-poses/fairy-power.png",
-      gift: "design/character-assets/fairy-butler/ui-poses/fairy-gift.png"
+      base: "design/character-assets/fairy-butler/ui-poses/fairy-base.webp",
+      analysis: "design/character-assets/fairy-butler/ui-poses/fairy-analysis.webp",
+      praise: "design/character-assets/fairy-butler/ui-poses/fairy-praise.webp",
+      power: "design/character-assets/fairy-butler/ui-poses/fairy-power.webp",
+      gift: "design/character-assets/fairy-butler/ui-poses/fairy-gift.webp"
     }
   };
 
   const PERSONNEL_REFERENCE_ASSETS = {
-    ai: "design/character-assets/ai-butler/ai-butler-reference.png",
-    cat: "design/character-assets/cat-butler/cat-butler-reference.png",
-    dog: "design/character-assets/dog-butler/dog-butler-reference.png",
-    ninja: "design/character-assets/ninja-butler/ninja-butler-reference.png",
-    witch: "design/character-assets/witch-butler/witch-butler-reference.png",
-    zombie: "design/character-assets/zombie-butler/zombie-butler-reference.png",
-    girlidol: "design/character-assets/idol-butler/idol-butler-reference.png",
-    fairy: "design/character-assets/fairy-butler/fairy-butler-reference.png"
+    ai: "design/character-assets/ai-butler/ai-butler-reference.webp",
+    cat: "design/character-assets/cat-butler/cat-butler-reference.webp",
+    dog: "design/character-assets/dog-butler/dog-butler-reference.webp",
+    ninja: "design/character-assets/ninja-butler/ninja-butler-reference.webp",
+    witch: "design/character-assets/witch-butler/witch-butler-reference.webp",
+    zombie: "design/character-assets/zombie-butler/zombie-butler-reference.webp",
+    girlidol: "design/character-assets/idol-butler/idol-butler-reference.webp",
+    fairy: "design/character-assets/fairy-butler/fairy-butler-reference.webp"
   };
 
   // 캐릭터 키가 바뀌어도 이미 저장된 명부·기록이 사라지면 안 되므로 옛 키를 새 키로 넘겨준다.
@@ -2700,8 +2700,8 @@
   function blinkOnce() {
     const image = $("#cat-home-character-image");
     if (!image) return;
-    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.png";
-    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.png"; }, 180);
+    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.webp";
+    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.webp"; }, 180);
     scheduleCatHomeBlink();
   }
 
