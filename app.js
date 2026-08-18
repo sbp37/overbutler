@@ -42,9 +42,10 @@
     deedRelationship: Object.freeze({ praise: 3, power: 4, rare: 6, duplicate: 1 }),
     // favoriteRepeat — 취향 선물을 또 줬을 때. 취향이라는 사실은 그대로고 놀라움만 준다.
     giftRelationship: Object.freeze({ normal: 3, favorite: 5, favoriteRepeat: 2, duplicate: 1, rare: 8 }),
-    // 앞 세 칸은 "주는 재미"를 먼저 배우는 구간이다. 첫 선물이 며칠짜리 저축이면
-    // 그 재미를 배우기 전에 화면을 닫는다. 10/15/20으로 낮춰 하루 안에 닿게 한다.
-    giftCosts: Object.freeze([10, 15, 20, 55, 80, 110, 150, 210, 300]),
+    // 품목은 캐릭터당 9칸 고정(GIFT_CATALOGS)이라 칸을 늘릴 수 없다. 그래서 앞을
+    // 완만하게, 뒤를 벌리는 쪽으로 9개를 다시 배분했다. 앞 네 칸(10/15/20/30)은
+    // "또 줄 수 있다"가 유지되는 구간이고, 55부터 아껴 모으는 구간이 시작된다.
+    giftCosts: Object.freeze([10, 15, 20, 30, 55, 90, 130, 200, 300]),
     rareRollDivisor: 31,
     rarePityAfter: 24,
     // 파워 주접은 "가끔 만나는 이벤트"여야 한다. 예전 값(12~40%)에 아래 firstInCategory
@@ -4141,9 +4142,12 @@
 
   // 선물 반응 3단계: 담백한 접수(T0) → 장부·전용칸 생김(T1) → 기관이 끼어드는 소동(T2).
   // FORM 05 성장축과 같은 원칙(docs/BUTLER-VOICE.md)을 선물에도 적용한다.
+  // 선물 카피 단계도 65를 들고 있었다 — 대사 티어를 60으로 내리면서 이것만
+  // 그대로 두면 과몰입 60~64에서 대사는 t3인데 선물 말만 이전 단계로 남는다.
+  // 늦춰지는 쪽으로는 옮기지 않는다(30은 그대로).
   function giftTierFor(obsession) {
     const value = Number(obsession) || 0;
-    return value >= 65 ? 2 : value >= 30 ? 1 : 0;
+    return value >= STAGE_BOUNDARIES[3] ? 2 : value >= 30 ? 1 : 0;
   }
 
   function giftResponse(character, gift, interaction = { type: "normal", duplicateCount: 1 }, obsession = state.obsession) {
