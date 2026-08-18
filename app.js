@@ -2338,7 +2338,9 @@
     $("#record-detail-reactions").innerHTML = reactionLines.map(line => `<p>${escapeHtml(line)}</p>`).join("");
     $("#record-detail-butler").textContent = butler.name;
     $("#record-detail-score").textContent = scoreText(record);
-    $("#record-detail-verdict").textContent = isOfficial ? "공식 인증서 발급" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
+    $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
+    // 인증서가 없는 기록에서 "다시 열기"를 누르면 없는 증서를 지어내게 된다.
+    $("#record-detail-certificate").hidden = !isOfficial;
     setPoseImage($("#record-detail-image"), butler.character, "base");
     $("#record-detail-image").alt = `${butler.name} 집사`;
     $("#record-detail-overlay").hidden = false;
@@ -3106,22 +3108,16 @@
   function openCertificate(record) {
     const butler = record.butler || snapshotButler(record);
     const rare = record.verdictType === "rare" || record.rare;
-    const official = isOfficialCertificate(record);
-    const firstRecord = isFirstRecord(record);
-    const status = certificationStatus();
     const deedLength = Array.from(String(record.deed || "")).length;
     currentCertificate = record;
+    // 증서는 한 계보뿐이다 — 공식 인정. 기념 증서 경로는 걷어냈다(P0 C-1).
     $("#certificate-card").dataset.verdict = rare ? "rare" : "official";
-    $("#certificate-card").dataset.certification = official ? "official" : "commemorative";
+    $("#certificate-card").dataset.certification = "official";
     $("#certificate-card").dataset.deedLength = deedLength > 42 ? "extra-long" : deedLength > 24 ? "long" : "normal";
-    $("#certificate-screen-title").textContent = official ? "공식 인정 증서" : "대업 기념 증서";
-    $("#certificate-screen-copy").textContent = official
-      ? "당신의 대업을 공식적으로 인증합니다."
-      : firstRecord ? "첫 대업을 집사가 특별히 기념합니다." : "오늘의 대업을 집사가 특별히 기념합니다.";
-    $("#certificate-title").textContent = official ? "공식 인정 증서" : "대업 기념 증서";
-    $("#certificate-declaration").textContent = official
-      ? `아래의 기록이 ${certificationStatus().target}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`
-      : "아래의 기록을 집사 사무국이 기쁘게 기념합니다";
+    $("#certificate-screen-title").textContent = "공식 인정 증서";
+    $("#certificate-screen-copy").textContent = "당신의 대업을 공식적으로 인증합니다.";
+    $("#certificate-title").textContent = "공식 인정 증서";
+    $("#certificate-declaration").textContent = `아래의 기록이 ${certificationStatus().target}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`;
     const serial = `${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
     $("#certificate-number").textContent = `SERIAL · 대업-${serial}`;
     const certRegno = $("#certificate-regno");
@@ -3133,19 +3129,13 @@
     $("#certificate-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업";
     $("#certificate-intake").textContent = `NO. ${record.number} / 누적 ${state.records.length}건`;
     const issueIndex = Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1);
-    $("#certificate-issue").textContent = official ? `제 ${issueIndex}차 공식 인정` : "기념 발급";
+    $("#certificate-issue").textContent = `제 ${issueIndex}차 공식 인정`;
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
     $("#certificate-butler-name").textContent = `발급 담당 ${butler.name}`;
     $("#certificate-date").textContent = record.date;
     $("#certificate-autograph").textContent = `${butler.name} 印`;
-    $("#certificate-card .official-stamp span").innerHTML = official
-      ? rare ? "희귀<br>인정" : "공식<br>인정"
-      : rare ? "희귀<br>기념" : "오늘<br>기념";
-    $("#certificate-footnote").textContent = official
-      ? "✦ 인증서는 기록 보관함에서 다시 확인할 수 있어요. ✦"
-      : status.first
-        ? "✦ 지금 저장·공유할 수 있으며, 공식 보관 인증은 도장 5개부터 발급됩니다. ✦"
-        : `✦ 지금 저장·공유할 수 있으며, 다음 공식 보관 인증까지 ${status.remaining}건 남았습니다. ✦`;
+    $("#certificate-card .official-stamp span").innerHTML = rare ? "희귀<br>인정" : "공식<br>인정";
+    $("#certificate-footnote").textContent = "✦ 증서는 주인님 파일에서 다시 확인할 수 있어요. ✦";
     setPoseImage($("#certificate-butler-image"), butler.character, record.pose || "praise");
     $("#certificate-overlay").hidden = false;
     document.body.style.overflow = "hidden";
@@ -3187,10 +3177,13 @@
     reportNode.classList.remove("is-inked");
     reportNode.textContent = record.report;
     $("#result-rare-note").hidden = !rare;
-    $("#result-certificate-button").innerHTML = official
-      ? "공식 인증서 발급 <span>→</span>"
-      : firstRecord ? "첫 대업 기념 인증서 <span>→</span>" : "대업 기념 인증서 보기 <span>→</span>";
-    $("#result-close").textContent = firstRecord ? "첫 기록 저장하고 홈으로" : "기록만 하고 홈으로";
+    // 증서는 공식 인정을 받은 날에만 나온다. 대업마다 기념 증서를 내주면
+    // 5건을 모아야 받는 공식 인정이 아무 의미가 없어진다.
+    $("#result-certificate-button").hidden = !official;
+    $("#result-certificate-button").innerHTML = "공식 인정 증서 보기 <span>→</span>";
+    $("#result-close").textContent = official
+      ? "증서는 나중에 보고 홈으로"
+      : firstRecord ? "첫 기록 저장하고 홈으로" : "기록 보관하고 홈으로";
     const status = certificationStatus();
     $("#result-footnote").textContent = firstRecord
       ? `첫 도장 1개와 선물 포인트 ${pointsEarned}P를 받았습니다. 공식 보관 인증까지 ${status.remaining}건 남았어요.`
@@ -3230,8 +3223,6 @@
   }
 
   function closeCertificate() {
-    const firstRecord = isFirstRecord(currentCertificate);
-    const official = isOfficialCertificate(currentCertificate);
     const fromFile = certificateOpenedFromFile;
     certificateOpenedFromFile = false;
     $("#certificate-overlay").hidden = true;
@@ -3240,7 +3231,6 @@
     currentCertificateImagePromise = null;
     // 파일에서 열었으면 화면 전환 없이 오버레이만 닫는다 — showView는 스크롤을 맨 위로 올린다.
     if (!fromFile) showView("home");
-    if (firstRecord && !official) showToast(`첫 대업 기념 완료 · 공식 인증까지 ${certificationStatus().remaining}건`);
   }
 
   function roundedCanvasRect(ctx, x, y, width, height, radius) {
@@ -3310,12 +3300,43 @@
     }, "image/png"));
   }
 
+  // 자간이 붙은 글자를 캔버스에 찍는다. ctx.letterSpacing은 최근 엔진에만 있어
+  // 직접 한 글자씩 놓는다 — 증서의 격은 자간에서 나온다.
+  function drawTrackedText(ctx, text, x, y, tracking, align = "center") {
+    const chars = Array.from(String(text));
+    const widths = chars.map(ch => ctx.measureText(ch).width);
+    const total = widths.reduce((sum, w) => sum + w, 0) + tracking * Math.max(0, chars.length - 1);
+    let cursor = align === "center" ? x - total / 2 : align === "right" ? x - total : x;
+    const previous = ctx.textAlign;
+    ctx.textAlign = "left";
+    chars.forEach((ch, index) => {
+      ctx.fillText(ch, cursor, y);
+      cursor += widths[index] + tracking;
+    });
+    ctx.textAlign = previous;
+  }
+
+  function drawDottedLeader(ctx, fromX, toX, y, color) {
+    if (toX - fromX < 12) return;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([3, 9]);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(fromX, y);
+    ctx.lineTo(toX, y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 화면 증서(v4)와 같은 조형을 그린다. 공유 이미지가 유일한 무료 유입 채널이라
+  // 여기서 다른 증서가 나가면 앱을 열었을 때 다른 물건을 받는 셈이 된다.
   async function createCertificateBlob(record) {
     if (document.fonts?.ready) await document.fonts.ready;
     const butler = record.butler || snapshotButler(record);
     const owner = certificateOwnerName(record);
     const rare = record.verdictType === "rare" || record.rare;
-    const official = isOfficialCertificate(record);
     const portrait = await loadCanvasImage(assetFor(butler.character, record.pose || "praise"));
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
@@ -3324,189 +3345,376 @@
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    ctx.fillStyle = "#efe3d4";
+    const DISP = 'Paperlogy, "Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const BODY = '"Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const SERIF = '"Song Myung", "Noto Serif KR", serif';
+    const HAND = 'Gaegu, cursive';
+    const INK = "#332a20";
+    const INK_SOFT = "#7a6c5c";
+    const INK_FAINT = "#a3927c";
+    const IVORY = "#faf7f0";
+    const GOLD = "#b98a2e";
+    const GOLD_DP = "#8a6420";
+    const STAMP = "#9d2f3a";
+
+    // 격자 종이 바닥
+    ctx.fillStyle = "#efe8da";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(94, 72, 58, .05)";
+    ctx.lineWidth = 2;
+    for (let x = 0; x <= canvas.width; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y <= canvas.height; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+    // 금박 액자 — 사선 해칭 띠
+    const F = { x: 44, y: 40, w: 992, h: 1270 };
     ctx.save();
-    ctx.shadowColor = "rgba(70, 45, 31, .16)";
-    ctx.shadowBlur = 28;
-    ctx.shadowOffsetY = 12;
-    roundedCanvasRect(ctx, 42, 38, 996, 1274, 28);
-    ctx.fillStyle = "#fffaf2";
-    ctx.fill();
-    ctx.restore();
-    roundedCanvasRect(ctx, 60, 56, 960, 1238, 22);
-    ctx.strokeStyle = rare ? "#b68b3f" : "#c9ae73";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    roundedCanvasRect(ctx, 75, 71, 930, 1208, 15);
-    ctx.strokeStyle = rare ? "rgba(166, 119, 37, .62)" : "rgba(186, 151, 88, .48)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#741b2c";
-    ctx.font = '900 56px "Noto Serif KR", serif';
-    ctx.fillText("과잉집사", 102, 145);
-    ctx.fillStyle = "#815a56";
-    ctx.font = '850 15px "WantedSansVariable", sans-serif';
-    ctx.fillText("OVERBUTLER DUTY OFFICE", 104, 174);
-    roundedCanvasRect(ctx, 757, 94, 215, 58, 29);
-    ctx.fillStyle = "#fffaf2";
-    ctx.fill();
-    ctx.strokeStyle = "#ccb99f";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = "#861b30";
+    ctx.fillStyle = "rgba(45, 35, 22, .13)";
+    ctx.fillRect(F.x + 16, F.y + 18, F.w, F.h);
+    ctx.fillStyle = IVORY;
+    ctx.fillRect(F.x, F.y, F.w, F.h);
     ctx.beginPath();
-    ctx.arc(787, 123, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#554744";
-    ctx.font = '800 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "사무국 공식 발급" : "오늘의 대업 기념", 807, 130);
-    ctx.strokeStyle = "#d8c9b6";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(102, 205);
-    ctx.lineTo(978, 205);
-    ctx.stroke();
-
-    ctx.textAlign = "center";
-    ctx.strokeStyle = "#ad8140";
+    ctx.rect(F.x, F.y, F.w, F.h);
+    ctx.clip();
+    ctx.strokeStyle = "rgba(185, 138, 46, .5)";
     ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(540, 252, 35, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "#9b7337";
-    ctx.font = '900 19px "Noto Serif KR", serif';
-    ctx.fillText("OB", 540, 259);
-    ctx.fillStyle = "#463534";
-    ctx.font = '900 47px "Noto Serif KR", serif';
-    ctx.fillText(official ? "공식 대업 인증서" : "대업 기념 인증서", 540, 327);
-    ctx.fillStyle = "#88766c";
-    ctx.font = '600 18px "WantedSansVariable", sans-serif';
-    ctx.fillText(official ? "이 증서는 아래의 대업 달성을 엄숙하게 인증합니다" : "오늘의 대업을 집사 사무국이 기쁘게 기념합니다", 540, 365);
-    ctx.fillStyle = "#711b2c";
-    ctx.font = '850 25px "Noto Serif KR", serif';
-    ctx.fillText(`${owner} 귀하`, 540, 402);
-    ctx.fillStyle = "#94703b";
-    ctx.font = '800 16px "WantedSansVariable", sans-serif';
-    ctx.fillText(`문서번호 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`, 540, 431);
-
-    roundedCanvasRect(ctx, 416, 452, 248, 50, 25);
-    ctx.fillStyle = rare ? "#fff0c3" : "#fff6df";
-    ctx.fill();
-    ctx.strokeStyle = rare ? "#b68b3f" : "#d2b575";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillStyle = "#89622c";
-    ctx.font = '800 19px "WantedSansVariable", sans-serif';
-    ctx.fillText(record.grade, 540, 484);
-
-    let deedFontSize = 56;
-    let deedLines = [];
-    do {
-      ctx.font = `900 ${deedFontSize}px "Noto Serif KR", serif`;
-      deedLines = canvasTextLines(ctx, record.deed, 820, 3);
-      if (deedLines.length <= 2 || deedFontSize <= 38) break;
-      deedFontSize -= 4;
-    } while (deedFontSize >= 38);
-    ctx.fillStyle = "#711b2c";
-    const deedBottom = drawCenteredCanvasLines(ctx, deedLines, 540, 556, deedFontSize * 1.28);
-    ctx.fillStyle = "#927045";
-    ctx.font = '700 24px "WantedSansVariable", sans-serif';
-    ctx.fillText(`― ${record.nickname} ―`, 540, deedBottom + 7);
-
-    const metricsY = Math.max(690, deedBottom + 45);
-    roundedCanvasRect(ctx, 126, metricsY, 828, 126, 12);
-    ctx.fillStyle = "#fcf7ef";
-    ctx.fill();
-    ctx.strokeStyle = "#ddcfbd";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(540, metricsY);
-    ctx.lineTo(540, metricsY + 126);
-    ctx.stroke();
-    // 공유 이미지도 화면과 같은 항목을 기재한다 — 별점·점수는 인증서에 쓰지 않는다.
-    ctx.fillStyle = "#8b776b";
-    ctx.font = '750 17px "WantedSansVariable", sans-serif';
-    ctx.fillText("분야", 333, metricsY + 38);
-    ctx.fillText("접수 번호", 747, metricsY + 38);
-    ctx.fillStyle = "#711b2c";
-    ctx.font = '900 33px "Noto Serif KR", serif';
-    ctx.fillText(OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업", 333, metricsY + 91);
-    ctx.fillText(`NO. ${record.number}`, 747, metricsY + 91);
-
-    const portraitY = metricsY + 143;
-    const quoteY = 1120;
-    const portraitHeight = Math.max(230, Math.min(326, quoteY - portraitY + 4));
-    ctx.save();
-    ctx.globalAlpha = .1;
-    ctx.strokeStyle = "#9b6f48";
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.arc(270, portraitY + 145, 138, 0, Math.PI * 2);
-    ctx.stroke();
+    for (let d = -F.h; d < F.w + F.h; d += 13) {
+      ctx.beginPath();
+      ctx.moveTo(F.x + d, F.y + F.h);
+      ctx.lineTo(F.x + d + F.h, F.y);
+      ctx.stroke();
+    }
     ctx.restore();
-    drawContainedCanvasImage(ctx, portrait, 102, portraitY - 12, 345, portraitHeight);
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#907d70";
-    ctx.font = '750 17px "WantedSansVariable", sans-serif';
-    ctx.fillText("발급 담당 집사", 470, portraitY + 64);
-    ctx.fillStyle = "#493936";
-    ctx.font = '900 35px "Noto Serif KR", serif';
-    ctx.fillText(butler.name, 470, portraitY + 110);
-    ctx.fillStyle = "#86756b";
-    ctx.font = '650 17px "WantedSansVariable", sans-serif';
-    ctx.fillText(`발급 일자  ${record.date}`, 470, portraitY + 145);
-    ctx.strokeStyle = "#8b776c";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(470, portraitY + 185);
-    ctx.lineTo(690, portraitY + 185);
-    ctx.stroke();
-    ctx.fillStyle = "#9b826b";
-    ctx.font = '700 13px "WantedSansVariable", sans-serif';
-    ctx.fillText("OVERBUTLER SIGNATURE", 470, portraitY + 207);
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(F.x, F.y, F.w, F.h);
 
-    ctx.textAlign = "center";
+    // 증서 종이
+    const P = { x: F.x + 25, y: F.y + 25, w: F.w - 50, h: F.h - 50 };
     ctx.save();
-    ctx.translate(844, portraitY + 137);
-    ctx.rotate(-.11);
-    ctx.strokeStyle = rare ? "rgba(145, 101, 30, .9)" : "rgba(126, 25, 43, .86)";
-    ctx.lineWidth = 7;
     ctx.beginPath();
-    ctx.arc(0, 0, 79, 0, Math.PI * 2);
+    ctx.rect(P.x, P.y, P.w, P.h);
+    ctx.clip();
+    ctx.fillStyle = IVORY;
+    ctx.fillRect(P.x, P.y, P.w, P.h);
+    const glow = ctx.createRadialGradient(P.x + P.w / 2, P.y - 40, 0, P.x + P.w / 2, P.y - 40, P.w * 0.72);
+    glow.addColorStop(0, "rgba(185, 138, 46, .1)");
+    glow.addColorStop(1, "rgba(185, 138, 46, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(P.x, P.y, P.w, P.h);
+    ctx.strokeStyle = "rgba(185, 138, 46, .05)";
+    ctx.lineWidth = 2;
+    for (let d = -P.h; d < P.w + P.h; d += 18) {
+      ctx.beginPath();
+      ctx.moveTo(P.x + d, P.y);
+      ctx.lineTo(P.x + d + P.h, P.y + P.h);
+      ctx.stroke();
+    }
+    // OB 워터마크
+    const cx = P.x + P.w / 2;
+    ctx.strokeStyle = "rgba(51, 42, 32, .033)";
+    ctx.lineWidth = 25;
+    ctx.beginPath();
+    ctx.arc(cx, P.y + P.h / 2, 320, 0, Math.PI * 2);
     ctx.stroke();
+    ctx.fillStyle = "rgba(51, 42, 32, .033)";
+    ctx.font = `900 280px ${SERIF}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("OB", cx, P.y + P.h / 2);
+    ctx.textBaseline = "alphabetic";
+    ctx.restore();
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(P.x, P.y, P.w, P.h);
+
+    // 좌우 세로 마이크로텍스트
+    const SIDE = "OVERBUTLER DUTY OFFICE · OFFICIAL";
+    ctx.fillStyle = "rgba(185, 138, 46, .55)";
+    ctx.font = `700 19px ${DISP}`;
+    [[P.x + 26, 1], [P.x + P.w - 26, -1]].forEach(([sx, dir]) => {
+      ctx.save();
+      ctx.translate(sx, P.y + P.h / 2);
+      ctx.rotate(dir > 0 ? -Math.PI / 2 : Math.PI / 2);
+      drawTrackedText(ctx, SIDE, 0, 0, 8);
+      ctx.restore();
+    });
+
+    // 네 모서리 장식 — 화면 증서와 같은 도안
+    const corner = new Path2D("M2 32V10Q2 2 10 2h22M2 22Q2 12 12 12M12 2q-1 7 5 8");
+    ctx.save();
+    ctx.strokeStyle = GOLD;
+    ctx.globalAlpha = .8;
+    ctx.lineWidth = 1.7;
+    [[P.x + 20, P.y + 20, 1, 1], [P.x + P.w - 20, P.y + 20, -1, 1],
+     [P.x + 20, P.y + P.h - 20, 1, -1], [P.x + P.w - 20, P.y + P.h - 20, -1, -1]].forEach(([ox, oy, sx, sy]) => {
+      ctx.save();
+      ctx.translate(ox, oy);
+      ctx.scale(sx * 2.1, sy * 2.1);
+      ctx.stroke(corner);
+      ctx.restore();
+    });
+    ctx.restore();
+
+    // 메달 — 리본 두 갈래 위에 금화
+    const medalY = P.y + 126;
+    [[-42, 0.24], [42, -0.24]].forEach(([dx, rot]) => {
+      ctx.save();
+      ctx.translate(cx + dx, medalY + 44);
+      ctx.rotate(rot);
+      const ribbon = ctx.createLinearGradient(0, 0, 0, 76);
+      ribbon.addColorStop(0, STAMP);
+      ribbon.addColorStop(1, "#6f2027");
+      ctx.fillStyle = ribbon;
+      ctx.beginPath();
+      ctx.moveTo(-21, 0);
+      ctx.lineTo(21, 0);
+      ctx.lineTo(21, 76);
+      ctx.lineTo(0, 62);
+      ctx.lineTo(-21, 76);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+    const coin = ctx.createRadialGradient(cx - 26, medalY - 22, 6, cx, medalY, 84);
+    coin.addColorStop(0, "#e8cd7a");
+    coin.addColorStop(0.46, GOLD);
+    coin.addColorStop(1, GOLD_DP);
+    ctx.fillStyle = coin;
+    ctx.beginPath();
+    ctx.arc(cx, medalY, 84, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 244, 210, .55)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(0, 0, 65, 0, Math.PI * 2);
+    ctx.arc(cx, medalY, 62, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = rare ? "#80561c" : "#811a2d";
-    ctx.font = '900 20px "Noto Serif KR", serif';
-    ctx.fillText(official ? rare ? "희귀 위업" : "공식 대업" : rare ? "희귀 위업" : "오늘의 대업", 0, -7);
-    ctx.fillText(official ? "인증 완료" : "기념 완료", 0, 22);
+    ctx.fillStyle = "#fdf3d5";
+    ctx.font = `900 46px ${SERIF}`;
+    ctx.textAlign = "center";
+    ctx.fillText("OB", cx, medalY + 17);
+
+    // 발행처 · 제목 · 금줄
+    ctx.fillStyle = GOLD_DP;
+    ctx.font = `800 22px ${DISP}`;
+    drawTrackedText(ctx, "OVERBUTLER DUTY OFFICE", cx, medalY + 138, 7);
+    ctx.fillStyle = INK;
+    ctx.font = `900 72px ${SERIF}`;
+    drawTrackedText(ctx, "공식 인정 증서", cx, medalY + 212, 9);
+
+    const ruleY = medalY + 230;
+    const ruleHalf = 250;
+    [[cx - ruleHalf, cx - 22, "left"], [cx + 22, cx + ruleHalf, "right"]].forEach(([x1, x2, side]) => {
+      const grad = ctx.createLinearGradient(x1, 0, x2, 0);
+      grad.addColorStop(0, side === "left" ? "rgba(185,138,46,0)" : GOLD);
+      grad.addColorStop(1, side === "left" ? GOLD : "rgba(185,138,46,0)");
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x1, ruleY);
+      ctx.lineTo(x2, ruleY);
+      ctx.stroke();
+    });
+    ctx.save();
+    ctx.translate(cx, ruleY);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = GOLD;
+    ctx.fillRect(-7, -7, 14, 14);
     ctx.restore();
 
-    roundedCanvasRect(ctx, 102, quoteY, 876, 124, 8);
-    ctx.fillStyle = "#f7eddf";
-    ctx.fill();
-    ctx.strokeStyle = "#ddcbb4";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#7b1b2d";
-    ctx.font = '850 16px "WantedSansVariable", sans-serif';
-    ctx.fillText(`${butler.name} 집사의 한마디`, 132, quoteY + 31);
-    ctx.fillStyle = "#554541";
-    ctx.font = '700 28px "Wanted Sans", sans-serif';
-    const reportLines = canvasTextLines(ctx, `“${record.report}”`, 810, 2);
-    reportLines.forEach((line, index) => ctx.fillText(line, 132, quoteY + 70 + index * 35));
-
+    // 증명 문구 · 수여 대상
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `500 27px ${BODY}`;
     ctx.textAlign = "center";
-    ctx.fillStyle = "#9a897d";
-    ctx.font = '650 14px "WantedSansVariable", sans-serif';
-    ctx.fillText("나도 오늘의 대업 보고하기 · OVERBUTLER DUTY OFFICE", 540, 1270);
+    ctx.fillText(`아래의 기록이 ${certificationStatus().target}건의 대업 끝에`, cx, ruleY + 54);
+    ctx.fillText("사무국의 공식 인정을 받았음을 기쁘게 증명합니다", cx, ruleY + 94);
+
+    ctx.font = `800 38px ${SERIF}`;
+    // certificateOwnerName은 이미 "OO 주인님" 형태다. 여기서 호칭을 또 붙이면 두 번 불린다.
+    const ownerLabel = owner;
+    const ownerWidth = ctx.measureText(ownerLabel).width;
+    const suffixWidth = ctx.measureText(" 귀하").width;
+    ctx.textAlign = "left";
+    ctx.fillStyle = STAMP;
+    ctx.fillText(ownerLabel, cx - (ownerWidth + suffixWidth) / 2, ruleY + 150);
+    ctx.fillStyle = INK;
+    ctx.fillText(" 귀하", cx - (ownerWidth + suffixWidth) / 2 + ownerWidth, ruleY + 150);
+    ctx.textAlign = "center";
+
+    // 인정 사유 금박 칩
+    const chipLabel = `이번 인정 사유 · ${record.grade}`;
+    ctx.font = `800 26px ${DISP}`;
+    const chipWidth = ctx.measureText(chipLabel).width + 72;
+    const chipY = ruleY + 160;
+    const chipGrad = ctx.createLinearGradient(0, chipY, 0, chipY + 62);
+    chipGrad.addColorStop(0, "rgba(232, 205, 122, .16)");
+    chipGrad.addColorStop(1, "rgba(232, 205, 122, .05)");
+    roundedCanvasRect(ctx, cx - chipWidth / 2, chipY, chipWidth, 62, 31);
+    ctx.fillStyle = chipGrad;
+    ctx.fill();
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = GOLD_DP;
+    ctx.fillText(chipLabel, cx, chipY + 40);
+
+    // 아래쪽부터 자리를 먼저 잡는다 — 서명란과 시리얼 밴드는 길이가 고정이고,
+    // 늘어나는 것은 대업 제목뿐이다. 위에서부터 쌓으면 긴 제목이 서명란을 밀어낸다.
+    const briefX = P.x + 62;
+    const briefRight = P.x + P.w - 62;
+    const rowHeight = 44;
+    const bandTop = P.y + P.h - 92;
+    const signBottom = bandTop - 20;
+    const signTop = signBottom - 126;
+    const briefBottom = signTop - 20;
+    const briefTop = briefBottom - (22 + 4 * rowHeight);
+
+    // 「대업」 — 칩과 요지표 사이 빈 자리에 들어갈 때까지 줄이고, 그 안에서 가운데에 둔다
+    const deedZoneTop = chipY + 80;
+    const deedZoneBottom = briefTop - 20;
+    const deedRoom = Math.max(60, deedZoneBottom - deedZoneTop);
+    let deedSize = 54;
+    let deedLines = [];
+    while (true) {
+      ctx.font = `900 ${deedSize}px ${SERIF}`;
+      // 낫표는 줄바꿈 계산에서 빼고 나중에 앞뒤로 붙인다 — 함께 재면 닫는 낫표만
+      // 다음 줄로 밀려 내려가 홀로 떨어진다.
+      deedLines = canvasTextLines(ctx, String(record.deed || ""), P.w - 200, 2);
+      if (deedLines.length * deedSize * 1.45 <= deedRoom || deedSize <= 30) break;
+      deedSize -= 3;
+    }
+    if (deedLines.length) {
+      deedLines[0] = `「${deedLines[0]}`;
+      deedLines[deedLines.length - 1] = `${deedLines[deedLines.length - 1]}」`;
+    }
+    const deedBlock = deedLines.length * deedSize * 1.45;
+    ctx.fillStyle = INK;
+    ctx.textAlign = "center";
+    drawCenteredCanvasLines(ctx, deedLines, cx, deedZoneTop + (deedRoom - deedBlock) / 2 + deedSize, deedSize * 1.45);
+
+    const briefRows = [
+      ["수여 칭호", record.nickname],
+      ["분야", OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업"],
+      ["접수 번호", `NO. ${record.number} / 누적 ${state.records.length}건`],
+      ["발급 차수", `제 ${Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1)}차 공식 인정`]
+    ];
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(briefX, briefTop);
+    ctx.lineTo(briefRight, briefTop);
+    ctx.stroke();
+    briefRows.forEach(([label, value], index) => {
+      const y = briefTop + 36 + index * rowHeight;
+      ctx.textAlign = "left";
+      ctx.fillStyle = INK_FAINT;
+      ctx.font = `600 25px ${DISP}`;
+      ctx.fillText(label, briefX, y);
+      const labelWidth = ctx.measureText(label).width;
+      ctx.textAlign = "right";
+      ctx.fillStyle = INK;
+      ctx.font = `700 27px ${DISP}`;
+      ctx.fillText(value, briefRight, y);
+      const valueWidth = ctx.measureText(value).width;
+      drawDottedLeader(ctx, briefX + labelWidth + 16, briefRight - valueWidth - 16, y - 8, "rgba(185, 138, 46, .45)");
+      if (index > 0) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(185, 138, 46, .4)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([2, 6]);
+        ctx.beginPath();
+        ctx.moveTo(briefX, y - rowHeight + 18);
+        ctx.lineTo(briefRight, y - rowHeight + 18);
+        ctx.stroke();
+        ctx.restore();
+      }
+    });
+    ctx.strokeStyle = GOLD;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(briefX, briefBottom);
+    ctx.lineTo(briefRight, briefBottom);
+    ctx.stroke();
+
+    // 서명란 — 담당 집사 초상 · 발급자 · 육필 낙관 · 밀랍 인장
+    ctx.strokeStyle = "rgba(203, 187, 166, .8)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(briefX, signTop);
+    ctx.lineTo(briefRight, signTop);
+    ctx.stroke();
+    const signMid = (signTop + signBottom) / 2;
+    drawContainedCanvasImage(ctx, portrait, briefX, signMid - 62, 116, 124);
+    ctx.textAlign = "left";
+    ctx.fillStyle = INK;
+    ctx.font = `800 32px ${DISP}`;
+    ctx.fillText(`발급 담당 ${butler.name}`, briefX + 136, signMid - 12);
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `500 24px ${BODY}`;
+    ctx.fillText(`${record.date} ·`, briefX + 136, signMid + 34);
+    const dateWidth = ctx.measureText(`${record.date} ·`).width;
+    ctx.save();
+    ctx.translate(briefX + 152 + dateWidth, signMid + 36);
+    ctx.rotate(-0.05);
+    ctx.fillStyle = STAMP;
+    ctx.font = `700 42px ${HAND}`;
+    ctx.fillText(`${butler.name} 印`, 0, 0);
+    ctx.restore();
+
+    const sealX = briefRight - 68;
+    const seal = ctx.createRadialGradient(sealX - 22, signMid - 22, 5, sealX, signMid, 68);
+    seal.addColorStop(0, "#c9505c");
+    seal.addColorStop(0.52, STAMP);
+    seal.addColorStop(1, "#6f1e26");
+    ctx.fillStyle = seal;
+    ctx.beginPath();
+    ctx.arc(sealX, signMid, 66, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 220, 224, .5)";
+    ctx.lineWidth = 3;
+    ctx.setLineDash([7, 7]);
+    ctx.beginPath();
+    ctx.arc(sealX, signMid, 53, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(sealX, signMid);
+    ctx.rotate(-0.157);
+    ctx.fillStyle = "#ffe9ec";
+    ctx.font = `900 23px ${SERIF}`;
+    ctx.textAlign = "center";
+    ctx.fillText(rare ? "희귀" : "공식", 0, -3);
+    ctx.fillText("인정", 0, 26);
+    ctx.restore();
+
+    // 하단 시리얼 밴드
+    ctx.save();
+    ctx.fillStyle = "rgba(185, 138, 46, .05)";
+    ctx.fillRect(P.x + 3, bandTop, P.w - 6, P.h - (bandTop - P.y) - 3);
+    ctx.strokeStyle = "rgba(185, 138, 46, .5)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(P.x + 3, bandTop);
+    ctx.lineTo(P.x + P.w - 3, bandTop);
+    ctx.stroke();
+    ctx.restore();
+    const bandMid = bandTop + 54;
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `700 18px ${DISP}`;
+    const serialText = `SERIAL · 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
+    const noticeText = "본 증서는 재발급되지 않습니다 · 아마도";
+    const serialEnd = briefX + ctx.measureText(serialText).width + 6 * 2;
+    const noticeStart = briefRight - ctx.measureText(noticeText).width - 6 * 2;
+    drawTrackedText(ctx, serialText, briefX, bandMid, 2, "left");
+    drawTrackedText(ctx, noticeText, briefRight, bandMid, 2, "right");
+    // 가운데 장식은 양쪽 문구가 비켜준 만큼만 들어간다 — 겹치느니 빠지는 게 낫다.
+    ctx.fillStyle = GOLD_DP;
+    ctx.font = `800 22px ${DISP}`;
+    if (noticeStart - serialEnd > ctx.measureText("✦ ✦ ✦").width + 40) {
+      drawTrackedText(ctx, "✦ ✦ ✦", (serialEnd + noticeStart) / 2, bandMid, 6);
+    }
+    ctx.textAlign = "center";
     return canvasToBlob(canvas);
   }
 
@@ -3529,7 +3737,7 @@
   }
 
   function certificateShareText(record) {
-    const result = isOfficialCertificate(record) ? "공식 인증됐습니다." : "집사에게 거창하게 기념됐습니다.";
+    const result = "사무국의 공식 인정을 받았습니다.";
     return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · ${record.nickname}\n#과잉집사 #오늘의대업`;
   }
 
@@ -4222,6 +4430,8 @@
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
     certificationStatus,
+    // 공유 이미지는 화면과 같은 증서여야 한다. 회귀 확인용으로 생성기를 그대로 연다.
+    createCertificateBlob,
     ownerFileCover, groupRecordsByDate, ownerFileRemark, ownerFileTier,
     chat: CHAT_ENGINE,
     timeGreetingFor: getTimeGreeting
