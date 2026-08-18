@@ -2977,19 +2977,37 @@
 
   // 아직 못 만난 집사는 이름도 얼굴도 내보내지 않는다. 밀랍으로 봉인된 인사 서류
   // 한 장으로만 두면 실루엣을 미리 흘리지 않고도 다음 목표가 보인다.
+  /* 봉인 서류 미리보기 — 궁금하지 않은 봉인은 뜯고 싶지 않다.
+     이름만 적힌 봉투 대신, 봉투 창으로 얼굴이 흐릿하게 비치고 말투 한 줄이
+     새어 나온다. 초상을 실루엣(brightness 0)으로 만들지 않는 이유:
+     witch·zombie 레퍼런스는 알파 없는 사각 이미지라 검은 네모가 된다.
+     블러+어둡게가 알파 유무를 안 타고, 젖빛 봉투 창이라는 설정에도 맞는다. */
+  const SEALED_VOICE_TEASERS = {
+    ai: "[대기 로그] 봉인 상태. …주인님 데이터 열람만 기다리는 중임.",
+    fairy: "봉투 안에서도 반짝이는 건 어쩔 수가 없어요! 먼저 실례할게요!",
+    girlidol: "…리허설은 진작 끝났어. 네가 부를 때까지 기다리는 중이야.",
+    witch: "이상하네요. 당신 점괘가 자꾸 이 봉투를 향하는데요…",
+    zombie: "…으. 봉투 안… 생각보다… 아늑해… 그래도… 열어줘…"
+  };
+
   function sealedApplicantMarkup() {
-    const locked = APPLICANT_ORDER.filter(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
-    const rows = locked.map(key => {
-      const status = applicantStatus(key);
-      const short = status.rows
-        .filter(row => row.current < row.required)
-        .map(row => `${row.label} ${row.required - row.current} 남음`)[0] || "개봉 준비 완료";
-      return `<div class="sealed-doc${status.ready ? " near" : ""}">
+    // 진열 순서: 무료 해금 큐(AI)가 먼저, 그 뒤로 요건이 정의된 예정 인력.
+    // 유료 채용 예정 인력에게 "N 남음"을 쓰면 무료 해금 약속이 되므로,
+    // 진행 조건은 무료 큐에만 적고 나머지는 "추후 공고"로 둔다.
+    const preview = [...new Set([...APPLICANT_ORDER, ...Object.keys(APPLICANT_REQUIREMENTS)])]
+      .filter(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
+    const rows = preview.map(key => {
+      const freeQueue = APPLICANT_ORDER.includes(key);
+      const status = freeQueue ? applicantStatus(key) : null;
+      const short = !freeQueue ? "추후 공고"
+        : status.rows.filter(row => row.current < row.required).map(row => `${row.label} ${row.required - row.current} 남음`)[0] || "개봉 준비 완료";
+      const voice = SEALED_VOICE_TEASERS[key];
+      return `<div class="sealed-doc${status?.ready ? " near" : ""}">
         <span class="sealed-band">봉인</span>
-        <span class="sealed-envelope" aria-hidden="true"><i>封</i></span>
+        <span class="sealed-peek" aria-hidden="true"><img src="${personnelPortraitFor(key)}" alt=""><i>封</i></span>
         <span class="sealed-copy">
-          <b>인사 서류 · 미개봉</b>
-          <small>${escapeHtml(CHARACTER_PROFILES[key].name)} · 지원 서류 도착</small>
+          <b>${escapeHtml(CHARACTER_PROFILES[key].name)} · 미개봉</b>
+          ${voice ? `<q class="sealed-voice">${escapeHtml(voice)}</q>` : ""}
           <em>개봉 조건 · ${escapeHtml(short)}</em>
         </span>
       </div>`;
