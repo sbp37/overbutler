@@ -492,12 +492,38 @@
   // 파워 주접의 재미는 "평소 저런 애가 왜 저래ㅋㅋ"다. 그래서 고양이는 크게 외치는 게
   // 아니라, 잠깐 평정심을 놓쳤다가 곧바로 수습하는 쪽으로 간다. 일반 판정 풀과 섞어
   // 쓰면 이 대비가 사라지므로 고양이만 별도 풀을 쓴다.
+  // 웃음은 말장난이 아니라 몸에서 난다 — 귀가 먼저 움직이고, 도장을 두 번 찍고,
+  // 멀쩡한 서류를 괜히 다시 정리한다. 본인만 아무 일도 없었다고 주장한다.
   const CAT_POWER_PRAISE = [
     "{deed}!! …아니, 큼. 방금 건 못 들은 걸로 해라냥. 도장은 이미 세 개 찍었다냥.",
     "{deed}라니 그건 좀—— 큼. 평정심 되찾았다냥. 결재는 아까 끝났다냥.",
     "{deed} 확인하다 집사가 잠깐 일어섰다냥. 다시 앉았다냥. 아무 일도 없었다냥.",
-    "{deed}. …펜을 두 번 떨어뜨렸다냥. 서류가 미끄러웠다냥. 그게 다다냥."
+    "{deed}. …펜을 두 번 떨어뜨렸다냥. 서류가 미끄러웠다냥. 그게 다다냥.",
+    "{deed} 읽는데 귀가 혼자 먼저 섰다냥. 집사 의사와는 무관하다냥.",
+    "{deed}. 도장을 두 번 찍었다냥. 한 번은 실수다냥. 어느 쪽인지는 안 말하겠다냥.",
+    "{deed} 접수하고 멀쩡한 서류를 다시 정리했다냥. 순서가 마음에 안 들었을 뿐이다냥.",
+    "{deed}이라니 꼬리가 책상을 세 번 쳤다냥. 책상이 낡아서 그렇다냥.",
+    "{deed} 확인 중에 결재판을 놓쳤다냥. 주웠다냥. 이 문장은 기록에서 빼라냥.",
+    "{deed}. 수염이 혼자 움직였다냥. 사무국 난방 때문이다냥. 아마도다냥.",
+    "{deed}!! ……큼. 목소리 크기는 규정 범위 안이었다냥. 확인해봤다냥.",
+    "{deed} 서류를 두 번 읽었다냥. 글씨가 작았다냥. 그것 말고 다른 이유는 없다냥."
   ];
+
+  // 홈의 "집사 과몰입 심사" 한 줄. 예전에는 전 캐릭터가 같은 문구를 썼는데
+  // "본성 보고 직전"은 외계인 집사의 말이라 고양이·강아지 화면에서 튀었다.
+  // 도장 진행도(0~5)에 맞춰 각 집사의 어휘로 나눈다.
+  const URGENCY_LINES = {
+    ai: ["대기 상태 정상", "우선순위 재계산됨", "긴급 플래그 원인 불명", "결재 큐 주인님 우선", "과열 경고 무시함", "전 부서 통보 완료", "기록 영구 보존 지정"],
+    cat: ["딱히 안 급하다냥", "서류가 자꾸 눈에 띈다냥", "순서를 앞으로 당겼다냥", "도장을 미리 꺼냈다냥", "급한 건 아니다냥, 진짜로", "사무국은 조용하다냥", "집사만 바쁘다냥"],
+    dog: ["꼬리 대기 중이다멍", "꼬리 각도 상승멍", "결재판 물고 있다멍", "도장 미리 찾아뒀다멍", "사무실 세 바퀴 돌았다멍", "전 부서에 자랑했다멍", "꼬리 통제 불가다멍"],
+    alien: ["관측 정상 범위", "이상값 감지됨", "본성 보고 대기", "보고서 분량 초과", "관측 장비 과열", "본성 회신 없음", "지구 전담 신청함"],
+    ninja: ["평시 경계 유지", "임무 우선순위 상승", "은밀 결재 진행", "봉인 문서 개봉 준비", "경계 등급 상향", "전 조직 통보 완료", "전담 임무로 격상"],
+    witch: ["점괘 평온해요", "길조가 늘고 있어요", "수정구가 자꾸 켜져요", "예언서 여백이 없어요", "수정구 과열 주의", "예언 회의 소집됨", "전담 예언사 등록"],
+    zombie: ["…아직 조용해", "심장이 조금 빨라져", "서류가 자꾸 보여", "도장 든 손이 떨려", "…이건 좀 급한 것 같아", "다들 몰려왔어", "계속 담당하고 싶어"],
+    girlidol: ["평소랑 똑같아", "살짝 신경 쓰이는데", "순서 좀 당겼어", "도장 미리 꺼냈어", "티 안 내려고 했는데", "전 스태프 대기 중", "무대보다 급해"],
+    elf: ["천 년 중 평범한 날", "기록장이 두꺼워져요", "먼저 정리해 뒀어요", "서고 자리를 비웠어요", "오래 볼 기록이에요", "서고 전체가 움직여요", "천 년 보관 지정"],
+    fairy: ["별가루 잔잔해요", "반짝임이 늘었어요", "먼저 정리해 뒀어요", "도장이 반짝여요", "날개가 안 멈춰요", "별가루 창고 비었어요", "전담 요정 등록"]
+  };
 
   const RARE_PRAISE = {
     ai: "[FATAL: 측정 포기] {deed} 위대함이 수치 한계 초과. {owner} 관련 평가 기준 전부 폐기함. 재작성 불가.",
@@ -570,9 +596,9 @@
         "처음이지만 편하게 있어라냥. 작은 얘기도 집사가 잘 들어준다냥.",
         "{owner} 기록 방식은 이제 익숙하다냥. 네 자리도 비워뒀지만 업무 적응일 뿐이다냥.",
         "오늘 좀 보고 싶었다냥. …업무상 기록이 신경 쓰였다는 뜻이다냥.",
-        "자주 쓰는 양식이랑 좋아하는 도장은 미리 꺼내뒀다냥. 편의가 아니라 효율이다냥.",
+        "네가 자주 적는 칸은 미리 펴 둔다냥. 편의가 아니라 효율이다냥.",
         "{owner} 서류는 맨 위에 둔다냥. 특별대우 아니라… 내가 먼저 보고 싶어서다냥.",
-        "{owner} 전용 서류함이 공식 비품으로 등록됐다냥. 아주 많이 아끼지만 규정상 전담일 뿐이다냥."
+        "{owner} 전용 서류함이 공식 비품으로 등록됐다냥. 철회 신청은… 안 할 거다냥."
       ],
       touchLines: [
         ["왜 누르냥. 업무 중이다냥... 그래도 한 번은 봐주겠다냥.", "호출했냥? 필요한 업무가 있으면 말하라냥."],
@@ -1718,9 +1744,11 @@
     const cover = ownerFileCover();
     $("#owner-file-thickness").textContent = cover.thickness;
     $("#owner-file-days").textContent = cover.daysTogether;
-    $("#owner-file-top").textContent = cover.topCategory
+    // 기록 한 건으로 "최다 대업 청소 · 1건"이라고 적으면 집계가 아니라 농담이 된다.
+    // 3건부터 세고, 그전에는 언제부터 세는지를 밝혀둔다.
+    $("#owner-file-top").textContent = cover.topCategory && cover.thickness >= 3
       ? `${cover.topCategory.label} · ${cover.topCategory.count}건`
-      : "아직 없음";
+      : cover.thickness ? "3건부터 집계" : "아직 없음";
     $("#owner-file-official").textContent = cover.officialCount;
     $("#owner-file-remark").textContent = cover.remark;
     $("#archive-butler-role").textContent = `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
@@ -1838,7 +1866,8 @@
     $("#stamp-copy").textContent = status.first
       ? `첫 공식 인증까지 ${status.remaining}건 남았습니다.`
       : `다음 공식 인증까지 ${status.remaining}건 남았습니다.`;
-    $("#urgency-copy").textContent = ["이유 없이 최상", "국가적 관심 필요", "집사만 긴급함", "본성 보고 직전", "경광등 과열 중", "보고서 폭주 중", "전 직원 기립"][status.progress] || "이유 없이 최상";
+    const urgency = URGENCY_LINES[normalizeCharacter(state.character)] || URGENCY_LINES.ai;
+    $("#urgency-copy").textContent = urgency[status.progress] || urgency[0];
     $("#stamp-circles").innerHTML = Array.from({ length: status.target }, (_, index) => `<i class="${index < status.progress ? "filled" : ""}${options.animateStamp && index === status.progress - 1 ? " inked-now" : ""}"><span>${index + 1}</span></i>`).join("");
     const stampProgress = $(".stamp-progress");
     stampProgress.classList.toggle("stamp-awarded", Boolean(options.animateStamp));
