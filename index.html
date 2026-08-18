@@ -139,6 +139,15 @@
             </div>
         </section>
 
+        <!-- 아침 훅 — 어제 쓴 일기가 개봉된 날에만 나타나는 통지 슬립.
+             스트릭·공백일은 세지 않는다. "어제 것이 열렸다"는 사실만 알린다. -->
+        <button class="diary-open-note" id="diary-open-note" type="button" hidden>
+          <span class="of-staple" aria-hidden="true"></span>
+          <span class="diary-open-tag">개봉 통지</span>
+          <b id="diary-open-title">어제 일기가 개봉됐습니다</b>
+          <span class="diary-open-sub" id="diary-open-sub">집사가 어제 적어둔 소견 · 열람 →</span>
+        </button>
+
         <section class="briefing-card briefing-stage document-card home-briefing-slip">
           <span class="file-tab burgundy">담당 집사 응답</span>
           <span class="briefing-index" hidden>담당 집사</span>

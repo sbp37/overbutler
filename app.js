@@ -880,7 +880,7 @@
 
   const DEFAULT_STATE = {
     username: "", butlerName: "치즈냥", character: "cat", points: 0, emotion: 5,
-    totalTodos: 0, totalGifts: 0, streak: 0, lastActiveDate: null,
+    totalTodos: 0, totalGifts: 0, streak: 0, lastActiveDate: null, diaryOpenedDates: [],
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
@@ -1084,6 +1084,8 @@
     merged.fame = nonNegativeInteger(raw.fame);
     merged.startDate = storedText(raw.startDate, DEFAULT_STATE.startDate);
     merged.lastActiveDate = storedText(raw.lastActiveDate) || null;
+    // 개봉 통지를 이미 읽은 일기 날짜들. 최근 60개만 들고 있으면 충분하다.
+    merged.diaryOpenedDates = (Array.isArray(raw.diaryOpenedDates) ? raw.diaryOpenedDates : []).map(value => storedText(value)).filter(Boolean).slice(-60);
     merged.catHomeHintDone = Boolean(raw.catHomeHintDone);
     // 소리는 기본이 꺼짐이다. 저장된 값이 없으면 켜지지 않는다.
     merged.soundOn = Boolean(raw.soundOn);
@@ -1965,6 +1967,49 @@
     if (openedStamp) openedStamp.textContent = opened.slice(5).replace("-", ". ");
   }
 
+  /* ── 아침 훅 ──
+     다음날 열리는 일기 봉인은 이미 있는데, 열어보러 돌아올 이유가 홈에 없었다.
+     사람을 내일 다시 오게 만드는 건 오늘 받은 칭찬이 아니라 오늘 못 받은 것이다 —
+     이 앱의 유일한 지연 보상을 홈 첫 화면에 세운다.
+     감시/기억 경계: 며칠 만인지는 절대 세지 않는다. "열렸다"는 사실만 알린다. */
+  function pendingDiaryDate() {
+    const opened = new Set(state.diaryOpenedDates || []);
+    const dates = [...new Set((state.diary || []).map(entry => entry.date).filter(Boolean))]
+      .filter(date => date !== today() && !opened.has(date))
+      .sort();
+    return dates.at(-1) || "";
+  }
+
+  function renderDiaryOpenNote() {
+    const note = $("#diary-open-note");
+    if (!note) return;
+    const date = pendingDiaryDate();
+    note.hidden = !date;
+    if (!date) return;
+    // 어제 것일 때만 "어제"라고 말한다. 더 오래됐으면 날짜를 말하되 공백은 세지 않는다.
+    const yesterday = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
+      .format(new Date(Date.now() - 86400000)).replace(/\. /g, ".").replace(/\.$/, "");
+    $("#diary-open-title").textContent = date === yesterday ? "어제 일기가 개봉됐습니다" : "봉인됐던 일기가 개봉됐습니다";
+    const alias = ensureButlerStat(state.character).customName || CHARACTER_PROFILES[state.character].defaultName;
+    $("#diary-open-sub").textContent = `${withParticle(alias, "이", "가")} ${date === yesterday ? "어제" : date.slice(5)} 적어둔 소견 · 열람 →`;
+  }
+
+  function openPendingDiary() {
+    const date = pendingDiaryDate();
+    if (!date) return;
+    // 이 열람으로 과거 일기 통지는 전부 소화된 것으로 본다 — 밀린 통지가
+    // 하나씩 이어지면 배지가 알림함이 되고, 아침 훅은 하루 한 번이어야 한다.
+    const past = [...new Set((state.diary || []).map(entry => entry.date).filter(Boolean))].filter(item => item !== today());
+    state.diaryOpenedDates = [...new Set([...(state.diaryOpenedDates || []), ...past])].slice(-60);
+    saveState();
+    renderDiaryOpenNote();
+    showView("archive");
+    window.setTimeout(() => {
+      const group = document.querySelector(`.file-date-group[data-file-date="${CSS.escape(date)}"]`);
+      group?.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }, 380);
+  }
+
   function renderRelationshipStatus() {
     const stage = relationshipStageFor(state.obsession);
     const remaining = pointsToNextStage(state.obsession);
@@ -2085,6 +2130,7 @@
     applyCurrentButlerToUI();
     renderFirstRunGuidance();
     renderRelationshipStatus();
+    renderDiaryOpenNote();
     renderArchive();
     renderManager();
     renderWeeklyReport();
@@ -2547,7 +2593,7 @@
   function ownerFileGroupMarkup(group, officialIds) {
     const cards = group.records.map(record => ownerFileRecordCard(record, officialIds)).join("");
     const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
-    return `<section class="file-date-group" aria-label="${escapeHtml(group.date)} 기록">
+    return `<section class="file-date-group" data-file-date="${escapeHtml(group.date)}" aria-label="${escapeHtml(group.date)} 기록">
       <div class="file-date-divider"><span>${escapeHtml(ownerFileDateLabel(group.date))}</span></div>
       ${cards}${notes}
     </section>`;
@@ -4665,6 +4711,7 @@
     // 접수 버튼은 눌림(2px)까지만 CSS가 하고, 손끝에 오는 짧은 한 번은 여기서 준다.
     $("#report-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("clip"); submitAchievement(); });
     $("#briefing-character-action").addEventListener("click", interactWithButler);
+    $("#diary-open-note").addEventListener("click", () => { haptic(15); OfficeSound.cue("paper"); openPendingDiary(); });
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
       const entry = $("#view-home .entry-form");
