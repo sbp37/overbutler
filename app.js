@@ -884,7 +884,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false,
+    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -1085,6 +1085,8 @@
     merged.startDate = storedText(raw.startDate, DEFAULT_STATE.startDate);
     merged.lastActiveDate = storedText(raw.lastActiveDate) || null;
     merged.catHomeHintDone = Boolean(raw.catHomeHintDone);
+    // 소리는 기본이 꺼짐이다. 저장된 값이 없으면 켜지지 않는다.
+    merged.soundOn = Boolean(raw.soundOn);
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
     const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : legacyAchievements;
     const certificateSource = Array.isArray(raw.certificates)
@@ -1257,6 +1259,111 @@
     void element.offsetWidth;
     element.classList.add(className);
   }
+  /* ── 사무실 소리 ──
+     녹음 파일 대신 WebAudio로 합성한다. 넷 다 짧고 마른 사무실 소리라
+     합성으로 충분하고, 번들에 1바이트도 안 늘어난다. 자세한 판단 근거는
+     docs/CURRENT.md의 P2 소리 항목에 적어뒀다.
+     기본은 꺼짐이다 — 켠 사람에게만 난다. */
+  const OfficeSound = (() => {
+    let ctx = null;
+    let noise = null;
+    // 오디오 컨텍스트는 사용자가 직접 누른 순간에만 만들 수 있다(자동재생 정책).
+    function ensure() {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) return null;
+      if (!ctx) ctx = new Ctor();
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      return ctx;
+    }
+    function noiseSource(context) {
+      if (!noise) {
+        noise = context.createBuffer(1, context.sampleRate, context.sampleRate);
+        const data = noise.getChannelData(0);
+        for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+      }
+      const source = context.createBufferSource();
+      source.buffer = noise;
+      source.loop = true;
+      return source;
+    }
+    function burst(context, { filter, frequency, q, peak, attack, release }) {
+      const source = noiseSource(context);
+      const band = context.createBiquadFilter();
+      band.type = filter;
+      band.frequency.value = frequency;
+      band.Q.value = q;
+      const gain = context.createGain();
+      const now = context.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(peak, now + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + attack + release);
+      source.connect(band).connect(gain).connect(context.destination);
+      source.start(now);
+      source.stop(now + attack + release + 0.02);
+    }
+    const play = {
+      // 종이 슥 — 넓은 대역 잡음이 짧게 스친다.
+      paper(context) {
+        burst(context, { filter: "bandpass", frequency: 2400, q: 0.8, peak: 0.07, attack: 0.02, release: 0.16 });
+      },
+      // 클립 딸깍 — 아주 짧은 금속 잡음 하나.
+      clip(context) {
+        burst(context, { filter: "bandpass", frequency: 4200, q: 9, peak: 0.09, attack: 0.002, release: 0.045 });
+      },
+      // 도장 탁 — 아래로 떨어지는 저음 한 방 + 종이에 닿는 짧은 잡음.
+      stamp(context) {
+        const now = context.currentTime;
+        const thump = context.createOscillator();
+        thump.type = "sine";
+        thump.frequency.setValueAtTime(170, now);
+        thump.frequency.exponentialRampToValueAtTime(55, now + 0.09);
+        const thumpGain = context.createGain();
+        thumpGain.gain.setValueAtTime(0.001, now);
+        thumpGain.gain.linearRampToValueAtTime(0.2, now + 0.006);
+        thumpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+        thump.connect(thumpGain).connect(context.destination);
+        thump.start(now);
+        thump.stop(now + 0.16);
+        burst(context, { filter: "lowpass", frequency: 1400, q: 0.7, peak: 0.1, attack: 0.002, release: 0.05 });
+      },
+      // 골골 — 낮은 톤에 26Hz 진폭 변조. 크게 나면 안 된다, 새어나오는 소리다.
+      purr(context) {
+        const now = context.currentTime;
+        const carrier = context.createOscillator();
+        carrier.type = "sawtooth";
+        carrier.frequency.value = 42;
+        const tone = context.createBiquadFilter();
+        tone.type = "lowpass";
+        tone.frequency.value = 240;
+        const depth = context.createGain();
+        depth.gain.value = 0;
+        const lfo = context.createOscillator();
+        lfo.frequency.value = 26;
+        const lfoGain = context.createGain();
+        lfoGain.gain.value = 0.5;
+        lfo.connect(lfoGain).connect(depth.gain);
+        const out = context.createGain();
+        out.gain.setValueAtTime(0, now);
+        out.gain.linearRampToValueAtTime(0.05, now + 0.35);
+        out.gain.setValueAtTime(0.05, now + 1.25);
+        out.gain.exponentialRampToValueAtTime(0.0001, now + 1.85);
+        carrier.connect(tone).connect(depth).connect(out).connect(context.destination);
+        carrier.start(now); lfo.start(now);
+        carrier.stop(now + 1.9); lfo.stop(now + 1.9);
+      }
+    };
+    return {
+      // 토글을 켠 그 클릭이 곧 사용자 제스처다 — 여기서 컨텍스트를 연다.
+      prime() { ensure(); },
+      cue(name) {
+        if (!state.soundOn || !play[name]) return;
+        const context = ensure();
+        if (!context) return;
+        try { play[name](context); } catch { /* 오디오가 막힌 환경은 조용히 넘어간다 */ }
+      }
+    };
+  })();
+
   // 도장이 찍힌다 — 도장이 내려앉고, 그 힘으로 종이가 한 번 흔들린다.
   // 둘은 별개 연출이 아니라 한 동작이라 같이 간다(둘 다 transform 한 겹).
   function inkStamp(element, options = {}) {
@@ -1265,7 +1372,9 @@
     if (prefersReducedMotion()) return;
     restartAnimation(element, "ink-land");
     if (paper) restartAnimation(paper, "paper-jolt");
+    // 탁 소리와 진동은 같은 순간에 온다 — 도장이 종이에 닿는 그 지점이다.
     haptic(options.vibrate ?? 25);
+    OfficeSound.cue("stamp");
   }
   function today() { return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/\. /g, ".").replace(/\.$/, ""); }
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
@@ -2535,6 +2644,7 @@
     // 통째로 사라진다. 반대쪽을 반드시 먼저 떼고 건다.
     paper.classList.remove("slip-in");
     restartAnimation(paper, "slip-out");
+    OfficeSound.cue("paper");
     if (clip) restartAnimation(clip, "slip-wobble");
     catHomeSlipTimer = window.setTimeout(() => {
       text.textContent = message;
@@ -4127,7 +4237,8 @@
     showRecruitmentOverlay();
     window.requestAnimationFrame(() => sheet.querySelector(".seal-open")?.classList.add("is-opening"));
     // 인장이 갈라지는 순간에만 한 번. 개봉 내내 울리면 연출이 아니라 알림이 된다.
-    window.setTimeout(() => haptic(25), 250);
+    window.setTimeout(() => { haptic(25); OfficeSound.cue("clip"); }, 250);
+    window.setTimeout(() => OfficeSound.cue("paper"), 920);
     window.clearTimeout(sealOpeningTimer);
     sealOpeningTimer = window.setTimeout(done, SEAL_OPENING_MS + 150);
   }
@@ -4482,7 +4593,7 @@
     $("[data-quick-focus]").addEventListener("click", () => $("#achievement-input").focus());
     $("#achievement-input").addEventListener("input", event => { $("#char-count").textContent = event.target.value.length; });
     // 접수 버튼은 눌림(2px)까지만 CSS가 하고, 손끝에 오는 짧은 한 번은 여기서 준다.
-    $("#report-button").addEventListener("click", () => { haptic(15); submitAchievement(); });
+    $("#report-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("clip"); submitAchievement(); });
     $("#briefing-character-action").addEventListener("click", interactWithButler);
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
@@ -4553,6 +4664,17 @@
       // 방을 밀고 손을 뗀 직후의 클릭은 말 걸기가 아니다.
       if (catHomeDragged) { catHomeDragged = false; return; }
       interactWithCatHome();
+      // 골골은 자주 나면 안 된다. 충분히 가까워진 뒤에, 그것도 가끔만 새어나온다.
+      if (stageIndexFor(state.obsession) >= 3 && Math.random() < 0.12) window.setTimeout(() => OfficeSound.cue("purr"), 320);
+    });
+    const soundToggle = $("#sound-toggle");
+    soundToggle.checked = Boolean(state.soundOn);
+    soundToggle.addEventListener("change", event => {
+      state.soundOn = event.target.checked;
+      saveState();
+      // 이 클릭이 사용자 제스처다 — 오디오는 여기서만 열 수 있다.
+      if (state.soundOn) { OfficeSound.prime(); OfficeSound.cue("clip"); }
+      trackEvent("sound_toggle", { on: state.soundOn });
     });
     // 탭을 뒤로 보내면 접수대도 쉰다. 돌아오면 다시 저 혼자 깜빡이기 시작한다.
     document.addEventListener("visibilitychange", () => {
