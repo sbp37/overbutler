@@ -3026,3 +3026,297 @@
 @media (prefers-reduced-motion: reduce) {
   .praise-result-document #result-report { opacity: 1; transform: none; transition: none; }
 }
+
+/* ═══════════ P1-B ① 선물 접수처 — 보급품 청구서 ═══════════
+   여기가 이 앱이 돈을 버는 자리인데 혼자 모바일 앱 화면이었다. 둥근 카드와
+   3×3 이모지 격자는 사무국 책상 위에 있을 물건이 아니다. 구조는 그대로 두고
+   껍데기만 바꾼다 — 청구 양식 한 장, 그 위에 견출표처럼 붙은 품목표.
+   잠금은 회색으로 흐리는 대신 "얼마가 모자란지"를 적는다. 이유 없는 잠금은
+   벽이지만, 이유 있는 잠금은 다음에 할 일이 된다. */
+.gift-desk-overlay { background: var(--paper); }
+.gift-desk-modal {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+  color: var(--ink);
+}
+.gift-desk-header { border-bottom: 3px double #b49b83; }
+.gift-desk-header > button {
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+  color: var(--ink);
+  box-shadow: var(--doc-shadow-sm);
+}
+.gift-desk-header strong { color: var(--ink); font: 800 26px/1 var(--disp); letter-spacing: -.03em; }
+.gift-desk-header div span { color: var(--ink-faint); font: 700 8px/1 var(--disp); letter-spacing: .16em; }
+.gift-desk-header > small {
+  padding: 6px 9px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 700 10px/1 var(--disp);
+}
+.gift-desk-header > small b { color: var(--tab-manager); font: 800 15px/1 var(--disp); }
+
+/* 청구 양식 한 장 — 모서리는 각지고, 위쪽은 철끈이 물고 있다. */
+.gift-desk-sheet {
+  position: relative;
+  margin-top: 18px;
+  padding: 18px 13px 15px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: var(--doc-shadow);
+}
+.gift-desk-sheet:before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  width: 16px;
+  height: 4px;
+  border-radius: 1px;
+  background: linear-gradient(var(--metal), var(--metal-dk));
+  box-shadow: 0 1px 1px rgba(45, 35, 22, .28);
+}
+.gift-desk-title > span {
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid var(--tab-manager);
+  border-radius: 2px;
+  color: var(--tab-manager);
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .12em;
+}
+.gift-desk-title h1 {
+  margin: 9px 0 4px;
+  color: var(--ink);
+  font: 800 25px/1.15 var(--disp);
+  letter-spacing: -.035em;
+}
+.gift-desk-title p { color: var(--ink-soft); font: 600 12.5px/1.45 var(--disp); }
+
+/* 접수 칸 — 점선 내곽은 outline으로 그린다(border로 만들면 다른 규칙과 겹쳐 샌다). */
+.gift-drop-zone {
+  min-height: 250px;
+  margin: 14px 0 16px;
+  padding: 34px 12px 14px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  outline: 1px dashed var(--doc-line);
+  outline-offset: -6px;
+  background: var(--doc-paper);
+}
+.gift-drop-zone.receiving {
+  border-color: var(--stamp-red);
+  outline-color: var(--stamp-red);
+  background: #fbf4ee;
+  box-shadow: none;
+  transform: none;
+}
+.gift-drop-status {
+  left: 10px;
+  right: 10px;
+  top: 9px;
+  padding: 6px;
+  border: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 700 10.5px/1 var(--disp);
+  letter-spacing: .02em;
+}
+.gift-drop-zone img { filter: none; }
+.gift-drop-zone > strong { color: var(--tab-manager); font: 800 15px/1 var(--disp); }
+.gift-drop-zone > p { color: #5c4c36; font: 700 14.5px/1.4 var(--hand); }
+
+.gift-list-heading { margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--doc-line-soft); }
+.gift-list-heading h2 { color: var(--ink); font: 800 12px/1 var(--disp); letter-spacing: .1em; }
+.gift-list-heading small { color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+
+/* 품목은 견출표다 — 위쪽 색띠 한 줄, 각진 모서리, 아래에 금액 도장. */
+.gift-catalog { gap: 7px; }
+.gift-catalog-item {
+  min-height: 100px;
+  padding: 12px 4px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: var(--doc-shadow-sm);
+  color: var(--ink);
+}
+.gift-catalog-item:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--doc-line);
+}
+.gift-catalog-item.gift-favorite:before { background: var(--stamp-red); }
+.gift-catalog-item.gift-rare:before { background: var(--gold); }
+.gift-catalog-item.affordable { border-color: var(--doc-line); }
+.gift-catalog-item.selected {
+  border-color: var(--ink);
+  background: var(--memo);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .18);
+}
+/* 못 사는 품목도 품목표에는 있다. 흐릿하게 지우는 대신 금액만 붉게 남긴다. */
+.gift-catalog-item.locked { opacity: 1; filter: none; background: #f3ede2; }
+.gift-catalog-item.locked > span { opacity: .55; }
+.gift-catalog-item > span { font-size: 27px; }
+.gift-catalog-item > strong { margin: 8px 0 5px; font: 700 12px/1 var(--disp); }
+.gift-catalog-item > small {
+  padding: 3px 7px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 800 10px/1 var(--disp);
+}
+.gift-catalog-item.locked > small { border-color: #d8b2ac; background: #fbeeea; color: var(--stamp-red); }
+/* 잠금 사유 — 견출표 아래쪽에 손으로 적어 붙인다. */
+.gift-catalog-item > i {
+  position: absolute;
+  top: auto;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  padding: 3px 0;
+  border-top: 1px solid #e2c9c2;
+  background: #f7ebe6;
+  color: var(--stamp-red);
+  font: 800 8.5px/1 var(--disp);
+  font-style: normal;
+  letter-spacing: .02em;
+  text-align: center;
+}
+.gift-catalog-item > mark {
+  left: 4px;
+  top: 6px;
+  padding: 2px 5px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  color: var(--ink-soft);
+  font: 800 8px/1 var(--disp);
+}
+.gift-catalog-item.gift-favorite > mark { border-color: #d8b2ac; background: #fbeeea; color: var(--stamp-red); }
+.gift-catalog-item.gift-rare > mark { border-color: #d8c08a; background: #faf1d9; color: #806018; }
+
+.gift-history-block { border-top: 1px solid var(--doc-line-soft); }
+.gift-history-block > div strong { color: var(--ink); font: 800 11px/1 var(--disp); letter-spacing: .1em; }
+.gift-history-block > div span { color: var(--tab-manager); font: 800 10px/1 var(--disp); }
+.gift-history-block li {
+  border: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: var(--doc-paper);
+}
+.gift-history-block li b { color: var(--ink); font: 700 12px/1 var(--disp); }
+.gift-history-block li time { color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+.gift-history-block li b em {
+  border-radius: 0;
+  border: 1px solid var(--doc-line);
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 800 8px/1 var(--disp);
+}
+.gift-history-block li.empty { color: var(--ink-faint); font: 600 12px/1.4 var(--disp); }
+
+/* ═══════════ P1-B ② 선물 결과 — 집사 얼굴과 한 줄이 화면이다 ═══════════
+   받은 사람의 반응을 보려고 누른 화면인데, 숫자 두 칸이 얼굴만큼 컸다.
+   얼굴과 한 줄을 화면의 대부분으로 올리고, 누적 선물·과몰입은 영수증
+   아래쪽 합계 줄처럼 작게 내린다. 마크업은 건드리지 않고 비중만 바꾼다. */
+.gift-overlay .gift-receipt .gift-reaction-hero {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.gift-overlay .gift-reaction-hero .gift-character-stage,
+.gift-overlay .gift-reaction-hero .gift-character-stage img {
+  width: min(100%, 272px);
+  margin: 0 auto;
+}
+/* 집사는 조명 박스가 아니라 인수증 종이 위에 서 있다. */
+.gift-overlay .gift-reaction-hero .gift-character-stage {
+  height: auto;
+  background: none;
+}
+.gift-overlay .gift-reaction-hero .gift-character-stage img {
+  height: min(46vh, 330px);
+  object-fit: contain;
+  object-position: center bottom;
+}
+.gift-overlay .gift-reaction-hero .reaction-stamp { right: 10px; bottom: 6px; }
+.gift-overlay .gift-reaction-copy { align-items: center; margin-top: 6px; text-align: center; }
+.gift-overlay .gift-reaction-copy .gift-overline {
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .16em;
+}
+.gift-overlay .gift-reaction-copy h1 {
+  margin: 7px 0 5px;
+  color: var(--ink);
+  font: 800 16px/1.25 var(--disp);
+  letter-spacing: -.03em;
+}
+.gift-overlay .gift-reaction-copy > p { color: var(--ink-soft); font: 600 11.5px/1.5 var(--disp); }
+/* 집사가 한 말 — 이 화면에서 가장 큰 글자다. */
+.gift-overlay .gift-receipt > blockquote {
+  margin: 12px 0 0;
+  padding: 14px 15px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  color: var(--ink);
+  font: 700 18px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  text-align: center;
+  word-break: keep-all;
+}
+/* 합계 줄 — 영수증 맨 아래 작은 숫자 두 칸. */
+.gift-overlay .gift-result-metrics {
+  display: flex;
+  gap: 0;
+  margin: 10px 0 0;
+  padding: 7px 10px;
+  border: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: none;
+}
+.gift-overlay .gift-result-metrics > div {
+  display: flex;
+  flex: 1;
+  gap: 5px;
+  align-items: baseline;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.gift-overlay .gift-result-metrics > div + div { border-left: 1px solid var(--doc-line-soft); }
+.gift-overlay .gift-result-metrics dt { color: var(--ink-faint); font: 600 9.5px/1 var(--disp); letter-spacing: .04em; }
+.gift-overlay .gift-result-metrics dd { margin: 0; color: var(--ink-soft); font: 700 10px/1 var(--disp); }
+.gift-overlay .gift-result-metrics dd b { color: var(--ink-soft); font: 800 12px/1 var(--disp); }
+
+/* 인수증 머리와 꼬리는 얼굴 자리를 뺏지 않을 만큼만 남는다. */
+.gift-overlay .gift-receipt .reaction-document-meta { margin-bottom: 4px; padding: 5px 0; }
+.gift-overlay .reaction-footnote { font-size: 10px; }
+
+/* 인수증 한 장이 한 화면에 들어와야 얼굴이 화면이 된다 — 스크롤이 생기는 순간
+   집사 얼굴과 숫자가 다시 같은 무게가 된다. 남는 여백부터 걷어낸다. */
+.gift-overlay .gift-modal { padding-top: 12px; padding-bottom: 14px; }
+.gift-overlay .gift-receipt { padding: 12px 13px 13px; }
+.gift-overlay .gift-receipt .gift-reaction-hero { margin: 6px 0 0; }
+.gift-overlay .gift-reaction-copy { gap: 0; margin-top: 2px; }
+.gift-overlay .gift-reaction-copy .gift-reaction-badge { margin-top: 5px; min-height: 22px; padding: 3px 8px; }
+.gift-overlay .gift-reaction-copy h1 { margin: 5px 0 3px; }
+.gift-overlay .gift-receipt > blockquote { margin-top: 10px; padding: 12px 14px; }
+.gift-overlay #gift-close { margin-top: 10px; min-height: 46px; padding: 12px 14px; }
+.gift-overlay .reaction-footnote { margin-top: 8px; }

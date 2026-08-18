@@ -42,7 +42,9 @@
     deedRelationship: Object.freeze({ praise: 3, power: 4, rare: 6, duplicate: 1 }),
     // favoriteRepeat — 취향 선물을 또 줬을 때. 취향이라는 사실은 그대로고 놀라움만 준다.
     giftRelationship: Object.freeze({ normal: 3, favorite: 5, favoriteRepeat: 2, duplicate: 1, rare: 8 }),
-    giftCosts: Object.freeze([10, 20, 35, 55, 80, 110, 150, 210, 300]),
+    // 앞 세 칸은 "주는 재미"를 먼저 배우는 구간이다. 첫 선물이 며칠짜리 저축이면
+    // 그 재미를 배우기 전에 화면을 닫는다. 10/15/20으로 낮춰 하루 안에 닿게 한다.
+    giftCosts: Object.freeze([10, 15, 20, 55, 80, 110, 150, 210, 300]),
     rareRollDivisor: 31,
     rarePityAfter: 24,
     // 파워 주접은 "가끔 만나는 이벤트"여야 한다. 예전 값(12~40%)에 아래 firstInCategory
@@ -4043,8 +4045,10 @@
       const affordable = state.points >= gift.cost;
       const interaction = giftInteractionFor(state.character, gift, index);
       const preferenceLabel = interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
-      return `<button class="gift-catalog-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}">
-        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}<span>${gift.emoji}</span><strong>${escapeHtml(gift.name)}</strong><small>${gift.cost}P</small>${affordable ? "" : "<i>잠김</i>"}
+      // 잠긴 품목에는 이유가 붙어야 한다. "잠김"은 벽이지만 "12P 더"는 다음에 할 일이다.
+      const shortfall = affordable ? 0 : gift.cost - state.points;
+      return `<button class="gift-catalog-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
+        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}<span>${gift.emoji}</span><strong>${escapeHtml(gift.name)}</strong><small>${gift.cost}P</small>${affordable ? "" : `<i>${shortfall}P 더</i>`}
       </button>`;
     }).join("");
     $("#gift-history-count").textContent = `${history.length}개`;
