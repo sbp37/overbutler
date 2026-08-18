@@ -950,6 +950,10 @@
   let catHomeBlinkTimer = null;
   let catHomeSlipTimer = null;
   let sealOpeningTimer = null;
+  let catFaceTimer = null;
+  let catHomePendingFace = "";
+  let catHomeTapRun = 0;
+  let catHomeLastTapAt = 0;
   let catHomePendingReaction = "";
   let chatReplyTimer = null;
 
@@ -2821,12 +2825,56 @@
     }, 120);
   }
 
+  /* ── 접수대 표정 ──
+     스프라이트는 base 하나에 얼굴만 갈아끼운 넉 장이다(몸·책상·조끼는 픽셀 단위로 동일).
+     규칙은 하나뿐이다 — 표정은 잠깐 지나가고 반드시 base로 돌아온다. 표정이 떠 있는
+     동안에는 자동 깜빡임을 멈춘다. 무슨 얼굴인지 읽기도 전에 눈 감은 얼굴이 끼어들면
+     표정을 세 장 그린 의미가 없어진다. */
+  const DESK_FACES = Object.freeze({
+    base: "cat-desk-base",
+    blink: "cat-desk-blink",
+    annoyed: "cat-desk-annoyed",
+    happy: "cat-desk-happy",
+    surprised: "cat-desk-surprised"
+  });
+  const DESK_FACE_PATH = "design/character-assets/cat-butler/desk-poses/";
+
+  // 표정은 칭찬을 받은 바로 그 순간에 뜬다. 그때 처음 내려받느라 한 프레임이라도
+  // 비면 연출이 아니라 버그로 보인다. 방에 처음 들어올 때 미리 받아둔다.
+  let deskFacesWarmed = false;
+  function warmDeskFaces() {
+    if (deskFacesWarmed) return;
+    deskFacesWarmed = true;
+    ["annoyed", "happy", "surprised"].forEach(name => {
+      const preload = new Image();
+      preload.src = `${DESK_FACE_PATH}${DESK_FACES[name]}.webp`;
+    });
+  }
+
+  function setDeskFace(name) {
+    const image = $("#cat-home-character-image");
+    if (!image) return null;
+    image.src = `${DESK_FACE_PATH}${DESK_FACES[name] || DESK_FACES.base}.webp`;
+    return image;
+  }
+
+  function showDeskFace(name, holdFor = 1700) {
+    if (state.character !== "cat" || !DESK_FACES[name] || !setDeskFace(name)) return;
+    window.clearTimeout(catHomeBlinkTimer);
+    window.clearTimeout(catFaceTimer);
+    catFaceTimer = window.setTimeout(() => {
+      catFaceTimer = null;
+      setDeskFace("base");
+      scheduleCatHomeBlink();
+    }, holdFor);
+  }
+
   // 눈 깜빡임 한 번. 탭에도, 저 혼자 있는 시간에도 같은 동작을 쓴다.
   function blinkOnce() {
     const image = $("#cat-home-character-image");
-    if (!image) return;
-    image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-blink.webp";
-    window.setTimeout(() => { image.src = "design/character-assets/cat-butler/desk-poses/cat-desk-base.webp"; }, 180);
+    if (!image || catFaceTimer) return;
+    image.src = `${DESK_FACE_PATH}${DESK_FACES.blink}.webp`;
+    window.setTimeout(() => { if (!catFaceTimer) setDeskFace("base"); }, 180);
     scheduleCatHomeBlink();
   }
 
@@ -2872,7 +2920,21 @@
       } else setCatHomeOffset(catHomeOffsetX);
     });
     scheduleCatHomeBlink();
+    warmDeskFaces();
     renderCatRoomGifts();
+    // 결과서·인증서를 닫고 방으로 돌아온 순간이 표정을 볼 수 있는 유일한 자리다.
+    // 판정 화면은 방을 통째로 덮고 있어서, 그때 얼굴을 바꿔봐야 아무도 못 본다.
+    if (catHomePendingFace) {
+      const face = catHomePendingFace;
+      catHomePendingFace = "";
+      window.setTimeout(() => {
+        showDeskFace(face, 2100);
+        const character = $("#cat-home-character");
+        if (!character) return;
+        restartAnimation(character, "is-reacting");
+        window.setTimeout(() => character.classList.remove("is-reacting"), 700);
+      }, 300);
+    }
   }
 
   // 연타하면 같은 말이 계속 나왔다. 단계당 두 줄뿐이라 A·B가 번갈아 나온 게
@@ -2894,7 +2956,7 @@
     return chosen;
   }
 
-  function showCatHomeSpeech(message, holdFor = 2800) {
+  function showCatHomeSpeech(message, holdFor = 2800, face = "") {
     const speech = $("#cat-home-speech");
     const character = $("#cat-home-character");
     const image = $("#cat-home-character-image");
@@ -2907,7 +2969,10 @@
     character.classList.remove("is-reacting");
     void character.offsetWidth;
     character.classList.add("is-reacting");
-    blinkOnce();
+    // 표정이 붙는 말이면 깜빡임 대신 그 얼굴을 쓴다. 둘은 같은 이미지 한 장을
+    // 두고 다투는 사이라 동시에 낼 수 없다.
+    if (face) showDeskFace(face, Math.min(holdFor, 2200));
+    else blinkOnce();
     // 슬립은 발행되면 책상에 남는다. 사라지면 접수대 아래가 빈 칸으로 덜컥 내려앉는다.
     catHomeSpeechTimer = window.setTimeout(() => {
       character.classList.remove("is-reacting");
@@ -2925,7 +2990,12 @@
   function interactWithCatHome() {
     const stat = ensureButlerStat("cat");
     dismissCatHomeHint();
-    showCatHomeSpeech(catHomeLine());
+    // 연타는 "또?"다. 3초 안에 이어진 세 번째 탭부터 시큰둥한 얼굴이 나온다.
+    // 한 번 두 번은 부른 것이고, 세 번째부터가 장난이다.
+    const now = Date.now();
+    catHomeTapRun = now - catHomeLastTapAt < 3000 ? catHomeTapRun + 1 : 1;
+    catHomeLastTapAt = now;
+    showCatHomeSpeech(catHomeLine(), 2800, catHomeTapRun >= 3 ? "annoyed" : "");
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
     saveState();
@@ -3638,6 +3708,9 @@
     const firstRecord = isFirstRecord(record);
     const official = isOfficialCertificate(record);
     currentResult = record;
+    // 판정을 확인하고 방으로 돌아오면 집사 얼굴이 그 판정을 말한다.
+    // 파워·희귀는 흠칫, 보통 칭찬은 티 안 내는 미소.
+    if (state.character === "cat") catHomePendingFace = power ? "surprised" : "happy";
     const overlay = $("#praise-result-overlay");
     overlay.dataset.mode = mode;
     overlay.dataset.firstRecord = String(firstRecord);
@@ -4701,7 +4774,12 @@
     trackEvent("gift_given", { character: state.character, giftType: interaction.type, relationshipStage: stageIndexFor(state.obsession) });
     setPoseImage($("#briefing-butler-image"), state.character, "gift");
     const message = giftResponse(state.character, gift, interaction, previousObsession);
-    if (state.character === "cat") catHomePendingReaction = "선물은 잘 보관하겠다냥. …고맙다냥.";
+    // 선물 접수처는 집사 탭에 있고 방은 홈에 있다. 그래서 고맙다는 얼굴은
+    // 여기서 예약만 해두고, 사용자가 방으로 돌아왔을 때 나온다.
+    if (state.character === "cat") {
+      catHomePendingReaction = "선물은 잘 보관하겠다냥. …고맙다냥.";
+      catHomePendingFace = "happy";
+    }
     typeMessage($("#briefing-message"), message);
     renderManager();
     renderRelationshipStatus();
