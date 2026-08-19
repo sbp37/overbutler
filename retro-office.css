@@ -3697,21 +3697,23 @@
    숨기고 색감과 윤곽만 남긴다. 말투 한 줄은 육필(--hand)로 샌다. */
 #manager-details .sealed-peek {
   position: relative;
-  flex: 0 0 42px;
-  width: 42px;
-  height: 50px;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 64px;
   overflow: hidden;
   border: 1px solid var(--kraft-deep);
   border-radius: 2px;
   background: var(--kraft);
 }
+/* 흐릿한 사진은 이 크기에선 얼룩으로 읽힌다(실사용 리뷰: "곰팡이 같음").
+   봉인 안은 단색 실루엣 — 형태만 보이는 쪽이 기밀문서 톤에도 맞는다. */
 #manager-details .sealed-peek img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center 18%;
-  filter: blur(5px) brightness(.88) saturate(.9);
-  transform: scale(1.15);
+  filter: brightness(0) saturate(0) opacity(.34);
+  transform: scale(1.12);
 }
 #manager-details .sealed-peek i {
   position: absolute;
@@ -3830,4 +3832,18 @@
   color: var(--ink);
   font: 800 14px/1 var(--disp);
   text-decoration: none;
+}
+
+/* 파일 중복 접기 — 같은 대업 재접수는 대표 한 장에 ×N으로 표시된다. */
+.office-record-card .record-repeat-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 5px 2px;
+  border: 1px solid var(--doc-line);
+  border-radius: 8px;
+  background: var(--doc-paper);
+  color: var(--ink-faint);
+  font: 700 10px/1 var(--disp);
+  font-style: normal;
+  vertical-align: 2px;
 }

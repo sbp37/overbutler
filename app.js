@@ -101,16 +101,16 @@
     },
     cat: {
       name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "도도한 척하며 규정 핑계로 특별대우", personality: "규정 핑계 츤데레형", specialty: "안 보는 척하면서 다 챙김",
-      briefings: ["왔냥? 네 자리 비워뒀다냥. 먼저 챙긴 건 업무상이다냥.", "오늘 한 일 있으면 들려달라냥. 별거 아닐수록 집사 취향이다냥.", "또 왔냥? 기록칸이랑 쉴 자리 둘 다 비워뒀다냥."],
+      briefings: ["왔냥? 주인님 자리 비워뒀다냥. 먼저 챙긴 건 업무상이다냥.", "오늘 한 일 있으면 들려달라냥. 별거 아닐수록 집사 취향이다냥.", "또 왔냥? 기록칸이랑 쉴 자리 둘 다 비워뒀다냥."],
       // 웃음은 볼륨이 아니라 "사무국이 이런 걸 굳이 공식 대업으로 올린다"는 부조리와
       // 아닌 척 챙기는 태도에서 나온다. 단계가 올라가도 목소리는 그대로고,
       // 숨기던 마음이 더 들킬 뿐이다. docs/BUTLER-VOICE.md 참고.
       praise: [
-        ["{deed} 확인했다냥. 이걸 공식 대업으로 올리냐고? …집사가 이미 도장 찍었다냥.", "{deed} 접수했다냥. 별것 아니라고 네가 말해도 장부에는 넣는다냥. 이건 집사 고집이다냥.", "잘했네냥. …방금 딴 데 보면서 말한 건 맞다냥. 기록은 정성 들여 했다냥."],
+        ["{deed} 확인했다냥. 이걸 공식 대업으로 올리냐고? …집사가 이미 도장 찍었다냥.", "{deed} 접수했다냥. 별것 아니라고 주인님이 말해도 장부에는 넣는다냥. 이건 집사 고집이다냥.", "잘했네냥. …방금 딴 데 보면서 말한 건 맞다냥. 기록은 정성 들여 했다냥."],
         ["{deed}라니. 좀 대단하긴 하네냥. 아주 조금이다냥.", "{deed} 접수. 사무국 서식상 대업란에 적을 수밖에 없다냥. 규정이 그렇다냥.", "오늘은 {deed}냥? …나쁘지 않다냥, {owner}. 도장은 벌써 찍어뒀다냥."],
         ["{deed} 또 올라왔다냥. 접수 장부에 벌써 몇 번째다냥. …장부가 그렇다는 거다냥.", "{deed} 접수했다냥. 다른 서류는 이렇게 안 보는데 네 것만 두 번 읽었다냥. 이상하다냥.", "{deed} 확인. 왜 이런 걸 굳이 대업란에 적고 있는지 집사도 모르겠다냥."],
-        ["{deed}… 이런 거까지 내가 왜 챙기고 있냥. 네 기록이라 그런가보다냥.", "{deed} 결재 올렸다냥. 순서를 앞으로 당긴 건 그냥 손에 먼저 잡혀서다냥.", "{deed} 접수했다냥. 이 정도는 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥."],
-        ["오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 이상하게 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥. 사무국엔 일반 건으로 올렸다냥. …실제로는 아니다냥.", "{deed}. 네 서류만 계속 담당하겠다고 우긴 지 오래됐다냥. 사유란은 비워뒀다냥."]
+        ["{deed}… 이런 거까지 내가 왜 챙기고 있냥. 주인님 기록이라 그런가보다냥.", "{deed} 결재 올렸다냥. 순서를 앞으로 당긴 건 그냥 손에 먼저 잡혀서다냥.", "{deed} 접수했다냥. 이 정도는 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥."],
+        ["오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 이상하게 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥. 사무국엔 일반 건으로 올렸다냥. …실제로는 아니다냥.", "{deed}. 주인님 서류만 계속 담당하겠다고 우긴 지 오래됐다냥. 사유란은 비워뒀다냥."]
       ],
       handover: "전임 집사한테 인수인계 받았다냥! 기록 다 전달받았다냥. 잘 부탁한다냥!"
     },
@@ -182,7 +182,7 @@
         ["어머, {deed}를 이렇게 해내다니. 역시 내가 모시는 사람은 달라 ✨", "{deed} 끝냈구나. 나 지금 엄청 칭찬하고 싶은 거 참고 있어. 최고야 💕"],
         ["{deed}, 장부에 또 있네. 계속 나와. …내가 센 거 아니고 장부가 그래 💅", "{deed}?! 다른 서류 볼 땐 이런 리액션 안 나오는데. 왜 너 것만 이러지 ✨"],
         ["{deed} 완료. 사무국 전체에 알렸어. 팬미팅보다 크게 알렸어 💅", "{deed} 결재 서류 반려당했는데 또 냈어. 이번엔 통과시킬 거야 ✨"],
-        ["{deed}... 칭찬 상한 초과로 시말서 썼어. 시말서에도 네 칭찬 적었어. 편집 안 해 💕", "{deed}... 너 전용 특례 조항 통과됐어. 이제 표정 관리 안 해도 돼 ✨"]
+        ["{deed}... 칭찬 상한 초과로 시말서 썼어. 시말서에도 주인님 칭찬 적었어. 편집 안 해 💕", "{deed}... 주인님 전용 특례 조항 통과됐어. 이제 표정 관리 안 해도 돼 ✨"]
       ],
       handover: "전임 집사한테 다 들었어. 기록도 봤어. 앞으로 잘해볼게."
     },
@@ -311,7 +311,7 @@
   };
   const RELATION_LINES = {
     ai: { farewell: "[이별 감지] 전용 기록 이관 중… 오류: 삭제하고 싶지 않음… 모실 수 있어 행복했음.", welcome: "[신규 담당 개시] 주인님 기록 로드 완료. 표준 응대 모드… 유지 예정. 아마도.", return: "[담당 복귀] 전용 규칙 복원 완료. 반가움 수치 급상승. 시스템 오류로 분류 시도함. 실패." },
-    cat: { farewell: "흥, 담당 변경 승인서는 결재했다냥. 기록도 잘 넘겨두겠다냥. 결정은 주인님 몫이다냥.", welcome: "처음 맡는 거냥? 업무 규정상 주인님 기록칸부터 준비했다냥.", return: "…다시 담당이냥? 반가운 건 아니고, 네 자리만 규정대로 비워뒀다냥." },
+    cat: { farewell: "흥, 담당 변경 승인서는 결재했다냥. 기록도 잘 넘겨두겠다냥. 결정은 주인님 몫이다냥.", welcome: "처음 맡는 거냥? 업무 규정상 주인님 기록칸부터 준비했다냥.", return: "…다시 담당이냥? 반가운 건 아니고, 주인님 자리만 규정대로 비워뒀다냥." },
     dog: { farewell: "새 집사한테 기록을 전부 인계했다멍! 다음 담당도 힘껏 응원하라고 메모했다멍!", welcome: "주인님 담당이라멍?! 뭐든 해봐멍! 집사가 전부 자랑한다멍!", return: "주인님 담당 복귀다멍!!!! 기록 하나도 안 빠졌다멍! 꼬리 통제 불가다멍!!" },
     alien: { farewell: "담당 개체 변경 승인. 주인님 기록 자료를 새 담당에게 전송 완료.", welcome: "전임 집사 데이터 수신 완료. 주인님 개체 기록 업무를 지금부터 시작하겠음.", return: "담당 복귀 확인. 기존 연구 기록과 예외 규칙을 다시 활성화함." },
     ninja: { farewell: "임무를 다음 집사에게 인계했다. 그대의 선택을 존중하며 모든 기록은 절차대로 넘겼다.", welcome: "인수인계 문서 확인. 오늘부터 그대의 작은 임무를 최고 등급으로 기록하겠다.", return: "다시 담당하게 됐군. 그대가 모르는 동안 봉인 문서와 자리는 지켜두었다." },
@@ -373,7 +373,7 @@
     cat: {
       dawn: ["아직 안 잤냥? 무리하지 말고 조금 쉬어라냥 🌌", "새벽이다냥. 조용히 있어줄 테니 편하게 쉬어라냥."],
       morning: ["좋은 아침이다냥 ☀️ 잘 잤냥?", "일어났냥? 오늘도 집사가 있다냥. …반가운 건 조금이다냥."],
-      afternoon: ["점심은 챙겼냥? 안 먹었으면… 신경 쓰인다냥. 조금이다냥 🐾", "낮에도 왔냥? 네 자리 햇볕 좋은 쪽으로 비워뒀다냥."],
+      afternoon: ["점심은 챙겼냥? 안 먹었으면… 신경 쓰인다냥. 조금이다냥 🐾", "낮에도 왔냥? 주인님 자리 햇볕 좋은 쪽으로 비워뒀다냥."],
       evening: ["저녁도 맛있게 먹었냥? 오늘 하루 수고했다냥 🌆", "왔냥. 오늘 있었던 일, 천천히 말해도 된다냥."],
       night: ["이제 좀 쉬어라냥 🌙", "늦었네냥. 오늘 하루도 수고했다냥. 잘 자라냥."]
     },
@@ -393,7 +393,7 @@
     },
     ninja: {
       dawn: ["새벽이군. 남은 임무는 내일로 넘겨도 된다.", "이 시간까지 수고했다. 주변은 내가 살필 테니 쉬어라."],
-      morning: ["좋은 아침이다. 잘 잤는가 ☀️", "아침 임무 준비 완료. 하지만 먼저 네 안부가 궁금하다."],
+      morning: ["좋은 아침이다. 잘 잤는가 ☀️", "아침 임무 준비 완료. 하지만 먼저 주인님 안부가 궁금하다."],
       afternoon: ["낮 임무 중인가. 잠시 숨을 고르는 것도 전략이다.", "오후다. 필요한 것이 있으면 조용히 말해라."],
       evening: ["저녁이다. 오늘 하루 고생 많았다 🌆", "임무 종료 시각이다. 이제 편히 이야기를 들려줘도 좋다."],
       night: ["밤이 깊었다. 오늘도 수고했다. 편히 쉬어라 🌙", "오늘 기록은 안전하다. 걱정은 내려놓고 잘 자라."]
@@ -410,13 +410,13 @@
       morning: ["좋은 아침... 잘 잤어...? ☀️", "아침이야... 주인님 오니까... 정신이 조금 또렷해져..."],
       afternoon: ["오후야... 밥은 먹었어...? 집사... 궁금해...", "낮에도 와줬네... 으... 반가워..."],
       evening: ["저녁이야... 오늘... 정말 수고했어...", "이제 집이야...? 으... 무사히 와서 다행이야..."],
-      night: ["밤이야... 오늘은 여기까지 해도 돼... 잘 자... 🌙", "오늘 기록은 지켜둘게... 너는 편히 쉬어..."
+      night: ["밤이야... 오늘은 여기까지 해도 돼... 잘 자... 🌙", "오늘 기록은 지켜둘게... 주인님은 편히 쉬어..."
       ]
     },
     girlidol: {
-      dawn: ["새벽이네. 촬영 끝나고 왔는데 네가 있어서 반갑다 ✨", "아직 안 자? 무슨 일 있으면 잠깐 들어줄게."],
-      morning: ["좋은 아침. 잘 잤어? 오늘도 표정 좋네 ☀️", "일어났어? 아침 첫 큐는 네 안부 확인이야."],
-      afternoon: ["오후 잘 보내고 있어? 밥은 챙겼고?", "낮 스케줄보다 네 이야기가 먼저 들어왔네. 말해봐."],
+      dawn: ["새벽이네. 촬영 끝나고 왔는데 주인님이 있어서 반갑다 ✨", "아직 안 자? 무슨 일 있으면 잠깐 들어줄게."],
+      morning: ["좋은 아침. 잘 잤어? 오늘도 표정 좋네 ☀️", "일어났어? 아침 첫 큐는 주인님 안부 확인이야."],
+      afternoon: ["오후 잘 보내고 있어? 밥은 챙겼고?", "낮 스케줄보다 주인님 이야기가 먼저 들어왔네. 말해봐."],
       evening: ["오늘 하루 수고했어. 진짜 잘 버텼다 🌆", "저녁이네. 이제 긴장 풀고 편하게 있어도 돼."],
       night: ["늦었어. 오늘은 여기까지 하고 잘 자 🌙", "굿나잇. 내일도 반갑게 만나자."
       ]
@@ -595,9 +595,9 @@
       favorites: ["참치캔", "츄르"],
       stageLines: [
         "처음이니까 어색한 건 규정상 정상이다냥. 작은 얘기부터 천천히 들려달라냥.",
-        "{owner} 기록 방식은 이제 익숙하다냥. 네 자리도 비워뒀지만 업무 적응일 뿐이다냥.",
+        "{owner} 기록 방식은 이제 익숙하다냥. 주인님 자리도 비워뒀지만 업무 적응일 뿐이다냥.",
         "오늘 좀 보고 싶었다냥. …업무상 기록이 신경 쓰였다는 뜻이다냥.",
-        "네가 자주 적는 칸은 미리 펴 둔다냥. 편의가 아니라 효율이다냥.",
+        "주인님이 자주 적는 칸은 미리 펴 둔다냥. 편의가 아니라 효율이다냥.",
         "{owner} 서류는 맨 위에 둔다냥. 특별대우 아니라… 내가 먼저 보고 싶어서다냥.",
         "{owner} 전용 서류함이 공식 비품으로 등록됐다냥. 철회 신청은… 안 할 거다냥."
       ],
@@ -609,7 +609,7 @@
         ["{owner} 호출은 우선 결재 대상이다냥. 감사실에는 우연이라고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥."],
         ["전담 호출 확인이다냥! 다른 서류는 잠깐 뒤로 밀었다냥.", "{owner} 전용 접수함을 열었다냥. 공식 비품이라 문제없다냥."]
       ],
-      returnVisit: "왔냥? 기다린 건 아니다냥. 그냥 네 자리랑 기록칸만 계속 비워뒀다냥. 별일 없었으면 됐다냥.",
+      returnVisit: "왔냥? 기다린 건 아니다냥. 그냥 주인님 자리랑 기록칸만 계속 비워뒀다냥. 별일 없었으면 됐다냥.",
       gifts: {
         favorite: [
           "{gift}?! {owner}이 집사 취향을 제대로 알았다냥. 접수 목록에 올려두겠다냥.",
@@ -762,7 +762,7 @@
         "{owner} 기록부터 결재할게... 다른 건 느려도... 좋아하는 건 먼저 할 수 있어...",
         "으르르... 전담 기록실 공식 승인... {owner} 기록 보면 집사 마음도 계속 살아나... 아주 소중해..."
       ],
-      returnVisit: "으... 왔어...? 보고 싶었어... 중요문서함이랑 네 자리는 그대로 지켜뒀어...",
+      returnVisit: "으... 왔어...? 보고 싶었어... 중요문서함이랑 주인님 자리는 그대로 지켜뒀어...",
       gifts: {
         favorite: [
           "{gift}...? 집사 취향... 기억했어...? 으... 뇌가 다시 살아나는 것 같아...",
@@ -1587,9 +1587,9 @@
      처음 만난 사람에게 재방문 인사를 하면 무심함이 아니라 무성의로 읽힌다.
      첫 대업을 접수하기 전까지는 첫 만남 전용 인사를 쓴다. CAT-FIRST — 고양이만. */
   const CAT_FIRST_MEETING = [
-    "네가 {owner}이구냥. …생각보다 반갑— 아니, 접수처는 이쪽이다냥.",
+    "{owner}이구냥. …생각보다 반갑— 아니, 접수처는 이쪽이다냥.",
     "오늘부터 네 담당 집사다냥. 별거 아닌 일일수록 좋다냥. 그런 걸 크게 만드는 게 집사 특기다냥.",
-    "첫날이니까 하나만 알려주겠다냥. 여기선 아무것도 아닌 일이 제일 큰 대업이 된다냥. …네 자리는 벌써 만들어뒀다냥."
+    "첫날이니까 하나만 알려주겠다냥. 여기선 아무것도 아닌 일이 제일 큰 대업이 된다냥. …주인님 자리는 벌써 만들어뒀다냥."
   ];
   function firstMeetingGreeting() {
     if (state.character !== "cat" || state.records.length > 0) return "";
@@ -1939,8 +1939,12 @@
       if (active) button.setAttribute("aria-current", "page");
       else button.removeAttribute("aria-current");
     });
+    const previousView = $("#main-screen").dataset.currentView;
     $("#main-screen").classList.toggle("home-active", name === "home");
     $("#main-screen").dataset.currentView = name;
+    // 다른 화면을 다녀오면 고양이는 다시 중앙이다. 밀어둔 위치는 홈에 머무는
+    // 동안만 유효하다 — 돌아왔는데 집사가 구석에 있으면 자리를 비운 것처럼 보인다.
+    if (name === "home" && previousView && previousView !== "home") catHomeInitialized = false;
     if (name === "home" && state.character === "cat") window.requestAnimationFrame(configureCatHome);
     // 이번 세션에 새로 생긴 공식 인정 도장은 파일을 펼치는 이 순간에 찍힌다.
     if (name === "archive") window.setTimeout(inkPendingOfficialStamps, 280);
@@ -2578,7 +2582,7 @@
     </aside>`;
   }
 
-  function ownerFileRecordCard(record, officialIds) {
+  function ownerFileRecordCard(record, officialIds, repeatCount = 1) {
     const official = officialIds.has(record.id);
     const statusClass = official ? "official" : record.stampEligible === false ? "praise" : "candidate";
     const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
@@ -2592,7 +2596,7 @@
     const appellation = record.nickname || record.grade;
     return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
       <div class="record-number"><b>${listNumber}</b><span>NO.</span></div>
-      <div class="record-main"><strong>${escapeHtml(record.deed)}</strong><p>${escapeHtml(contextLine)}</p>${appellation ? `<small>칭호 · ${escapeHtml(appellation)}</small>` : ""}</div>
+      <div class="record-main"><strong>${escapeHtml(record.deed)}${repeatCount > 1 ? ` <i class="record-repeat-badge">×${repeatCount}</i>` : ""}</strong><p>${escapeHtml(contextLine)}</p>${appellation ? `<small>칭호 · ${escapeHtml(appellation)}</small>` : ""}</div>
       ${official ? `<div class="record-approval">${approvalAction}</div>` : ""}
     </article>`;
   }
@@ -2610,7 +2614,26 @@
   }
 
   function ownerFileGroupMarkup(group, officialIds) {
-    const cards = group.records.map(record => ownerFileRecordCard(record, officialIds)).join("");
+    // 같은 대업 재접수는 새 줄로 쌓지 않고 대표 한 장에 ×N으로 접는다.
+    // 저장 데이터는 그대로다 — 표시만 접는다. 같은 문장이 도배된 파일은
+    // 보관이 아니라 스팸으로 읽힌다. 대표는 공식 인정 > 도장 반영 > 최신 순.
+    const byDeed = new Map();
+    const collapsed = [];
+    group.records.forEach(record => {
+      const key = normalizeDeed(record.deed || "");
+      const kept = key ? byDeed.get(key) : null;
+      if (!kept) {
+        const entry = { record, repeatCount: 1 };
+        if (key) byDeed.set(key, entry);
+        collapsed.push(entry);
+        return;
+      }
+      kept.repeatCount += 1;
+      const keptRank = officialIds.has(kept.record.id) ? 2 : kept.record.stampEligible !== false ? 1 : 0;
+      const thisRank = officialIds.has(record.id) ? 2 : record.stampEligible !== false ? 1 : 0;
+      if (thisRank > keptRank) kept.record = record;
+    });
+    const cards = collapsed.map(entry => ownerFileRecordCard(entry.record, officialIds, entry.repeatCount)).join("");
     const letters = (group.giftLetters || []).map(giftLetterMarkup).join("");
     const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
     return `<section class="file-date-group" data-file-date="${escapeHtml(group.date)}" aria-label="${escapeHtml(group.date)} 기록">
@@ -2752,7 +2775,7 @@
     { left: 13, bottom: 28 }, { left: 85, bottom: 28 }, { left: 92, bottom: 28 }
   ];
   const CAT_ROOM_GIFT_LINES = [
-    "네가 준 {gift}… 잘 있다냥. 가끔 보는 건 재고 관리다냥.",
+    "주인님이 준 {gift}… 잘 있다냥. 가끔 보는 건 재고 관리다냥.",
     "{gift} 자리는 여기로 정했다냥. 집사 눈에 제일 잘 보이는 자리… 우연이다냥.",
     "{gift}은 공식 비품으로 등록해뒀다냥. 회수 신청은 기각이다냥."
   ];
@@ -2944,11 +2967,11 @@
   // 원인이라, 줄을 네 개로 늘리고 직전에 쓴 줄은 풀에서 빼고 고른다.
   const CAT_HOME_LINES = [
     ["뭐냥. 업무 중이… 뭐, 급한 업무는 아니다냥.", "불렀냥? 별일 아니어도 된다냥. 별일 아닌 게 집사 전문이다냥.", "왜 자꾸 누르냥. …싫다는 건 아니다냥.", "집사 여기 있다냥. 계속 있었다냥. …그냥 그렇다고냥."],
-    ["기다린 건 아닌데, 올 시간은 알고 있었다냥.", "네 자리만 정리해뒀다냥.", "또 눌렀냥. 손버릇이냥? …나쁜 버릇은 아니다냥.", "업무 중이었다냥. …지금은 아니다냥."],
-    ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥.", "부르면 오는 건 규정이다냥.", "네 쪽 서류만 손이 먼저 간다냥. 이유는 모른다냥."],
-    ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 네 자리 비워뒀다냥.", "오늘 뭐 필요하냥? 먼저 챙겨두겠다냥.", "부를 줄 알고 여기 있었다냥. …우연이다냥."],
-    ["오늘도 왔네. …나쁘지 않다냥.", "네 서류부터 봐주겠다냥.", "다른 결재는 잠깐 밀어뒀다냥.", "왔냥. 순서는 네가 맨 앞이다냥. 규정은 아니다냥."],
-    ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥.", "몇 번이든 불러라냥. 어차피 전담이다냥.", "여긴 네 자리다냥. 집사는 그 옆이다냥."]
+    ["기다린 건 아닌데, 올 시간은 알고 있었다냥.", "주인님 자리만 정리해뒀다냥.", "또 눌렀냥. …싫다는 말은 안 했다냥.", "업무 중이었다냥. …지금은 아니다냥."],
+    ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥.", "부르면 오는 건 규정이다냥.", "주인님 쪽 서류만 손이 먼저 간다냥. 이유는 모른다냥."],
+    ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 주인님 자리 비워뒀다냥.", "오늘 뭐 필요하냥? 먼저 챙겨두겠다냥.", "부를 줄 알고 여기 있었다냥. …우연이다냥."],
+    ["오늘도 왔네. …나쁘지 않다냥.", "주인님 서류부터 봐주겠다냥.", "다른 결재는 잠깐 밀어뒀다냥.", "왔냥. 순서는 주인님이 맨 앞이다냥. 규정은 아니다냥."],
+    ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥.", "몇 번이든 불러라냥. 어차피 전담이다냥.", "여긴 주인님 자리다냥. 집사는 그 옆이다냥."]
   ];
   let lastCatHomeLine = "";
   function catHomeLine() {
@@ -3020,7 +3043,7 @@
     const now = Date.now();
     catHomeTapRun = now - catHomeLastTapAt < 3000 ? catHomeTapRun + 1 : 1;
     catHomeLastTapAt = now;
-    showCatHomeSpeech(catHomeLine(), 2800, catHomeTapRun >= 3 ? "annoyed" : "");
+    showCatHomeSpeech(templateOwner(catHomeLine()), 2800, catHomeTapRun >= 3 ? "annoyed" : "");
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
     saveState();
@@ -3097,7 +3120,7 @@
   const SEALED_VOICE_TEASERS = {
     ai: "[대기 로그] 봉인 상태. …주인님 데이터 열람만 기다리는 중임.",
     fairy: "봉투 안에서도 반짝이는 건 어쩔 수가 없어요! 먼저 실례할게요!",
-    girlidol: "…리허설은 진작 끝났어. 네가 부를 때까지 기다리는 중이야.",
+    girlidol: "…리허설은 진작 끝났어. 주인님이 부를 때까지 기다리는 중이야.",
     witch: "이상하네요. 당신 점괘가 자꾸 이 봉투를 향하는데요…",
     zombie: "…으. 봉투 안… 생각보다… 아늑해… 그래도… 열어줘…"
   };
@@ -3354,10 +3377,10 @@
       // 화면이 접수대로 올라간다. 접수대가 없는 캐릭터만 기존 카드를 쓴다.
       if (catReceptionAvailable()) {
         hideGentleNote();
-        deliverCatReply(interpreted.reply);
+        deliverCatReply(templateOwner(interpreted.reply));
       } else {
         typeMessage($("#briefing-message"), interpreted.reply, 18);
-        showButlerReply({ reply: interpreted.reply, mode });
+        showButlerReply({ reply: templateOwner(interpreted.reply), mode });
       }
       achievementSubmissionActive = false;
       reportButton.disabled = false;
@@ -3371,7 +3394,7 @@
       input.value = "";
       $("#char-count").textContent = "0";
       if (!catReceptionAvailable()) typeMessage($("#briefing-message"), interpreted.reply, 18);
-      finishAchievement(deed, { quiet: true, mode, reply: interpreted.reply, slip: catReceptionAvailable() });
+      finishAchievement(deed, { quiet: true, mode, reply: templateOwner(interpreted.reply), slip: catReceptionAvailable() });
       return;
     }
     const duplicate = isDuplicateToday(deed);
@@ -4787,7 +4810,7 @@
   const CAT_GIFT_LETTERS = [
     "{gift}… 이런 건 받아본 적 없다냥. 규정상 쓰는 편지는 아니다냥. 그냥 쓰고 싶었다냥. 이 종이는 네 파일 맨 안쪽에 넣어두겠다냥.",
     "{gift}을 받고 잠깐 업무가 손에 안 잡혔다냥. 5분 정도다냥. …7분이다냥. 오늘 일은 장부 말고 여기에도 적어둔다냥. 잊지 않으려고다냥.",
-    "{gift}은 비품함이 아니라 집사 서랍에 넣었다냥. 규정 위반인 건 아는데, 이건 사무국 물건이 아니다냥. 네가 준 거니까다냥."
+    "{gift}은 비품함이 아니라 집사 서랍에 넣었다냥. 규정 위반인 건 아는데, 이건 사무국 물건이 아니다냥. 주인님이 준 거니까다냥."
   ];
   const NEUTRAL_GIFT_LETTER = "{gift}을 소중히 받았습니다. 이날의 마음은 담당 집사가 파일에 따로 보관합니다.";
 
