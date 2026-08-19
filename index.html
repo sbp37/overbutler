@@ -185,7 +185,10 @@
             <label class="visually-hidden" for="achievement-input">오늘 이야기 입력</label>
             <textarea id="achievement-input" maxlength="160" rows="3" placeholder="예: 씻었어 / 오늘 좀 힘들었는데 집 와서 씻었어"></textarea>
           </div>
-          <div class="quick-actions" aria-label="빠른 입력">
+          <!-- 칩은 습관 트래커 태그가 아니라 사무국 게시판이다. 세계관 어휘의
+               라벨 하나로 같은 기능이 관공서 소품이 된다. -->
+          <span class="quick-actions-label" aria-hidden="true">자주 들어오는 민원</span>
+          <div class="quick-actions" aria-label="자주 들어오는 민원 빠른 입력">
             <button type="button" data-quick="침대에서 일어남"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>일어남</span></button>
             <button type="button" data-quick="물 한 잔 마심"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10l-1 18H8L7 3Z"/><path d="M8 9c3 1 5-1 8 0"/></svg><span>물 마심</span></button>
             <button type="button" data-quick="미뤘던 답장 보냄"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><span>답장함</span></button>

@@ -1269,7 +1269,7 @@
 #view-home .entry-form textarea:focus { border: 0; box-shadow: none; }
 
 /* 빠른 입력 — 견출지 대신 상단 색띠만. 아이콘은 걷어낸다. */
-#view-home .quick-actions { gap: 6px; margin-top: 12px; }
+#view-home .quick-actions { gap: 6px; margin-top: 4px; }
 #view-home .quick-actions svg { display: none; }
 #view-home .quick-actions button {
   position: relative;
@@ -1371,6 +1371,7 @@
 #view-home .entry-form > .of-punch { position: absolute; }
 #view-home .field-heading { order: 1; }
 #view-home .achievement-field { order: 2; }
+#view-home .quick-actions-label { order: 3; }
 #view-home .quick-actions { order: 3; }
 #view-home .report-button { order: 4; }
 #view-home .form-note { order: 5; }
@@ -3846,4 +3847,13 @@
   font: 700 10px/1 var(--disp);
   font-style: normal;
   vertical-align: 2px;
+}
+
+/* 빠른 칩 세계관화 — "자주 들어오는 민원" 게시 라벨 */
+.quick-actions-label {
+  display: block;
+  margin: 10px 2px 5px;
+  color: var(--ink-faint);
+  font: 700 9.5px/1 var(--disp);
+  letter-spacing: .1em;
 }
