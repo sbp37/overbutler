@@ -2911,6 +2911,9 @@
     }
     const panHint = $("#room-pan-hint");
     if (panHint) panHint.hidden = Boolean(state.catHomeHintDone);
+    // 슬립은 서명이 있어야 발화가 된다 — 익명 종이는 시스템 문구로 읽힌다.
+    const slipFrom = $("#reception-slip-from");
+    if (slipFrom) slipFrom.textContent = state.butlerName || "치즈냥";
     window.requestAnimationFrame(() => {
       const room = $("#cat-home-room");
       if (!room?.clientWidth) return;
@@ -2986,6 +2989,28 @@
     state.catHomeHintDone = true;
     saveState();
   }
+
+  /* ── 답은 고양이 입에서 나온다 ──
+     제출 답변을 입력창 아래 박스로 내보내면 위에 앉아 있는 고양이는 구경꾼이 된다.
+     고양이 캐릭터는 모든 답을 접수대 슬립으로 말하고, 화면을 접수대로 올린다.
+     (다른 캐릭터는 접수대 방이 없으므로 기존 답변 카드를 그대로 쓴다.) */
+  function catReceptionAvailable() {
+    return state.character === "cat" && !$("#home-butler-room")?.hidden;
+  }
+
+  function deliverCatReply(message, face = "") {
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    showCatHomeSpeech(message, 5200, face);
+  }
+
+  // 같은 대업 재접수에 성대한 결과서를 또 내밀면 축하가 관성이 된다.
+  // 고양이는 즉시 알아보고 시큰둥하게 한 줄로 접수한다. 포인트·칭찬 지급은 동일.
+  const CAT_DUPLICATE_SLIPS = [
+    "그거 아까 접수한 서류다냥. …열심인 건 알겠다냥.",
+    "같은 대업은 도장 한 번이다냥. 규정이다냥.",
+    "이미 장부에 있다냥. 두 번 적으면 낙서다냥.",
+    "재접수 확인했다냥. 칭찬은 …그래도 나간다냥."
+  ];
 
   function interactWithCatHome() {
     const stat = ensureButlerStat("cat");
@@ -3324,12 +3349,16 @@
       if (!saveState()) { achievementSubmissionActive = false; reportButton.disabled = false; reportButton.removeAttribute("aria-busy"); return; }
       input.value = "";
       $("#char-count").textContent = "0";
-      typeMessage($("#briefing-message"), interpreted.reply, 18);
-      // 접수대 말풍선은 첫 인사·고양이 탭 전용이다. 제출한 오늘 이야기의 답은
-      // 사용자가 버튼을 누른 자리에서 보여야 하므로 여기서는 쓰지 않는다.
-      // 토스트도 띄우지 않는다 — "들었습니다" 같은 시스템 문구가 집사 답변보다
-      // 먼저 눈에 들어오면 안 된다.
-      showButlerReply({ reply: interpreted.reply, mode });
+      // 실사용 영상 리뷰(2026-08-19): 답이 버튼 아래 박스에 뜨니 "고양이가
+      // 말하는 것 같지 않다"가 됐다. 고양이의 답은 전부 접수대 슬립으로 나가고
+      // 화면이 접수대로 올라간다. 접수대가 없는 캐릭터만 기존 카드를 쓴다.
+      if (catReceptionAvailable()) {
+        hideGentleNote();
+        deliverCatReply(interpreted.reply);
+      } else {
+        typeMessage($("#briefing-message"), interpreted.reply, 18);
+        showButlerReply({ reply: interpreted.reply, mode });
+      }
       achievementSubmissionActive = false;
       reportButton.disabled = false;
       reportButton.removeAttribute("aria-busy");
@@ -3341,11 +3370,28 @@
     if (!loudModes.includes(mode)) {
       input.value = "";
       $("#char-count").textContent = "0";
-      typeMessage($("#briefing-message"), interpreted.reply, 18);
-      finishAchievement(deed, { quiet: true, mode, reply: interpreted.reply });
+      if (!catReceptionAvailable()) typeMessage($("#briefing-message"), interpreted.reply, 18);
+      finishAchievement(deed, { quiet: true, mode, reply: interpreted.reply, slip: catReceptionAvailable() });
       return;
     }
     const duplicate = isDuplicateToday(deed);
+    // 중복 재접수(고양이): 심사 연출도 결과서도 없다. 고양이는 같은 서류를
+    // 즉시 알아보는 캐릭터다 — 2.4초 심사가 오히려 거짓말이 된다.
+    // 슬립 한 줄 + 시큰둥한 얼굴로 끝. 포인트·칭찬 지급 로직은 그대로 돈다.
+    if (duplicate && state.character === "cat") {
+      pendingEvaluation = judgeAchievement(deed, state.obsession, true, story);
+      trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: "duplicate" });
+      hideGentleNote();
+      input.value = "";
+      $("#char-count").textContent = "0";
+      finishAchievement(deed, {
+        quiet: true, mode,
+        reply: randomItem(CAT_DUPLICATE_SLIPS),
+        slip: catReceptionAvailable(),
+        slipFace: "annoyed"
+      });
+      return;
+    }
     pendingEvaluation = judgeAchievement(deed, state.obsession, duplicate, story);
     trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: duplicate ? "duplicate" : "new" });
     hideGentleNote();
@@ -3519,10 +3565,12 @@
     if (quiet) {
       $("#analysis-overlay").hidden = true;
       document.body.style.overflow = "";
-      showButlerReply({ reply: options.reply || record.report, record, mode: options.mode, duplicate });
+      if (options.slip) deliverCatReply(options.reply || record.report, options.slipFace || "");
+      else showButlerReply({ reply: options.reply || record.report, record, mode: options.mode, duplicate });
       return;
     }
-    if (duplicate) showToast("같은 행동이라 도장은 제외하고 칭찬만 지급했습니다.");
+    // 중복 안내 토스트는 삭제했다 — 결과서 위에 시스템 문구가 겹치면
+    // 축하하면서 김을 빼는 자기모순이 된다. 중복 여부는 결과서 도장 칸이 말한다.
     // 결과서를 먼저 열고 나서 심사창을 걷는다. 예전에는 심사창을 닫고 0.7초 뒤에
     // 결과서를 열어서, 그 사이 칭찬 문구가 박힌 홈이 번쩍 나타났다 사라졌다.
     openPraiseResult(record);
@@ -3700,6 +3748,13 @@
     currentCertificateImagePromise = createCertificateBlob(record).catch(() => null);
   }
 
+  // 화면 표시용 첫 문장. 문장 경계가 안 잡히면 원문을 그대로 쓴다.
+  function firstSentenceOf(text) {
+    const value = String(text || "").trim();
+    const first = value.split(/(?<=[.!?])\s+/)[0] || value;
+    return first.length >= 4 ? first : value;
+  }
+
   function openPraiseResult(record) {
     const butler = record.butler || snapshotButler(record);
     const mode = record.verdictType === "rare" || record.rare ? "rare" : record.pose === "power" || record.verdictType === "power" ? "power" : "praise";
@@ -3736,7 +3791,9 @@
     // 문장은 처음부터 자리에 있고, 종이만 살짝 떠오른다.
     const reportNode = $("#result-report");
     reportNode.classList.remove("is-inked");
-    reportNode.textContent = record.report;
+    // 결과서 소견은 한 문장만 싣는다. 전문은 파일에 그대로 보관된다 —
+    // 이 화면은 6초짜리 연출이지 독서 화면이 아니다.
+    reportNode.textContent = firstSentenceOf(record.report);
     $("#result-rare-note").hidden = !rare;
     // 증서는 공식 인정을 받은 날에만 나온다. 대업마다 기념 증서를 내주면
     // 5건을 모아야 받는 공식 인정이 아무 의미가 없어진다.
@@ -3746,11 +3803,12 @@
       ? "증서는 나중에 보고 홈으로"
       : firstRecord ? "첫 기록 저장하고 홈으로" : "기록 보관하고 홈으로";
     const status = certificationStatus();
+    // 하단 각주도 한 호흡으로 줄인다. 이 화면에서 읽을 건 칭호와 도장뿐이다.
     $("#result-footnote").textContent = firstRecord
-      ? `첫 도장 1개와 선물 포인트 ${pointsEarned}P를 받았습니다. 공식 보관 인증까지 ${status.remaining}건 남았어요.`
+      ? `첫 도장 · +${pointsEarned}P · 공식 인증까지 ${status.remaining}건`
       : official
-        ? `공식 인증서가 발급되고 선물 포인트 ${pointsEarned}P가 지급되었습니다.`
-        : `선물 포인트 ${pointsEarned}P 지급 · 공식 보관 인증까지 ${status.remaining}건 남았습니다.`;
+        ? `공식 인증서 발급 · +${pointsEarned}P`
+        : `+${pointsEarned}P · 공식 인증까지 ${status.remaining}건`;
     renderRelationshipResult(
       "result",
       Number(record.relationshipBefore ?? Math.max(0, state.obsession - relationshipGain)),
@@ -3764,8 +3822,9 @@
     document.body.style.overflow = "hidden";
     window.requestAnimationFrame(() => reportNode.classList.add("is-inked"));
     // 승인 도장은 결과서가 자리를 잡은 다음 내려앉는다. 종이가 아직 떠오르는 중에
-    // 찍으면 두 움직임이 겹쳐서 둘 다 안 보인다.
-    window.setTimeout(() => inkStamp($("#result-stamp"), { paper: $("#result-stamp").closest(".reaction-verdict-row") || $("#result-stamp").parentElement }), 240);
+    // 찍으면 두 움직임이 겹쳐서 둘 다 안 보인다. 700ms — 칭호를 읽을 시간을 주고
+    // 나서 찍혀야 도장이 마침표가 된다. (실사용 리뷰: "도장도 빠르게 찍히고")
+    window.setTimeout(() => inkStamp($("#result-stamp"), { paper: $("#result-stamp").closest(".reaction-verdict-row") || $("#result-stamp").parentElement }), 700);
   }
 
   function closePraiseResult() {

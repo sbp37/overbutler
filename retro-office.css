@@ -3794,3 +3794,40 @@
   font: 600 10.5px/1.5 var(--disp);
   word-break: keep-all;
 }
+
+/* ═══════════ 고양이 무대 라운드 (2026-08-19) ═══════════
+   실사용 영상 리뷰 반영: 출력을 고양이 한 곳으로 모으고, 결과서는 6초짜리
+   연출로 다이어트한다. */
+
+/* 슬립 서명 — 종이에 이름이 붙어야 발화가 된다. 치즈 주황 육필. */
+#view-home .reception-slip-paper { position: relative; }
+#view-home .reception-slip-from {
+  position: absolute;
+  right: 13px;
+  bottom: 7px;
+  color: #d9822f;
+  font: 700 15px/1 var(--hand);
+  letter-spacing: 0;
+  transform: rotate(-2.5deg);
+  pointer-events: none;
+}
+/* 서명이 본문 마지막 줄과 겹치지 않게 종이 오른쪽 아래를 비워둔다 */
+#view-home .reception-slip p { padding-right: 46px; }
+
+/* 결과서 지표 행 — 시각 위계를 각주급으로 낮춘다. 주인공은 칭호와 도장이다. */
+.praise-result-metrics dt { font-size: 8.5px; opacity: .82; }
+.praise-result-metrics dd { color: var(--ink-soft); font-weight: 700; font-size: 11.5px; }
+.praise-result-metrics > div:nth-child(2) dd { color: var(--stamp-red); font-size: 11.5px; }
+
+/* 결과서에서 나가는 문 — 인증서 버튼이 없는 날은 닫기가 유일한 출구인데
+   흐린 밑줄 링크라 사람들이 아무 데나 눌러 닫았다. 그 경우에만 결재란으로 승격. */
+#result-certificate-button[hidden] + .text-button {
+  width: calc(100% - 32px);
+  margin: 18px 16px 0;
+  padding: 13px 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  color: var(--ink);
+  font: 800 14px/1 var(--disp);
+  text-decoration: none;
+}
