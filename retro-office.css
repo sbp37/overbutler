@@ -3857,3 +3857,295 @@
   font: 700 9.5px/1 var(--disp);
   letter-spacing: .1em;
 }
+
+/* ═══════════ 선물 2화면 — 사무국 창구로 통일 (2026-08-19) ═══════════
+   기존은 둥근 카드 + 3열 상품 그리드라 모바일 쇼핑몰로 읽혔다.
+   여기는 물건을 파는 곳이 아니라 물건을 접수하는 창구다:
+   ① 창구(캐릭터가 먼저) ② 품목 대장(표) ③ 인수증(도장).
+   기능·드래그·관계 상승 로직은 건드리지 않는다 — 조형만 바꾼다. */
+
+/* ── ① 창구 ── */
+#gift-drop-zone.gift-counter {
+  position: relative;
+  display: block;
+  min-height: 0;
+  margin: 16px 0 0;
+  padding: 40px 12px 12px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  outline: none;
+  background: var(--ivory);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .03) 1px, transparent 1px);
+  background-size: 19px 19px;
+  box-shadow: var(--doc-shadow);
+  text-align: center;
+  transition: none;
+}
+/* 창구 명패 — 홈 접수대와 같은 조형(검은 명패에 흰 각인). */
+#gift-drop-zone .office-counter {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 50%;
+  margin: 0;
+  padding: 7px 15px;
+  border-radius: 2px;
+  background: var(--ink);
+  color: #efe5d2;
+  font: 700 9.5px/1 var(--disp);
+  letter-spacing: .2em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .25);
+}
+#gift-drop-zone > img {
+  display: block;
+  width: auto;
+  height: 176px;
+  margin: 4px auto 0;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 4px 2px rgba(60, 40, 28, .1));
+  transition: transform .18s ease-out;
+}
+/* 접수 슬립 — 홈 접수대와 같은 부품이다. 클립이 물고 있고 서명이 붙는다. */
+#gift-drop-zone .gift-counter-slip {
+  position: relative;
+  margin: 10px 4px 0;
+  /* 서명은 본문 아래 오른쪽에 앉는다 — 아래 여백을 비워두지 않으면
+     한 줄짜리 대사에서 본문과 나란히 붙어 겹쳐 보인다. */
+  padding: 13px 15px 26px;
+  border: 1px solid var(--doc-line);
+  background: var(--memo);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .11);
+  rotate: -.5deg;
+  text-align: left;
+}
+#gift-drop-zone .gift-counter-slip .of-clip { z-index: 4; top: -9px; left: 18px; rotate: -4deg; transform: none; }
+#gift-drop-zone .gift-counter-slip > p {
+  margin: 0;
+  color: var(--ink);
+  font: 600 14px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  letter-spacing: -.012em;
+  word-break: keep-all;
+}
+#gift-drop-zone .gift-counter-sign {
+  position: absolute;
+  right: 13px;
+  bottom: 6px;
+  color: #d9822f;
+  font: 700 15px/1 var(--hand);
+  letter-spacing: 0;
+  transform: rotate(-2.5deg);
+}
+/* 접수 쟁반 — 선물을 올려놓는 자리. 점선 칸 하나면 충분하다. */
+#gift-drop-zone .gift-counter-tray {
+  position: static;
+  display: block;
+  margin: 10px 4px 0;
+  padding: 11px 8px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  color: var(--ink-soft);
+  font: 700 11px/1.3 var(--disp);
+  letter-spacing: .02em;
+  word-break: keep-all;
+}
+#gift-drop-zone.receiving {
+  border-color: var(--stamp-red);
+  background-color: #fbf5f1;
+  box-shadow: var(--doc-shadow);
+  transform: none;
+}
+#gift-drop-zone.receiving .gift-counter-tray { border-color: var(--stamp-red); color: var(--stamp-red); }
+#gift-drop-zone.receiving > img { transform: translateY(-3px); }
+#gift-drop-zone.selected .gift-counter-tray {
+  border-style: solid;
+  border-color: var(--ink);
+  background: var(--memo);
+  color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  #gift-drop-zone > img { transition: none; }
+  #gift-drop-zone.receiving > img { transform: none; }
+}
+
+/* ── ② 선반 ── */
+/* 창구 바로 아래 가로 한 줄. 세로 목록이면 아래 칸을 화면 위까지 끌어올려야 해서
+   드래그가 심부름이 된다. 가로 선반은 어느 칸에서든 위로 한 번이면 집사에게 닿는다. */
+.gift-desk-overlay .gift-list-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 15px 2px 8px;
+  padding: 0;
+  border: 0;
+}
+.gift-desk-overlay .gift-list-heading h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 800 12px/1 var(--disp);
+  letter-spacing: .1em;
+}
+.gift-desk-overlay .gift-list-heading small { color: var(--ink-faint); font: 700 10px/1 var(--disp); }
+
+.gift-desk-overlay #gift-catalog {
+  display: flex;
+  gap: 7px;
+  /* 음수 마진으로 화면 끝까지 늘리면 모달 패딩을 넘어 문서에 가로 스크롤이
+     생기고 화면 전체가 밀린다. 선반은 카드 안에서만 스크롤한다. */
+  margin: 0;
+  padding: 9px 2px 11px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-top: 1px solid var(--doc-line);
+  border-bottom: 3px double var(--doc-line);
+  background: var(--ivory);
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.gift-desk-overlay #gift-catalog::-webkit-scrollbar { display: none; }
+
+.gift-desk-overlay .gift-shelf-item {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 74px;
+  min-height: 96px;
+  padding: 9px 4px 7px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow-sm);
+  color: var(--ink);
+  scroll-snap-align: start;
+  /* 가로로 밀면 선반이 스크롤되고, 위로 끌면 선물을 든다.
+     none으로 막으면 선반 자체를 넘길 수가 없다. */
+  touch-action: pan-x;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* 품목 구분은 위쪽 색띠 한 줄 — 견출표와 같은 문법 */
+.gift-desk-overlay .gift-shelf-item:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--doc-line);
+}
+.gift-desk-overlay .gift-favorite:before { background: var(--stamp-red); }
+.gift-desk-overlay .gift-rare:before { background: var(--gold); }
+.gift-desk-overlay .gift-shelf-thumb {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-top: 2px;
+  font-size: 25px;
+  line-height: 1;
+}
+.gift-desk-overlay .gift-shelf-item b {
+  display: block;
+  max-width: 100%;
+  margin-top: 3px;
+  color: var(--ink);
+  font: 700 11.5px/1.2 var(--disp);
+  letter-spacing: -.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gift-desk-overlay .gift-shelf-item small {
+  margin-top: 4px;
+  padding: 2px 6px 1px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 800 10px/1.2 var(--disp);
+  font-variant-numeric: tabular-nums;
+}
+/* 취향·희귀 표시는 둥근 pill이 아니라 모서리에 붙인 작은 견출표 */
+.gift-desk-overlay .gift-shelf-item mark {
+  position: absolute;
+  top: 4px;
+  left: 3px;
+  padding: 2px 3px 1px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  font: 800 7.5px/1 var(--disp);
+  letter-spacing: -.02em;
+}
+.gift-desk-overlay .gift-favorite mark { color: var(--stamp-red); }
+.gift-desk-overlay .gift-rare mark { color: var(--gold-dp); }
+.gift-desk-overlay .gift-shelf-item em {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  color: var(--stamp-red);
+  font: 700 8px/1 var(--disp);
+  font-style: normal;
+}
+.gift-desk-overlay .gift-shelf-item.locked { opacity: 1; filter: none; }
+.gift-desk-overlay .gift-shelf-item.locked .gift-shelf-thumb { opacity: .38; filter: grayscale(1); }
+.gift-desk-overlay .gift-shelf-item.locked b,
+.gift-desk-overlay .gift-shelf-item.locked small { color: var(--ink-faint); }
+.gift-desk-overlay .gift-shelf-item.selected {
+  border-color: var(--ink);
+  background: var(--memo);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .2);
+}
+.gift-desk-overlay .gift-shelf-item:active { background: var(--memo); }
+.gift-desk-overlay .gift-shelf-item:focus-visible { outline: 2px solid var(--stamp-red); outline-offset: -2px; }
+
+/* ── ③ 인수증 ── */
+/* 다른 서류와 같은 각진 모서리. 5px 라운드 하나가 게임 UI 티를 냈다. */
+.gift-receipt { border-radius: 0; }
+/* 주 행동은 색면 버튼이 아니라 이중선 결재란이다 — FORM 05와 같은 조형.
+   결과서만 바뀌고 인수증이 남아 있어서 두 화면의 마무리가 서로 달랐다. */
+.gift-receipt > .primary-button {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 18px 16px 0;
+  padding: 13px 0;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+  font: 800 15px/1 var(--disp);
+}
+.gift-receipt > .primary-button span { color: var(--stamp-red); }
+/* 반응 배지 — 각진 견출표 */
+.gift-reaction-badge {
+  border-radius: 0;
+  border: 1px solid var(--doc-line);
+  font: 800 9.5px/1 var(--disp);
+  letter-spacing: .06em;
+}
+.gift-result-metrics { border-radius: 0; }
+
+/* 선반이 넘쳐도 문서 자체는 가로로 밀리지 않는다 */
+.gift-desk-modal { overflow-x: hidden; }
+
+/* 인수증 — 품명 한 줄. 판정 문구는 바로 아래 제목이 말한다. */
+.gift-receipt .gift-received {
+  margin: 0 0 5px;
+  color: var(--ink-soft);
+  font: 700 13px/1.3 var(--disp);
+}
+.gift-receipt .gift-received b { color: var(--ink); font-weight: 800; }

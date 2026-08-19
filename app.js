@@ -1395,7 +1395,6 @@
     return trimmed.replaceAll("{deed}", title);
   }
   function officialRecords() { return state.records.filter(record => record.stampEligible !== false); }
-  function scoreText(record) { return record?.scoreLabel || `${record?.score ?? 99}점`; }
   function stageIndexFor(obsession) {
     const value = clamp(obsession, 0, 100);
     let index = 0;
@@ -2741,7 +2740,7 @@
     $("#record-detail-achievement").textContent = discoveredAchievement;
     $("#record-detail-reactions").innerHTML = reactionLines.map(line => `<p>${escapeHtml(line)}</p>`).join("");
     $("#record-detail-butler").textContent = butler.name;
-    $("#record-detail-score").textContent = scoreText(record);
+    $("#record-detail-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
     $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
     // 인증서가 없는 기록에서 "다시 열기"를 누르면 없는 증서를 지어내게 된다.
     $("#record-detail-certificate").hidden = !isOfficial;
@@ -3703,8 +3702,10 @@
   }
 
   // 같은 칭호가 연달아 붙으면 자동 생성 티가 난다. 최근 기록에 쓰인 칭호는 풀에서 건너뛴다.
+  // 기록은 push로 쌓이므로 최신은 배열 끝이다 — slice(0, 3)은 가장 오래된 셋을 보고 있었고,
+  // 그래서 중복 방지가 사실상 작동하지 않았다(기록이 쌓일수록 완전히 무력화).
   function freshNickname(pool, seed) {
-    const recent = state.records.slice(0, 3).map(record => record.nickname).filter(Boolean);
+    const recent = state.records.slice(-3).map(record => record.nickname).filter(Boolean);
     for (let step = 0; step < pool.length; step += 1) {
       const candidate = pool[((seed >>> 5) + step) % pool.length];
       if (!recent.includes(candidate)) return candidate;
@@ -3731,7 +3732,7 @@
       categories: state.fameCategories.length,
       days: totalActiveDays()
     };
-    const labels = { deeds: "유효 대업", obsession: "최고 과몰입도", gifts: "누적 선물", categories: "대업 분야", days: "함께한 날" };
+    const labels = { deeds: "유효 대업", obsession: "최고 과몰입도", gifts: "누적 선물", categories: "대업 분야", days: "기록된 날" };
     const rows = Object.entries(requirements).map(([type, required]) => ({ type, label: labels[type], required, current: Number(values[type]) || 0 }));
     return {
       key,
@@ -4739,8 +4740,13 @@
       const preferenceLabel = interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
       // 잠긴 품목에는 이유가 붙어야 한다. "잠김"은 벽이지만 "12P 더"는 다음에 할 일이다.
       const shortfall = affordable ? 0 : gift.cost - state.points;
-      return `<button class="gift-catalog-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
-        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}<span>${gift.emoji}</span><strong>${escapeHtml(gift.name)}</strong><small>${gift.cost}P</small>${affordable ? "" : `<i>${shortfall}P 더</i>`}
+      // 선반 한 칸. 세로 목록이면 아래 품목을 화면 위까지 끌어올려야 해서
+      // "건네준다"가 "옮긴다"가 된다. 가로 선반이라 어느 칸이든 위로 한 번이면 닿는다.
+      return `<button class="gift-shelf-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
+        ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}
+        <span class="gift-shelf-thumb">${gift.emoji}</span>
+        <b>${escapeHtml(gift.name)}</b>
+        <small>${gift.cost}P</small>${affordable ? "" : `<em>${shortfall}P 더</em>`}
       </button>`;
     }).join("");
     $("#gift-history-count").textContent = `${history.length}개`;
@@ -4751,7 +4757,7 @@
       }).join("")
       : '<li class="empty">아직 이 집사에게 준 선물이 없습니다.</li>';
     selectedGiftIndex = null;
-    $("#gift-drop-status").textContent = "선물을 여기로 끌어주세요";
+    $("#gift-drop-status").textContent = "선물을 여기에 올려주세요";
     $("#gift-drop-zone").classList.remove("receiving", "selected");
   }
 
@@ -4776,7 +4782,7 @@
     selectedGiftIndex = index;
     $$("#gift-catalog [data-gift-index]").forEach(button => button.classList.toggle("selected", Number(button.dataset.giftIndex) === index));
     $("#gift-drop-zone").classList.add("selected");
-    $("#gift-drop-status").textContent = `${gift.emoji} ${gift.name} 선택 · 집사에게 끌어주세요`;
+    $("#gift-drop-status").textContent = `${gift.emoji} ${gift.name} 선택 · 접수대를 누르면 전달됩니다`;
   }
 
   function giftInteractionFor(character, gift, index = giftCatalogFor(character).findIndex(item => item.name === gift?.name)) {
@@ -4901,9 +4907,8 @@
     // 편지가 파일에 들어가는 건 이번이 처음이라, 선물 후에도 파일을 다시 그려야 한다.
     renderArchive();
     $("#header-level").textContent = `과몰입 ${state.obsession}`;
-    $("#gift-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
-    $("#gift-reaction-badge").textContent = interaction.label;
-    $("#gift-reaction-badge").dataset.reaction = interaction.type;
+    // 판정 배지·"담당 집사 공식 반응" 오버라인·"안전하게 인수했습니다" 서술문은
+    // 걷어냈다 — 셋 다 바로 아래 제목이나 도장이 이미 말하는 내용이었다.
     const giftTitles = GIFT_RESULT_TITLES[state.character] || GIFT_RESULT_TITLES.ai;
     $("#gift-title").innerHTML = giftTitles[interaction.type] || giftTitles.normal;
     $("#gift-message").textContent = message;
