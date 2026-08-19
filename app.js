@@ -2952,6 +2952,12 @@
     renderCatRoomGifts();
     // 결과서·인증서를 닫고 방으로 돌아온 순간이 표정을 볼 수 있는 유일한 자리다.
     // 판정 화면은 방을 통째로 덮고 있어서, 그때 얼굴을 바꿔봐야 아무도 못 본다.
+    // 예약된 표정·한마디는 접수대가 실제로 보일 때만 소비한다.
+    // configureCatHome은 렌더 체인에서도 불리는데, 오버레이가 화면을 덮은 채
+    // 소비되면 표정이 아무도 없는 방에서 재생되고 끝난다 (QA에서 실측).
+    const stageVisible = $("#view-home")?.classList.contains("active")
+      && document.body.style.overflow !== "hidden";
+    if (!stageVisible) return;
     // 결과서를 닫고 돌아온 방에서 예약된 한마디가 나온다 (특례 안내 등).
     if (catHomePendingReaction) {
       const line = catHomePendingReaction;
@@ -3793,11 +3799,14 @@
     currentCertificateImagePromise = createCertificateBlob(record).catch(() => null);
   }
 
-  // 화면 표시용 첫 문장. 문장 경계가 안 잡히면 원문을 그대로 쓴다.
+  // 화면 표시용 소견 축약. 첫 문장이 "잘했네냥." 같은 추임새뿐이면 알맹이가
+  // 날아가므로, 12자를 넘길 때까지(최대 두 문장) 문장을 이어붙인다.
   function firstSentenceOf(text) {
     const value = String(text || "").trim();
-    const first = value.split(/(?<=[.!?])\s+/)[0] || value;
-    return first.length >= 4 ? first : value;
+    const sentences = value.split(/(?<=[.!?])\s+/);
+    let result = sentences[0] || value;
+    if (result.length < 12 && sentences[1]) result = `${result} ${sentences[1]}`;
+    return result;
   }
 
   function openPraiseResult(record) {
@@ -3878,7 +3887,9 @@
     document.body.style.overflow = "";
     currentResult = null;
     showView("home");
-    if (firstRecord) showToast(`첫 대업 완료 · 공식 인증까지 ${certificationStatus().remaining}건`);
+    // 첫 대업 토스트는 걷어냈다 — 같은 정보가 결과서 각주에 이미 있었고,
+    // 방으로 돌아온 happy 표정 위에 시스템 문구가 겹치면 표정이 죽는다.
+    void firstRecord;
   }
 
   function issueCertificateFromResult() {
@@ -4961,11 +4972,8 @@
     if (state.character === "cat" && $("#main-screen").dataset.currentView === "manager") {
       closeManagerDetails(false);
       window.scrollTo({ top: 0, behavior: "auto" });
-      if (catHomePendingReaction) {
-        const message = catHomePendingReaction;
-        catHomePendingReaction = "";
-        window.setTimeout(() => showCatHomeSpeech(message), 80);
-      }
+      // 예약 반응은 여기서 소비하지 않는다 — 접수대는 홈에 있고, 집사 탭에서
+      // 슬립을 바꿔봐야 아무도 못 본다. 홈으로 돌아온 순간 configureCatHome이 낸다.
     }
   }
 
