@@ -884,7 +884,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false,
+    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -1093,6 +1093,7 @@
     merged.catHomeHintDone = Boolean(raw.catHomeHintDone);
     // 소리는 기본이 꺼짐이다. 저장된 값이 없으면 켜지지 않는다.
     merged.soundOn = Boolean(raw.soundOn);
+    merged.fastTrackNoticed = Boolean(raw.fastTrackNoticed);
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
     const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : legacyAchievements;
     const certificateSource = Array.isArray(raw.certificates)
@@ -2101,7 +2102,8 @@
     $("#entry-description").textContent = pending
       ? `${ownerDisplayName()}의 잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.`
       : "잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.";
-    $("#report-button-label").textContent = "오늘 기록하기";
+    // "기록하기"는 투두 앱 단어다. 여기는 접수처다 (CTA 시안 B, 오너 승인).
+    $("#report-button-label").textContent = "오늘 이야기 접수";
   }
 
   // 사무국 문서는 번호를 달고 나간다. 화면마다 다른 번호를 머리글 오른쪽에 두면
@@ -2950,6 +2952,12 @@
     renderCatRoomGifts();
     // 결과서·인증서를 닫고 방으로 돌아온 순간이 표정을 볼 수 있는 유일한 자리다.
     // 판정 화면은 방을 통째로 덮고 있어서, 그때 얼굴을 바꿔봐야 아무도 못 본다.
+    // 결과서를 닫고 돌아온 방에서 예약된 한마디가 나온다 (특례 안내 등).
+    if (catHomePendingReaction) {
+      const line = catHomePendingReaction;
+      catHomePendingReaction = "";
+      window.setTimeout(() => showCatHomeSpeech(line, 4200), 900);
+    }
     if (catHomePendingFace) {
       const face = catHomePendingFace;
       catHomePendingFace = "";
@@ -3398,6 +3406,20 @@
       return;
     }
     const duplicate = isDuplicateToday(deed);
+    // 공식 인정을 한 번 받은 주인님은 무심사 통과다. 심사표는 첫 5건의
+    // 연출이지 매일 통과해야 하는 관문이 아니다 — 실사용 리뷰 "화면전환이
+    // 두 번이라 정신없다"의 마지막 조각. 특례 안내는 첫 생략 때 한 번만.
+    if (!duplicate && (state.certificates || []).length >= 1) {
+      pendingEvaluation = judgeAchievement(deed, state.obsession, false, story);
+      trackEvent("achievement_submit", { character: state.character, category: pendingEvaluation.category, source: "fast_track" });
+      hideGentleNote();
+      if (!state.fastTrackNoticed) {
+        state.fastTrackNoticed = true;
+        if (state.character === "cat") catHomePendingReaction = "이제 주인님 서류는 무심사 통과다냥. 공식 인정자 특례다냥.";
+      }
+      window.setTimeout(() => finishAchievement(deed), 220);
+      return;
+    }
     // 중복 재접수(고양이): 심사 연출도 결과서도 없다. 고양이는 같은 서류를
     // 즉시 알아보는 캐릭터다 — 2.4초 심사가 오히려 거짓말이 된다.
     // 슬립 한 줄 + 시큰둥한 얼굴로 끝. 포인트·칭찬 지급 로직은 그대로 돈다.
