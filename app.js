@@ -885,7 +885,7 @@
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
-    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [],
+    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [],
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
@@ -1117,6 +1117,8 @@
       ...legacyApplicants
     ].map(key => LEGACY_CHARACTER_ALIASES[key] || key))).filter(key => CHARACTER_PROFILES[key] && !merged.ownedButlers.includes(key));
     merged.deferredApplicants = Array.isArray(raw.deferredApplicants) ? raw.deferredApplicants.filter(key => merged.pendingApplicants.includes(key)) : [];
+    // 아직 집사 탭에서 확인하지 않은 지원서. 하단 탭의 봉인점이 이걸 본다.
+    merged.seenApplicants = Array.isArray(raw.seenApplicants) ? raw.seenApplicants.filter(key => typeof key === "string") : [];
     merged.applicationHistory = Array.isArray(raw.applicationHistory) ? raw.applicationHistory.filter(item => objectValue(item) === item) : [];
     merged.handoverHistory = Array.isArray(raw.handoverHistory) ? raw.handoverHistory.filter(item => objectValue(item) === item) : [];
     merged.newlyHiredButlers = Array.isArray(raw.newlyHiredButlers) ? raw.newlyHiredButlers.filter(key => merged.ownedButlers.includes(key)) : [];
@@ -1967,6 +1969,8 @@
     if (name === "home" && state.character === "cat") window.requestAnimationFrame(configureCatHome);
     // 이번 세션에 새로 생긴 공식 인정 도장은 파일을 펼치는 이 순간에 찍힌다.
     if (name === "archive") window.setTimeout(inkPendingOfficialStamps, 280);
+    // 집사 탭을 열면 도착 알림은 역할을 다했다.
+    if (name === "manager") markApplicantsSeen();
     trackEvent("view_change", { view: name, tab: navKey });
     // 부드러운 스크롤은 화면 "내부" 이동에만 쓴다. 탭 전환은 내용이 이미 갈린
     // 뒤에 스크롤이 따라오므로, 새 화면이 이전 스크롤 위치에서 먼저 보였다가
@@ -2106,6 +2110,28 @@
       : "";
   }
 
+  /* ── 해금 알림점 ──
+     해금은 이 앱 최대 보상인데 집사 탭을 열어봐야만 알 수 있었다. 새 지원서가
+     도착하면 하단 탭에 봉인 색 점 하나를 찍고, 집사 탭을 열면 지운다.
+     숫자도 배지도 아니다 — "뭔가 와 있다"만 전하면 된다. */
+  function unseenApplicants() {
+    const seen = new Set(state.seenApplicants || []);
+    return (state.pendingApplicants || []).filter(key => !seen.has(key));
+  }
+
+  function renderApplicantAlert() {
+    const dot = $("#nav-applicant-dot");
+    if (dot) dot.hidden = unseenApplicants().length === 0;
+  }
+
+  function markApplicantsSeen() {
+    const unseen = unseenApplicants();
+    if (!unseen.length) return;
+    state.seenApplicants = Array.from(new Set([...(state.seenApplicants || []), ...unseen]));
+    saveState();
+    renderApplicantAlert();
+  }
+
   function isFirstDeedPending() {
     return state.onboarded && state.records.length === 0;
   }
@@ -2142,6 +2168,7 @@
 
   function render(options = {}) {
     const status = certificationStatus();
+    renderApplicantAlert();
     // 홈의 3칸 통계는 헤더의 명성/과몰입과 입력칸 아래 도장 진행바가 이미 같은 숫자를 보여줘 걷어냈다.
     $("#fame-count").textContent = state.fame;
     $("#home-gift-points").textContent = state.points;
@@ -3174,8 +3201,11 @@
       const short = !freeQueue ? "추후 공고"
         : status.rows.filter(row => row.current < row.required).map(row => `${row.label} ${row.required - row.current} 남음`)[0] || "개봉 준비 완료";
       const voice = SEALED_VOICE_TEASERS[key];
-      return `<div class="sealed-doc${status?.ready ? " near" : ""}">
-        <span class="sealed-band">봉인</span>
+      // 조건이 공개된 서류(무료 큐)와 "추후 공고"는 성격이 다르다 — 앞의 것은
+      // 지금 다가갈 수 있고 뒤의 것은 아니다. 목록에서 그게 안 갈려서 전부
+      // 똑같이 잠긴 것처럼 보였다. tracked = 진행 중, near = 조건 충족.
+      return `<div class="sealed-doc${freeQueue ? " tracked" : ""}${status?.ready ? " near" : ""}">
+        <span class="sealed-band">${status?.ready ? "개봉" : "봉인"}</span>
         <span class="sealed-peek" aria-hidden="true"><img src="${personnelPortraitFor(key)}" alt=""><i>封</i></span>
         <span class="sealed-copy">
           <b>${escapeHtml(CHARACTER_PROFILES[key].name)} · 미개봉</b>

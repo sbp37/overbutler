@@ -381,18 +381,18 @@
             </span>
             <span class="gift-parcel-value"><b id="manager-gift-points">0</b><small>보유 포인트 ›</small></span>
           </button>
+        <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 신규 지원 조건 확인</strong><span id="recruit-description">주인님의 명성이 업계에 퍼지고 있습니다.</span></button>
         <section class="butler-roster-card document-card">
           <div class="manager-section-title"><h2>우리 집사들 <span id="manager-roster-count">0</span>명</h2><small>담당을 눌러 인수인계할 수 있어요.</small></div>
           <div class="manager-roster" id="manager-roster"></div>
           <p class="roster-note of-script">✎ 봉인된 서류는 사무국 금고에 보관 중입니다. 열어보고 싶으면 대업을 모으세요.</p>
         </section>
 
+        <button class="manager-change-button" id="manager-change-button" type="button">담당 변경 및 인수인계 <span>›</span></button>
         <section class="manager-work-card document-card">
           <div class="manager-section-title"><h2>근무 기록</h2><small>담당 집사별 기록은 따로 보존됩니다.</small></div>
           <div class="manager-duty-list" id="manager-duty-list"></div>
         </section>
-        <button class="recruit-note" id="recruit-note" type="button"><strong id="recruit-title">✉ 신규 지원 조건 확인</strong><span id="recruit-description">주인님의 명성이 업계에 퍼지고 있습니다.</span></button>
-        <button class="manager-change-button" id="manager-change-button" type="button">담당 변경 및 인수인계 <span>›</span></button>
         <section class="office-settings document-card" aria-label="사무국 설정">
           <div class="manager-section-title"><h2>사무국 설정</h2><small>기기 안에만 저장됩니다.</small></div>
           <label class="office-toggle" for="sound-toggle">
@@ -411,7 +411,7 @@
       <nav class="bottom-nav" aria-label="주 메뉴">
         <button class="active" type="button" data-view="home" data-nav="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3V11Z"/></svg><span>홈</span></button>
         <button type="button" data-view="archive" data-nav="records"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 10h8M8 14h6"/></svg><span>파일</span></button>
-        <button type="button" data-view="manager" data-nav="manager"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8 4 5v7l4 3M17 8l3-3v7l-4 3M8 9h8v6H8zM12 15v6"/><path d="m8 18 4 3 4-3"/></svg><span>집사</span></button>
+        <button type="button" data-view="manager" data-nav="manager"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8 4 5v7l4 3M17 8l3-3v7l-4 3M8 9h8v6H8zM12 15v6"/><path d="m8 18 4 3 4-3"/></svg><span>집사</span><i class="nav-seal-dot" id="nav-applicant-dot" hidden aria-hidden="true"></i></button>
       </nav>
     </main>
   </div>

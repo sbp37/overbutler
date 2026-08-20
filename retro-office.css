@@ -4149,3 +4149,57 @@
   font: 700 13px/1.3 var(--disp);
 }
 .gift-receipt .gift-received b { color: var(--ink); font-weight: 800; }
+
+/* ═══════════ P1 구조 — 해금을 위로 (2026-08-19) ═══════════ */
+
+/* 하단 탭 봉인점 — 새 지원서가 와 있다는 신호 하나. 숫자도 배지도 아니다. */
+.bottom-nav button { position: relative; }
+.nav-seal-dot {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: var(--stamp-red);
+  box-shadow: 0 0 0 2px var(--paper-light, #faf7f0);
+}
+.nav-seal-dot[hidden] { display: none; }
+
+/* 조건이 공개된 서류(진행 중)는 손이 닿는 것이고 "추후 공고"는 아니다. 목록에서
+   둘이 안 갈려서 전부 똑같이 잠긴 것처럼 보였다. 봉인 조형(밀랍·사선 밴드)은
+   그대로 두고 재질과 조건 문구만 갈라 준다. */
+#manager-details .sealed-doc.tracked {
+  background: var(--ivory);
+  box-shadow: 2px 2.5px 0 rgba(45, 35, 22, .1);
+}
+#manager-details .sealed-doc.tracked .sealed-copy em {
+  color: var(--ink);
+  font-weight: 800;
+}
+/* 남은 수치만 붉게 — 문장 전체를 물들이면 경고문이 된다 */
+#manager-details .sealed-doc.tracked .sealed-copy em b { color: var(--stamp-red); }
+
+/* 조건을 다 채운 서류(도착 직전) */
+#manager-details .sealed-doc.near {
+  border-color: var(--stamp-red);
+  background: var(--ivory);
+  box-shadow: 3px 3.5px 0 rgba(157, 47, 58, .14);
+}
+#manager-details .sealed-doc.near .sealed-band {
+  background: var(--stamp-red);
+  color: #f7e6e4;
+}
+#manager-details .sealed-doc.near .sealed-peek { border-color: var(--stamp-red); }
+#manager-details .sealed-doc.near .sealed-peek img { filter: brightness(0) saturate(0) opacity(.42); }
+#manager-details .sealed-doc.near .sealed-copy em {
+  color: var(--stamp-red);
+  font-weight: 800;
+  text-decoration: none;
+}
+/* 준비된 서류에는 개봉을 재촉하는 도장 한 칸 */
+#manager-details .sealed-doc.near .sealed-copy em:after {
+  content: " ▸";
+  font-weight: 900;
+}

@@ -223,12 +223,16 @@
 #view-manager .manager-office-header{order:1}
 #view-manager .personnel-card{order:2}
 #view-manager .manager-gift-button{order:3}          /* 선물은 관계 행동이다 */
-#view-manager .manager-work-card{order:4}            /* 근무 기록 통계 */
-#view-manager .stages-card{order:5}                  /* 과몰입 진행 전체 */
-#view-manager .butler-roster-card{order:6}           /* 아래는 인사 관리 영역 */
-#view-manager .recruit-note{order:7}
-#view-manager .manager-change-button{order:8}
-#view-manager .app-information{order:9}
+/* 해금은 이 앱 최대 보상인데 근무 기록 아래에 묻혀 있었다. 새 지원서 도착을
+   확인하려고 한참 스크롤해야 했으므로, 인사 영역을 선물 바로 다음으로 올린다. */
+#view-manager .recruit-note{order:4}                 /* 신규 지원서 — 최대 보상 */
+#view-manager .butler-roster-card{order:5}           /* 우리 집사들 + 봉인 서류 */
+#view-manager .manager-change-button{order:6}
+#view-manager .manager-work-card{order:7}            /* 근무 기록 통계 */
+#view-manager .stages-card{order:8}                  /* 과몰입 진행 전체 */
+/* order가 없어 기본값 0으로 잡히는 바람에 설정 카드가 헤더보다 위에 떠 있었다. */
+#view-manager .office-settings{order:9}
+#view-manager .app-information{order:10}
 
 /* 관계 칸: 집사의 말이 먼저, 숫자는 아래로. */
 #view-manager .manager-obsession{display:flex;flex-direction:column;padding:12px}
