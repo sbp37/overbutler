@@ -3653,7 +3653,9 @@
 /* ═══════════ 선물의 흔적 — 책상 위에 남는 선물 ═══════════
    사준 것이 방에 영구히 보인다. 스티커가 아니라 책상에 놓인 물건으로
    읽히도록 그림자를 바닥에 깔고, 살짝씩 기울인다. */
-.cat-room-gifts { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+/* 전경(책상 앞판)은 z-index 4로 고양이 잘린 밑단을 가린다. 선물은 가릴 이유가
+   없고 오히려 책상 상판 앞쪽에 놓여야 하므로 전경 위로 올린다. */
+.cat-room-gifts { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .cat-room-gift {
   position: absolute;
   z-index: 3;
@@ -4300,3 +4302,64 @@
   word-break: keep-all;
 }
 #manager-details .manager-nameplate[hidden] { display: none; }
+
+/* ═══════════ R3 집사방 — 관계가 물건으로 쌓인다 (2026-08-20) ═══════════
+   방 배경에 이미 소품이 꽉 차 있어서, 얹는 것은 적을수록 좋다.
+   전시 3 + 희귀 1 + 관계 흔적 2 + 보관함 1 = 최대 7칸이 상한이다.
+   자리는 세 단이다 — 희귀(bottom 13%) · 앞줄 선물/보관함(17%) · 흔적 뒷줄(31%). */
+
+/* 희귀 선물 — 고양이 바로 앞, 제일 앞단. 유일하게 받침이 붙는다. */
+.cat-room-gift.room-rare {
+  font-size: 21px;
+  filter: drop-shadow(0 2px 2px rgba(60, 40, 28, .3));
+}
+.cat-room-gift.room-rare:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 26px;
+  height: 4px;
+  border: 1px solid var(--gold-dp);
+  border-radius: 1px;
+  background: linear-gradient(var(--gold-hi), var(--gold));
+  transform: translateX(-50%);
+}
+
+/* 관계 흔적 — 선물보다 약해 보이면 실패다. 종이 태그를 달아 "사무국 비품"으로 세운다. */
+.cat-room-gift.room-trace {
+  /* 태그는 서류 비품이라 선물처럼 굴러다니지 않는다. 기울기를 줄여
+     bbox가 세로로 부푸는 것도 같이 막는다(앞줄 선물과 닿지 않게). */
+  rotate: -2deg;
+  padding: 3px 4px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 1px;
+  background: var(--ivory);
+  box-shadow: 1.5px 2px 0 rgba(45, 35, 22, .22);
+  font-size: 16px;
+  line-height: 1;
+}
+.cat-room-gift.room-trace .room-trace-plate {
+  display: block;
+  padding: 3px 5px;
+  border: 1px solid #7b5b3c;
+  border-radius: 1px;
+  background: linear-gradient(#8d6c48, #604228);
+  color: #f4e5ce;
+  font: 800 7.5px/1.2 var(--disp);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+/* 보관함 — 넘친 물건은 버려지지 않고 여기로 접힌다. */
+.cat-room-gift.room-storage {
+  font-size: 17px;
+  opacity: .92;
+}
+.cat-room-gift.room-storage > i {
+  right: -5px;
+  bottom: -3px;
+  border-color: var(--kraft-deep);
+  background: var(--kraft);
+  color: #4a3623;
+}

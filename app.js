@@ -2883,43 +2883,137 @@
      저장 키는 늘리지 않는다: giftHistory에서 종류별로 파생한다.
      슬롯은 책상 윗면 라인(bottom 28.5%)의 캐릭터 양옆 — 책상 앞판 클립(y72~80%)에
      안 가리고, 월드 안에 있어서 방을 밀면 같이 밀린다. */
+  /* ── 집사방 = 관계가 물건으로 쌓이는 공간 ──
+     방 배경에는 이미 램프·서류더미·클립보드·명패·머그·도장·책더미가 그려져 있다.
+     그 위에 아이템을 많이 얹으면 배경이 죽고 잡동사니가 된다. 그래서 전시는
+     상한을 두고, 넘치는 건 보관함 한 칸으로 접는다 —
+     "집사가 하나도 안 버리고 정리해서 보관 중"이 이 방의 정서다.
+     좌표는 방 월드(155% 폭) 기준. 고양이는 left 41~59%를 차지하므로 비워둔다. */
+  /* 좌표 기준 세 개. 전부 방 월드(155% 폭) 기준이다.
+     ① 세로: 전경(책상 앞판)이 bottom 28%부터 위를 덮으므로, 예전 슬롯은 전부
+        28.5%에 몰려 책상 뒤쪽 벽 근처에 떠 있는 것처럼 보였다. 선물 레이어를
+        전경 위로 올려서(z-index) 책상 상판 앞쪽에 실제로 놓이게 한다.
+        접수 슬립이 방 아래 30px(약 11%)을 덮으므로 bottom 13% 아래로는 내려가지 않는다.
+     ② 가로: 기본 화면에 보이는 월드 구간은 약 18~82%다. 그 밖에 두면
+        밀어야만 보이므로, 상시 노출 아이템은 전부 이 안에 넣는다.
+     ③ 고양이 회피: 고양이는 가로 41~59%, 세로로는 위에서 75%까지 내려온다.
+        그 사각형을 침범하면 얼굴/몸을 덮으므로, 그 구간을 지나는 아이템은
+        고양이 밑변(bottom 25%)보다 아래 — 즉 bottom 14% 줄에만 놓는다.
+        나머지 아이템은 좌우로 피해 앞줄(17%)·뒷줄(27%) 두 단으로 나눈다.
+        흐트러짐 드리프트 ±1.6%까지 겹치지 않도록 슬롯 간격을 잡았다. */
+  const ROOM_DISPLAY_LIMIT = 3;
   const CAT_ROOM_GIFT_SLOTS = [
-    { left: 34, bottom: 29 }, { left: 64, bottom: 29 }, { left: 27, bottom: 28.5 },
-    { left: 71, bottom: 28.5 }, { left: 20, bottom: 28.5 }, { left: 78, bottom: 28.5 },
-    { left: 13, bottom: 28 }, { left: 85, bottom: 28 }, { left: 92, bottom: 28 }
+    { left: 24, bottom: 17 }, { left: 34, bottom: 17 }, { left: 65, bottom: 17 }
   ];
+  // 희귀 선물만 고양이 바로 앞 중앙 — 방에서 제일 먼저 눈에 드는 자리다.
+  // 유일하게 고양이 가로 구간을 지나므로 한 단 더 앞(아래)에 놓는다.
+  const CAT_ROOM_RARE_SLOT = { left: 50, bottom: 13 };
+  const CAT_ROOM_STORAGE_SLOT = { left: 78, bottom: 17 };
+  /* 흔적은 뒷줄이다. 명패 흔적만 글자가 들어가 가로로 넓어지므로(60px대)
+     가로 간격으로는 앞줄과 못 떼어놓는다 — 세로로 확실히 띄워서 분리한다. */
+  const CAT_ROOM_TRACE_SLOTS = [{ left: 30, bottom: 31 }, { left: 70, bottom: 31 }];
+  /* 관계 흔적 — 단계마다 하나씩 늘어난다. 방에는 최근 두 개만 세운다.
+     선물보다 관계 흔적이 약해 보이면 실패다(쇼핑 아이템이 이기면 안 된다). */
+  const CAT_ROOM_TRACES = [
+    null,
+    { key: "file", icon: "🗂", label: "주인님 파일",
+      say: "주인님 파일이다냥. 이 칸은 집사가 직접 관리한다냥." },
+    { key: "plate", icon: "", label: "전담 명패",
+      say: "명패 문구는 주인님이 골랐다냥. 아직 그대로다냥." },
+    { key: "stamp", icon: "🔖", label: "전용 도장",
+      say: "주인님 서류에만 쓰는 도장이다냥. 아무 데나 안 찍는다냥." },
+    { key: "box", icon: "🗄", label: "전용 서류함",
+      say: "주인님 전용 서류함이다냥. 공식 비품으로 등록해뒀다냥." },
+    { key: "seal", icon: "🏷", label: "전담 인장",
+      say: "전담 표시다냥. 인수인계 목록에서 이것만 빼놨다냥." }
+  ];
+  /* 집사는 물건을 "좋아서" 둔다고 절대 말하지 않는다. 담당이 주인님 하나뿐이라
+     주인님에게 받은 건 전부 업무 관련 물품이라는 게 집사의 공식 입장이다. */
   const CAT_ROOM_GIFT_LINES = [
     "주인님이 준 {gift}… 잘 있다냥. 가끔 보는 건 재고 관리다냥.",
     "{gift} 자리는 여기로 정했다냥. 집사 눈에 제일 잘 보이는 자리… 우연이다냥.",
-    "{gift}은 공식 비품으로 등록해뒀다냥. 회수 신청은 기각이다냥."
+    "{gift}은 공식 비품으로 등록해뒀다냥. 회수 신청은 기각이다냥.",
+    "{gift}이 업무와 무슨 상관이냐고 물었다냥. 대답은 안 했다냥.",
+    "비품팀이 {gift} 반납을 요청했다냥. 전부 업무 관련이라고 답했다냥."
   ];
   let renderedRoomGiftNames = null;
 
+  // 등급 체계는 5종으로 잡아둔다. 이번에는 normal·relationship·rare만 실제
+  // 아이템이 있고 premium·seasonal은 자리만 비워둔다(결제는 아직 만들지 않는다).
+  function roomItemTier(index) { return index >= 7 ? "rare" : "normal"; }
+
   function catRoomGiftItems() {
-    if (state.character !== "cat") return [];
+    if (state.character !== "cat") return { display: [], rare: null, stored: 0, total: 0 };
     const counts = new Map();
     state.giftHistory.filter(item => normalizeCharacter(item.character) === "cat").forEach(item => {
       counts.set(item.name, { emoji: item.emoji, count: (counts.get(item.name)?.count || 0) + 1 });
     });
-    // 카탈로그 순서 = 책상에 놓이는 순서. 같은 선물은 하나만 놓고 개수를 단다.
-    return giftCatalogFor("cat")
-      .filter(gift => counts.has(gift.name))
-      .map(gift => ({ name: gift.name, emoji: gift.emoji, count: counts.get(gift.name).count }))
-      .slice(0, CAT_ROOM_GIFT_SLOTS.length);
+    const owned = giftCatalogFor("cat")
+      .map((gift, index) => ({ ...gift, index, tier: roomItemTier(index), count: counts.get(gift.name)?.count || 0 }))
+      .filter(gift => gift.count > 0);
+    // 희귀는 책상이 아니라 특별 자리에 한 점만 선다. 여러 개면 제일 비싼 것.
+    const rares = owned.filter(gift => gift.tier === "rare");
+    const rare = rares.length ? rares[rares.length - 1] : null;
+    const normals = owned.filter(gift => gift.tier === "normal");
+    // 책상에는 최근에 받은 순으로 상한까지만. 나머지는 보관함으로 접힌다.
+    const display = normals.slice(-ROOM_DISPLAY_LIMIT).reverse();
+    const shown = new Set([...display.map(g => g.name), ...(rare ? [rare.name] : [])]);
+    const stored = owned.filter(gift => !shown.has(gift.name)).reduce((sum, gift) => sum + gift.count, 0);
+    return { display, rare, stored, total: owned.reduce((sum, gift) => sum + gift.count, 0) };
+  }
+
+  // 방에 세워진 관계 흔적. 단계마다 하나씩 늘고, 최근 두 개만 보인다.
+  function catRoomTraces() {
+    if (state.character !== "cat") return [];
+    const stage = stageIndexFor(state.obsession);
+    return CAT_ROOM_TRACES.slice(0, stage + 1)
+      .filter(Boolean)
+      .filter(trace => trace.key !== "plate" || Boolean(state.deskPlate))
+      .slice(-2);
   }
 
   function renderCatRoomGifts() {
     const layer = $("#cat-room-gifts");
     if (!layer) return;
-    const items = catRoomGiftItems();
+    const { display, rare, stored, total } = catRoomGiftItems();
+    const traces = catRoomTraces();
     const previous = renderedRoomGiftNames;
-    renderedRoomGiftNames = new Set(items.map(item => item.name));
-    layer.innerHTML = items.map((item, index) => {
-      const slot = CAT_ROOM_GIFT_SLOTS[index];
-      // 이번 세션에 새로 놓인 것만 내려앉는 연출을 붙인다. 첫 렌더는 조용히 이미 놓여 있다.
-      const fresh = previous !== null && !previous.has(item.name) && !prefersReducedMotion();
-      return `<button class="cat-room-gift${fresh ? " just-placed" : ""}" type="button" style="left:${slot.left}%;bottom:${slot.bottom}%" data-room-gift="${escapeHtml(item.name)}" aria-label="${escapeHtml(item.name)}${item.count > 1 ? ` ${item.count}개` : ""}">${item.emoji}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
-    }).join("");
+    const names = new Set([...display.map(item => item.name), ...(rare ? [rare.name] : []), ...traces.map(t => t.key)]);
+    renderedRoomGiftNames = names;
+    const isFresh = key => previous !== null && !previous.has(key) && !prefersReducedMotion();
+    // 기록이 없는 날에는 물건이 사라지지 않고 자리만 조금 흐트러진다. 며칠인지는
+    // 세지 않는다 — "오늘 접수 0건"만 본다. 대사도 숫자도 없이 배치로만 말한다.
+    const idle = !state.records.some(record => record.date === today());
+    const drift = index => (idle ? [-1.4, 1.1, -0.8, 1.6, -1.2][index % 5] : 0);
+
+    const giftMarkup = (item, slot, index, extra = "") =>
+      `<button class="cat-room-gift${extra}${isFresh(item.name) ? " just-placed" : ""}" type="button"
+        style="left:${slot.left + drift(index)}%;bottom:${slot.bottom}%"
+        data-room-gift="${escapeHtml(item.name)}"
+        aria-label="${escapeHtml(item.name)}${item.count > 1 ? ` ${item.count}개` : ""}"
+        >${item.emoji}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
+
+    const traceMarkup = (trace, index) => {
+      const body = trace.key === "plate"
+        ? `<b class="room-trace-plate">${escapeHtml(deskPlateText())}</b>`
+        : trace.icon;
+      return `<button class="cat-room-gift room-trace${isFresh(trace.key) ? " just-placed" : ""}" type="button"
+        style="left:${trace.slot.left + drift(index + 5)}%;bottom:${trace.slot.bottom}%"
+        data-room-trace="${trace.key}" aria-label="${escapeHtml(trace.label)}">${body}</button>`;
+    };
+
+    layer.innerHTML = [
+      ...display.map((item, index) => giftMarkup(item, CAT_ROOM_GIFT_SLOTS[index], index)),
+      rare ? giftMarkup(rare, CAT_ROOM_RARE_SLOT, 4, " room-rare") : "",
+      // 흔적은 최근 두 개만 세우고, 자리는 좌·우 하나씩 뒷줄로 고정한다.
+      ...traces.map((trace, index) => traceMarkup(
+        { ...trace, slot: CAT_ROOM_TRACE_SLOTS[index] || CAT_ROOM_TRACE_SLOTS[0] }, index)),
+      // 넘치는 물건은 버려지지 않는다. 보관함 한 칸으로 접힐 뿐이다.
+      stored > 0
+        ? `<button class="cat-room-gift room-storage" type="button" style="left:${CAT_ROOM_STORAGE_SLOT.left}%;bottom:${CAT_ROOM_STORAGE_SLOT.bottom}%" data-room-storage="${stored}" aria-label="비품 보관함 ${stored}점">🗃<i>${stored}</i></button>`
+        : ""
+    ].join("");
+    void total;
   }
 
   function catHomeBounds() {
@@ -3184,12 +3278,37 @@
     saveState();
   }
 
+  /* 방에 놓인 물건을 누르면 집사가 그 물건 이야기를 한다.
+     주의: 월드가 포인터를 캡처하는 탓에 이 버튼들에는 click이 오지 않는다.
+     실제 호출은 endCatHomeDrag(누르고 안 민 채로 뗀 경우)에서 하고,
+     click 경로는 키보드 Enter 전용으로만 남는다. */
+  let roomItemAnsweredAt = 0;
+  const ROOM_ITEM_SELECTOR = "[data-room-gift],[data-room-trace],[data-room-storage]";
+
+  function respondToRoomItem(target) {
+    if (!target) return;
+    roomItemAnsweredAt = Date.now();
+    haptic(12);
+    if (target.dataset.roomStorage) {
+      showCatHomeSpeech(`보관함에 ${target.dataset.roomStorage}점 들어 있다냥. 하나도 안 버렸다냥.`);
+      return;
+    }
+    if (target.dataset.roomTrace) {
+      const trace = CAT_ROOM_TRACES.find(item => item?.key === target.dataset.roomTrace);
+      if (trace) showCatHomeSpeech(fillContentTemplate(trace.say));
+      return;
+    }
+    const line = randomItem(CAT_ROOM_GIFT_LINES).replaceAll("{gift}", target.dataset.roomGift);
+    showCatHomeSpeech(fillContentTemplate(line));
+  }
+
   function startCatHomeDrag(event) {
     if (state.character !== "cat" || event.button > 0) return;
     catHomeDragged = false;
     catHomeDrag = {
       pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
       startOffset: catHomeOffsetX, moved: false,
+      roomItem: event.target.closest(ROOM_ITEM_SELECTOR),
       onCharacter: Boolean(event.target.closest("#cat-home-character"))
     };
     $("#cat-home-room").classList.add("is-dragging");
@@ -3213,14 +3332,16 @@
 
   function endCatHomeDrag(event) {
     if (!catHomeDrag || event.pointerId !== catHomeDrag.pointerId) return;
-    const { moved, onCharacter } = catHomeDrag;
+    const { moved, onCharacter, roomItem } = catHomeDrag;
     catHomeDragged = moved;
     catHomeDrag = null;
     $("#cat-home-room").classList.remove("is-dragging");
     setCatHomeOffset(catHomeOffsetX, true);
     // 방을 잡아 끌 수 있게 하려고 포인터를 월드에 캡처하는 탓에 집사 버튼의 click이
     // 오지 않는다. 밀지 않고 뗀 경우는 여기서 직접 말을 건다.
-    if (!moved && onCharacter) interactWithCatHome();
+    if (moved) return;
+    if (roomItem) respondToRoomItem(roomItem);
+    else if (onCharacter) interactWithCatHome();
   }
 
   function openManagerDetails(target = "info") {
@@ -5183,12 +5304,16 @@
     $("#report-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("clip"); submitAchievement(); });
     $("#briefing-character-action").addEventListener("click", interactWithButler);
     $("#diary-open-note").addEventListener("click", () => { haptic(15); OfficeSound.cue("paper"); openPendingDiary(); });
+    // 포인터 탭은 endCatHomeDrag가 받는다. 여기로 오는 건 키보드 Enter뿐이지만,
+    // 브라우저가 click을 흘려보내는 경우까지 대비해 직전 응답은 한 번 걸러낸다.
     $("#cat-room-gifts").addEventListener("click", event => {
-      const item = event.target.closest("[data-room-gift]");
-      if (!item) return;
-      if (catHomeDragged) { catHomeDragged = false; return; }
-      const line = randomItem(CAT_ROOM_GIFT_LINES).replaceAll("{gift}", item.dataset.roomGift);
-      showCatHomeSpeech(fillContentTemplate(line));
+      const target = event.target.closest(ROOM_ITEM_SELECTOR);
+      if (!target) return;
+      // 키보드 Enter는 detail 0으로 온다. 방을 민 직후 걸러야 하는 건 포인터
+      // 클릭뿐이라, 여기서 구분하지 않으면 드래그 한 번이 다음 Enter를 먹는다.
+      if (event.detail > 0 && catHomeDragged) { catHomeDragged = false; return; }
+      if (Date.now() - roomItemAnsweredAt < 400) return;
+      respondToRoomItem(target);
     });
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
