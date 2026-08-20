@@ -1804,6 +1804,25 @@
     return count === 5 || (count > 5 && (count - 5) % 7 === 0);
   }
 
+  /* ── 발급된 증서가 말하는 숫자 ──
+     certificationStatus()는 "다음 목표까지 얼마나 남았나"를 센다. 그래서 5건째를
+     막 달성한 순간에도 이미 다음 주기(0/7)를 가리킨다 — 홈에서는 맞지만,
+     방금 발급된 증서에 그 숫자를 쓰면 "5건 모았는데 왜 0이지?"가 된다.
+     원칙: 발급된 증서는 그 증서를 발급시킨 목표를 말한다.
+     발급 회차는 state.certificates의 순서로 알 수 있으므로, 예전에 받은 증서를
+     다시 열어도 저장 계약을 건드리지 않고 그때의 목표를 되찾는다. */
+  const FIRST_CERTIFICATE_TARGET = 5;
+  const REPEAT_CERTIFICATE_TARGET = 7;
+  function certificateIssueIndex(record) {
+    const issued = state.certificates || [];
+    const found = issued.findIndex(item => String(item?.id) === String(record?.id));
+    // 목록에 아직 없으면 지금 발급되는 중이라는 뜻이다 — 다음 회차로 센다.
+    return found >= 0 ? found + 1 : issued.length + 1;
+  }
+  function certificateTargetFor(record) {
+    return certificateIssueIndex(record) === 1 ? FIRST_CERTIFICATE_TARGET : REPEAT_CERTIFICATE_TARGET;
+  }
+
   function isOfficialCertificate(record) {
     return Boolean(record && state.certificates.some(item => String(item.id) === String(record.id)));
   }
@@ -3773,7 +3792,7 @@
     $("#certificate-screen-title").textContent = "공식 인정 증서";
     $("#certificate-screen-copy").textContent = "당신의 대업을 공식적으로 인증합니다.";
     $("#certificate-title").textContent = "공식 인정 증서";
-    $("#certificate-declaration").textContent = `아래의 기록이 ${certificationStatus().target}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`;
+    $("#certificate-declaration").textContent = `아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`;
     const serial = `${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
     $("#certificate-number").textContent = `SERIAL · 대업-${serial}`;
     const certRegno = $("#certificate-regno");
@@ -3784,7 +3803,7 @@
     $("#certificate-nickname").textContent = record.nickname;
     $("#certificate-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업";
     $("#certificate-intake").textContent = `NO. ${record.number} / 누적 ${state.records.length}건`;
-    const issueIndex = Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1);
+    const issueIndex = certificateIssueIndex(record);
     $("#certificate-issue").textContent = `제 ${issueIndex}차 공식 인정`;
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
     $("#certificate-butler-name").textContent = `발급 담당 ${butler.name}`;
@@ -3837,10 +3856,15 @@
     const pointsEarned = Number(record.pointsEarned) || 0;
     const relationshipGain = Number(record.relationshipGain) || 0;
     $("#result-intake").textContent = `NO. ${record.number}`;
+    // 인증서를 발급시킨 대업이면 도장 칸도 그 목표를 말한다(5/5). 다음 주기의
+    // 0/7은 홈으로 돌아간 뒤부터다 — 달성한 그 화면에서 0을 보여주면 안 된다.
     const stampStatus = certificationStatus();
+    const officialTarget = certificateTargetFor(record);
     $("#result-record-status").textContent = record.stampEligible === false
       ? `칭찬 · +${pointsEarned}P`
-      : `${stampStatus.progress} / ${stampStatus.target}`;
+      : official
+        ? `${officialTarget} / ${officialTarget}`
+        : `${stampStatus.progress} / ${stampStatus.target}`;
     // 집사 코멘트는 손글씨 메모다. 한 글자씩 찍히는 연출은 재질과 어긋나고,
     // 무엇보다 노란 메모지가 빈 칸으로 먼저 떠서 "덜 그려진 화면"으로 읽혔다.
     // 문장은 처음부터 자리에 있고, 종이만 살짝 떠오른다.
@@ -3862,7 +3886,7 @@
     $("#result-footnote").textContent = firstRecord
       ? `첫 도장 · +${pointsEarned}P · 공식 인증까지 ${status.remaining}건`
       : official
-        ? `공식 인증서 발급 · +${pointsEarned}P`
+        ? `공식 인정 달성 · 인증서 발급 · +${pointsEarned}P`
         : `+${pointsEarned}P · 공식 인증까지 ${status.remaining}건`;
     renderRelationshipResult(
       "result",
@@ -4205,7 +4229,7 @@
     ctx.fillStyle = INK_SOFT;
     ctx.font = `500 27px ${BODY}`;
     ctx.textAlign = "center";
-    ctx.fillText(`아래의 기록이 ${certificationStatus().target}건의 대업 끝에`, cx, ruleY + 54);
+    ctx.fillText(`아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에`, cx, ruleY + 54);
     ctx.fillText("사무국의 공식 인정을 받았음을 기쁘게 증명합니다", cx, ruleY + 94);
 
     ctx.font = `800 38px ${SERIF}`;
