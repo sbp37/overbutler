@@ -4203,3 +4203,31 @@
   content: " ▸";
   font-weight: 900;
 }
+
+/* ── 파일 필터 통합 (2026-08-19) ──
+   필터가 두 세트라 "전체"가 둘, "공식"이 둘이었고 두 공식은 조건까지 같았다.
+   필터는 아래 칩 한 줄로 모으고, 서류철 옆 인덱스 탭은 v4 비주얼의 핵심이라
+   조형만 남겨 색인으로 쓴다 — 이 파일에 무엇이 들어 있는지 적힌 탭이고
+   누를 수 없다. */
+#view-archive .record-filters.record-index { pointer-events: none; }
+#view-archive .record-filters.record-index span {
+  position: relative;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 5px;
+  border: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--kraft-deep);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .15);
+  color: #f6ecd9;
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .14em;
+  writing-mode: vertical-rl;
+  text-align: center;
+}
+/* 색인은 서류철 깊이를 보여주는 장식이라 뒤로 갈수록 옅어진다 */
+#view-archive .record-filters.record-index span:nth-child(2) { background: #c0a071; }
+#view-archive .record-filters.record-index span:nth-child(3) { background: #ad9067; }
+
+/* 통합된 분류 칩 — 범위(전체·오늘) 다음에 종류(일상·희귀·공식 인정) */
+#view-archive .record-grade-chips { flex-wrap: wrap; }

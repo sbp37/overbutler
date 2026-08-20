@@ -932,7 +932,6 @@
   let activeGiftDrag = null;
   let selectedGiftIndex = null;
   let briefingIndex = 0;
-  let recordFilter = "all";
   let recordSearch = "";
   let recordGrade = "all";
   let returnVisitContext = { returning: false, consumed: true };
@@ -2701,9 +2700,9 @@
     });
     const query = normalizeDeed(recordSearch);
     const keep = record => {
-      if (recordFilter === "today" && record.date !== today()) return false;
-      if (recordFilter === "official" && !officialIds.has(record.id)) return false;
-      if (recordFilter === "praise" && record.stampEligible !== false) return false;
+      // 필터는 한 축이다. 예전에는 인덱스 탭(recordFilter)과 등급 칩이 각각
+      // 돌면서 "전체"가 둘, "공식"이 둘이었고 두 공식은 조건까지 똑같았다.
+      if (recordGrade === "today" && record.date !== today()) return false;
       if (recordGrade === "rare" && !record.rare) return false;
       if (recordGrade === "official" && !officialIds.has(record.id)) return false;
       if (recordGrade === "daily" && (record.rare || officialIds.has(record.id))) return false;
@@ -2711,7 +2710,7 @@
       return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
     };
     // 필터·검색 중에는 일지를 붙이지 않는다. 찾는 기록만 보여주는 게 그 화면의 일이다.
-    const narrowed = recordFilter !== "all" || recordGrade !== "all" || Boolean(query);
+    const narrowed = recordGrade !== "all" || Boolean(query);
     const groups = groupRecordsByDate()
       .map(group => ({
         ...group,
@@ -5114,21 +5113,12 @@
     $("#fame-button").addEventListener("click", () => showView("archive"));
     // 필터 칩은 탭 자리를 물려받았다. 목록만 다시 그리고 표지는 그대로 둔다
     // (설계: 필터를 걸어도 표지는 항상 유지).
-    $$('[data-record-filter]').forEach(button => button.addEventListener("click", () => {
-      recordFilter = button.dataset.recordFilter;
-      $$('[data-record-filter]').forEach(filter => {
-        const active = filter === button;
-        filter.classList.toggle("active", active);
-        filter.setAttribute("aria-pressed", String(active));
-      });
-      trackEvent("owner_file_filter", { filter: recordFilter });
-      renderArchiveRecords();
-    }));
     $("#record-search").addEventListener("input", event => { recordSearch = event.target.value; renderArchiveRecords(); });
     $("#record-grade-filter").addEventListener("click", event => {
       const chip = event.target.closest("[data-record-grade]");
       if (!chip) return;
       recordGrade = chip.dataset.recordGrade;
+      trackEvent("owner_file_filter", { filter: recordGrade });
       renderArchiveRecords();
     });
     $("#archive-record-list").addEventListener("click", event => {

@@ -264,11 +264,14 @@
         </header>
 
         <section class="owner-file-folder">
-          <div class="record-filters" id="record-filters" role="group" aria-label="기록 분류">
-            <button class="active" type="button" data-record-filter="all">전체</button>
-            <button type="button" data-record-filter="today">오늘</button>
-            <button type="button" data-record-filter="official">공식</button>
-            <button type="button" data-record-filter="praise">반복</button>
+          <!-- 서류철 색인 — 필터가 아니라 이 파일에 무엇이 들어 있는지를 적은
+               탭이다. 필터가 두 세트라 "위 공식과 아래 공식 인정이 뭐가 달라?"가
+               생겼으므로 필터 역할은 아래 칩 한 줄로 넘기고, v4의 인덱스 탭
+               조형은 색인으로 남긴다. 누를 수 없다. -->
+          <div class="record-filters record-index" id="record-filters" aria-hidden="true">
+            <span>기록</span>
+            <span>일지</span>
+            <span>증서</span>
           </div>
           <div class="of-fastener" aria-hidden="true"><i></i><i></i></div>
           <div class="owner-file-doc">
@@ -307,7 +310,7 @@
           <div class="archive-panel active" id="archive-records" role="region" aria-label="주인님 파일 본문">
             <div class="record-find-tools">
               <label class="record-search"><span>기록 찾기</span><input id="record-search" type="search" maxlength="40" placeholder="대업명·칭호 검색" autocomplete="off"></label>
-              <div class="record-grade-filter" role="group" aria-label="등급 분류"><span>등급</span><div class="record-grade-chips" id="record-grade-filter"><button class="active" type="button" data-record-grade="all">전체</button><button type="button" data-record-grade="daily">일상</button><button type="button" data-record-grade="rare">희귀</button><button type="button" data-record-grade="official">공식 인정</button></div></div>
+              <div class="record-grade-filter" role="group" aria-label="기록 분류"><span>분류</span><div class="record-grade-chips" id="record-grade-filter"><button class="active" type="button" data-record-grade="all">전체</button><button type="button" data-record-grade="today">오늘</button><button type="button" data-record-grade="daily">일상</button><button type="button" data-record-grade="rare">희귀</button><button type="button" data-record-grade="official">공식 인정</button></div></div>
             </div>
             <p class="record-legend" id="record-legend"></p>
             <div class="archive-record-list" id="archive-record-list"></div>
