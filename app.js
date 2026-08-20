@@ -3230,8 +3230,25 @@
         <span class="roster-person-seal">${current ? "현재<br>담당" : "인계<br>가능"}</span>
       </button>`;
     }).join("") + sealedApplicantMarkup();
-    const recentDuties = state.diary.filter(entry => normalizeCharacter(entry.butler?.character || entry.character) === state.character).slice(-3).reverse();
-    $("#manager-duty-list").innerHTML = recentDuties.length ? recentDuties.map((entry, index) => `<div><i>${index === 0 ? "오늘 담당" : "기록"}</i><span>${escapeHtml(entry.deed || entry.todos?.[0] || "대업 기록")}</span><time>${escapeHtml(entry.date || "")}</time></div>`).join("") : '<div class="manager-duty-empty">아직 이 집사의 근무 기록이 없습니다.</div>';
+    // 파일 화면은 같은 대업 재접수를 ×N으로 접는데 근무 기록만 그대로 쌓여서,
+    // 같은 줄이 연달아 두 번 보이면 버그로 읽혔다. 두 화면이 같은 데이터를 다르게
+    // 말하지 않도록 파일과 같은 키(normalizeDeed)로 접고, 최근 "서로 다른" 3건만 싣는다.
+    const dutyLabel = entry => entry.deed || entry.todos?.[0] || "대업 기록";
+    const seenDuties = new Set();
+    const recentDuties = [];
+    state.diary
+      .filter(entry => normalizeCharacter(entry.butler?.character || entry.character) === state.character)
+      .slice().reverse()
+      .forEach(entry => {
+        if (recentDuties.length >= 3) return;
+        const key = normalizeDeed(dutyLabel(entry));
+        if (key) {
+          if (seenDuties.has(key)) return;
+          seenDuties.add(key);
+        }
+        recentDuties.push(entry);
+      });
+    $("#manager-duty-list").innerHTML = recentDuties.length ? recentDuties.map((entry, index) => `<div><i>${index === 0 ? "오늘 담당" : "기록"}</i><span>${escapeHtml(dutyLabel(entry))}</span><time>${escapeHtml(entry.date || "")}</time></div>`).join("") : '<div class="manager-duty-empty">아직 이 집사의 근무 기록이 없습니다.</div>';
     $("#stage-list").innerHTML = relationshipApprovalMarkup(state.obsession);
     const next = APPLICANT_ORDER.find(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
     const requirement = next ? applicantStatus(next) : null;
