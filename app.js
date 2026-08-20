@@ -311,6 +311,11 @@
   const INITIAL_OWNED_BUTLERS = ["cat"];
   // 무료로 지원서가 도착하는 집사는 AI 하나뿐이다. 나머지는 유료 채용 대상이므로
   // 요건 정의만 남겨두고 지원자 순번에서는 뺀다(유료 도입 시 미리보기 조건으로 재사용).
+  const DESK_PLATES = Object.freeze({
+    owner: { text: "주인님 전용", recall: "그 명패, 주인님이 골랐잖냥. 아직 그대로다냥." },
+    plain: { text: "특별대우 아님", recall: "「특별대우 아님」이라고 적어뒀다냥. …적어두기만 했다냥." },
+    cat: { text: "기록1과 · 주인님", recall: "마음대로 하라고 했잖냥. …그래서 규정대로 적었다냥." }
+  });
   const APPLICANT_ORDER = ["ai"];
   const APPLICANT_REQUIREMENTS = {
     ai: { deeds: 3, obsession: 10, days: 1 },
@@ -895,7 +900,7 @@
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
-    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false,
+    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false, deskPlate: "",
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
@@ -1129,6 +1134,8 @@
     // 아직 집사 탭에서 확인하지 않은 지원서. 하단 탭의 봉인점이 이걸 본다.
     merged.seenApplicants = Array.isArray(raw.seenApplicants) ? raw.seenApplicants.filter(key => typeof key === "string") : [];
     merged.firstDeedNoticed = Boolean(raw.firstDeedNoticed);
+    // 3단계 승급 때 주인님이 고른 명패 문구. 고르기 전에는 빈 문자열이다.
+    merged.deskPlate = DESK_PLATES[raw.deskPlate] ? raw.deskPlate : "";
     merged.applicationHistory = Array.isArray(raw.applicationHistory) ? raw.applicationHistory.filter(item => objectValue(item) === item) : [];
     merged.handoverHistory = Array.isArray(raw.handoverHistory) ? raw.handoverHistory.filter(item => objectValue(item) === item) : [];
     merged.newlyHiredButlers = Array.isArray(raw.newlyHiredButlers) ? raw.newlyHiredButlers.filter(key => merged.ownedButlers.includes(key)) : [];
@@ -2095,6 +2102,9 @@
     const nextIndex = stageIndexFor(after);
     const upgraded = nextIndex > stageIndexFor(before);
     element.classList.toggle("upgraded", upgraded);
+    // 3단계에 처음 올라선 날에만 명패 선택을 예약한다. 결과서 위에 또 다른
+    // 창을 겹치지 않고, 결과서를 닫고 방으로 돌아온 뒤에 띄운다.
+    if (upgraded && nextIndex >= PLATE_CHOICE_STAGE && state.character === "cat" && !state.deskPlate) pendingPlateChoice = true;
     // 평소에는 한 줄이면 된다. 결재란을 매번 펼치면 단계가 오른 날이 특별해지지 않는다.
     $(`#${prefix}-relationship-kicker`).textContent = upgraded
       ? `관계 단계 상승 · ${previousStage.name} → ${currentStage.name}`
@@ -2142,6 +2152,49 @@
     renderApplicantAlert();
   }
 
+  /* ── 전담 파일 명패 ──
+     관계가 처음 3단계에 오를 때 딱 한 번, 주인님이 문구를 고른다. 옳고 그름도
+     보상 차이도 없고, 고른 문구가 집사 인사기록 카드에 실제로 새겨진다.
+     "관계 +3"이 아니라 "전에 없던 것이 내 선택 때문에 생겼다"가 목적이다.
+     「치즈냥 마음대로」를 고르면 집사는 결국 규정대로 적는다 — 그게 이 캐릭터다. */
+  const PLATE_CHOICE_STAGE = 2; // stageIndexFor 기준 3단계
+  let pendingPlateChoice = false;
+
+  function deskPlateText() {
+    return DESK_PLATES[state.deskPlate]?.text || "";
+  }
+
+  function renderDeskPlate() {
+    const plate = $("#manager-nameplate");
+    if (!plate) return;
+    const text = state.character === "cat" ? deskPlateText() : "";
+    plate.textContent = text;
+    plate.hidden = !text;
+  }
+
+  function openPlateChoice() {
+    if (state.character !== "cat" || state.deskPlate) return;
+    const overlay = $("#plate-choice-overlay");
+    if (!overlay) return;
+    overlay.hidden = false;
+    document.body.style.overflow = "hidden";
+    trackEvent("plate_choice_open", {});
+  }
+
+  function choosePlate(key) {
+    if (!DESK_PLATES[key]) return;
+    state.deskPlate = key;
+    saveState();
+    $("#plate-choice-overlay").hidden = true;
+    document.body.style.overflow = "";
+    renderDeskPlate();
+    trackEvent("plate_choice", { plate: key });
+    haptic(18);
+    OfficeSound.cue("stamp");
+    // 고른 결과는 집사가 바로 알려준다 — 선택이 어디에 남았는지 보여야 한다.
+    if (catReceptionAvailable()) deliverCatReply(`명패 문구는 「${DESK_PLATES[key].text}」로 신청했다냥. 비품팀에 넘겼다냥.`, "happy");
+  }
+
   function isFirstDeedPending() {
     return state.onboarded && state.records.length === 0;
   }
@@ -2179,6 +2232,7 @@
   function render(options = {}) {
     const status = certificationStatus();
     renderApplicantAlert();
+    renderDeskPlate();
     // 홈의 3칸 통계는 헤더의 명성/과몰입과 입력칸 아래 도장 진행바가 이미 같은 숫자를 보여줘 걷어냈다.
     $("#fame-count").textContent = state.fame;
     $("#home-gift-points").textContent = state.points;
@@ -3049,6 +3103,13 @@
   ];
   let lastCatHomeLine = "";
   function catHomeLine() {
+    // 주인님이 고른 명패는 가끔 집사 입으로 다시 나온다. 선택이 어딘가에
+    // 남아 있다는 걸 말로도 확인시켜 준다 — 자주 나오면 잔소리가 되므로 낮은 확률.
+    const plate = DESK_PLATES[state.deskPlate];
+    if (plate && Math.random() < 0.18 && plate.recall !== lastCatHomeLine) {
+      lastCatHomeLine = plate.recall;
+      return plate.recall;
+    }
     const stageLines = CAT_HOME_LINES[stageIndexFor(state.obsession)] || CAT_HOME_LINES[0];
     const pool = stageLines.filter(line => line !== lastCatHomeLine);
     const chosen = (pool.length ? pool : stageLines)[Math.floor(Math.random() * (pool.length || stageLines.length))];
@@ -3987,6 +4048,7 @@
     document.body.style.overflow = "";
     currentResult = null;
     showView("home");
+    if (pendingPlateChoice) { pendingPlateChoice = false; window.setTimeout(openPlateChoice, 800); }
     // 첫 대업 토스트는 걷어냈다 — 같은 정보가 결과서 각주에 이미 있었고,
     // 방으로 돌아온 happy 표정 위에 시스템 문구가 겹치면 표정이 죽는다.
     void firstRecord;
@@ -5076,6 +5138,7 @@
     if (state.character === "cat" && $("#main-screen").dataset.currentView === "manager") {
       closeManagerDetails(false);
       window.scrollTo({ top: 0, behavior: "auto" });
+      if (pendingPlateChoice) { pendingPlateChoice = false; window.setTimeout(openPlateChoice, 800); }
       // 예약 반응은 여기서 소비하지 않는다 — 접수대는 홈에 있고, 집사 탭에서
       // 슬립을 바꿔봐야 아무도 못 본다. 홈으로 돌아온 순간 configureCatHome이 낸다.
     }
@@ -5217,6 +5280,10 @@
       if (trigger) handleCatHomeAction(trigger.dataset.catHomeAction);
     });
     $("#manager-details-back").addEventListener("click", () => closeManagerDetails());
+    $("#plate-choice-options").addEventListener("click", event => {
+      const button = event.target.closest("[data-plate]");
+      if (button) choosePlate(button.dataset.plate);
+    });
     $("#gift-desk-close").addEventListener("click", closeGiftDesk);
     $("#gift-desk-overlay").addEventListener("click", event => { if (event.target.id === "gift-desk-overlay") closeGiftDesk(); });
     $("#gift-catalog").addEventListener("click", event => {
