@@ -1968,7 +1968,10 @@
     // 이번 세션에 새로 생긴 공식 인정 도장은 파일을 펼치는 이 순간에 찍힌다.
     if (name === "archive") window.setTimeout(inkPendingOfficialStamps, 280);
     trackEvent("view_change", { view: name, tab: navKey });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // 부드러운 스크롤은 화면 "내부" 이동에만 쓴다. 탭 전환은 내용이 이미 갈린
+    // 뒤에 스크롤이 따라오므로, 새 화면이 이전 스크롤 위치에서 먼저 보였다가
+    // 위로 올라오는 점프가 생긴다. 화면이 바뀌는 순간에는 즉시 맨 위다.
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
 
   // 탭 3개(기록/일지/인증서)는 "주인님 파일" 한 문서로 접혔다. 모드 속성은
@@ -3133,7 +3136,9 @@
     if (state.character !== "cat") return;
     $("#manager-details").classList.remove("is-open");
     $("#view-manager").classList.remove("details-open");
-    if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
+    // 상세를 닫으면 인사기록이 사라지고 접수대 방이 드러난다 — 탭 전환과 같은
+    // 화면 교체라 여기도 즉시 맨 위로 간다.
+    if (scroll) window.scrollTo({ top: 0, behavior: "auto" });
   }
 
   function handleCatHomeAction(action) {
