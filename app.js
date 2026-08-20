@@ -885,7 +885,7 @@
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
-    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [],
+    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false,
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
@@ -1118,6 +1118,7 @@
     merged.deferredApplicants = Array.isArray(raw.deferredApplicants) ? raw.deferredApplicants.filter(key => merged.pendingApplicants.includes(key)) : [];
     // 아직 집사 탭에서 확인하지 않은 지원서. 하단 탭의 봉인점이 이걸 본다.
     merged.seenApplicants = Array.isArray(raw.seenApplicants) ? raw.seenApplicants.filter(key => typeof key === "string") : [];
+    merged.firstDeedNoticed = Boolean(raw.firstDeedNoticed);
     merged.applicationHistory = Array.isArray(raw.applicationHistory) ? raw.applicationHistory.filter(item => objectValue(item) === item) : [];
     merged.handoverHistory = Array.isArray(raw.handoverHistory) ? raw.handoverHistory.filter(item => objectValue(item) === item) : [];
     merged.newlyHiredButlers = Array.isArray(raw.newlyHiredButlers) ? raw.newlyHiredButlers.filter(key => merged.ownedButlers.includes(key)) : [];
@@ -3934,7 +3935,18 @@
       : firstRecord ? "첫 기록 저장하고 홈으로" : "기록 보관하고 홈으로";
     const status = certificationStatus();
     // 하단 각주도 한 호흡으로 줄인다. 이 화면에서 읽을 건 칭호와 도장뿐이다.
-    $("#result-footnote").textContent = firstRecord
+    /* 첫 대업을 마친 사람은 "이야기함 → 집사가 호들갑 → 기록됨"까지만 안다.
+       내일 일기가 열린다는 것도, 파일이 쌓인다는 것도 직접 발견해야 했다.
+       튜토리얼도 모달도 만들지 않는다 — 이미 있는 각주 자리에 사무국 안내
+       한 줄이면 충분하고, 딱 한 번만 나온다. */
+    const firstDeedNotice = firstRecord && !state.firstDeedNoticed;
+    if (firstDeedNotice) {
+      state.firstDeedNoticed = true;
+      saveState();
+    }
+    $("#result-footnote").textContent = firstDeedNotice
+      ? "오늘 기록은 파일에 보관됩니다 · 집사가 쓴 오늘 일기는 내일 개봉"
+      : firstRecord
       ? `첫 도장 · +${pointsEarned}P · 공식 인증까지 ${status.remaining}건`
       : official
         ? `공식 인정 달성 · 인증서 발급 · +${pointsEarned}P`
