@@ -4363,3 +4363,66 @@
   background: var(--kraft);
   color: #4a3623;
 }
+
+/* ═══════════ R5 선물 그림 연결 (2026-08-21) ═══════════
+   고양이 선물·관계 흔적은 이모지에서 그림으로 갈아탄다. 다른 캐릭터는
+   이모지 그대로라, 그림이 붙은 칸에만 .has-art로 규칙을 건다.
+
+   그림에는 이미 짙은 갈색 외곽선과 접지 그림자가 그려져 있다. 그래서
+   런타임에서 drop-shadow를 또 얹으면 그림자가 두 겹이 된다 — 그림이
+   있는 칸에서는 이모지용 그림자를 끈다. */
+.cat-room-gift.has-art { filter: none; padding: 0; }
+/* 높이는 인라인 style이 정하고, 여기서는 가로로 퍼지는 것만 막는다.
+   object-fit: contain이라 폭이 잘려도 그림은 찌그러지지 않는다. */
+.cat-room-gift.has-art > img {
+  display: block;
+  width: auto;
+  max-width: 40px;
+  object-fit: contain;
+  pointer-events: none;  /* 탭 판정은 버튼이 받는다 */
+  -webkit-user-drag: none;
+}
+.cat-room-gift.room-rare.has-art > img { max-width: 52px; }
+.cat-room-gift.room-trace.has-art > img { max-width: 34px; }
+.cat-room-gift.room-storage.has-art > img { max-width: 30px; }
+/* 흔적은 그림이 곧 종이 태그라 CSS 태그 장식을 걷어낸다. 명패만 예외로
+   남는다(문구가 들어가야 해서 여전히 CSS로 그린다). */
+.cat-room-gift.room-trace.has-art {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  rotate: -2deg;
+}
+.cat-room-gift.room-storage.has-art { opacity: 1; }
+/* 희귀 받침(금박)은 가로형 아래에만 어울린다. 세로 가구 밑에 깔리면
+   가구가 접시에 올라간 것처럼 보인다. */
+.cat-room-gift.room-rare.has-art:after { display: none; }
+
+/* 선반 칸 — 40px 자리에 그림을 꽉 채운다. */
+.gift-desk-overlay .gift-shelf-thumb.has-art { display: block; }
+.gift-desk-overlay .gift-shelf-thumb.has-art > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+.gift-desk-overlay .gift-shelf-item.locked .gift-shelf-thumb.has-art > img { opacity: .38; filter: grayscale(1); }
+
+/* 손끝에 붙어 따라오는 그림자 — 선반 그림 그대로 끌려간다. */
+.gift-drag-ghost.has-art { font-size: 0; }
+.gift-drag-ghost.has-art > img { display: block; width: 52px; height: auto; }
+
+/* 선물 이력 한 줄 */
+#gift-history-list span.has-art { display: block; width: 26px; height: 26px; }
+#gift-history-list span.has-art > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* 인수증 — 방금 건넨 그 그림이 이름 앞에 붙는다. */
+.gift-received-art {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  margin-right: 5px;
+  object-fit: contain;
+  vertical-align: -6px;
+}

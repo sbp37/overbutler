@@ -556,7 +556,7 @@
 
   const GIFT_CATALOGS = {
     ai: [["☕","커피"],["🍫","초콜릿"],["🧃","에너지드링크"],["🔋","배터리"],["💾","플로피디스크"],["🔧","렌치"],["🖥️","모니터"],["💝","특별선물"],["🎉","스페셜"]],
-    cat: [["🍣","참치캔"],["🥛","우유"],["🐟","생선"],["🐠","큰 생선"],["🍡","츄르"],["🎀","리본"],["🌸","꽃다발"],["💝","특별선물"],["🎉","스페셜"]],
+    cat: [["🍣","참치캔"],["🥛","우유 접시"],["🍡","츄르"],["🪶","깃털 낚싯대"],["🧶","방울 공"],["🐭","쥐 인형"],["🪵","스크래처"],["🛏","창가 방석"],["🗼","캣타워"]],
     dog: [["🍖","닭고기"],["🥩","스테이크"],["🦴","뼈다귀"],["🎾","공"],["🧸","인형"],["🎀","리본"],["🐾","발바닥 쿠션"],["💝","특별선물"],["🎉","스페셜"]],
     alien: [["🍬","지구 사탕"],["🧪","실험약"],["💊","알약"],["🔭","망원경"],["🛸","미니 UFO"],["🌌","우주도감"],["⭐","별"],["💝","특별선물"],["🎉","스페셜"]],
     ninja: [["🍙","주먹밥"],["🍵","녹차"],["🍱","도시락"],["⚔️","단검"],["🎋","대나무"],["📜","비밀서찰"],["🏯","성"],["💝","특별선물"],["🎉","스페셜"]],
@@ -567,6 +567,30 @@
     fairy: [["🍬","별사탕"],["🧁","작은 컵케이크"],["🌼","들꽃"],["✨","반짝이 가루"],["🪄","별 지팡이"],["🫙","달빛 병"],["🌟","소원별"],["💝","특별선물"],["🎉","스페셜"]]
   };
   const GIFT_COSTS = BALANCE.giftCosts;
+
+  /* ── 고양이 선물은 그림이다 ──
+     다른 캐릭터는 이모지 그대로다. 고양이만 방·선반·이력에서 그림을 쓴다.
+     이모지는 지우지 않고 남긴다 — 그림이 못 뜨는 순간의 대체 표시다. */
+  const GIFT_ART_PATH = "design/gift-assets/cat/";
+  const CAT_GIFT_ART = Object.freeze([
+    "gift-cat-01-tuna", "gift-cat-02-milk", "gift-cat-03-churu",
+    "gift-cat-04-wand", "gift-cat-05-ball", "gift-cat-06-mouse",
+    "gift-cat-07-scratcher", "gift-cat-08-cushion", "gift-cat-09-tower"
+  ]);
+  // 캣타워만 세로로 긴 가구다. 고양이 정면에 세우면 몸통을 관통하므로
+  // 희귀 자리를 형태별로 갈라 쓴다(가로형은 앞 중앙, 세로형은 측면).
+  const CAT_GIFT_TALL = Object.freeze([8]);
+
+  /* 품목 9칸을 전부 고양이 물건으로 바꿨다. giftHistory는 선물을 이름
+     문자열로 저장하므로, 옛 이름을 그대로 두면 카탈로그에서 못 찾아
+     방에서도 보관함에서도 조용히 사라진다 — "하나도 안 버렸다냥"이
+     거짓말이 된다. 그래서 값 등급이 같은 새 품목으로 이어 붙인다.
+     저장된 데이터는 건드리지 않고 읽을 때만 바꾼다(롤백 가능). */
+  const CAT_GIFT_RENAMES = Object.freeze({
+    "우유": "우유 접시", "생선": "츄르", "큰 생선": "깃털 낚싯대",
+    "리본": "방울 공", "꽃다발": "쥐 인형",
+    "특별선물": "창가 방석", "스페셜": "캣타워"
+  });
 
   const LAUNCH_BUTLER_CONTENT = {
     ai: {
@@ -2901,32 +2925,59 @@
         고양이 밑변(bottom 25%)보다 아래 — 즉 bottom 14% 줄에만 놓는다.
         나머지 아이템은 좌우로 피해 앞줄(17%)·뒷줄(27%) 두 단으로 나눈다.
         흐트러짐 드리프트 ±1.6%까지 겹치지 않도록 슬롯 간격을 잡았다. */
-  const ROOM_DISPLAY_LIMIT = 3;
-  const CAT_ROOM_GIFT_SLOTS = [
-    { left: 24, bottom: 17 }, { left: 34, bottom: 17 }, { left: 65, bottom: 17 }
-  ];
-  // 희귀 선물만 고양이 바로 앞 중앙 — 방에서 제일 먼저 눈에 드는 자리다.
-  // 유일하게 고양이 가로 구간을 지나므로 한 단 더 앞(아래)에 놓는다.
-  const CAT_ROOM_RARE_SLOT = { left: 50, bottom: 13 };
-  const CAT_ROOM_STORAGE_SLOT = { left: 78, bottom: 17 };
-  /* 흔적은 뒷줄이다. 명패 흔적만 글자가 들어가 가로로 넓어지므로(60px대)
-     가로 간격으로는 앞줄과 못 떼어놓는다 — 세로로 확실히 띄워서 분리한다. */
-  const CAT_ROOM_TRACE_SLOTS = [{ left: 30, bottom: 31 }, { left: 70, bottom: 31 }];
+  /* 크기는 폭이 아니라 높이로 잡는다. 물건마다 가로세로 비가 달라서(캣타워는
+     0.46, 쥐 인형은 1.62) 폭을 맞추면 세로로 긴 것이 화면을 뚫는다.
+     높이를 맞추면 전부 같은 축척으로 책상에 놓인 것처럼 읽힌다.
+     가로로 너무 퍼지는 것만 CSS의 max-width가 잡는다. */
+  const ROOM_GIFT_HEIGHT = 34;
+  const ROOM_TRACE_HEIGHT = 28;
+  const ROOM_STORAGE_HEIGHT = 24;
+  /* 배치는 두 벌이다. 희귀 선물이 낮고 넓은 것(창가 방석)이냐, 세로로 긴
+     가구(캣타워)냐에 따라 방을 통째로 다르게 정리한다.
+
+     desk — 기본. 앞줄(17%)에 선물 셋과 보관함, 뒷줄(32.5%)에 흔적 둘,
+       그리고 희귀는 고양이 바로 앞 최전면(12%)에 낮게 눕는다.
+     tower — 세로 가구가 서는 날. 이 물건은 앞줄에서 뒷줄 위까지 한꺼번에
+       가로지르므로, 옆에 뭘 두든 부딪힌다. 그래서 왼쪽 구역을 가구와
+       보관함에게 통째로 내주고 선물·서류를 오른쪽으로 물린다 —
+       큰 물건이 들어오면 책상을 다시 정리하는 것과 같다.
+       앞줄이 한 칸 좁아지고 밀린 선물은 버려지지 않고 보관함으로 접힌다.
+
+     명패 흔적만 글자가 들어가 가로로 넓어진다(10.4%). 두 배치 모두 그 최대
+     폭에 드리프트(±1.6%)까지 얹어도 고양이와 서로가 닿지 않게 잡았다. */
+  const CAT_ROOM_LAYOUTS = Object.freeze({
+    desk: {
+      limit: 3,
+      gifts: [{ left: 24, bottom: 17 }, { left: 34, bottom: 17 }, { left: 65, bottom: 17 }],
+      rare: { left: 50, bottom: 12, height: 30 },
+      traces: [{ left: 30, bottom: 32.5 }, { left: 70, bottom: 32.5 }],
+      storage: { left: 78, bottom: 17 }
+    },
+    tower: {
+      limit: 2,
+      gifts: [{ left: 65, bottom: 17 }, { left: 76, bottom: 17 }],
+      rare: { left: 22, bottom: 17, height: 78 },
+      traces: [{ left: 34, bottom: 32.5 }, { left: 70, bottom: 32.5 }],
+      storage: { left: 32, bottom: 17 }
+    }
+  });
   /* 관계 흔적 — 단계마다 하나씩 늘어난다. 방에는 최근 두 개만 세운다.
      선물보다 관계 흔적이 약해 보이면 실패다(쇼핑 아이템이 이기면 안 된다). */
   const CAT_ROOM_TRACES = [
     null,
-    { key: "file", icon: "🗂", label: "주인님 파일",
+    { key: "file", icon: "🗂", art: "trace-01-file", label: "주인님 파일",
       say: "주인님 파일이다냥. 이 칸은 집사가 직접 관리한다냥." },
-    { key: "plate", icon: "", label: "전담 명패",
+    // 명패만 그림이 없다 — 주인님이 고른 문구가 들어가야 해서 CSS로 그린다.
+    { key: "plate", icon: "", art: "", label: "전담 명패",
       say: "명패 문구는 주인님이 골랐다냥. 아직 그대로다냥." },
-    { key: "stamp", icon: "🔖", label: "전용 도장",
+    { key: "stamp", icon: "🔖", art: "trace-02-stamp", label: "전용 도장",
       say: "주인님 서류에만 쓰는 도장이다냥. 아무 데나 안 찍는다냥." },
-    { key: "box", icon: "🗄", label: "전용 서류함",
+    { key: "box", icon: "🗄", art: "trace-03-box", label: "전용 서류함",
       say: "주인님 전용 서류함이다냥. 공식 비품으로 등록해뒀다냥." },
-    { key: "seal", icon: "🏷", label: "전담 인장",
+    { key: "seal", icon: "🏷", art: "trace-04-seal", label: "전담 인장",
       say: "전담 표시다냥. 인수인계 목록에서 이것만 빼놨다냥." }
   ];
+  const CAT_ROOM_STORAGE_ART = "trace-05-storage";
   /* 집사는 물건을 "좋아서" 둔다고 절대 말하지 않는다. 담당이 주인님 하나뿐이라
      주인님에게 받은 건 전부 업무 관련 물품이라는 게 집사의 공식 입장이다. */
   const CAT_ROOM_GIFT_LINES = [
@@ -2942,10 +2993,13 @@
   // 아이템이 있고 premium·seasonal은 자리만 비워둔다(결제는 아직 만들지 않는다).
   function roomItemTier(index) { return index >= 7 ? "rare" : "normal"; }
 
+  // 희귀 선물의 형태가 그날의 방 배치를 정한다.
+  function catRoomLayout(rare) { return CAT_ROOM_LAYOUTS[rare?.tall ? "tower" : "desk"]; }
+
   function catRoomGiftItems() {
     if (state.character !== "cat") return { display: [], rare: null, stored: 0, total: 0 };
     const counts = new Map();
-    state.giftHistory.filter(item => normalizeCharacter(item.character) === "cat").forEach(item => {
+    giftHistoryFor("cat").forEach(item => {
       counts.set(item.name, { emoji: item.emoji, count: (counts.get(item.name)?.count || 0) + 1 });
     });
     const owned = giftCatalogFor("cat")
@@ -2956,7 +3010,7 @@
     const rare = rares.length ? rares[rares.length - 1] : null;
     const normals = owned.filter(gift => gift.tier === "normal");
     // 책상에는 최근에 받은 순으로 상한까지만. 나머지는 보관함으로 접힌다.
-    const display = normals.slice(-ROOM_DISPLAY_LIMIT).reverse();
+    const display = normals.slice(-catRoomLayout(rare).limit).reverse();
     const shown = new Set([...display.map(g => g.name), ...(rare ? [rare.name] : [])]);
     const stored = owned.filter(gift => !shown.has(gift.name)).reduce((sum, gift) => sum + gift.count, 0);
     return { display, rare, stored, total: owned.reduce((sum, gift) => sum + gift.count, 0) };
@@ -2986,31 +3040,38 @@
     const idle = !state.records.some(record => record.date === today());
     const drift = index => (idle ? [-1.4, 1.1, -0.8, 1.6, -1.2][index % 5] : 0);
 
+    // 그림이 있으면 그림, 없으면 이모지. 높이만 정하고 폭은 비율대로 따라온다.
+    const artOrEmoji = (art, emoji, label, height) => (art
+      ? `<img src="${art}" alt="" style="height:${height}px" loading="lazy" draggable="false">`
+      : emoji || escapeHtml(label));
+
     const giftMarkup = (item, slot, index, extra = "") =>
-      `<button class="cat-room-gift${extra}${isFresh(item.name) ? " just-placed" : ""}" type="button"
+      `<button class="cat-room-gift${extra}${item.art ? " has-art" : ""}${isFresh(item.name) ? " just-placed" : ""}" type="button"
         style="left:${slot.left + drift(index)}%;bottom:${slot.bottom}%"
         data-room-gift="${escapeHtml(item.name)}"
         aria-label="${escapeHtml(item.name)}${item.count > 1 ? ` ${item.count}개` : ""}"
-        >${item.emoji}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
+        >${artOrEmoji(item.art, item.emoji, item.name, slot.height || ROOM_GIFT_HEIGHT)}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
 
     const traceMarkup = (trace, index) => {
       const body = trace.key === "plate"
         ? `<b class="room-trace-plate">${escapeHtml(deskPlateText())}</b>`
-        : trace.icon;
-      return `<button class="cat-room-gift room-trace${isFresh(trace.key) ? " just-placed" : ""}" type="button"
+        : artOrEmoji(trace.art ? `${GIFT_ART_PATH}${trace.art}.webp` : "", trace.icon, trace.label, ROOM_TRACE_HEIGHT);
+      return `<button class="cat-room-gift room-trace${trace.art ? " has-art" : ""}${isFresh(trace.key) ? " just-placed" : ""}" type="button"
         style="left:${trace.slot.left + drift(index + 5)}%;bottom:${trace.slot.bottom}%"
         data-room-trace="${trace.key}" aria-label="${escapeHtml(trace.label)}">${body}</button>`;
     };
 
+    const layout = catRoomLayout(rare);
+
     layer.innerHTML = [
-      ...display.map((item, index) => giftMarkup(item, CAT_ROOM_GIFT_SLOTS[index], index)),
-      rare ? giftMarkup(rare, CAT_ROOM_RARE_SLOT, 4, " room-rare") : "",
+      ...display.map((item, index) => giftMarkup(item, layout.gifts[index], index)),
+      rare ? giftMarkup(rare, layout.rare, 4, " room-rare") : "",
       // 흔적은 최근 두 개만 세우고, 자리는 좌·우 하나씩 뒷줄로 고정한다.
       ...traces.map((trace, index) => traceMarkup(
-        { ...trace, slot: CAT_ROOM_TRACE_SLOTS[index] || CAT_ROOM_TRACE_SLOTS[0] }, index)),
+        { ...trace, slot: layout.traces[index] || layout.traces[0] }, index)),
       // 넘치는 물건은 버려지지 않는다. 보관함 한 칸으로 접힐 뿐이다.
       stored > 0
-        ? `<button class="cat-room-gift room-storage" type="button" style="left:${CAT_ROOM_STORAGE_SLOT.left}%;bottom:${CAT_ROOM_STORAGE_SLOT.bottom}%" data-room-storage="${stored}" aria-label="비품 보관함 ${stored}점">🗃<i>${stored}</i></button>`
+        ? `<button class="cat-room-gift room-storage has-art" type="button" style="left:${layout.storage.left}%;bottom:${layout.storage.bottom}%" data-room-storage="${stored}" aria-label="비품 보관함 ${stored}점">${artOrEmoji(`${GIFT_ART_PATH}${CAT_ROOM_STORAGE_ART}.webp`, "🗃", "보관함", ROOM_STORAGE_HEIGHT)}<i>${stored}</i></button>`
         : ""
     ].join("");
     void total;
@@ -3298,8 +3359,9 @@
       if (trace) showCatHomeSpeech(fillContentTemplate(trace.say));
       return;
     }
-    const line = randomItem(CAT_ROOM_GIFT_LINES).replaceAll("{gift}", target.dataset.roomGift);
-    showCatHomeSpeech(fillContentTemplate(line));
+    // 자리표시자를 먼저 갈아끼우면 조사 교정이 볼 게 없어진다 — "츄르은"이
+    // 나가던 자리다. 선물 이름은 값으로 넘겨서 뒤 조사까지 같이 맞춘다.
+    showCatHomeSpeech(fillContentTemplate(randomItem(CAT_ROOM_GIFT_LINES), { gift: target.dataset.roomGift }));
   }
 
   function startCatHomeDrag(event) {
@@ -5006,12 +5068,33 @@
   }
 
   function giftCatalogFor(character = state.character) {
-    return (GIFT_CATALOGS[normalizeCharacter(character)] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({ emoji, name, cost: GIFT_COSTS[index] }));
+    const key = normalizeCharacter(character);
+    return (GIFT_CATALOGS[key] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({
+      emoji, name, cost: GIFT_COSTS[index],
+      art: key === "cat" ? `${GIFT_ART_PATH}${CAT_GIFT_ART[index]}.webp` : "",
+      tall: key === "cat" && CAT_GIFT_TALL.includes(index)
+    }));
+  }
+
+  /* 선물 이력을 새 품목 이름으로 맞춘 사본. 저장 배열 자체는 손대지 않는다.
+     읽는 쪽은 전부 이 함수를 거쳐야 옛 선물이 방·보관함·중복 판정에서
+     빠지지 않는다. */
+  function giftHistoryFor(character = state.character) {
+    const key = normalizeCharacter(character);
+    const owned = key === "cat" ? new Map(giftCatalogFor("cat").map(gift => [gift.name, gift])) : null;
+    return state.giftHistory
+      .filter(item => normalizeCharacter(item.character) === key)
+      .map(item => {
+        if (!owned) return item;
+        const name = CAT_GIFT_RENAMES[item.name] || item.name;
+        const gift = owned.get(name);
+        return gift ? { ...item, name, emoji: gift.emoji, art: gift.art } : item;
+      });
   }
 
   function renderGiftDesk() {
     const catalog = giftCatalogFor();
-    const history = state.giftHistory.filter(item => normalizeCharacter(item.character) === state.character);
+    const history = giftHistoryFor();
     $("#gift-desk-points").textContent = state.points;
     $("#gift-desk-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-desk-butler-line").textContent = templateOwner(CHARACTER_PROFILES[state.character].briefings[0]);
@@ -5026,7 +5109,9 @@
       // "건네준다"가 "옮긴다"가 된다. 가로 선반이라 어느 칸이든 위로 한 번이면 닿는다.
       return `<button class="gift-shelf-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
         ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}
-        <span class="gift-shelf-thumb">${gift.emoji}</span>
+        <span class="gift-shelf-thumb${gift.art ? " has-art" : ""}">${gift.art
+          ? `<img src="${gift.art}" alt="" loading="lazy" draggable="false">`
+          : gift.emoji}</span>
         <b>${escapeHtml(gift.name)}</b>
         <small>${gift.cost}P</small>${affordable ? "" : `<em>${shortfall}P 더</em>`}
       </button>`;
@@ -5035,7 +5120,8 @@
     $("#gift-history-list").innerHTML = history.length
       ? history.slice(0, 5).map(item => {
         const labels = { favorite: "취향 적중", duplicate: "또 기억", rare: "희귀 선물" };
-        return `<li><span>${item.emoji}</span><b>${escapeHtml(item.name)}${labels[item.reactionType] ? `<em>${labels[item.reactionType]}</em>` : ""}</b><time>${escapeHtml(item.date || "")}</time></li>`;
+        const face = item.art ? `<img src="${item.art}" alt="" loading="lazy" draggable="false">` : item.emoji;
+        return `<li><span class="${item.art ? "has-art" : ""}">${face}</span><b>${escapeHtml(item.name)}${labels[item.reactionType] ? `<em>${labels[item.reactionType]}</em>` : ""}</b><time>${escapeHtml(item.date || "")}</time></li>`;
       }).join("")
       : '<li class="empty">아직 이 집사에게 준 선물이 없습니다.</li>';
     selectedGiftIndex = null;
@@ -5071,7 +5157,9 @@
     const key = normalizeCharacter(character);
     const content = launchContentFor(key);
     if (!gift) return { type: "normal", label: "선물 접수", delta: BALANCE.giftRelationship.normal, duplicateCount: 0 };
-    const priorCount = state.giftHistory.filter(item => normalizeCharacter(item.character) === key && item.name === gift.name).length;
+    // 옛 이름으로 저장된 선물도 "또 기억"으로 세어야 한다 — 이름만 바뀌었지
+    // 주인님이 그걸 준 적 없는 게 되면 안 된다.
+    const priorCount = giftHistoryFor(key).filter(item => item.name === gift.name).length;
     const rare = index >= 7;
     const favorite = Boolean(content?.favorites?.includes(gift.name));
     const repeat = priorCount > 0;
@@ -5194,7 +5282,10 @@
     const giftTitles = GIFT_RESULT_TITLES[state.character] || GIFT_RESULT_TITLES.ai;
     $("#gift-title").innerHTML = giftTitles[interaction.type] || giftTitles.normal;
     $("#gift-message").textContent = message;
-    $("#gift-received-name").textContent = `${gift.emoji} ${gift.name}`;
+    // 인수증에도 이모지가 아니라 방금 건넨 그 그림이 올라온다.
+    $("#gift-received-name").innerHTML = gift.art
+      ? `<img class="gift-received-art" src="${gift.art}" alt="" draggable="false">${escapeHtml(gift.name)}`
+      : escapeHtml(`${gift.emoji} ${gift.name}`);
     $("#gift-count").textContent = stat.gifts;
     $("#gift-obsession").textContent = state.obsession;
     renderRelationshipResult("gift", previousObsession, state.obsession, interaction.delta, "gift");
@@ -5223,8 +5314,14 @@
     if (!gift || state.points < gift.cost) return;
     selectGift(index);
     const ghost = document.createElement("div");
-    ghost.className = "gift-drag-ghost";
-    ghost.textContent = gift.emoji;
+    // 손끝에 붙어 따라오는 것과 창구에 놓이는 것이 달라 보이면 "건네준다"가
+    // 끊긴다. 선반 그림 그대로 끌려가야 한다.
+    ghost.className = `gift-drag-ghost${gift.art ? " has-art" : ""}`;
+    if (gift.art) {
+      const face = document.createElement("img");
+      face.src = gift.art; face.alt = ""; face.draggable = false;
+      ghost.appendChild(face);
+    } else ghost.textContent = gift.emoji;
     document.body.appendChild(ghost);
     activeGiftDrag = { index, ghost, pointerId: event.pointerId };
     button.setPointerCapture?.(event.pointerId);
