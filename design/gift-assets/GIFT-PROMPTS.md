@@ -111,6 +111,12 @@ range so it reads clearly brighter than a dark walnut desk. Colors one step
 more saturated than a faded vintage illustration — warm and inviting,
 never neon, never fluorescent.
 
+STRICTLY NO COOL COLORS anywhere on the object: no blue, no purple, no violet,
+no teal, no cool grey. Sage green is the ONLY green and the ONLY colour that
+may lean cool. Every other coloured area must be cream, amber, tan, rust,
+or maroon. If a real-world version of this object would normally be blue,
+recolour it to maroon or amber instead.
+
 Simple bold silhouette with at most three shape elements, still readable when
 shrunk to 30 pixels wide.
 
@@ -127,7 +133,9 @@ photo, photorealistic, 3d render, clay render, gradient mesh, noisy texture,
 fine rendering detail, multiple separate objects, cluttered composition,
 tiny details, thin hairline strokes, uneven line weight, missing outline,
 white outline, light outline, dark object, black object, muddy brown object,
-desaturated grey, washed out, neon, fluorescent, saturated primary colors,
+blue, navy, sky blue, teal, cyan, purple, violet, lavender, magenta, pink
+plastic, cool grey, grey object, desaturated grey, washed out, neon,
+fluorescent, saturated primary colors,
 gold foil, glitter, sparkles, star effects, glow, lens flare, long cast shadow,
 shadow stretching away from object, background scenery, desk, table, floor,
 wall, room, white background, opaque background, checkerboard background,
@@ -265,3 +273,69 @@ top to bottom.
 - [ ] 텍스트·숫자·로고 없음
 - [ ] 고양이나 캐릭터가 같이 그려지지 않음 — 물건만
 - [ ] 희귀 2종이 세로로 서 있고, 일반 7종보다 확실히 크게 읽힘
+
+---
+
+# 1차 검수 결과 (2026-08-21) — 7장 통과 / 6장 재작업
+
+`codex/r1-cat-gift-assets`의 14장을 받아 검수했다. 규격은 전부 통과했고
+(512×512 / 512×683, RGBA, 투명, 알파 정상) 무엇보다 **외곽선 전략이 통했다** —
+실제 폰 크기(30~36px)의 방 배경 위에 올려도 묻히지 않고 전부 읽힌다.
+
+문제는 한 가지, **팔레트가 샜다.**
+
+## 측정 — 방 배경의 한색 비율은 0.3%다
+
+불투명 픽셀의 색상환 150°~330°(파랑·보라·청록) 비율을 쟀다.
+
+| 에셋 | 한색 | 평균 명도 | 판정 |
+|---|---|---|---|
+| **[방 배경]** | **0.3%** | 41.5 | 기준 |
+| gift-cat-05-ball | **74.5%** | 44.3 | 재작업 — 보라 |
+| trace-05-storage | **74.9%** | 47.8 | 재작업 — 파랑 |
+| trace-02-stamp | **37.8%** | 38.8 | 재작업 — 파란 잉크패드 + 어두움 |
+| gift-cat-02-milk | **20.4%** | 74.0 | 재작업 — 파란 뚜껑·마크 |
+| gift-cat-01-tuna | **18.1%** | 52.0 | 재작업 — 파란 캔 |
+| gift-cat-06-mouse | 0.0% | 53.1 | 재작업 — 채도 27.5, 회색 쥐 |
+| gift-cat-03-churu | 0.0% | 54.2 | 통과 |
+| gift-cat-04-wand | 0.0% | 42.1 | 통과(막대만 한 톤 밝게) |
+| gift-cat-07-scratcher | 0.0% | 45.9 | 통과 |
+| gift-cat-08-cushion | 0.0% | 60.4 | 통과 |
+| gift-cat-09-tower | 0.7% | 60.5 | 통과 |
+| trace-01-file | 0.0% | 61.6 | 통과 |
+| trace-03-box | 0.0% | 41.1 | 통과 |
+| trace-04-seal | 0.0% | 61.8 | 통과 |
+
+방에 차가운 색이 사실상 없는데 아이템에 파랑·보라가 들어가면, "튄다"가 아니라
+**"다른 게임에서 가져온 아이콘"으로 읽힌다.** 이건 우리가 원한 튐이 아니다.
+
+원인은 이 문서에 있었다. 팔레트를 나열했을 뿐 **한색을 금지하지 않았다.**
+공통 프롬프트에 STRICTLY NO COOL COLORS 문단을, 네거티브에 blue·purple 계열을
+추가했다. 재작업은 그 문단이 들어간 프롬프트로 돌린다.
+
+## 재작업 6장 — 무엇을 무슨 색으로
+
+| 파일 | 지금 | 바꿀 것 |
+|---|---|---|
+| `gift-cat-05-ball` | 보라 털실 | **앰버/러스트 털실.** 방울은 지금 놋쇠 그대로 좋다 |
+| `trace-05-storage` | 파란 상자 | **크라프트 갈색 상자.** 모서리 놋쇠 장식은 유지 |
+| `trace-02-stamp` | 파란 잉크패드 | **마룬 잉크패드.** 나무 손잡이는 지금 그대로. 전체 한 톤 밝게 |
+| `gift-cat-02-milk` | 파란 뚜껑·고양이 마크 | **마룬 뚜껑·마크.** 우유 흰색과 접시 크림색은 유지 |
+| `gift-cat-01-tuna` | 파란 캔 | **마룬 캔.** 참치 살구색과 은색 뚜껑은 유지 |
+| `gift-cat-06-mouse` | 회색 쥐(채도 27.5) | **크림/베이지 천 쥐 + 마룬 코·꼬리.** 캣닢 잎(세이지) 추가 |
+
+나머지 8장은 손대지 않는다. 특히 `trace-04-seal`(아이보리 태그 + 마룬 왁스실)과
+`trace-01-file`은 방에 완벽하게 붙는다 — **이 둘을 색 기준으로 삼으면 된다.**
+
+## 배치 쪽 문제 하나 — 이건 에셋이 아니라 슬롯 설계가 틀렸다
+
+캣타워를 희귀 슬롯(고양이 정면 중앙, bottom 13%)에 올리면 **세로로 길어서
+고양이 몸통을 관통한다.** 방석은 낮고 넓어서 같은 자리에 완벽하게 앉는다.
+
+즉 희귀 슬롯은 하나가 아니라 형태별로 둘이어야 한다.
+
+- **가로형 희귀**(창가 방석) → 중앙 `bottom 13%`, 폭 44px — 고양이 앞에 놓인 자리
+- **세로형 희귀**(캣타워) → 측면 `left 22%` 또는 `78%`, `bottom 17%`, 폭 38px — 책상 옆에 선 가구
+
+R5에서 에셋을 연결할 때 `CAT_ROOM_RARE_SLOT` 하나를 형태별 두 슬롯으로 나눈다.
+에셋 쪽에서 고칠 것은 없다.
