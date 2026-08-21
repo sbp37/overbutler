@@ -3507,6 +3507,14 @@
     $("#manager-gift-points").textContent = state.points;
     const giftSay = $("#manager-gift-say");
     if (giftSay) giftSay.textContent = GIFT_WAITING_LINES[state.character] || GIFT_WAITING_LINES.ai;
+    // 방 사진은 방이 있는 캐릭터만 낼 수 있다. 빈 책상을 찍어봐야 자랑이 아니라
+    // 아직 아무것도 없다는 통지라, 놓인 것이 하나라도 생긴 뒤에 나타난다.
+    const roomCardButton = $("#room-card-button");
+    if (roomCardButton) {
+      const { display, rare } = catRoomGiftItems();
+      roomCardButton.hidden = state.character !== "cat"
+        || (!display.length && !rare && !catRoomTraces().length);
+    }
     $("#manager-roster-count").textContent = rosterKeys.length;
     $("#manager-roster").innerHTML = rosterKeys.map(key => {
       const rosterProfile = CHARACTER_PROFILES[key];
@@ -4742,6 +4750,211 @@
     return canvasToBlob(canvas);
   }
 
+  /* ── 집사 방 사진 ──
+     인증서는 "한 건의 대업"을 증명한다. 이건 다른 것을 보여준다 — 그동안 쌓인
+     것이 놓인 방 자체다. 자랑할 만한 것은 판정이 아니라 이 방이라, 공유 이미지가
+     하나 더 필요했다.
+
+     증서와 절대 같은 물건으로 보이면 안 된다. 금박은 인증서·축하 전용이므로
+     여기서는 한 줄도 쓰지 않고, 크라프트 서류 톤으로만 짠다. 등급·점수·수치도
+     넣지 않는다 — 방은 성적표가 아니다.
+
+     방 좌표는 CSS(manager-final.css)와 CAT_ROOM_LAYOUTS를 그대로 따라간다.
+     화면과 다른 방이 나가면 "내 방을 찍었다"가 성립하지 않는다. */
+  const ROOM_CARD = Object.freeze({
+    worldRatio: 1.55,      // .cat-home-world 폭 = 방 폭 × 1.55
+    roomAspect: 388 / 277, // 390px 화면에서 방 요소의 가로세로
+    catWidthPct: 112 / 388,// .cat-home-character 폭 ÷ 방 폭
+    catAspect: 112 / 153,
+    catLeftPct: 40.7,      // 월드 기준 고양이 왼쪽
+    catBottomPct: 24.4
+  });
+
+  async function createRoomCardBlob() {
+    if (document.fonts?.ready) await document.fonts.ready;
+    const { display, rare, stored } = catRoomGiftItems();
+    const traces = catRoomTraces();
+    const layout = catRoomLayout(rare);
+    const butlerName = state.butlerName || CHARACTER_PROFILES.cat.defaultName;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    const DISP = 'Paperlogy, "Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const BODY = '"Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const SERIF = '"Song Myung", "Noto Serif KR", serif';
+    const HAND = 'Gaegu, cursive';
+    const INK = "#332a20";
+    const INK_SOFT = "#7a6c5c";
+    const INK_FAINT = "#a3927c";
+    const IVORY = "#faf7f0";
+    const KRAFT = "#c8a878";
+    const KRAFT_DEEP = "#8a6a45";
+
+    ctx.fillStyle = "#efe8da";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(94, 72, 58, .05)";
+    ctx.lineWidth = 2;
+    for (let x = 0; x <= canvas.width; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y <= canvas.height; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+    const P = { x: 44, y: 40, w: 992, h: 1270 };
+    ctx.fillStyle = "rgba(45, 35, 22, .13)";
+    ctx.fillRect(P.x + 14, P.y + 16, P.w, P.h);
+    ctx.fillStyle = IVORY;
+    ctx.fillRect(P.x, P.y, P.w, P.h);
+    ctx.strokeStyle = KRAFT_DEEP;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(P.x, P.y, P.w, P.h);
+
+    // 머리글 — 방 위에 걸린 창구 명패와 같은 문구를 쓴다.
+    const headerH = 92;
+    ctx.fillStyle = "#41372a";
+    ctx.fillRect(P.x + 3, P.y + 3, P.w - 6, headerH);
+    ctx.fillStyle = "#f0e2c8";
+    ctx.font = `800 32px ${DISP}`;
+    ctx.textAlign = "center";
+    drawTrackedText(ctx, `창구 01 · 전담 ${butlerName}`, P.x + P.w / 2, P.y + 3 + headerH / 2 + 11, 5);
+
+    // 방 사진 — 서류에 붙인 인화지 한 장
+    const photo = { x: P.x + 40, w: P.w - 80 };
+    photo.h = Math.round(photo.w / ROOM_CARD.roomAspect);
+    photo.y = P.y + headerH + 34;
+    const worldW = photo.w * ROOM_CARD.worldRatio;
+    const worldX = photo.x - (worldW - photo.w) / 2;
+    const scale = worldW / (388 * ROOM_CARD.worldRatio); // 화면 1px당 캔버스 px
+    const worldAt = leftPct => worldX + worldW * (leftPct / 100);
+    const bottomAt = bottomPct => photo.y + photo.h - photo.h * (bottomPct / 100);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(photo.x, photo.y, photo.w, photo.h);
+    ctx.clip();
+    const room = await loadCanvasImage("design/rooms/cat-office-room.webp");
+    // 화면은 background-size: cover다. 월드 상자가 원본보다 납작해서 위아래가
+    // 잘리므로, 같은 방을 찍으려면 여기서도 세로 가운데를 그만큼 잘라내야 한다.
+    const srcH = Math.min(room.naturalHeight, room.naturalWidth / (worldW / photo.h));
+    ctx.drawImage(room, 0, (room.naturalHeight - srcH) / 2, room.naturalWidth, srcH,
+      worldX, photo.y, worldW, photo.h);
+
+    const catW = photo.w * ROOM_CARD.catWidthPct;
+    const catH = catW / ROOM_CARD.catAspect;
+    const cat = await loadCanvasImage(`${DESK_FACE_PATH}${DESK_FACES.base}.webp`);
+    ctx.drawImage(cat, worldAt(ROOM_CARD.catLeftPct), bottomAt(ROOM_CARD.catBottomPct) - catH, catW, catH);
+
+    // 물건 — 화면과 같은 슬롯, 같은 순서. 흐트러짐(drift)은 빼고 정돈된 방을 찍는다.
+    const placed = [
+      ...display.map((item, index) => ({ art: item.art, slot: layout.gifts[index], height: ROOM_GIFT_HEIGHT })),
+      ...(rare ? [{ art: rare.art, slot: layout.rare, height: layout.rare.height }] : []),
+      ...traces.map((trace, index) => ({
+        art: trace.art ? `${GIFT_ART_PATH}${trace.art}.webp` : "",
+        plate: trace.key === "plate" ? deskPlateText() : "",
+        slot: layout.traces[index] || layout.traces[0], height: ROOM_TRACE_HEIGHT
+      })),
+      ...(stored > 0 ? [{ art: `${GIFT_ART_PATH}${CAT_ROOM_STORAGE_ART}.webp`, slot: layout.storage, height: ROOM_STORAGE_HEIGHT }] : [])
+    ].filter(entry => entry.slot);
+
+    for (const entry of placed) {
+      const h = entry.height * scale;
+      const bottom = bottomAt(entry.slot.bottom);
+      if (entry.plate) {
+        // 명패는 그림이 없다 — 화면에서도 CSS로 그리므로 여기서도 직접 그린다.
+        ctx.font = `800 ${Math.round(7.5 * scale)}px ${DISP}`;
+        const textW = ctx.measureText(entry.plate).width;
+        const padX = 5 * scale;
+        const boxW = textW + padX * 2;
+        const boxH = 16 * scale;
+        const boxX = worldAt(entry.slot.left) - boxW / 2;
+        ctx.fillStyle = "#74522f";
+        ctx.fillRect(boxX, bottom - boxH, boxW, boxH);
+        ctx.strokeStyle = "#4a3320";
+        ctx.lineWidth = Math.max(1, scale);
+        ctx.strokeRect(boxX, bottom - boxH, boxW, boxH);
+        ctx.fillStyle = "#f4e5ce";
+        ctx.textAlign = "center";
+        ctx.fillText(entry.plate, boxX + boxW / 2, bottom - boxH / 2 + 3 * scale);
+        continue;
+      }
+      if (!entry.art) continue;
+      const image = await loadCanvasImage(entry.art);
+      const w = h * (image.naturalWidth / image.naturalHeight);
+      ctx.drawImage(image, worldAt(entry.slot.left) - w / 2, bottom - h, w, h);
+    }
+    ctx.restore();
+    ctx.strokeStyle = "rgba(74, 51, 32, .55)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(photo.x, photo.y, photo.w, photo.h);
+
+    // 집사 한 줄 — 방을 설명하지 않고, 방에 있는 사람이 말한다.
+    const sayY = photo.y + photo.h + 74;
+    ctx.textAlign = "center";
+    ctx.fillStyle = INK;
+    ctx.font = `900 40px ${SERIF}`;
+    ctx.fillText(`${butlerName}의 자리`, P.x + P.w / 2, sayY);
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `500 28px ${BODY}`;
+    const stageLine = relationshipStageLine("cat") || "주인님 자리는 늘 비워둔다냥.";
+    drawCenteredCanvasLines(ctx, canvasTextLines(ctx, stageLine, P.w - 200, 2), P.x + P.w / 2, sayY + 52, 40);
+
+    // 놓인 것 — 이름만 적는다. 개수·등급·값은 쓰지 않는다.
+    const named = [
+      ...display.map(item => item.name),
+      ...(rare ? [rare.name] : []),
+      ...traces.map(trace => trace.label)
+    ];
+    const listTop = sayY + 148;
+    ctx.strokeStyle = "rgba(138, 106, 69, .45)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(P.x + 62, listTop);
+    ctx.lineTo(P.x + P.w - 62, listTop);
+    ctx.stroke();
+    ctx.textAlign = "left";
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `700 24px ${DISP}`;
+    drawTrackedText(ctx, "책상에 놓인 것", P.x + 62, listTop + 44, 3, "left");
+    ctx.fillStyle = INK;
+    ctx.font = `600 27px ${BODY}`;
+    drawCenteredCanvasLines(
+      ctx, canvasTextLines(ctx, named.join(" · ") || "아직 아무것도 없다", P.w - 124, 2),
+      P.x + 62, listTop + 92, 40
+    );
+    if (stored > 0) {
+      ctx.fillStyle = INK_SOFT;
+      ctx.font = `500 23px ${BODY}`;
+      ctx.fillText(`그리고 보관함 ${stored}점 — 하나도 안 버렸다냥`, P.x + 62, listTop + 92 + 48);
+    }
+
+    // 발신 — 이 종이를 누가 냈는지. 육필은 서명에만 쓴다.
+    const bandTop = P.y + P.h - 96;
+    ctx.save();
+    ctx.fillStyle = "rgba(200, 168, 120, .16)";
+    ctx.fillRect(P.x + 3, bandTop, P.w - 6, P.h - (bandTop - P.y) - 3);
+    ctx.strokeStyle = "rgba(138, 106, 69, .5)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(P.x + 3, bandTop);
+    ctx.lineTo(P.x + P.w - 3, bandTop);
+    ctx.stroke();
+    ctx.restore();
+    ctx.textAlign = "left";
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `700 20px ${DISP}`;
+    drawTrackedText(ctx, "과잉집사 · OVERBUTLER DUTY OFFICE", P.x + 62, bandTop + 56, 2, "left");
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#b1604a";
+    ctx.font = `700 38px ${HAND}`;
+    ctx.fillText(butlerName, P.x + P.w - 62, bandTop + 62);
+    ctx.textAlign = "center";
+    void KRAFT;
+    return canvasToBlob(canvas);
+  }
+
   function downloadCertificateBlob(blob, record) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -4831,6 +5044,58 @@
       }
     } finally {
       setCertificateActionPending(button, false, "");
+    }
+  }
+
+  /* 방 사진은 증서와 발행 경로가 다르다. 증서는 한 건에 묶여 있어 다시 열면 같은
+     장이 나와야 하지만(그래서 blob을 캐시한다), 방 사진은 누를 때마다 그 순간의
+     방이다 — 물건이 하나 늘면 다른 사진이어야 한다. 캐시하지 않는다. */
+  function roomCardShareText() {
+    const butlerName = state.butlerName || CHARACTER_PROFILES.cat.defaultName;
+    return `${templateOwner("주인님")} 담당, ${butlerName}의 책상입니다.\n${relationshipStageLine("cat")}\n#과잉집사 #집사방`;
+  }
+
+  // 방 사진 버튼은 텍스트 한 줄이 아니라 클립·제목·설명이 든 종이다.
+  // 증서 버튼용 헬퍼처럼 textContent를 갈아끼우면 속이 통째로 날아간다.
+  function setRoomCardPending(button, pending, label) {
+    if (!button) return;
+    const title = button.querySelector("b");
+    if (!title) return;
+    if (pending) title.dataset.originalLabel = title.textContent;
+    button.disabled = pending;
+    button.setAttribute("aria-busy", String(pending));
+    title.textContent = pending ? label : title.dataset.originalLabel || title.textContent;
+  }
+
+  async function shareRoomCard() {
+    if (state.character !== "cat") return;
+    const button = $("#room-card-button");
+    const text = roomCardShareText();
+    const filename = `과잉집사-${state.butlerName || "집사"}의-책상.png`;
+    setRoomCardPending(button, true, "방 사진 만드는 중…");
+    try {
+      const blob = await createRoomCardBlob();
+      const file = new File([blob], filename, { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "과잉집사 집사 방", text, files: [file] });
+        trackEvent("room_card_share", { source: "native_file" });
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = url;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const copied = await copyCertificateText(text);
+      trackEvent("room_card_share", { source: copied ? "download_copy" : "download" });
+      showToast(copied ? "집사 방 사진을 저장하고 문구를 복사했습니다." : "집사 방 사진을 저장했습니다.");
+    } catch (error) {
+      if (error.name === "AbortError") { trackEvent("room_card_share", { source: "cancelled" }); return; }
+      trackEvent("room_card_share", { source: "failed" });
+      showToast("방 사진을 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setRoomCardPending(button, false, "");
     }
   }
 
@@ -5532,6 +5797,7 @@
     $("#close-certificate").addEventListener("click", closeCertificate);
     $("[data-certificate-close]").addEventListener("click", closeCertificate);
     $("#share-certificate").addEventListener("click", shareCertificate);
+    $("#room-card-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("paper"); shareRoomCard(); });
     $("#home-gift-link").addEventListener("click", openGiftDesk);
     $("#analysis-overlay").addEventListener("click", finishAnalysisNow);
     $("#analysis-overlay").addEventListener("keydown", event => {
