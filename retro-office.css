@@ -4502,3 +4502,62 @@
   text-align: center;
   rotate: -5deg;
 }
+
+/* 중앙인사국 사내 사건 접수부. 새 화면을 늘리지 않고 기존 명부 안에서만
+   CAT 전임 집사의 대기 발령 사건을 파생해 보여준다. */
+.personnel-incident-board {
+  margin: 15px 0 4px;
+  padding: 13px 14px 11px;
+  border: 1px solid var(--doc-line);
+  border-top: 3px double var(--ink);
+  background: var(--memo);
+  color: var(--ink);
+  text-align: left;
+}
+.personnel-incident-board > header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--doc-line);
+}
+.personnel-incident-board > header small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ink-faint);
+  font: 700 8px/1 var(--disp);
+  letter-spacing: .16em;
+}
+.personnel-incident-board > header h3 {
+  margin: 0;
+  font: 900 17px/1.15 var(--serif);
+  letter-spacing: .04em;
+}
+.personnel-incident-board > header > b {
+  flex: none;
+  color: var(--stamp-red);
+  font: 700 9px/1.2 var(--disp);
+  letter-spacing: .04em;
+}
+.personnel-incident-board article {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 3px 9px;
+  padding: 10px 0 9px;
+  border-bottom: 1px dotted var(--doc-line);
+}
+.personnel-incident-board article:last-child { border-bottom: 0; padding-bottom: 1px; }
+.personnel-incident-board article > span {
+  grid-row: 1 / 4;
+  color: var(--ink-faint);
+  font: 700 9px/1.35 var(--disp);
+}
+.personnel-incident-board article > b { font: 800 12px/1.35 var(--disp); }
+.personnel-incident-board article > p { margin: 0; color: var(--ink-soft); font: 500 11px/1.45 var(--body); }
+.personnel-incident-board article > small { color: var(--stamp-red); font: 700 9px/1.3 var(--disp); }
+.personnel-incident-empty { margin: 10px 0 0; color: var(--ink-soft); font: 500 11px/1.5 var(--body); }
+
+@media (max-width: 370px) {
+  .personnel-incident-board article { grid-template-columns: 64px 1fr; gap-column: 7px; }
+}

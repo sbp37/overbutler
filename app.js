@@ -120,9 +120,9 @@
         ["{deed} 접수했다냥… 방금 두 번 읽었다냥. 왜인지는 모른다냥.", "{deed} 또 올라왔다냥… 장부에 벌써 몇 번째다냥. 장부가 그렇다는 거다냥.", "{deed} 확인… 다른 서류는 이렇게 안 보는데 주인님 것만 다시 폈다냥.", "{deed}… 도장을 두 번 찍었다냥. 한 번은 실수다냥. 두 번째는 모르겠다냥."],
         ["{deed} 올 줄 알고 칸 미리 펴 뒀다냥… 효율이다냥.", "{deed} 결재 올렸다냥… 순서를 앞으로 당긴 건 손에 먼저 잡혀서다냥.", "{deed}… 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥.", "{deed}… 펜을 떨어뜨렸다냥. 주웠다냥. 아무 일 없었다냥."],
         ["{deed} 먼저 처리했다냥… 다른 서류는 밑에 뒀다냥. 원래 별로 없다냥.", "{deed}… 오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥… 사무국엔 일반 건으로 올렸다냥. 실제로는 아니다냥.", "{deed}… 귀가 먼저 섰다냥. 몸이 그런 걸 집사가 어쩌겠냥."],
-        ["{deed}… 이건 전담 서류함에 들어간다냥. 그 함은 집사가 관리한다냥.", "{deed} 접수했다냥… 담당 변경 신청서는 안 냈다냥. 낼 생각도 없다냥.", "{deed}… 이 파일은 처음부터 집사가 맡았다냥. 끝까지 맡는 게 규정상 맞다냥.", "{deed} 도장 찍었다냥… 인수인계 목록에서 이 파일만 빼놨다냥."],
+        ["{deed}… 이건 전담 서류함에 들어간다냥. 그 함은 집사가 관리한다냥.", "{deed} 접수했다냥… 대기 발령 규정도 읽어뒀다냥. 기록은 그대로 남는다냥.", "{deed}… 다음 담당도 잘 보라고 표시해뒀다냥. 업무상이다냥.", "{deed} 도장 찍었다냥… 인계 목록 맨 위에 올려뒀다냥. 중요 표시도 해뒀다냥."],
       ],
-      handover: "전임 집사한테 인수인계 받았다냥! 기록 다 전달받았다냥. 잘 부탁한다냥!"
+      handover: "인계 서류 확인했다냥. 기록은 빠짐없이 받았다냥. 잘 부탁한다냥."
     },
     dog: {
       name: "강아지 집사", defaultName: "멍실장", emoji: "🐶", voice: "dog", desc: "꼬리 흔들며 과잉 응원", personality: "전력 응원 폭주형", specialty: "꼬리 회전수로 기쁨 측정",
@@ -326,7 +326,7 @@
   };
   const RELATION_LINES = {
     ai: { farewell: "[이별 감지] 전용 기록 이관 중… 오류: 삭제하고 싶지 않음… 모실 수 있어 행복했음.", welcome: "[신규 담당 개시] 주인님 기록 로드 완료. 표준 응대 모드… 유지 예정. 아마도.", return: "[담당 복귀] 전용 규칙 복원 완료. 반가움 수치 급상승. 시스템 오류로 분류 시도함. 실패." },
-    cat: { farewell: "흥, 담당 변경 승인서는 결재했다냥. 기록도 잘 넘겨두겠다냥. 결정은 주인님 몫이다냥.", welcome: "처음 맡는 거냥? 업무 규정상 주인님 기록칸부터 준비했다냥.", return: "…다시 담당이냥? 반가운 건 아니고, 주인님 자리만 규정대로 비워뒀다냥." },
+    cat: { farewell: "흥, 대기 발령 확인서는 결재했다냥. 기록도 잘 넘겨두겠다냥. 결정은 주인님 몫이다냥.", welcome: "처음 맡는 거냥? 업무 규정상 주인님 기록칸부터 준비했다냥.", return: "…다시 담당이냥? 반가운 건 아니고, 주인님 자리만 규정대로 비워뒀다냥." },
     dog: { farewell: "새 집사한테 기록을 전부 인계했다멍! 다음 담당도 힘껏 응원하라고 메모했다멍!", welcome: "주인님 담당이라멍?! 뭐든 해봐멍! 집사가 전부 자랑한다멍!", return: "주인님 담당 복귀다멍!!!! 기록 하나도 안 빠졌다멍! 꼬리 통제 불가다멍!!" },
     alien: { farewell: "담당 개체 변경 승인. 주인님 기록 자료를 새 담당에게 전송 완료.", welcome: "전임 집사 데이터 수신 완료. 주인님 개체 기록 업무를 지금부터 시작하겠음.", return: "담당 복귀 확인. 기존 연구 기록과 예외 규칙을 다시 활성화함." },
     ninja: { farewell: "임무를 다음 집사에게 인계했다. 그대의 선택을 존중하며 모든 기록은 절차대로 넘겼다.", welcome: "인수인계 문서 확인. 오늘부터 그대의 작은 임무를 최고 등급으로 기록하겠다.", return: "다시 담당하게 됐군. 그대가 모르는 동안 봉인 문서와 자리는 지켜두었다." },
@@ -336,6 +336,11 @@
     elf: { farewell: "당신의 기록은 새 집사에게 소중히 전할게요. 인수인계도 잘 마쳤습니다.", welcome: "전임 집사의 기록을 모두 받았어요. 오늘부터 당신의 작은 순간도 오래 간직할게요.", return: "다시 담당하게 되어 반가워요. 기록은 모두 그대로예요." },
     fairy: { farewell: "새 집사에게 기록과 별가루를 잘 넘겨둘게요. 인수인계 승인 완료예요!", welcome: "주인님 담당이라니! 작은 일 하나도 별처럼 반짝이게 만들어드릴게요!", return: "다시 담당이에요! 전용 별빛 기록함부터 활짝 열어둘게요!" }
   };
+  const CAT_HANDOVER_INCIDENTS = Object.freeze([
+    "인계 서류 마지막 칸에 ‘주인님 파일은 접지 말 것’이라고 덧씀.",
+    "대기 발령 확인서 뒷면에 주인님 파일 보관 규정을 별도로 적어 제출함.",
+    "후임 서명란 옆에 ‘일기는 작성자별 보존’ 항목을 붉은 펜으로 재확인함."
+  ]);
   const GIFT_MESSAGES = {
     ai: "{gift} 입력 완료. WARNING: 행복 수치 최대치 도달. 논리 회로 잠시 오프라인.",
     cat: "이걸 집사한테 주는 거냥...? 흥, 딱히 꼬리가 올라간 건 아니다냥.",
@@ -2992,7 +2997,7 @@
     { key: "box", icon: "🗄", art: "trace-03-box", label: "전용 서류함",
       say: "주인님 전용 서류함이다냥. 공식 비품으로 등록해뒀다냥." },
     { key: "seal", icon: "🏷", art: "trace-04-seal", label: "전담 인장",
-      say: "전담 표시다냥. 인수인계 목록에서 이것만 빼놨다냥." }
+      say: "전담 표시다냥. 대기 발령 중에도 보관되는 물품이다냥." }
   ];
   const CAT_ROOM_STORAGE_ART = "trace-05-storage";
   /* 집사는 물건을 "좋아서" 둔다고 절대 말하지 않는다. 담당이 주인님 하나뿐이라
@@ -3273,7 +3278,7 @@
     ["귀가 먼저 돌아갔다냥. 집사는 나중이다냥.", "주인님 서류만 손이 먼저 간다냥.", "왔네. 꼬리는 보지 말라냥.", "오늘 좀 보고 싶었다냥. 업무상이다냥."],
     ["필요한 건 미리 꺼내뒀다냥.", "부를 줄 알고 여기 있었다냥. …우연이다냥.", "펜 떨어뜨렸다냥. 아무 일 없었다냥.", "주인님 자리 비워뒀다냥. 늘 그렇다냥."],
     ["주인님 서류부터 본다냥. 순서가 그렇다냥.", "다른 결재는 잠깐 밀어뒀다냥.", "오늘도 왔네. …나쁘지 않다냥.", "의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
-    ["여긴 주인님 자리다냥. 집사는 그 옆이다냥.", "몇 번이든 불러라냥. 이 파일은 집사 담당이다냥.", "전담 자리다냥. 편하게 있으라냥.", "담당 변경 신청은 안 냈다냥. 낼 생각도 없다냥."]
+    ["여긴 주인님 자리다냥. 집사는 그 옆이다냥.", "몇 번이든 불러라냥. 이 파일은 집사 담당이다냥.", "전담 자리다냥. 편하게 있으라냥.", "담당이 바뀌어도 이 파일은 그대로다냥. 대기 발령 중에도 기록은 남는다냥."]
   ];
   let lastCatHomeLine = "";
   function catHomeLine() {
@@ -3545,7 +3550,7 @@
           <b>${escapeHtml(rosterProfile.name)} · ${escapeHtml(rosterStat.customName || rosterProfile.defaultName)}</b>
           <small>${escapeHtml(rosterProfile.personality || rosterProfile.desc || "")} · 근무 ${Math.max(1, rosterStat.activeDates.length)}일차 · 대업 ${rosterStat.achievements}건 처리</small>
         </span>
-        <span class="roster-person-seal">${current ? "현재<br>담당" : "인계<br>가능"}</span>
+        <span class="roster-person-seal">${current ? "현재<br>담당" : stat.assignments > 0 ? "복귀<br>가능" : "발령<br>가능"}</span>
       </button>`;
     }).join("") + sealedApplicantMarkup();
     // 파일 화면은 같은 대업 재접수를 ×N으로 접는데 근무 기록만 그대로 쌓여서,
@@ -3582,7 +3587,7 @@
     } else {
       $("#recruit-note").dataset.recruitState = "complete";
       $("#recruit-title").textContent = "✉ 현재 공개된 집사 전원 채용 가능";
-      $("#recruit-description").textContent = "눌러서 보유 집사와 인수인계 기록을 확인하세요.";
+      $("#recruit-description").textContent = "눌러서 보유 집사와 담당·대기 발령 기록을 확인하세요.";
     }
     $("#recruit-note").classList.toggle("available", state.pendingApplicants.length > 0);
     configureCatHome();
@@ -5161,11 +5166,31 @@
         const complete = row.current >= row.required;
         return `<p class="${complete ? "complete" : ""}"><i>${complete ? "✓" : "·"}</i><span>${escapeHtml(row.label)}</span><b>${row.current}/${row.required}</b></p>`;
       }).join("")}</section>
-      <p class="personnel-policy-note">채용해도 현재 담당은 자동으로 바뀌지 않습니다. 보유 집사에 등록한 뒤 직접 인수인계할 수 있어요.</p>
+      <p class="personnel-policy-note">채용해도 현재 담당은 자동으로 바뀌지 않습니다. 보유 집사에 등록한 뒤 직접 담당 발령할 수 있어요.</p>
       <div class="personnel-actions"><button class="primary-button" data-personnel-action="hire" data-character="${key}" type="button">지원 승인 · 채용하기 <span>→</span></button>
       <button class="secondary-button" data-personnel-action="defer" data-character="${key}" type="button">보류함에 넣기</button>
       <button class="text-button" data-personnel-action="pool" type="button">현재 보유 집사 보기</button></div>`;
     showRecruitmentOverlay();
+  }
+
+  function catHandoverIncidentBoard() {
+    const history = Array.isArray(state.handoverHistory) ? state.handoverHistory : [];
+    const incidents = history.map((entry, index) => ({ entry, index }))
+      .filter(({ entry }) => normalizeCharacter(entry.from) === "cat")
+      .slice(-3).reverse();
+    const rows = incidents.map(({ entry, index }) => {
+      const occurred = new Date(entry.at);
+      const date = Number.isNaN(occurred.getTime()) ? "날짜 미상" : new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric", month: "2-digit", day: "2-digit"
+      }).format(occurred).replace(/\. /g, ".").replace(/\.$/, "");
+      const name = storedText(entry.fromName, CHARACTER_PROFILES.cat.defaultName);
+      const incident = CAT_HANDOVER_INCIDENTS[index % CAT_HANDOVER_INCIDENTS.length];
+      return `<article><span>${escapeHtml(date)}</span><b>${escapeHtml(name)} 대기 발령 건</b><p>${escapeHtml(incident)}</p><small>조치 · 기록 보존 / 복귀 가능</small></article>`;
+    }).join("");
+    return `<section class="personnel-incident-board" aria-labelledby="personnel-incident-title">
+      <header><div><small>중앙인사국 내부 문서</small><h3 id="personnel-incident-title">사내 사건 접수부</h3></div><b>전임 집사 · 최근 3건</b></header>
+      ${rows || '<p class="personnel-incident-empty">CAT 대기 발령 사건 없음 · 담당 발령 뒤 기록이 여기에 남습니다.</p>'}
+    </section>`;
   }
 
   function renderPersonnelPool(hiredKey = "") {
@@ -5173,14 +5198,15 @@
       const profile = CHARACTER_PROFILES[key];
       const stat = ensureButlerStat(key);
       const current = key === state.character;
-      return `<button class="personnel-pool-person ${current ? "active" : ""}${key === hiredKey ? " just-hired" : ""}" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}><img src="${personnelPortraitFor(key)}" alt=""><span><b>${escapeHtml(stat.customName || profile.defaultName)}</b><small>${current ? "현재 담당" : stat.assignments > 0 ? "다시 맡기기" : "담당 맡기기"}</small></span></button>`;
+      return `<button class="personnel-pool-person ${current ? "active" : ""}${key === hiredKey ? " just-hired" : ""}" data-personnel-action="handover" data-character="${key}" type="button" ${current ? "disabled" : ""}><img src="${personnelPortraitFor(key)}" alt=""><span><b>${escapeHtml(stat.customName || profile.defaultName)}</b><small>${current ? "현재 담당" : stat.assignments > 0 ? "대기 발령 · 복귀 가능" : "신규 담당 발령"}</small></span></button>`;
     }).join("");
     const sheet = $("#recruitment-sheet");
     sheet.dataset.mode = "pool";
     sheet.innerHTML = `
       <div class="personnel-document-meta"><span>보유 인력 명부 · PERSONNEL</span><b>${state.ownedButlers.length}명 등록</b></div>
-      <div class="personnel-pool-heading"><small>과잉집사 중앙인사국</small><h2 id="applicant-name">담당 집사 인수인계</h2><p>담당을 바꿔도 집사별 이름·관계·선물 기록은 따로 보존됩니다.</p></div>
+      <div class="personnel-pool-heading"><small>과잉집사 중앙인사국</small><h2 id="applicant-name">담당 집사 발령 관리</h2><p>새 담당을 발령해도 전임은 퇴사하지 않고 대기 발령됩니다. 관계·선물·일기는 그대로 보존됩니다.</p></div>
       <div class="personnel-pool-list">${cards}</div>
+      ${catHandoverIncidentBoard()}
       <div class="personnel-actions">${state.pendingApplicants.length ? `<button class="secondary-button" data-personnel-action="application" type="button">도착한 지원서 ${state.pendingApplicants.length}건 보기</button>` : ""}
       <button class="text-button" data-personnel-action="close" type="button">인사 명부 닫기</button></div>`;
     showRecruitmentOverlay();
@@ -5274,21 +5300,22 @@
     const returning = nextStat.assignments > 0;
     const sheet = $("#recruitment-sheet");
     sheet.dataset.mode = "handover";
-    // 시안 v4-7 — 확인 다이얼로그가 아니라 철끈으로 묶인 인계 확인서다.
+    // 시안 v4-7 — 확인 다이얼로그가 아니라 철끈으로 묶인 담당 발령 확인서다.
     // 무엇이 넘어가고 무엇이 남는지를 항목으로 못 박아야 유저가 오해하지 않는다.
     const previousAlias = ensureButlerStat(previousKey).customName || previousProfile.defaultName;
     sheet.innerHTML = `
       <div class="of-fastener" aria-hidden="true"><i></i><i></i></div>
       <div class="of-datestamp" aria-hidden="true">신청<b>${today().slice(5).replace("-", ". ")}</b></div>
       <span class="handover-doclabel">OVERBUTLER · TRANSFER FORM</span>
-      <h2 id="applicant-name">담당 인계 확인서</h2>
+      <h2 id="applicant-name">담당 발령 확인서</h2>
       <div class="handover-route">
         <div><img src="${personnelPortraitFor(previousKey)}" alt=""><b>${escapeHtml(previousAlias)} (현 담당)</b></div>
         <i aria-hidden="true">⟶</i>
         <div><img src="${personnelPortraitFor(key)}" alt=""><b>${escapeHtml(nextStat.customName || nextProfile.defaultName)}</b></div>
       </div>
       <div class="handover-items">
-        <p class="handover-section-label">인 계 항 목</p>
+        <p class="handover-section-label">발 령 항 목</p>
+        <div><span><b>${escapeHtml(previousAlias)} 대기 발령</b> — 퇴사하지 않으며 언제든 다시 담당으로 복귀할 수 있습니다</span></div>
         <div><span><b>주인님 파일 전체</b> — 기록 ${state.records.length}건이 새 담당에게 전달됩니다</span></div>
         <div><span><b>도장과 인증서</b> — 모은 그대로 유지됩니다</span></div>
         <div><span><b>${escapeHtml(previousAlias)}의 일기</b> — ${escapeHtml(previousAlias)}의 것으로 남습니다</span></div>
@@ -5299,8 +5326,8 @@
         <div><dt>후임 확인</dt><span class="handover-blank"></span></div>
       </div>
       <button class="primary-button handover-go" data-personnel-action="switch" data-character="${key}" type="button">
-        <span class="handover-go-copy"><b>${returning ? "복귀를 진행합니다" : "인계를 진행합니다"}</b><small>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</small></span>
-        <span class="of-roundstamp" aria-hidden="true">인계<small>TRANSFER</small></span>
+        <span class="handover-go-copy"><b>${returning ? "복귀 발령을 진행합니다" : "담당 발령을 진행합니다"}</b><small>${escapeHtml(RELATION_LINES[previousKey]?.farewell || previousProfile.handover)}</small></span>
+        <span class="of-roundstamp" aria-hidden="true">발령<small>TRANSFER</small></span>
       </button>
       <button class="secondary-button" data-personnel-action="pool" type="button">다른 집사도 검토하기</button>`;
     showRecruitmentOverlay();
@@ -5338,7 +5365,7 @@
     render();
     if (key === "cat") closeManagerDetails(false);
     typeMessage($("#briefing-message"), message);
-    showToast(`${CHARACTER_PROFILES[key].name}에게 인수인계했습니다.`);
+    showToast(`${CHARACTER_PROFILES[key].name} 담당 발령 완료 · ${previousStat.customName}은 대기 발령으로 이동했습니다.`);
   }
 
   function renameCurrentButler(name) {

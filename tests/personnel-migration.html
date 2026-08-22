@@ -28,6 +28,7 @@
     pendingApplicants: [],
     deferredApplicants: [],
     applicationHistory: [],
+    handoverHistory: [{ from: "cat", to: "ai", at: "2026-08-08T09:00:00.000Z", fromName: "치즈대리", toName: "오류팀장" }],
     butlerStats: {
       ai: { obsession: 22, gifts: 1, achievements: 2, activeDates: ["2026.07.31"], assignments: 1, customName: "오류팀장" },
       cat: { obsession: 35, gifts: 0, achievements: 4, activeDates: days, assignments: 1, customName: "치즈대리" }
@@ -50,6 +51,13 @@
         assert.equal(doc.querySelector("#records-official-count").textContent, "0", "official summary matches migrated certificates");
         assert(doc.querySelector("#record-legend").textContent.includes("1건 남음"), "first-five progress counts the four migrated records");
         assert.equal(doc.querySelectorAll(".record-legacy-cert").length, 4, "all four legacy keepsakes remain visible");
+        win.OVERBUTLER_APP.openHandover("ai");
+        await wait(30);
+        assert(doc.querySelector("#recruitment-sheet").textContent.includes("대기 발령"), "handover form explains the previous butler's waiting assignment");
+        doc.querySelector('[data-personnel-action="pool"]').click();
+        await wait(30);
+        assert.equal(doc.querySelectorAll(".personnel-incident-board article").length, 1, "CAT handover history produces one office incident");
+        assert(doc.querySelector(".personnel-incident-board").textContent.includes("복귀 가능"), "office incident preserves return eligibility");
       }
     });
   } else {
