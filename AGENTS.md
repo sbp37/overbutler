@@ -12,6 +12,10 @@ Repository is the Overbutler web app.
 | 2 | **`docs/CURRENT.md`의 LOCKED 표** | 확정된 결정 19항목. **명시적 요청 없이 되돌리지 않는다.** 오른쪽 칸이 전부 실제로 한 번씩 밟아본 것 |
 | 3 | 손대는 영역의 전용 문서 | 대사 → `docs/BUTLER-VOICE.md` · 입력 분류 → `docs/INPUT-ROUTING.md` · 에셋 → `design/gift-assets/GIFT-PROMPTS.md` |
 
+**지금 할 일은 `docs/NEXT-CODEX.md`에 있다.** 무엇을 하라는 지시가 따로 없으면
+그 문서의 맨 위 과제부터 본다. 이미 수리된 항목이 표로 적혀 있으니 그건 다시
+손대지 않는다.
+
 ### 저장소 형태 (30초)
 
 - **빌드 없다.** `index.html`이 스크립트·CSS를 직접 물고, Vercel이 저장소 루트를 그대로 서빙한다.
