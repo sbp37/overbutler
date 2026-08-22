@@ -1,6 +1,57 @@
 # Overbutler AGENTS
 
-Repository is the Overbutler web app.  
+Repository is the Overbutler web app.
+
+---
+
+## ⚠️ 시작 전 필독 — 이 셋을 안 읽으면 반드시 사고가 난다
+
+| 순서 | 문서 | 왜 |
+|---|---|---|
+| 1 | **`docs/HANDOVER.md`** | 코드를 읽어도 안 보이는 함정 모음. 아키텍처 지뢰 4개, 저장 계약 사고 지점, 검증 루프 |
+| 2 | **`docs/CURRENT.md`의 LOCKED 표** | 확정된 결정 19항목. **명시적 요청 없이 되돌리지 않는다.** 오른쪽 칸이 전부 실제로 한 번씩 밟아본 것 |
+| 3 | 손대는 영역의 전용 문서 | 대사 → `docs/BUTLER-VOICE.md` · 입력 분류 → `docs/INPUT-ROUTING.md` · 에셋 → `design/gift-assets/GIFT-PROMPTS.md` |
+
+### 저장소 형태 (30초)
+
+- **빌드 없다.** `index.html`이 스크립트·CSS를 직접 물고, Vercel이 저장소 루트를 그대로 서빙한다.
+- 배포 대상: `index.html` / `app.js`(5,900줄) / **CSS 13장**. `dist/`·`prototype/`·`imported-live/`는 옛 빌드라 배포 제외.
+- 저장은 localStorage 키 하나: **`butlermaker_v1`**.
+
+```
+로컬:  python3 -m http.server 8210 --directory .
+문법:  node --check app.js
+테스트: node tests/chat-engine.test.js
+        node tests/message-interpreter.test.js
+```
+
+### 실수 상위 5개 — 문서를 안 읽더라도 이건 알아야 한다
+
+1. **CSS는 로드 순서가 곧 우선순위다.** `app.css`가 **첫 번째라 가장 약하다.** 시각 작업은 대부분 마지막 파일 `retro-office.css`(4,470줄)에서 한다.
+2. **집사 탭 카드 순서는 DOM이 아니라 flex `order`가 정한다.** DOM만 옮기면 아무것도 안 바뀌고, order를 빠뜨린 카드는 기본값 0으로 잡혀 **헤더 위로 튄다.**
+3. **접수대 방 안의 버튼에는 `click`이 오지 않는다.** 월드가 포인터를 캡처하기 때문. 실제 처리는 `endCatHomeDrag()`에서 한다. 모르면 "코드는 맞는데 반응이 없는" 상태로 한참 헤맨다.
+4. **`normalizeState()`가 참조하는 상수를 그 함수 아래에 선언하면 TDZ로 앱 전체가 부팅 실패한다.** 새 상수는 파일 상단 상수 정의부에 둔다.
+5. **선물 품목 이름을 바꾸면 저장된 선물이 조용히 사라진다.** 읽는 쪽은 전부 `giftHistoryFor()`를 거치고, 이름 변경은 `CAT_GIFT_RENAMES`에 줄을 추가한다.
+
+### 넘지 않는 선 (제품 정체성)
+
+- **감시 금지** — 접속 시간대·공백일·부재 언급·스트릭을 세지 않는다. 유저가 *제출한 내용*의 통계는 기억이라 써도 되지만, *행동 패턴*의 통계는 감시라 쓰지 않는다.
+- **죄책감 금지** — 해고·퇴사·소멸·관계 하락·스트릭 패널티 전부 없다. 안 와도 벌이 없어야 한다.
+- **금박은 인증서·축하에만.** `--hand`(Gaegu)는 집사 육필에만.
+- **컨페티·파티클 금지.** 애니는 transform/opacity만.
+- **CAT-FIRST** — 고양이 하나를 완성도 기준으로 삼는다. 다른 캐릭터는 깨지지 않게만 유지한다.
+
+### 끝내기 전에
+
+```
+node --check app.js  →  두 테스트 스위트  →  360/390/430 세 폭 확인
+```
+
+"괜찮아 보인다"로 넘긴 것은 전부 뒤에서 터졌다. 레이아웃·겹침·이벤트는
+눈으로 보지 말고 **숫자로 잰다**(`docs/HANDOVER.md` §7에 실제 사례 4개).
+
+---
+
 AI-assisted work should follow these constraints:
 
 - Verify current behavior and code before making changes.
