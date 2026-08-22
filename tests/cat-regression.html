@@ -86,7 +86,7 @@
       <p>브라우저와 localStorage가 필요한 핵심 계약을 순서대로 확인합니다.</p>
     </header>
     <section id="summary" data-status="running" role="status" aria-live="polite">
-      <strong>검사 준비 중</strong><span>0 / 4</span>
+      <strong>검사 준비 중</strong><span>0 / 5</span>
     </section>
     <ol id="cases"></ol>
     <button id="rerun" type="button" disabled>검사 다시 실행</button>
@@ -96,6 +96,7 @@
       { name: "Legacy state migration", note: "옛 상태값과 일기 fallback", src: "legacy-migration.html?assert=1" },
       { name: "CAT personnel archive", note: "기념 증서·발령·사내 사건", src: "personnel-migration.html?assert=1" },
       { name: "CAT diary reveal", note: "혼합 그룹 공개 우선", src: "diary-reveal.html?assert=1&character=cat" },
+      { name: "CAT career stages", note: "6단계 명칭·기록 유무 대사", src: "cat-relationship-stages.html?assert=1" },
       { name: "CAT core journey", note: "온보딩·접수·기록·티저·새로고침", src: "cat-core-flow.html?assert=1" }
     ];
     const list = document.querySelector("#cases");

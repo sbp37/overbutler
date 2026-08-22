@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CAT relationship stages fixture</title>
+<script src="fixture-assertions.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  localStorage.removeItem("butlermaker_v1");
+  localStorage.removeItem("overbutler-v2-state");
+
+  if (params.has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?cat-relationship-stages-fixture=1",
+      check: async (frame, assert, wait) => {
+        const until = async (test, timeout = 5000) => {
+          const started = Date.now();
+          while (!test()) {
+            if (Date.now() - started >= timeout) throw new Error("relationship stages timed out");
+            await wait(50);
+          }
+        };
+        let doc = frame.contentDocument;
+        const win = frame.contentWindow;
+
+        const ownerInput = doc.querySelector("#owner-name-input");
+        ownerInput.value = "테스트주인님";
+        ownerInput.dispatchEvent(new Event("input", { bubbles: true }));
+        doc.querySelector("#accept-butler").click();
+        await until(() => doc.querySelector("#assignment-screen").hidden && !doc.querySelector("#main-screen").hidden);
+        const emptyState = JSON.parse(localStorage.getItem("butlermaker_v1"));
+
+        const storyInput = doc.querySelector("#achievement-input");
+        storyInput.value = "씻었어";
+        storyInput.dispatchEvent(new Event("input", { bubbles: true }));
+        doc.querySelector("#report-button").click();
+        await until(() => !doc.querySelector("#praise-result-overlay").hidden);
+        const recordedState = JSON.parse(localStorage.getItem("butlermaker_v1"));
+        const actualRecord = recordedState.records[0];
+        assert(Boolean(actualRecord), "fixture creates one actual CAT record through the app");
+        doc.querySelector("#result-close").click();
+        await until(() => doc.querySelector("#praise-result-overlay").hidden);
+
+        const stages = [
+          { obsession: 0, title: "첫 발령", badge: "신입 준비" },
+          { obsession: 18, title: "첫 결재 통과", badge: "결재 통과" },
+          { obsession: 40, title: "칭찬받는 신입", badge: "기록1과 칭찬" },
+          { obsession: 60, title: "전담 업무 인정", badge: "근무평 인정" },
+          { obsession: 80, title: "모범 전담석", badge: "모범 사례" },
+          { obsession: 100, title: "전담 집사 인정", badge: "전담 인정" }
+        ];
+
+        const renderStage = async (stage, baseState) => {
+          const stored = JSON.parse(JSON.stringify(baseState));
+          stored.character = "cat";
+          stored.obsession = stage.obsession;
+          localStorage.setItem("butlermaker_v1", JSON.stringify(stored));
+          const previousDocument = frame.contentDocument;
+          win.location.reload();
+          await until(() => frame.contentDocument !== previousDocument && frame.contentDocument.readyState === "complete" && frame.contentDocument.querySelector("#main-screen"));
+          doc = frame.contentDocument;
+          doc.querySelector('[data-view="manager"]').click();
+          await wait(250);
+          return {
+            title: doc.querySelector("#relationship-stage-title").textContent.trim(),
+            badge: doc.querySelector("#relationship-stage-badge").textContent.trim(),
+            summary: doc.querySelector("#relationship-stage-summary").textContent.trim()
+          };
+        };
+
+        for (const stage of stages) {
+          const rendered = await renderStage(stage, recordedState);
+          assert.equal(rendered.title, stage.title, `${stage.obsession} CAT stage shows career title`);
+          assert.equal(rendered.badge, stage.badge, `${stage.obsession} CAT stage shows career badge`);
+        }
+
+        const withoutRecord = await renderStage(stages[2], emptyState);
+        assert(withoutRecord.summary.includes("접수대 준비"), "no-record stage praises CAT preparation without inventing owner paperwork", withoutRecord.summary);
+        assert(!withoutRecord.summary.includes("주인님 이야기 덕"), "no-record stage does not claim an owner story exists", withoutRecord.summary);
+
+        const withRecord = await renderStage(stages[2], recordedState);
+        assert(withRecord.summary.includes("집사 서류"), "recorded stage can praise CAT paperwork");
+        assert(withRecord.summary.includes("테스트주인님 이야기 덕"), "recorded stage credits the actual owner's story");
+      }
+    });
+  } else {
+    location.replace("../index.html?cat-relationship-stages-fixture=1");
+  }
+</script>
