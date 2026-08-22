@@ -18,8 +18,8 @@
             await wait(50);
           }
         };
-        let doc = frame.contentDocument;
-        const win = frame.contentWindow;
+        let appFrame = frame;
+        let doc = appFrame.contentDocument;
 
         assert(!doc.querySelector("#assignment-screen").hidden, "empty storage opens CAT assignment");
         assert(doc.querySelector("#assignment-screen").textContent.includes("고양이 집사"), "first assigned character is CAT");
@@ -71,10 +71,22 @@
         assert(Boolean(teaser), "today diary is visible as a sealed teaser");
         assert(teaser.textContent.includes("다음 날짜"), "today teaser explains next-date reveal");
 
-        win.location.reload();
-        await wait(250);
-        await until(() => frame.contentDocument.readyState === "complete" && frame.contentDocument.querySelector("#main-screen"));
-        doc = frame.contentDocument;
+        const previousFrame = appFrame;
+        const nextFrame = document.createElement("iframe");
+        nextFrame.hidden = true;
+        const loaded = new Promise((resolve, reject) => {
+          const timeout = window.setTimeout(() => reject(new Error("core flow reload frame timed out")), 5000);
+          nextFrame.addEventListener("load", () => {
+            window.clearTimeout(timeout);
+            resolve();
+          }, { once: true });
+        });
+        nextFrame.src = "../index.html?cat-core-fixture=1&reload=1";
+        document.body.append(nextFrame);
+        await loaded;
+        appFrame = nextFrame;
+        doc = appFrame.contentDocument;
+        previousFrame.remove();
         stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
         assert.equal(stored.records.length, 1, "reload preserves the submitted record");
         doc.querySelector('[data-view="archive"]').click();

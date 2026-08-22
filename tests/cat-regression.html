@@ -155,7 +155,7 @@
           row.dataset.status = "fail";
           row.querySelector("output").textContent = `FAIL · ${error.message}`;
         } finally {
-          frame.remove();
+          frame.dataset.fixtureComplete = "true";
         }
         summary.querySelector("span").textContent = `${index + 1} / ${CASES.length}`;
       }
@@ -166,7 +166,7 @@
       rerun.disabled = false;
     }
 
-    rerun.addEventListener("click", run);
+    rerun.addEventListener("click", () => window.location.reload());
     run();
   </script>
 </body>

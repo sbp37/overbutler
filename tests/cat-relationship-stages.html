@@ -18,8 +18,8 @@
             await wait(50);
           }
         };
-        let doc = frame.contentDocument;
-        const win = frame.contentWindow;
+        let appFrame = frame;
+        let doc = appFrame.contentDocument;
 
         const ownerInput = doc.querySelector("#owner-name-input");
         ownerInput.value = "테스트주인님";
@@ -53,10 +53,22 @@
           stored.character = "cat";
           stored.obsession = stage.obsession;
           localStorage.setItem("butlermaker_v1", JSON.stringify(stored));
-          const previousDocument = frame.contentDocument;
-          win.location.reload();
-          await until(() => frame.contentDocument !== previousDocument && frame.contentDocument.readyState === "complete" && frame.contentDocument.querySelector("#main-screen"));
-          doc = frame.contentDocument;
+          const previousFrame = appFrame;
+          const nextFrame = document.createElement("iframe");
+          nextFrame.hidden = true;
+          const loaded = new Promise((resolve, reject) => {
+            const timeout = window.setTimeout(() => reject(new Error("relationship stage frame timed out")), 5000);
+            nextFrame.addEventListener("load", () => {
+              window.clearTimeout(timeout);
+              resolve();
+            }, { once: true });
+          });
+          nextFrame.src = `../index.html?cat-relationship-stages-fixture=1&stage=${stage.obsession}`;
+          document.body.append(nextFrame);
+          await loaded;
+          appFrame = nextFrame;
+          doc = appFrame.contentDocument;
+          previousFrame.remove();
           doc.querySelector('[data-view="manager"]').click();
           await wait(250);
           return {
