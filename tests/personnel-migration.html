@@ -54,6 +54,15 @@
         assert.equal(doc.querySelector("#records-official-count").textContent, "0", "official summary matches migrated certificates");
         assert(doc.querySelector("#record-legend").textContent.includes("1건 남음"), "first-five progress counts the four migrated records");
         assert.equal(doc.querySelectorAll(".record-legacy-cert").length, 4, "all four legacy keepsakes remain visible");
+        const keepsakeButton = doc.querySelector('button.record-legacy-cert[data-cert-id="legacy-0"]');
+        assert(Boolean(keepsakeButton), "CAT legacy keepsake has a reopen action");
+        keepsakeButton.click();
+        await wait(30);
+        assert.equal(doc.querySelector("#certificate-title").textContent, "기념 증서", "legacy keepsake opens in commemorative mode");
+        assert.equal(doc.querySelector("#certificate-document-kind").textContent, "보관 문서", "legacy keepsake is not labelled as an official document");
+        assert.equal(doc.querySelector("#certificate-issue").textContent, "이전 버전 기념 증서", "legacy keepsake does not enter the official issue count");
+        doc.querySelector("[data-certificate-close]").click();
+        await wait(30);
         win.OVERBUTLER_APP.openHandover("ai");
         await wait(30);
         assert(doc.querySelector("#recruitment-sheet").textContent.includes("대기 발령"), "handover form explains the previous butler's waiting assignment");

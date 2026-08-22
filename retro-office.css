@@ -4502,6 +4502,13 @@
   text-align: center;
   rotate: -5deg;
 }
+#view-archive button.record-legacy-cert { padding: 0; cursor: pointer; }
+#view-archive button.record-legacy-cert:active { background: rgba(122, 108, 92, .12); }
+
+#certificate-card[data-certification="legacy"] .official-stamp {
+  background: radial-gradient(circle at 35% 28%, #9b8a74 0 10%, #746552 52%, #463c31 100%);
+  box-shadow: 0 2px 5px rgba(50, 43, 35, .35), inset 0 1px 2px rgba(255, 246, 226, .35), inset 0 -2px 3px rgba(36, 30, 24, .45);
+}
 
 /* 중앙인사국 사내 사건 접수부. 새 화면을 늘리지 않고 기존 명부 안에서만
    CAT 전임 집사의 대기 발령 사건을 파생해 보여준다. */

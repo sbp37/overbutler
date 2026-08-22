@@ -1903,6 +1903,11 @@
     return Boolean(record && state.certificates.some(item => String(item.id) === String(record.id)));
   }
 
+  function isCatLegacyCertificate(record) {
+    const character = normalizeCharacter(record?.character || objectValue(record?.butler).character);
+    return character === "cat" && isLegacyCertificate(record) && !isOfficialCertificate(record);
+  }
+
   function showToast(message, duration = 1800) {
     const toast = $("#toast");
     if (!toast) return;
@@ -2758,6 +2763,7 @@
   function ownerFileRecordCard(record, officialIds, repeatCount = 1) {
     const official = officialIds.has(record.id);
     const legacyCertificate = !official && isLegacyCertificate(record);
+    const reopenableLegacy = legacyCertificate && normalizeCharacter(record.character || objectValue(record.butler).character) === "cat";
     const statusClass = official ? "official" : legacyCertificate ? "legacy-certificate" : record.stampEligible === false ? "praise" : "candidate";
     const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
     const sourceText = storedText(record.sourceText).trim();
@@ -2771,7 +2777,7 @@
     return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
       <div class="record-number"><b>${listNumber}</b><span>NO.</span></div>
       <div class="record-main"><strong>${escapeHtml(record.deed)}${repeatCount > 1 ? ` <i class="record-repeat-badge">×${repeatCount}</i>` : ""}</strong><p>${escapeHtml(contextLine)}</p>${appellation ? `<small>칭호 · ${escapeHtml(appellation)}</small>` : ""}</div>
-      ${official ? `<div class="record-approval">${approvalAction}</div>` : legacyCertificate ? '<div class="record-approval"><span class="record-legacy-cert" aria-label="이전 버전 기념 증서">기념<br>증서</span></div>' : ""}
+      ${official ? `<div class="record-approval">${approvalAction}</div>` : reopenableLegacy ? `<div class="record-approval"><button class="record-legacy-cert" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 기념 증서 열기">기념<br>증서</button></div>` : legacyCertificate ? '<div class="record-approval"><span class="record-legacy-cert" aria-label="이전 버전 기념 증서">기념<br>증서</span></div>' : ""}
     </article>`;
   }
 
@@ -2917,7 +2923,9 @@
     $("#record-detail-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
     $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : legacyCertificate ? "이전 버전 기념 증서 보존" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
     // 인증서가 없는 기록에서 "다시 열기"를 누르면 없는 증서를 지어내게 된다.
-    $("#record-detail-certificate").hidden = !isOfficial;
+    const certificateButton = $("#record-detail-certificate");
+    certificateButton.hidden = !(isOfficial || isCatLegacyCertificate(record));
+    certificateButton.firstChild.textContent = isOfficial ? "인증서 다시 열기 " : "기념 증서 다시 열기 ";
     setPoseImage($("#record-detail-image"), butler.character, "base");
     $("#record-detail-image").alt = `${butler.name} 집사`;
     $("#record-detail-overlay").hidden = false;
@@ -4138,34 +4146,40 @@
   function openCertificate(record) {
     const butler = record.butler || snapshotButler(record);
     const rare = record.verdictType === "rare" || record.rare;
+    const legacyCertificate = isCatLegacyCertificate(record);
     const deedLength = Array.from(String(record.deed || "")).length;
     currentCertificate = record;
-    // 증서는 한 계보뿐이다 — 공식 인정. 기념 증서 경로는 걷어냈다(P0 C-1).
-    $("#certificate-card").dataset.verdict = rare ? "rare" : "official";
-    $("#certificate-card").dataset.certification = "official";
+    $("#certificate-card").dataset.verdict = legacyCertificate ? "legacy" : rare ? "rare" : "official";
+    $("#certificate-card").dataset.certification = legacyCertificate ? "legacy" : "official";
     $("#certificate-card").dataset.deedLength = deedLength > 42 ? "extra-long" : deedLength > 24 ? "long" : "normal";
-    $("#certificate-screen-title").textContent = "공식 인정 증서";
-    $("#certificate-screen-copy").textContent = "당신의 대업을 공식적으로 인증합니다.";
-    $("#certificate-title").textContent = "공식 인정 증서";
-    $("#certificate-declaration").textContent = `아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`;
+    $("#certificate-document-kind").textContent = legacyCertificate ? "보관 문서" : "공식 문서";
+    $("#certificate-screen-title").textContent = legacyCertificate ? "기념 증서" : "공식 인정 증서";
+    $("#certificate-screen-copy").textContent = legacyCertificate ? "이전 사무국에서 발급된 기록을 보존합니다." : "당신의 대업을 공식적으로 인증합니다.";
+    $("#certificate-title").textContent = legacyCertificate ? "기념 증서" : "공식 인정 증서";
+    $("#certificate-declaration").textContent = legacyCertificate
+      ? "아래의 기록이 이전 사무국 기준으로 발급된\n기념 증서임을 확인합니다"
+      : `아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`;
+    $$("#certificate-card .cert-sidetext").forEach(side => { side.textContent = `OVERBUTLER DUTY OFFICE · ${legacyCertificate ? "ARCHIVE" : "OFFICIAL"}`; });
     const serial = `${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
     $("#certificate-number").textContent = `SERIAL · 대업-${serial}`;
     const certRegno = $("#certificate-regno");
     if (certRegno) certRegno.textContent = `제 ${serial}호`;
-    $("#certificate-grade").textContent = `이번 인정 사유 · ${displayGrade(record)}`;
+    $("#certificate-grade").textContent = `${legacyCertificate ? "당시 기념 사유" : "이번 인정 사유"} · ${displayGrade(record)}`;
     $("#certificate-deed").textContent = record.deed;
     // 기록 요지 4행 — 별점·점수 대신 사무국이 실제로 기재하는 항목만 남긴다.
     $("#certificate-nickname").textContent = record.nickname;
     $("#certificate-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업";
     $("#certificate-intake").textContent = `NO. ${record.number} / 누적 ${state.records.length}건`;
-    const issueIndex = certificateIssueIndex(record);
-    $("#certificate-issue").textContent = `제 ${issueIndex}차 공식 인정`;
+    $("#certificate-issue").textContent = legacyCertificate ? "이전 버전 기념 증서" : `제 ${certificateIssueIndex(record)}차 공식 인정`;
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
     $("#certificate-butler-name").textContent = `발급 담당 ${butler.name}`;
     $("#certificate-date").textContent = record.date;
     $("#certificate-autograph").textContent = `${butler.name} 印`;
-    $("#certificate-card .official-stamp span").innerHTML = rare ? "희귀<br>인정" : "공식<br>인정";
-    $("#certificate-footnote").textContent = "✦ 증서는 주인님 파일에서 다시 확인할 수 있어요. ✦";
+    const certificateStamp = $("#certificate-card .official-stamp");
+    certificateStamp.setAttribute("aria-label", legacyCertificate ? "이전 버전 기념 증서" : "공식 대업 인증");
+    certificateStamp.querySelector("span").innerHTML = legacyCertificate ? "기념<br>증서" : rare ? "희귀<br>인정" : "공식<br>인정";
+    $("#certificate-footnote").textContent = legacyCertificate ? "✦ 이전 버전 발급본을 주인님 파일에 그대로 보존했습니다. ✦" : "✦ 증서는 주인님 파일에서 다시 확인할 수 있어요. ✦";
+    $("#close-certificate").textContent = certificateOpenedFromFile ? "주인님 파일로 돌아가기" : "닫고 다른 대업 세우기";
     setPoseImage($("#certificate-butler-image"), butler.character, record.pose || "praise");
     $("#certificate-overlay").hidden = false;
     document.body.style.overflow = "hidden";
@@ -4361,7 +4375,7 @@
 
   function certificateFilename(record) {
     const deed = String(record.deed || "대업").replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 32).replace(/-+$/g, "") || "대업";
-    return `과잉집사-${deed}.png`;
+    return `과잉집사-${isCatLegacyCertificate(record) ? "기념증서-" : ""}${deed}.png`;
   }
 
   function canvasToBlob(canvas) {
@@ -4408,6 +4422,7 @@
     const butler = record.butler || snapshotButler(record);
     const owner = certificateOwnerName(record);
     const rare = record.verdictType === "rare" || record.rare;
+    const legacyCertificate = isCatLegacyCertificate(record);
     const portrait = await loadCanvasImage(assetFor(butler.character, record.pose || "praise"));
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
@@ -4499,7 +4514,7 @@
     ctx.strokeRect(P.x, P.y, P.w, P.h);
 
     // 좌우 세로 마이크로텍스트
-    const SIDE = "OVERBUTLER DUTY OFFICE · OFFICIAL";
+    const SIDE = `OVERBUTLER DUTY OFFICE · ${legacyCertificate ? "ARCHIVE" : "OFFICIAL"}`;
     ctx.fillStyle = "rgba(185, 138, 46, .55)";
     ctx.font = `700 19px ${DISP}`;
     [[P.x + 26, 1], [P.x + P.w - 26, -1]].forEach(([sx, dir]) => {
@@ -4570,7 +4585,7 @@
     drawTrackedText(ctx, "OVERBUTLER DUTY OFFICE", cx, medalY + 138, 7);
     ctx.fillStyle = INK;
     ctx.font = `900 72px ${SERIF}`;
-    drawTrackedText(ctx, "공식 인정 증서", cx, medalY + 212, 9);
+    drawTrackedText(ctx, legacyCertificate ? "기념 증서" : "공식 인정 증서", cx, medalY + 212, 9);
 
     const ruleY = medalY + 230;
     const ruleHalf = 250;
@@ -4596,8 +4611,8 @@
     ctx.fillStyle = INK_SOFT;
     ctx.font = `500 27px ${BODY}`;
     ctx.textAlign = "center";
-    ctx.fillText(`아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에`, cx, ruleY + 54);
-    ctx.fillText("사무국의 공식 인정을 받았음을 기쁘게 증명합니다", cx, ruleY + 94);
+    ctx.fillText(legacyCertificate ? "아래의 기록이 이전 사무국 기준으로 발급된" : `아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에`, cx, ruleY + 54);
+    ctx.fillText(legacyCertificate ? "기념 증서임을 확인합니다" : "사무국의 공식 인정을 받았음을 기쁘게 증명합니다", cx, ruleY + 94);
 
     ctx.font = `800 38px ${SERIF}`;
     // certificateOwnerName은 이미 "OO 주인님" 형태다. 여기서 호칭을 또 붙이면 두 번 불린다.
@@ -4612,7 +4627,7 @@
     ctx.textAlign = "center";
 
     // 인정 사유 금박 칩
-    const chipLabel = `이번 인정 사유 · ${displayGrade(record)}`;
+    const chipLabel = `${legacyCertificate ? "당시 기념 사유" : "이번 인정 사유"} · ${displayGrade(record)}`;
     ctx.font = `800 26px ${DISP}`;
     const chipWidth = ctx.measureText(chipLabel).width + 72;
     const chipY = ruleY + 160;
@@ -4666,7 +4681,7 @@
       ["수여 칭호", record.nickname],
       ["분야", OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업"],
       ["접수 번호", `NO. ${record.number} / 누적 ${state.records.length}건`],
-      ["발급 차수", `제 ${Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1)}차 공식 인정`]
+      ["발급 차수", legacyCertificate ? "이전 버전 기념 증서" : `제 ${Math.max(1, (state.certificates || []).findIndex(item => String(item.id) === String(record.id)) + 1)}차 공식 인정`]
     ];
     ctx.strokeStyle = GOLD;
     ctx.lineWidth = 2;
@@ -4754,8 +4769,8 @@
     ctx.fillStyle = "#ffe9ec";
     ctx.font = `900 23px ${SERIF}`;
     ctx.textAlign = "center";
-    ctx.fillText(rare ? "희귀" : "공식", 0, -3);
-    ctx.fillText("인정", 0, 26);
+    ctx.fillText(legacyCertificate ? "기념" : rare ? "희귀" : "공식", 0, -3);
+    ctx.fillText(legacyCertificate ? "증서" : "인정", 0, 26);
     ctx.restore();
 
     // 하단 시리얼 밴드
@@ -4774,7 +4789,7 @@
     ctx.fillStyle = INK_FAINT;
     ctx.font = `700 18px ${DISP}`;
     const serialText = `SERIAL · 대업-${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
-    const noticeText = "본 증서는 재발급되지 않습니다 · 아마도";
+    const noticeText = legacyCertificate ? "이전 버전 발급본 · 기록 보존" : "본 증서는 재발급되지 않습니다 · 아마도";
     const serialEnd = briefX + ctx.measureText(serialText).width + 6 * 2;
     const noticeStart = briefRight - ctx.measureText(noticeText).width - 6 * 2;
     drawTrackedText(ctx, serialText, briefX, bandMid, 2, "left");
@@ -5013,7 +5028,7 @@
   }
 
   function certificateShareText(record) {
-    const result = "사무국의 공식 인정을 받았습니다.";
+    const result = isCatLegacyCertificate(record) ? "이전 버전 기념 증서로 보관되어 있습니다." : "사무국의 공식 인정을 받았습니다.";
     return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${displayGrade(record)} · ${record.nickname}\n#과잉집사 #오늘의대업`;
   }
 
@@ -5199,7 +5214,9 @@
         year: "numeric", month: "2-digit", day: "2-digit"
       }).format(occurred).replace(/\. /g, ".").replace(/\.$/, "");
       const name = storedText(entry.fromName, CHARACTER_PROFILES.cat.defaultName);
-      const incident = CAT_HANDOVER_INCIDENTS[index % CAT_HANDOVER_INCIDENTS.length];
+      const incidentKey = [entry.from, entry.to, entry.at, name].map(value => storedText(value)).join("|");
+      const incidentSeed = Array.from(incidentKey).reduce((total, character) => (total * 31 + character.charCodeAt(0)) >>> 0, 0);
+      const incident = CAT_HANDOVER_INCIDENTS[incidentSeed % CAT_HANDOVER_INCIDENTS.length];
       return `<article><span>${escapeHtml(date)}</span><b>${escapeHtml(name)} 대기 발령 건</b><p>${escapeHtml(incident)}</p><small>조치 · 기록 보존 / 복귀 가능</small></article>`;
     }).join("");
     return `<section class="personnel-incident-board" aria-labelledby="personnel-incident-title">
