@@ -30,7 +30,7 @@
     volume: "다정함은 1일차부터 충분히, 과장은 절제해서. 자라는 것은 볼륨이 아니라 새어나오는 마음이다.",
     knowledge: "집사는 사용자가 앱에 직접 남긴 기록과 거기서 계산 가능한 것만 안다.",
     gaze: "기억·패턴 대사의 시선은 사용자가 아니라 서류와 집사 자신을 향한다. 세는 주체는 집사가 아니라 접수 장부다.",
-    audit: "감시당하는 쪽은 사용자가 아니라 집사다. 감사실이 적발하는 것은 언제나 집사의 편애다.",
+    audit: "사무국 문서에 남는 것은 집사의 돌봄과 성장이다. 사용자를 감시하거나 집사를 벌주는 구조로 쓰지 않는다.",
     attachment: "애착·편애·기다림은 허용. 압박·죄책감·통제·소유·담당 변경 방해는 금지.",
     storage: "기록은 기기 안에만 보관한다. 이 사실은 사무국 보안 규정으로 표현한다."
   });
@@ -645,20 +645,28 @@
       favorites: ["참치캔", "츄르"],
       stageLines: [
         "{owner} 파일이 집사 첫 발령이다냥. 접수도 판정도 기록도 제대로 맡겠다냥.",
-        "{owner} 기록 방식은 이제 익숙하다냥. 서식 어디에 적는지 안 찾아본다냥.",
-        "{owner} 서류를 자꾸 다시 펴본다냥. 확인은 한 번이면 되는데 이상하다냥.",
+        "첫 접수 서류가 한 번에 결재 통과됐다냥. 주인님이 들려준 덕이다냥.",
+        "기록1과에서 집사 서류가 반듯하다고 칭찬했다냥… 주인님 이야기 덕이다냥.",
         // 「자주 적는 칸」이었다. 관계는 선물로도 오르므로 기록이 0건인 계정에서도
         // 이 줄이 뜬다 — 한 번도 안 적은 사람에게 적는 습관이 있다고 말하게 된다.
-        "{owner} 파일은 손 닿는 데 둔다냥. 편의가 아니라 효율이다냥.",
-        "{owner} 서류는 펼쳐둔다냥. 특별대우 아니라… 내가 먼저 보고 싶어서다냥.",
-        "{owner} 전용 서류함이 공식 비품으로 등록됐다냥. 철회 신청은… 안 할 거다냥."
+        "근무평에 전담 기록 우수라고 적혔다냥… 들뜬 건 아니다냥.",
+        "주인님 파일 관리 방식이 사무국 모범 사례로 등록됐다냥… 같이 쌓은 덕이다냥.",
+        "집사가 전담 업무 우수로 정식 인정받았다냥. 여기까지 온 건 주인님 덕이다냥."
+      ],
+      stageLinesNoRecord: [
+        "{owner} 파일이 집사 첫 발령이다냥. 접수도 판정도 기록도 제대로 맡겠다냥.",
+        "첫 근무표에 준비 완료 도장을 받았다냥. 주인님 자리 맡은 덕이다냥.",
+        "기록1과에서 접수대 준비가 반듯하다고 칭찬했다냥… 들뜬 건 아니다냥.",
+        "전담석 관리가 신입답지 않게 안정적이라고 했다냥. 주인님이 곁을 채워준 덕이다냥.",
+        "주인님 전용 비품 배치가 사무국 모범 사례로 등록됐다냥… 같이 채운 자리 덕이다냥.",
+        "첫 발령 전담석이 공식 근무 사례로 남았다냥. 주인님 덕이다냥."
       ],
       touchLines: [
         ["불렀냥? 집사 여기 있다냥. 첫 호출도 정상 접수다냥.", "호출 접수다냥. 용건은… 없어도 된다냥. 그런 접수도 받는다냥.", "부르면 오는 건 규정이다냥. …규정이 좋다냥.", "금일 호출 1건 접수다냥. 장부에 적어두겠다냥."],
         ["{owner} 호출이냥. 못 들은 척할 생각은 없었다냥.", "시큰둥한 표정은 유지할 거다냥. 꼬리는 보지 말라냥.", "손이 먼저 서류를 덮었다냥. 습관이다냥.", "호출 접수다냥. …두 번째부터는 안 센다냥."],
         ["{owner}이 불렀냥! 집사 여기 있다냥. 칭찬 필요한 거냥?", "귀가 먼저 돌아갔다냥. 집사는 나중에 돌아봤다냥.", "한 번 더 누르면 골골송 나올 수도 있다냥… 업무 반응이다냥.", "부르자마자 서류를 덮었다냥. 우연히 손이 빨랐다냥."],
         ["{owner} 호출은 먼저 확인한다냥. 자주 맡은 서류라 그런 거다냥.", "호출 접수 칸을 따로 만들었다냥. 업무 효율 때문이다냥.", "필요한 거 있으면 말하라냥. 이미 꺼내놨을 수도 있다냥.", "펜을 놓고 왔다냥. …급한 건 아니었다냥."],
-        ["{owner} 호출은 우선 결재 대상이다냥. 감사실에는 절차라고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥.", "주인님 서류는 접수 즉시 결재한다냥. 원래 그 일만 맡았다냥.", "왔냥. 의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
+        ["{owner} 호출은 우선 결재 대상이다냥. 인사기록과에서 신입답지 않게 빠르다고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥.", "주인님 서류는 접수 즉시 결재한다냥. 원래 그 일만 맡았다냥.", "왔냥. 의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
         ["전담 호출 확인이다냥. 비워둔 접수함부터 열었다냥.", "{owner} 전용 접수함을 열었다냥. 공식 비품이라 문제없다냥.", "몇 번이든 불러도 된다냥. 이 파일은 집사 담당이다냥.", "호출 대기는 업무 시간에 포함된다냥. 집사가 그렇게 정했다냥."]
       ],
       returnVisit: "왔냥? 자리는 계속 비워뒀다냥. …기다린 건 아니다냥.",
@@ -1644,7 +1652,10 @@
 
   function relationshipStageLine(character = state.character, obsession = state.obsession) {
     const content = launchContentFor(character);
-    return content?.stageLines?.[stageIndexFor(obsession)] ? templateOwner(content.stageLines[stageIndexFor(obsession)]) : "";
+    const stageIndex = stageIndexFor(obsession);
+    const catWithoutRecord = normalizeCharacter(character) === "cat" && !latestButlerMemory("cat");
+    const lines = catWithoutRecord && content?.stageLinesNoRecord ? content.stageLinesNoRecord : content?.stageLines;
+    return lines?.[stageIndex] ? templateOwner(lines[stageIndex]) : "";
   }
 
   // 같은 날 새로고침은 재방문이 아니다. 날짜가 실제로 바뀌었을 때만 복귀로 친다.
@@ -2648,7 +2659,7 @@
     cat: {
       t1: ["표준 규격 파일이다냥. 내용은… 담당이니까 아는 거다냥.", "아직 얇은 파일이다냥. 그래도 표지는 제일 좋은 걸 골라뒀다냥."],
       t2: ["표지에 이름을 다시 적었다냥. 먼젓번 글씨가 마음에 안 들었다냥.", "이 파일, 다른 것보다 손이 자주 간다냥. 배치 문제일 거다냥."],
-      t3: ["이 파일은 집사 책상에서 안 치운다냥. 감사실에는 업무 참고용이라고 했다냥.", "표지가 닳아서 한 번 갈았다냥. 왜 닳았는지는 묻지 마라냥."]
+      t3: ["이 파일은 집사 책상에서 안 치운다냥. 인사기록과에는 전담 관리 우수라고 적혔다냥.", "표지가 닳아서 한 번 갈았다냥. 왜 닳았는지는 묻지 마라냥."]
     }
   });
   const OWNER_FILE_REMARK_FALLBACK = "담당 집사가 관리 중인 공식 파일입니다.";
@@ -3311,6 +3322,11 @@
     if (plate && Math.random() < 0.18 && plate.recall !== lastCatHomeLine) {
       lastCatHomeLine = plate.recall;
       return plate.recall;
+    }
+    const careerLine = stageIndexFor(state.obsession) > 0 ? relationshipStageLine("cat") : "";
+    if (careerLine && Math.random() < 0.22 && careerLine !== lastCatHomeLine) {
+      lastCatHomeLine = careerLine;
+      return careerLine;
     }
     const stageLines = CAT_HOME_LINES[stageIndexFor(state.obsession)] || CAT_HOME_LINES[0];
     const pool = stageLines.filter(line => line !== lastCatHomeLine);
