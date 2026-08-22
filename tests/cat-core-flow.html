@@ -23,6 +23,8 @@
 
         assert(!doc.querySelector("#assignment-screen").hidden, "empty storage opens CAT assignment");
         assert(doc.querySelector("#assignment-screen").textContent.includes("고양이 집사"), "first assigned character is CAT");
+        assert(doc.querySelector(".character-line").textContent.includes("첫 발령 준비"), "CAT introduction leads with rookie responsibility");
+        assert(!doc.querySelector(".character-line").textContent.includes("특별대우 아니다"), "CAT introduction does not lead with defensive tsundere copy");
         const assignmentCopy = doc.querySelector(".assignment-copy");
         const assignmentCopyStyle = doc.defaultView.getComputedStyle(assignmentCopy);
         assert(assignmentCopyStyle.display !== "none" && assignmentCopyStyle.visibility !== "hidden", "first-assignment world rule is visible on onboarding");
