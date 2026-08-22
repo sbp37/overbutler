@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CAT regression runner</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4eddf;
+      --sheet: #fffaf0;
+      --ink: #332a20;
+      --muted: #776b5e;
+      --line: #cbbca7;
+      --stamp: #8f1f35;
+      --pass: #33613f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 22px 14px 36px;
+      background:
+        linear-gradient(rgba(111, 83, 54, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(111, 83, 54, .045) 1px, transparent 1px),
+        var(--paper);
+      background-size: 18px 18px;
+      color: var(--ink);
+      font-family: "Apple SD Gothic Neo", sans-serif;
+    }
+    main { width: min(100%, 620px); margin: 0 auto; }
+    header { padding: 0 4px 15px; border-bottom: 3px double var(--ink); }
+    header small { color: var(--stamp); font-size: 10px; font-weight: 800; letter-spacing: .16em; }
+    h1 { margin: 6px 0 4px; font-family: Georgia, serif; font-size: clamp(26px, 8vw, 38px); line-height: 1.05; }
+    header p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    #summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 15px 0 10px;
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      background: var(--sheet);
+    }
+    #summary strong { font-size: 15px; }
+    #summary span { color: var(--stamp); font-size: 12px; font-weight: 800; }
+    #summary[data-status="pass"] span { color: var(--pass); }
+    #summary[data-status="fail"] { border-color: var(--stamp); }
+    ol { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+    li {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: var(--sheet);
+    }
+    li > b { color: var(--muted); font: 800 12px/1 Georgia, serif; }
+    li strong { display: block; font-size: 13px; }
+    li small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    li output { color: var(--muted); font-size: 11px; font-weight: 800; }
+    li[data-status="running"] output { color: var(--stamp); }
+    li[data-status="pass"] output { color: var(--pass); }
+    li[data-status="fail"] { border-color: var(--stamp); }
+    li[data-status="fail"] output { color: var(--stamp); }
+    button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 13px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fffaf0;
+      font: 800 14px/1 sans-serif;
+      cursor: pointer;
+    }
+    button:disabled { cursor: progress; opacity: .58; }
+    iframe { position: fixed; width: 1px; height: 1px; border: 0; opacity: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <small>OVERBUTLER · CAT QA DESK</small>
+      <h1>CAT 회귀 검사표</h1>
+      <p>브라우저와 localStorage가 필요한 핵심 계약을 순서대로 확인합니다.</p>
+    </header>
+    <section id="summary" data-status="running" role="status" aria-live="polite">
+      <strong>검사 준비 중</strong><span>0 / 3</span>
+    </section>
+    <ol id="cases"></ol>
+    <button id="rerun" type="button" disabled>검사 다시 실행</button>
+  </main>
+  <script>
+    const CASES = [
+      { name: "Legacy state migration", note: "옛 상태값과 일기 fallback", src: "legacy-migration.html?assert=1" },
+      { name: "CAT personnel archive", note: "기념 증서·발령·사내 사건", src: "personnel-migration.html?assert=1" },
+      { name: "CAT diary reveal", note: "혼합 그룹 공개 우선", src: "diary-reveal.html?assert=1&character=cat" }
+    ];
+    const list = document.querySelector("#cases");
+    const summary = document.querySelector("#summary");
+    const rerun = document.querySelector("#rerun");
+
+    function waitForResult(frame, timeout = 10000) {
+      return new Promise((resolve, reject) => {
+        const started = Date.now();
+        const inspect = () => {
+          try {
+            const root = frame.contentDocument?.documentElement;
+            const status = root?.dataset.fixtureStatus;
+            if (status === "pass" || status === "fail") {
+              const result = frame.contentDocument.querySelector("#fixture-result")?.textContent || status.toUpperCase();
+              resolve({ status, result });
+              return;
+            }
+          } catch (error) {
+            reject(error);
+            return;
+          }
+          if (Date.now() - started >= timeout) {
+            reject(new Error("10초 안에 결과가 도착하지 않음"));
+            return;
+          }
+          window.setTimeout(inspect, 60);
+        };
+        inspect();
+      });
+    }
+
+    async function run() {
+      rerun.disabled = true;
+      summary.dataset.status = "running";
+      summary.innerHTML = "<strong>검사 실행 중</strong><span>0 / 3</span>";
+      list.innerHTML = CASES.map((item, index) => `<li data-status="pending"><b>${String(index + 1).padStart(2, "0")}</b><div><strong>${item.name}</strong><small>${item.note}</small></div><output>대기</output></li>`).join("");
+      let passed = 0;
+      let checks = 0;
+      for (let index = 0; index < CASES.length; index += 1) {
+        const row = list.children[index];
+        row.dataset.status = "running";
+        row.querySelector("output").textContent = "검사 중";
+        const frame = document.createElement("iframe");
+        frame.title = `${CASES[index].name} fixture`;
+        frame.src = CASES[index].src;
+        document.body.append(frame);
+        try {
+          const result = await waitForResult(frame);
+          row.dataset.status = result.status;
+          row.querySelector("output").textContent = result.result;
+          const count = Number(result.result.match(/PASS · (\d+) checks/)?.[1] || 0);
+          checks += count;
+          if (result.status === "pass") passed += 1;
+        } catch (error) {
+          row.dataset.status = "fail";
+          row.querySelector("output").textContent = `FAIL · ${error.message}`;
+        } finally {
+          frame.remove();
+        }
+        summary.querySelector("span").textContent = `${index + 1} / ${CASES.length}`;
+      }
+      const allPassed = passed === CASES.length;
+      summary.dataset.status = allPassed ? "pass" : "fail";
+      summary.innerHTML = `<strong>${allPassed ? "전체 계약 통과" : "회귀 발견"}</strong><span>${passed}/${CASES.length} fixtures · ${checks} checks</span>`;
+      document.documentElement.dataset.regressionStatus = allPassed ? "pass" : "fail";
+      rerun.disabled = false;
+    }
+
+    rerun.addEventListener("click", run);
+    run();
+  </script>
+</body>
+</html>
