@@ -3653,7 +3653,9 @@
 /* ═══════════ 선물의 흔적 — 책상 위에 남는 선물 ═══════════
    사준 것이 방에 영구히 보인다. 스티커가 아니라 책상에 놓인 물건으로
    읽히도록 그림자를 바닥에 깔고, 살짝씩 기울인다. */
-.cat-room-gifts { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+/* 전경(책상 앞판)은 z-index 4로 고양이 잘린 밑단을 가린다. 선물은 가릴 이유가
+   없고 오히려 책상 상판 앞쪽에 놓여야 하므로 전경 위로 올린다. */
+.cat-room-gifts { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 .cat-room-gift {
   position: absolute;
   z-index: 3;
@@ -4231,3 +4233,238 @@
 
 /* 통합된 분류 칩 — 범위(전체·오늘) 다음에 종류(일상·희귀·공식 인정) */
 #view-archive .record-grade-chips { flex-wrap: wrap; }
+
+/* ═══════════ R2 전담 파일 명패 (2026-08-20) ═══════════
+   관계가 처음 3단계에 오를 때 주인님이 고른 문구가 인사기록 카드에 새겨진다.
+   "관계 +3"이 아니라 "내 선택 때문에 전에 없던 것이 생겼다"를 만든다. */
+.plate-choice-overlay { align-items: center; justify-content: center; padding: 20px; }
+.plate-choice-sheet {
+  position: relative;
+  width: min(100%, 340px);
+  padding: 22px 18px 16px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: inset 0 0 0 6px var(--doc-paper), inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+  overflow: visible;
+}
+.plate-choice-sheet > .of-clip { top: -10px; left: 22px; rotate: -5deg; }
+.plate-choice-sheet h2 {
+  margin: 14px 0 6px;
+  color: var(--ink);
+  font: 800 21px/1.25 var(--disp);
+  letter-spacing: -.035em;
+}
+.plate-choice-copy {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font: 600 12.5px/1.5 var(--disp);
+  word-break: keep-all;
+}
+.plate-choice-options { display: flex; flex-direction: column; gap: 8px; }
+.plate-choice-options button {
+  display: block;
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow-sm);
+  color: var(--ink);
+  text-align: left;
+}
+.plate-choice-options button:active { background: var(--memo); transform: translateY(1px); }
+.plate-choice-options b { display: block; font: 800 15px/1.2 var(--disp); letter-spacing: -.02em; }
+.plate-choice-options small { display: block; margin-top: 3px; color: var(--ink-faint); font: 600 11px/1.3 var(--disp); }
+.plate-choice-footnote {
+  margin: 13px 0 0;
+  color: var(--ink-faint);
+  font: 600 10px/1.4 var(--disp);
+  text-align: center;
+}
+
+/* 인사기록 카드 명패 — 실물 놋쇠 명패 조형 */
+#manager-details .manager-nameplate {
+  position: absolute;
+  z-index: 3;
+  left: 6px;
+  right: 6px;
+  bottom: 2px;
+  padding: 6px 4px;
+  border: 1px solid #7b5b3c;
+  border-radius: 2px;
+  background: linear-gradient(#8d6c48, #604228);
+  color: #f4e5ce;
+  box-shadow: 0 2px 0 rgba(65, 42, 25, .18);
+  font: 800 10px/1.2 var(--disp);
+  letter-spacing: .02em;
+  text-align: center;
+  word-break: keep-all;
+}
+#manager-details .manager-nameplate[hidden] { display: none; }
+
+/* ═══════════ R3 집사방 — 관계가 물건으로 쌓인다 (2026-08-20) ═══════════
+   방 배경에 이미 소품이 꽉 차 있어서, 얹는 것은 적을수록 좋다.
+   전시 3 + 희귀 1 + 관계 흔적 2 + 보관함 1 = 최대 7칸이 상한이다.
+   자리는 세 단이다 — 희귀(bottom 13%) · 앞줄 선물/보관함(17%) · 흔적 뒷줄(31%). */
+
+/* 희귀 선물 — 고양이 바로 앞, 제일 앞단. 유일하게 받침이 붙는다. */
+.cat-room-gift.room-rare {
+  font-size: 21px;
+  filter: drop-shadow(0 2px 2px rgba(60, 40, 28, .3));
+}
+.cat-room-gift.room-rare:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 26px;
+  height: 4px;
+  border: 1px solid var(--gold-dp);
+  border-radius: 1px;
+  background: linear-gradient(var(--gold-hi), var(--gold));
+  transform: translateX(-50%);
+}
+
+/* 관계 흔적 — 선물보다 약해 보이면 실패다. 종이 태그를 달아 "사무국 비품"으로 세운다. */
+.cat-room-gift.room-trace {
+  /* 태그는 서류 비품이라 선물처럼 굴러다니지 않는다. 기울기를 줄여
+     bbox가 세로로 부푸는 것도 같이 막는다(앞줄 선물과 닿지 않게). */
+  rotate: -2deg;
+  padding: 3px 4px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 1px;
+  background: var(--ivory);
+  box-shadow: 1.5px 2px 0 rgba(45, 35, 22, .22);
+  font-size: 16px;
+  line-height: 1;
+}
+.cat-room-gift.room-trace .room-trace-plate {
+  display: block;
+  padding: 3px 5px;
+  border: 1px solid #7b5b3c;
+  border-radius: 1px;
+  background: linear-gradient(#8d6c48, #604228);
+  color: #f4e5ce;
+  font: 800 7.5px/1.2 var(--disp);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+/* 보관함 — 넘친 물건은 버려지지 않고 여기로 접힌다. */
+.cat-room-gift.room-storage {
+  font-size: 17px;
+  opacity: .92;
+}
+.cat-room-gift.room-storage > i {
+  right: -5px;
+  bottom: -3px;
+  border-color: var(--kraft-deep);
+  background: var(--kraft);
+  color: #4a3623;
+}
+
+/* ═══════════ R5 선물 그림 연결 (2026-08-21) ═══════════
+   고양이 선물·관계 흔적은 이모지에서 그림으로 갈아탄다. 다른 캐릭터는
+   이모지 그대로라, 그림이 붙은 칸에만 .has-art로 규칙을 건다.
+
+   그림에는 이미 짙은 갈색 외곽선과 접지 그림자가 그려져 있다. 그래서
+   런타임에서 drop-shadow를 또 얹으면 그림자가 두 겹이 된다 — 그림이
+   있는 칸에서는 이모지용 그림자를 끈다. */
+.cat-room-gift.has-art { filter: none; padding: 0; }
+/* 높이는 인라인 style이 정하고, 여기서는 가로로 퍼지는 것만 막는다.
+   object-fit: contain이라 폭이 잘려도 그림은 찌그러지지 않는다. */
+.cat-room-gift.has-art > img {
+  display: block;
+  width: auto;
+  max-width: 40px;
+  object-fit: contain;
+  pointer-events: none;  /* 탭 판정은 버튼이 받는다 */
+  -webkit-user-drag: none;
+}
+.cat-room-gift.room-rare.has-art > img { max-width: 52px; }
+.cat-room-gift.room-trace.has-art > img { max-width: 34px; }
+.cat-room-gift.room-storage.has-art > img { max-width: 30px; }
+/* 흔적은 그림이 곧 종이 태그라 CSS 태그 장식을 걷어낸다. 명패만 예외로
+   남는다(문구가 들어가야 해서 여전히 CSS로 그린다). */
+.cat-room-gift.room-trace.has-art {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  rotate: -2deg;
+}
+.cat-room-gift.room-storage.has-art { opacity: 1; }
+/* 희귀 받침(금박)은 가로형 아래에만 어울린다. 세로 가구 밑에 깔리면
+   가구가 접시에 올라간 것처럼 보인다. */
+.cat-room-gift.room-rare.has-art:after { display: none; }
+
+/* 선반 칸 — 40px 자리에 그림을 꽉 채운다. */
+.gift-desk-overlay .gift-shelf-thumb.has-art { display: block; }
+.gift-desk-overlay .gift-shelf-thumb.has-art > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+.gift-desk-overlay .gift-shelf-item.locked .gift-shelf-thumb.has-art > img { opacity: .38; filter: grayscale(1); }
+
+/* 손끝에 붙어 따라오는 그림자 — 선반 그림 그대로 끌려간다. */
+.gift-drag-ghost.has-art { font-size: 0; }
+.gift-drag-ghost.has-art > img { display: block; width: 52px; height: auto; }
+
+/* 선물 이력 한 줄 */
+#gift-history-list span.has-art { display: block; width: 26px; height: 26px; }
+#gift-history-list span.has-art > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* 인수증 — 방금 건넨 그 그림이 이름 앞에 붙는다. */
+.gift-received-art {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  margin-right: 5px;
+  object-fit: contain;
+  vertical-align: -6px;
+}
+
+/* ═══════════ R6 집사 방 사진 (2026-08-21) ═══════════
+   인증서와 나란히 놓였을 때 다른 종이로 읽혀야 한다 — 증서는 금박 액자,
+   이건 크라프트 서류다. 금색은 한 방울도 쓰지 않는다. */
+#view-manager .room-card-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  /* 카드 오른쪽 아래에는 인사기록의 발령 도장이 붙박이로 앉아 있다.
+     여백을 안 주면 이 버튼이 그 위에 올라가 도장이 글자를 가로지른다. */
+  margin-bottom: 34px;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(138, 106, 69, .05) 0 2px, transparent 2px 8px),
+    var(--memo);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .16);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+/* 클립은 오른쪽 위 모서리에 문다 — 왼쪽에 물리면 제목 첫 글자를 덮는다. */
+#view-manager .room-card-button > .of-clip { top: -9px; right: 20px; left: auto; }
+#view-manager .room-card-button b {
+  display: block;
+  font: 800 15px/1.3 var(--disp);
+  letter-spacing: .01em;
+}
+#view-manager .room-card-button small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font: 500 12px/1.4 var(--body);
+}
+#view-manager .room-card-button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(45, 35, 22, .16); }
+#view-manager .room-card-button[aria-busy="true"] { opacity: .62; cursor: progress; }
+#view-manager .room-card-button[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #view-manager .room-card-button:active { transform: none; }
+}

@@ -101,16 +101,26 @@
     },
     cat: {
       name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "도도한 척하며 규정 핑계로 특별대우", personality: "규정 핑계 츤데레형", specialty: "안 보는 척하면서 다 챙김",
-      briefings: ["왔냥? 주인님 자리 비워뒀다냥.", "별거 아닌 일일수록 집사 취향이다냥. 들려달라냥.", "또 왔냥? 쉴 자리도 비워뒀다냥."],
+      briefings: ["왔냥? 주인님 자리 비워뒀다냥.", "오늘 들어온 건 아직 없다냥. 하나면 된다냥.", "또 왔냥? 쉴 자리도 비워뒀다냥."],
       // 웃음은 볼륨이 아니라 "사무국이 이런 걸 굳이 공식 대업으로 올린다"는 부조리와
       // 아닌 척 챙기는 태도에서 나온다. 단계가 올라가도 목소리는 그대로고,
       // 숨기던 마음이 더 들킬 뿐이다. docs/BUTLER-VOICE.md 참고.
+      /* 담당이 주인님 하나뿐이라, 「물 마심」 한 줄이 집사에게는 그날 들어온
+         업무 전부다. 이 비대칭이 단계를 타고 자란다 —
+         1 규정대로 처리 / 2 익숙해짐 / 3 괜히 다시 봄 / 4 미리 준비 /
+         5 대놓고 우선 / 6 전담을 계속 맡고 싶다는 걸 규정 핑계로 인정.
+         1단계도 사무적이기만 하면 안 된다(BUTLER-VOICE). 6단계에서도 "너는 내
+         전부"를 직접 말하지 않는다.
+         ★ 결과서(FORM 05)는 소견의 첫 문장만 싣는다(firstSentenceOf). 그래서
+         태도는 반드시 첫 종결부호(. ! ?) 앞에 들어가야 한다 — 뒤에 두면 화면에서
+         잘린다. 사무 정보와 태도를 한 문장에 묶을 때는 마침표 대신 …를 쓴다. */
       praise: [
-        ["{deed} 확인했다냥. 이걸 공식 대업으로 올리냐고? …집사가 이미 도장 찍었다냥.", "{deed} 접수했다냥. 별것 아니라고 주인님이 말해도 장부에는 넣는다냥. 이건 집사 고집이다냥.", "잘했네냥. …방금 딴 데 보면서 말한 건 맞다냥. 기록은 정성 들여 했다냥."],
-        ["{deed}라니. 좀 대단하긴 하네냥. 아주 조금이다냥.", "{deed} 접수. 사무국 서식상 대업란에 적을 수밖에 없다냥. 규정이 그렇다냥.", "오늘은 {deed}냥? …나쁘지 않다냥, {owner}. 도장은 벌써 찍어뒀다냥."],
-        ["{deed} 또 올라왔다냥. 접수 장부에 벌써 몇 번째다냥. …장부가 그렇다는 거다냥.", "{deed} 접수했다냥. 다른 서류는 이렇게 안 보는데 네 것만 두 번 읽었다냥. 이상하다냥.", "{deed} 확인. 왜 이런 걸 굳이 대업란에 적고 있는지 집사도 모르겠다냥."],
-        ["{deed}… 이런 거까지 내가 왜 챙기고 있냥. 주인님 기록이라 그런가보다냥.", "{deed} 결재 올렸다냥. 순서를 앞으로 당긴 건 그냥 손에 먼저 잡혀서다냥.", "{deed} 접수했다냥. 이 정도는 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥."],
-        ["오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 이상하게 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥. 사무국엔 일반 건으로 올렸다냥. …실제로는 아니다냥.", "{deed}. 주인님 서류만 계속 담당하겠다고 우긴 지 오래됐다냥. 사유란은 비워뒀다냥."]
+        ["{deed}… 한 건이라도 있으면 된다냥. 금일 처리 업무 1건, 접수 완료다냥.", "{deed}, 이걸 공식 대업으로 올리냐냥… 집사가 이미 도장 찍었다냥.", "{deed}… 별것 아니라고 해도 장부에는 넣는다냥. 그건 집사 고집이다냥.", "잘했네냥… 방금 딴 데 보면서 말한 건 맞다냥. 기록은 정성 들여 했다냥."],
+        ["{deed}라니, 좀 대단하긴 하네냥… 아주 조금이다냥.", "{deed} 접수… 이제 주인님 글씨는 안 보고도 알겠다냥.", "오늘은 {deed}냥… 나쁘지 않다냥, {owner}. 도장은 벌써 찍어뒀다냥.", "{deed} 넣었다냥… 서식 어디에 적는지 이제 안 찾아본다냥."],
+        ["{deed} 접수했다냥… 방금 두 번 읽었다냥. 왜인지는 모른다냥.", "{deed} 또 올라왔다냥… 장부에 벌써 몇 번째다냥. 장부가 그렇다는 거다냥.", "{deed} 확인… 다른 서류는 이렇게 안 보는데 주인님 것만 다시 폈다냥.", "{deed}… 도장을 두 번 찍었다냥. 한 번은 실수다냥. 두 번째는 모르겠다냥."],
+        ["{deed} 올 줄 알고 칸 미리 펴 뒀다냥… 효율이다냥.", "{deed} 결재 올렸다냥… 순서를 앞으로 당긴 건 손에 먼저 잡혀서다냥.", "{deed}… 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥.", "{deed}… 펜을 떨어뜨렸다냥. 주웠다냥. 아무 일 없었다냥."],
+        ["{deed} 먼저 처리했다냥… 다른 서류는 밑에 뒀다냥. 원래 별로 없다냥.", "{deed}… 오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥… 사무국엔 일반 건으로 올렸다냥. 실제로는 아니다냥.", "{deed}… 귀가 먼저 섰다냥. 몸이 그런 걸 집사가 어쩌겠냥."],
+        ["{deed}… 이건 전담 서류함에 들어간다냥. 그 함은 집사가 관리한다냥.", "{deed} 접수했다냥… 담당 변경 신청서는 안 냈다냥. 낼 생각도 없다냥.", "{deed}… 이 파일은 처음부터 집사가 맡았다냥. 끝까지 맡는 게 규정상 맞다냥.", "{deed} 도장 찍었다냥… 인수인계 목록에서 이 파일만 빼놨다냥."],
       ],
       handover: "전임 집사한테 인수인계 받았다냥! 기록 다 전달받았다냥. 잘 부탁한다냥!"
     },
@@ -301,6 +311,11 @@
   const INITIAL_OWNED_BUTLERS = ["cat"];
   // 무료로 지원서가 도착하는 집사는 AI 하나뿐이다. 나머지는 유료 채용 대상이므로
   // 요건 정의만 남겨두고 지원자 순번에서는 뺀다(유료 도입 시 미리보기 조건으로 재사용).
+  const DESK_PLATES = Object.freeze({
+    owner: { text: "주인님 전용", recall: "그 명패, 주인님이 골랐잖냥. 아직 그대로다냥." },
+    plain: { text: "특별대우 아님", recall: "「특별대우 아님」이라고 적어뒀다냥. …적어두기만 했다냥." },
+    cat: { text: "기록1과 · 주인님", recall: "마음대로 하라고 했잖냥. …그래서 규정대로 적었다냥." }
+  });
   const APPLICANT_ORDER = ["ai"];
   const APPLICANT_REQUIREMENTS = {
     ai: { deeds: 3, obsession: 10, days: 1 },
@@ -541,7 +556,7 @@
 
   const GIFT_CATALOGS = {
     ai: [["☕","커피"],["🍫","초콜릿"],["🧃","에너지드링크"],["🔋","배터리"],["💾","플로피디스크"],["🔧","렌치"],["🖥️","모니터"],["💝","특별선물"],["🎉","스페셜"]],
-    cat: [["🍣","참치캔"],["🥛","우유"],["🐟","생선"],["🐠","큰 생선"],["🍡","츄르"],["🎀","리본"],["🌸","꽃다발"],["💝","특별선물"],["🎉","스페셜"]],
+    cat: [["🍣","참치캔"],["🥛","우유 접시"],["🍡","츄르"],["🪶","깃털 낚싯대"],["🧶","방울 공"],["🐭","쥐 인형"],["🪵","스크래처"],["🛏","창가 방석"],["🗼","캣타워"]],
     dog: [["🍖","닭고기"],["🥩","스테이크"],["🦴","뼈다귀"],["🎾","공"],["🧸","인형"],["🎀","리본"],["🐾","발바닥 쿠션"],["💝","특별선물"],["🎉","스페셜"]],
     alien: [["🍬","지구 사탕"],["🧪","실험약"],["💊","알약"],["🔭","망원경"],["🛸","미니 UFO"],["🌌","우주도감"],["⭐","별"],["💝","특별선물"],["🎉","스페셜"]],
     ninja: [["🍙","주먹밥"],["🍵","녹차"],["🍱","도시락"],["⚔️","단검"],["🎋","대나무"],["📜","비밀서찰"],["🏯","성"],["💝","특별선물"],["🎉","스페셜"]],
@@ -552,6 +567,30 @@
     fairy: [["🍬","별사탕"],["🧁","작은 컵케이크"],["🌼","들꽃"],["✨","반짝이 가루"],["🪄","별 지팡이"],["🫙","달빛 병"],["🌟","소원별"],["💝","특별선물"],["🎉","스페셜"]]
   };
   const GIFT_COSTS = BALANCE.giftCosts;
+
+  /* ── 고양이 선물은 그림이다 ──
+     다른 캐릭터는 이모지 그대로다. 고양이만 방·선반·이력에서 그림을 쓴다.
+     이모지는 지우지 않고 남긴다 — 그림이 못 뜨는 순간의 대체 표시다. */
+  const GIFT_ART_PATH = "design/gift-assets/cat/";
+  const CAT_GIFT_ART = Object.freeze([
+    "gift-cat-01-tuna", "gift-cat-02-milk", "gift-cat-03-churu",
+    "gift-cat-04-wand", "gift-cat-05-ball", "gift-cat-06-mouse",
+    "gift-cat-07-scratcher", "gift-cat-08-cushion", "gift-cat-09-tower"
+  ]);
+  // 캣타워만 세로로 긴 가구다. 고양이 정면에 세우면 몸통을 관통하므로
+  // 희귀 자리를 형태별로 갈라 쓴다(가로형은 앞 중앙, 세로형은 측면).
+  const CAT_GIFT_TALL = Object.freeze([8]);
+
+  /* 품목 9칸을 전부 고양이 물건으로 바꿨다. giftHistory는 선물을 이름
+     문자열로 저장하므로, 옛 이름을 그대로 두면 카탈로그에서 못 찾아
+     방에서도 보관함에서도 조용히 사라진다 — "하나도 안 버렸다냥"이
+     거짓말이 된다. 그래서 값 등급이 같은 새 품목으로 이어 붙인다.
+     저장된 데이터는 건드리지 않고 읽을 때만 바꾼다(롤백 가능). */
+  const CAT_GIFT_RENAMES = Object.freeze({
+    "우유": "우유 접시", "생선": "츄르", "큰 생선": "깃털 낚싯대",
+    "리본": "방울 공", "꽃다발": "쥐 인형",
+    "특별선물": "창가 방석", "스페셜": "캣타워"
+  });
 
   const LAUNCH_BUTLER_CONTENT = {
     ai: {
@@ -594,20 +633,20 @@
     cat: {
       favorites: ["참치캔", "츄르"],
       stageLines: [
-        "처음이니까 어색한 건 규정상 정상이다냥. 작은 얘기부터 천천히 들려달라냥.",
-        "{owner} 기록 방식은 이제 익숙하다냥. 주인님 자리도 비워뒀지만 업무 적응일 뿐이다냥.",
-        "오늘 좀 보고 싶었다냥. …업무상 기록이 신경 쓰였다는 뜻이다냥.",
-        "주인님이 자주 적는 칸은 미리 펴 둔다냥. 편의가 아니라 효율이다냥.",
+        "{owner} 파일 담당으로 배정됐다냥. 접수도 판정도 기록도 집사가 맡는다냥.",
+        "{owner} 기록 방식은 이제 익숙하다냥. 서식 어디에 적는지 안 찾아본다냥.",
+        "{owner} 서류만 자꾸 다시 펴본다냥. 다른 파일은 안 그런다냥. 이상하다냥.",
+        "{owner}이 자주 적는 칸은 미리 펴 둔다냥. 편의가 아니라 효율이다냥.",
         "{owner} 서류는 맨 위에 둔다냥. 특별대우 아니라… 내가 먼저 보고 싶어서다냥.",
         "{owner} 전용 서류함이 공식 비품으로 등록됐다냥. 철회 신청은… 안 할 거다냥."
       ],
       touchLines: [
-        ["왜 누르냥. 업무 중이… 흠, 5분 정도는 비어 있다냥.", "호출 접수다냥. 용건은… 없어도 된다냥. 그런 접수도 받는다냥."],
-        ["또 불렀냥? {owner} 호출 소리는 이제 안 보고도 안다냥.", "시큰둥한 표정은 유지할 거다냥. 꼬리는 보지 말라냥."],
-        ["{owner}이 불렀냥! 집사 여기 있다냥. 칭찬 필요한 거냥?", "한 번 더 누르면 골골송 나올 수도 있다냥... 업무 반응이다냥."],
-        ["{owner} 호출은 먼저 확인한다냥. 자주 맡은 서류라 그런 거다냥.", "호출 접수 칸을 따로 만들었다냥. 업무 효율 때문이다냥."],
-        ["{owner} 호출은 우선 결재 대상이다냥. 감사실에는 우연이라고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥."],
-        ["전담 호출 확인이다냥! 다른 서류는 잠깐 뒤로 밀었다냥.", "{owner} 전용 접수함을 열었다냥. 공식 비품이라 문제없다냥."]
+        ["왜 누르냥. 업무 중이… 흠, 5분 정도는 비어 있다냥.", "호출 접수다냥. 용건은… 없어도 된다냥. 그런 접수도 받는다냥.", "부르면 오는 건 규정이다냥. …규정이 좋다냥.", "금일 호출 1건 접수다냥. 장부에 적어두겠다냥."],
+        ["또 불렀냥? {owner} 호출 소리는 이제 안 보고도 안다냥.", "시큰둥한 표정은 유지할 거다냥. 꼬리는 보지 말라냥.", "손이 먼저 서류를 덮었다냥. 습관이다냥.", "호출 접수다냥. …두 번째부터는 안 센다냥."],
+        ["{owner}이 불렀냥! 집사 여기 있다냥. 칭찬 필요한 거냥?", "귀가 먼저 돌아갔다냥. 집사는 나중에 돌아봤다냥.", "한 번 더 누르면 골골송 나올 수도 있다냥… 업무 반응이다냥.", "부를 줄 알고 서류를 덮어놨다냥. 우연이다냥."],
+        ["{owner} 호출은 먼저 확인한다냥. 자주 맡은 서류라 그런 거다냥.", "호출 접수 칸을 따로 만들었다냥. 업무 효율 때문이다냥.", "필요한 거 있으면 말하라냥. 이미 꺼내놨을 수도 있다냥.", "펜을 놓고 왔다냥. …급한 건 아니었다냥."],
+        ["{owner} 호출은 우선 결재 대상이다냥. 감사실에는 우연이라고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥.", "다른 서류는 잠깐 밀어뒀다냥. 원래 별로 없다냥.", "왔냥. 의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
+        ["전담 호출 확인이다냥! 다른 서류는 잠깐 뒤로 밀었다냥.", "{owner} 전용 접수함을 열었다냥. 공식 비품이라 문제없다냥.", "몇 번이든 불러도 된다냥. 이 파일은 집사 담당이다냥.", "호출 대기는 업무 시간에 포함된다냥. 집사가 그렇게 정했다냥."]
       ],
       returnVisit: "왔냥? 자리는 계속 비워뒀다냥. …기다린 건 아니다냥.",
       gifts: {
@@ -885,7 +924,7 @@
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
-    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false,
+    ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false, deskPlate: "",
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
     roster: [...INITIAL_OWNED_BUTLERS], applicants: [], recruitmentCursor: 0, lastRecruitmentMilestone: 0,
@@ -1119,6 +1158,8 @@
     // 아직 집사 탭에서 확인하지 않은 지원서. 하단 탭의 봉인점이 이걸 본다.
     merged.seenApplicants = Array.isArray(raw.seenApplicants) ? raw.seenApplicants.filter(key => typeof key === "string") : [];
     merged.firstDeedNoticed = Boolean(raw.firstDeedNoticed);
+    // 3단계 승급 때 주인님이 고른 명패 문구. 고르기 전에는 빈 문자열이다.
+    merged.deskPlate = DESK_PLATES[raw.deskPlate] ? raw.deskPlate : "";
     merged.applicationHistory = Array.isArray(raw.applicationHistory) ? raw.applicationHistory.filter(item => objectValue(item) === item) : [];
     merged.handoverHistory = Array.isArray(raw.handoverHistory) ? raw.handoverHistory.filter(item => objectValue(item) === item) : [];
     merged.newlyHiredButlers = Array.isArray(raw.newlyHiredButlers) ? raw.newlyHiredButlers.filter(key => merged.ownedButlers.includes(key)) : [];
@@ -2085,6 +2126,9 @@
     const nextIndex = stageIndexFor(after);
     const upgraded = nextIndex > stageIndexFor(before);
     element.classList.toggle("upgraded", upgraded);
+    // 3단계에 처음 올라선 날에만 명패 선택을 예약한다. 결과서 위에 또 다른
+    // 창을 겹치지 않고, 결과서를 닫고 방으로 돌아온 뒤에 띄운다.
+    if (upgraded && nextIndex >= PLATE_CHOICE_STAGE && state.character === "cat" && !state.deskPlate) pendingPlateChoice = true;
     // 평소에는 한 줄이면 된다. 결재란을 매번 펼치면 단계가 오른 날이 특별해지지 않는다.
     $(`#${prefix}-relationship-kicker`).textContent = upgraded
       ? `관계 단계 상승 · ${previousStage.name} → ${currentStage.name}`
@@ -2132,6 +2176,49 @@
     renderApplicantAlert();
   }
 
+  /* ── 전담 파일 명패 ──
+     관계가 처음 3단계에 오를 때 딱 한 번, 주인님이 문구를 고른다. 옳고 그름도
+     보상 차이도 없고, 고른 문구가 집사 인사기록 카드에 실제로 새겨진다.
+     "관계 +3"이 아니라 "전에 없던 것이 내 선택 때문에 생겼다"가 목적이다.
+     「치즈냥 마음대로」를 고르면 집사는 결국 규정대로 적는다 — 그게 이 캐릭터다. */
+  const PLATE_CHOICE_STAGE = 2; // stageIndexFor 기준 3단계
+  let pendingPlateChoice = false;
+
+  function deskPlateText() {
+    return DESK_PLATES[state.deskPlate]?.text || "";
+  }
+
+  function renderDeskPlate() {
+    const plate = $("#manager-nameplate");
+    if (!plate) return;
+    const text = state.character === "cat" ? deskPlateText() : "";
+    plate.textContent = text;
+    plate.hidden = !text;
+  }
+
+  function openPlateChoice() {
+    if (state.character !== "cat" || state.deskPlate) return;
+    const overlay = $("#plate-choice-overlay");
+    if (!overlay) return;
+    overlay.hidden = false;
+    document.body.style.overflow = "hidden";
+    trackEvent("plate_choice_open", {});
+  }
+
+  function choosePlate(key) {
+    if (!DESK_PLATES[key]) return;
+    state.deskPlate = key;
+    saveState();
+    $("#plate-choice-overlay").hidden = true;
+    document.body.style.overflow = "";
+    renderDeskPlate();
+    trackEvent("plate_choice", { plate: key });
+    haptic(18);
+    OfficeSound.cue("stamp");
+    // 고른 결과는 집사가 바로 알려준다 — 선택이 어디에 남았는지 보여야 한다.
+    if (catReceptionAvailable()) deliverCatReply(`명패 문구는 「${DESK_PLATES[key].text}」로 신청했다냥. 비품팀에 넘겼다냥.`, "happy");
+  }
+
   function isFirstDeedPending() {
     return state.onboarded && state.records.length === 0;
   }
@@ -2169,6 +2256,7 @@
   function render(options = {}) {
     const status = certificationStatus();
     renderApplicantAlert();
+    renderDeskPlate();
     // 홈의 3칸 통계는 헤더의 명성/과몰입과 입력칸 아래 도장 진행바가 이미 같은 숫자를 보여줘 걷어냈다.
     $("#fame-count").textContent = state.fame;
     $("#home-gift-points").textContent = state.points;
@@ -2819,43 +2907,174 @@
      저장 키는 늘리지 않는다: giftHistory에서 종류별로 파생한다.
      슬롯은 책상 윗면 라인(bottom 28.5%)의 캐릭터 양옆 — 책상 앞판 클립(y72~80%)에
      안 가리고, 월드 안에 있어서 방을 밀면 같이 밀린다. */
-  const CAT_ROOM_GIFT_SLOTS = [
-    { left: 34, bottom: 29 }, { left: 64, bottom: 29 }, { left: 27, bottom: 28.5 },
-    { left: 71, bottom: 28.5 }, { left: 20, bottom: 28.5 }, { left: 78, bottom: 28.5 },
-    { left: 13, bottom: 28 }, { left: 85, bottom: 28 }, { left: 92, bottom: 28 }
+  /* ── 집사방 = 관계가 물건으로 쌓이는 공간 ──
+     방 배경에는 이미 램프·서류더미·클립보드·명패·머그·도장·책더미가 그려져 있다.
+     그 위에 아이템을 많이 얹으면 배경이 죽고 잡동사니가 된다. 그래서 전시는
+     상한을 두고, 넘치는 건 보관함 한 칸으로 접는다 —
+     "집사가 하나도 안 버리고 정리해서 보관 중"이 이 방의 정서다.
+     좌표는 방 월드(155% 폭) 기준. 고양이는 left 41~59%를 차지하므로 비워둔다. */
+  /* 좌표 기준 세 개. 전부 방 월드(155% 폭) 기준이다.
+     ① 세로: 전경(책상 앞판)이 bottom 28%부터 위를 덮으므로, 예전 슬롯은 전부
+        28.5%에 몰려 책상 뒤쪽 벽 근처에 떠 있는 것처럼 보였다. 선물 레이어를
+        전경 위로 올려서(z-index) 책상 상판 앞쪽에 실제로 놓이게 한다.
+        접수 슬립이 방 아래 30px(약 11%)을 덮으므로 bottom 13% 아래로는 내려가지 않는다.
+     ② 가로: 기본 화면에 보이는 월드 구간은 약 18~82%다. 그 밖에 두면
+        밀어야만 보이므로, 상시 노출 아이템은 전부 이 안에 넣는다.
+     ③ 고양이 회피: 고양이는 가로 41~59%, 세로로는 위에서 75%까지 내려온다.
+        그 사각형을 침범하면 얼굴/몸을 덮으므로, 그 구간을 지나는 아이템은
+        고양이 밑변(bottom 25%)보다 아래 — 즉 bottom 14% 줄에만 놓는다.
+        나머지 아이템은 좌우로 피해 앞줄(17%)·뒷줄(27%) 두 단으로 나눈다.
+        흐트러짐 드리프트 ±1.6%까지 겹치지 않도록 슬롯 간격을 잡았다. */
+  /* 크기는 폭이 아니라 높이로 잡는다. 물건마다 가로세로 비가 달라서(캣타워는
+     0.46, 쥐 인형은 1.62) 폭을 맞추면 세로로 긴 것이 화면을 뚫는다.
+     높이를 맞추면 전부 같은 축척으로 책상에 놓인 것처럼 읽힌다.
+     가로로 너무 퍼지는 것만 CSS의 max-width가 잡는다. */
+  const ROOM_GIFT_HEIGHT = 34;
+  const ROOM_TRACE_HEIGHT = 28;
+  const ROOM_STORAGE_HEIGHT = 24;
+  /* 배치는 두 벌이다. 희귀 선물이 낮고 넓은 것(창가 방석)이냐, 세로로 긴
+     가구(캣타워)냐에 따라 방을 통째로 다르게 정리한다.
+
+     desk — 기본. 앞줄(17%)에 선물 셋과 보관함, 뒷줄(32.5%)에 흔적 둘,
+       그리고 희귀는 고양이 바로 앞 최전면(12%)에 낮게 눕는다.
+     tower — 세로 가구가 서는 날. 이 물건은 앞줄에서 뒷줄 위까지 한꺼번에
+       가로지르므로, 옆에 뭘 두든 부딪힌다. 그래서 왼쪽 구역을 가구와
+       보관함에게 통째로 내주고 선물·서류를 오른쪽으로 물린다 —
+       큰 물건이 들어오면 책상을 다시 정리하는 것과 같다.
+       앞줄이 한 칸 좁아지고 밀린 선물은 버려지지 않고 보관함으로 접힌다.
+
+     명패 흔적만 글자가 들어가 가로로 넓어진다(10.4%). 두 배치 모두 그 최대
+     폭에 드리프트(±1.6%)까지 얹어도 고양이와 서로가 닿지 않게 잡았다. */
+  const CAT_ROOM_LAYOUTS = Object.freeze({
+    desk: {
+      limit: 3,
+      gifts: [{ left: 24, bottom: 17 }, { left: 34, bottom: 17 }, { left: 65, bottom: 17 }],
+      rare: { left: 50, bottom: 12, height: 30 },
+      traces: [{ left: 30, bottom: 32.5 }, { left: 70, bottom: 32.5 }],
+      storage: { left: 78, bottom: 17 }
+    },
+    tower: {
+      limit: 2,
+      gifts: [{ left: 65, bottom: 17 }, { left: 76, bottom: 17 }],
+      rare: { left: 22, bottom: 17, height: 78 },
+      traces: [{ left: 34, bottom: 32.5 }, { left: 70, bottom: 32.5 }],
+      storage: { left: 32, bottom: 17 }
+    }
+  });
+  /* 관계 흔적 — 단계마다 하나씩 늘어난다. 방에는 최근 두 개만 세운다.
+     선물보다 관계 흔적이 약해 보이면 실패다(쇼핑 아이템이 이기면 안 된다). */
+  const CAT_ROOM_TRACES = [
+    null,
+    { key: "file", icon: "🗂", art: "trace-01-file", label: "주인님 파일",
+      say: "주인님 파일이다냥. 이 칸은 집사가 직접 관리한다냥." },
+    // 명패만 그림이 없다 — 주인님이 고른 문구가 들어가야 해서 CSS로 그린다.
+    { key: "plate", icon: "", art: "", label: "전담 명패",
+      say: "명패 문구는 주인님이 골랐다냥. 아직 그대로다냥." },
+    { key: "stamp", icon: "🔖", art: "trace-02-stamp", label: "전용 도장",
+      say: "주인님 서류에만 쓰는 도장이다냥. 아무 데나 안 찍는다냥." },
+    { key: "box", icon: "🗄", art: "trace-03-box", label: "전용 서류함",
+      say: "주인님 전용 서류함이다냥. 공식 비품으로 등록해뒀다냥." },
+    { key: "seal", icon: "🏷", art: "trace-04-seal", label: "전담 인장",
+      say: "전담 표시다냥. 인수인계 목록에서 이것만 빼놨다냥." }
   ];
+  const CAT_ROOM_STORAGE_ART = "trace-05-storage";
+  /* 집사는 물건을 "좋아서" 둔다고 절대 말하지 않는다. 담당이 주인님 하나뿐이라
+     주인님에게 받은 건 전부 업무 관련 물품이라는 게 집사의 공식 입장이다. */
   const CAT_ROOM_GIFT_LINES = [
     "주인님이 준 {gift}… 잘 있다냥. 가끔 보는 건 재고 관리다냥.",
     "{gift} 자리는 여기로 정했다냥. 집사 눈에 제일 잘 보이는 자리… 우연이다냥.",
-    "{gift}은 공식 비품으로 등록해뒀다냥. 회수 신청은 기각이다냥."
+    "{gift}은 공식 비품으로 등록해뒀다냥. 회수 신청은 기각이다냥.",
+    "{gift}이 업무와 무슨 상관이냐고 물었다냥. 대답은 안 했다냥.",
+    "비품팀이 {gift} 반납을 요청했다냥. 전부 업무 관련이라고 답했다냥."
   ];
   let renderedRoomGiftNames = null;
 
+  // 등급 체계는 5종으로 잡아둔다. 이번에는 normal·relationship·rare만 실제
+  // 아이템이 있고 premium·seasonal은 자리만 비워둔다(결제는 아직 만들지 않는다).
+  function roomItemTier(index) { return index >= 7 ? "rare" : "normal"; }
+
+  // 희귀 선물의 형태가 그날의 방 배치를 정한다.
+  function catRoomLayout(rare) { return CAT_ROOM_LAYOUTS[rare?.tall ? "tower" : "desk"]; }
+
   function catRoomGiftItems() {
-    if (state.character !== "cat") return [];
+    if (state.character !== "cat") return { display: [], rare: null, stored: 0, total: 0 };
     const counts = new Map();
-    state.giftHistory.filter(item => normalizeCharacter(item.character) === "cat").forEach(item => {
+    giftHistoryFor("cat").forEach(item => {
       counts.set(item.name, { emoji: item.emoji, count: (counts.get(item.name)?.count || 0) + 1 });
     });
-    // 카탈로그 순서 = 책상에 놓이는 순서. 같은 선물은 하나만 놓고 개수를 단다.
-    return giftCatalogFor("cat")
-      .filter(gift => counts.has(gift.name))
-      .map(gift => ({ name: gift.name, emoji: gift.emoji, count: counts.get(gift.name).count }))
-      .slice(0, CAT_ROOM_GIFT_SLOTS.length);
+    const owned = giftCatalogFor("cat")
+      .map((gift, index) => ({ ...gift, index, tier: roomItemTier(index), count: counts.get(gift.name)?.count || 0 }))
+      .filter(gift => gift.count > 0);
+    // 희귀는 책상이 아니라 특별 자리에 한 점만 선다. 여러 개면 제일 비싼 것.
+    const rares = owned.filter(gift => gift.tier === "rare");
+    const rare = rares.length ? rares[rares.length - 1] : null;
+    const normals = owned.filter(gift => gift.tier === "normal");
+    // 책상에는 최근에 받은 순으로 상한까지만. 나머지는 보관함으로 접힌다.
+    const display = normals.slice(-catRoomLayout(rare).limit).reverse();
+    const shown = new Set([...display.map(g => g.name), ...(rare ? [rare.name] : [])]);
+    const stored = owned.filter(gift => !shown.has(gift.name)).reduce((sum, gift) => sum + gift.count, 0);
+    return { display, rare, stored, total: owned.reduce((sum, gift) => sum + gift.count, 0) };
+  }
+
+  // 방에 세워진 관계 흔적. 단계마다 하나씩 늘고, 최근 두 개만 보인다.
+  function catRoomTraces() {
+    if (state.character !== "cat") return [];
+    const stage = stageIndexFor(state.obsession);
+    return CAT_ROOM_TRACES.slice(0, stage + 1)
+      .filter(Boolean)
+      .filter(trace => trace.key !== "plate" || Boolean(state.deskPlate))
+      .slice(-2);
   }
 
   function renderCatRoomGifts() {
     const layer = $("#cat-room-gifts");
     if (!layer) return;
-    const items = catRoomGiftItems();
+    const { display, rare, stored, total } = catRoomGiftItems();
+    const traces = catRoomTraces();
     const previous = renderedRoomGiftNames;
-    renderedRoomGiftNames = new Set(items.map(item => item.name));
-    layer.innerHTML = items.map((item, index) => {
-      const slot = CAT_ROOM_GIFT_SLOTS[index];
-      // 이번 세션에 새로 놓인 것만 내려앉는 연출을 붙인다. 첫 렌더는 조용히 이미 놓여 있다.
-      const fresh = previous !== null && !previous.has(item.name) && !prefersReducedMotion();
-      return `<button class="cat-room-gift${fresh ? " just-placed" : ""}" type="button" style="left:${slot.left}%;bottom:${slot.bottom}%" data-room-gift="${escapeHtml(item.name)}" aria-label="${escapeHtml(item.name)}${item.count > 1 ? ` ${item.count}개` : ""}">${item.emoji}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
-    }).join("");
+    const names = new Set([...display.map(item => item.name), ...(rare ? [rare.name] : []), ...traces.map(t => t.key)]);
+    renderedRoomGiftNames = names;
+    const isFresh = key => previous !== null && !previous.has(key) && !prefersReducedMotion();
+    // 기록이 없는 날에는 물건이 사라지지 않고 자리만 조금 흐트러진다. 며칠인지는
+    // 세지 않는다 — "오늘 접수 0건"만 본다. 대사도 숫자도 없이 배치로만 말한다.
+    const idle = !state.records.some(record => record.date === today());
+    const drift = index => (idle ? [-1.4, 1.1, -0.8, 1.6, -1.2][index % 5] : 0);
+
+    // 그림이 있으면 그림, 없으면 이모지. 높이만 정하고 폭은 비율대로 따라온다.
+    const artOrEmoji = (art, emoji, label, height) => (art
+      ? `<img src="${art}" alt="" style="height:${height}px" loading="lazy" draggable="false">`
+      : emoji || escapeHtml(label));
+
+    const giftMarkup = (item, slot, index, extra = "") =>
+      `<button class="cat-room-gift${extra}${item.art ? " has-art" : ""}${isFresh(item.name) ? " just-placed" : ""}" type="button"
+        style="left:${slot.left + drift(index)}%;bottom:${slot.bottom}%"
+        data-room-gift="${escapeHtml(item.name)}"
+        aria-label="${escapeHtml(item.name)}${item.count > 1 ? ` ${item.count}개` : ""}"
+        >${artOrEmoji(item.art, item.emoji, item.name, slot.height || ROOM_GIFT_HEIGHT)}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
+
+    const traceMarkup = (trace, index) => {
+      const body = trace.key === "plate"
+        ? `<b class="room-trace-plate">${escapeHtml(deskPlateText())}</b>`
+        : artOrEmoji(trace.art ? `${GIFT_ART_PATH}${trace.art}.webp` : "", trace.icon, trace.label, ROOM_TRACE_HEIGHT);
+      return `<button class="cat-room-gift room-trace${trace.art ? " has-art" : ""}${isFresh(trace.key) ? " just-placed" : ""}" type="button"
+        style="left:${trace.slot.left + drift(index + 5)}%;bottom:${trace.slot.bottom}%"
+        data-room-trace="${trace.key}" aria-label="${escapeHtml(trace.label)}">${body}</button>`;
+    };
+
+    const layout = catRoomLayout(rare);
+
+    layer.innerHTML = [
+      ...display.map((item, index) => giftMarkup(item, layout.gifts[index], index)),
+      rare ? giftMarkup(rare, layout.rare, 4, " room-rare") : "",
+      // 흔적은 최근 두 개만 세우고, 자리는 좌·우 하나씩 뒷줄로 고정한다.
+      ...traces.map((trace, index) => traceMarkup(
+        { ...trace, slot: layout.traces[index] || layout.traces[0] }, index)),
+      // 넘치는 물건은 버려지지 않는다. 보관함 한 칸으로 접힐 뿐이다.
+      stored > 0
+        ? `<button class="cat-room-gift room-storage has-art" type="button" style="left:${layout.storage.left}%;bottom:${layout.storage.bottom}%" data-room-storage="${stored}" aria-label="비품 보관함 ${stored}점">${artOrEmoji(`${GIFT_ART_PATH}${CAT_ROOM_STORAGE_ART}.webp`, "🗃", "보관함", ROOM_STORAGE_HEIGHT)}<i>${stored}</i></button>`
+        : ""
+    ].join("");
+    void total;
   }
 
   function catHomeBounds() {
@@ -3027,16 +3246,25 @@
 
   // 연타하면 같은 말이 계속 나왔다. 단계당 두 줄뿐이라 A·B가 번갈아 나온 게
   // 원인이라, 줄을 네 개로 늘리고 직전에 쓴 줄은 풀에서 빼고 고른다.
+  /* 접수대 탭 — 이 앱에서 제일 자주 읽히는 줄이라 짧아야 한다(1문장 + 꼬리).
+     단계가 올라도 말투는 그대로고, 담당이 하나뿐이라는 사실이 조금씩 더 샌다. */
   const CAT_HOME_LINES = [
-    ["뭐냥. 업무 중이… 뭐, 급한 업무는 아니다냥.", "불렀냥? 별일 아니어도 된다냥. 별일 아닌 게 집사 전문이다냥.", "왜 자꾸 누르냥. …싫다는 건 아니다냥.", "집사 여기 있다냥. 계속 있었다냥. …그냥 그렇다고냥."],
-    ["기다린 건 아닌데, 올 시간은 알고 있었다냥.", "주인님 자리만 정리해뒀다냥.", "또 눌렀냥. …싫다는 말은 안 했다냥.", "업무 중이었다냥. …지금은 아니다냥."],
-    ["오늘 좀 보고 싶었다냥. 업무상이다냥.", "왔네. 꼬리는 보지 말라냥.", "부르면 오는 건 규정이다냥.", "주인님 쪽 서류만 손이 먼저 간다냥. 이유는 모른다냥."],
-    ["필요한 건 미리 꺼내뒀다냥.", "왔냥. 주인님 자리 비워뒀다냥.", "오늘 뭐 필요하냥? 먼저 챙겨두겠다냥.", "부를 줄 알고 여기 있었다냥. …우연이다냥."],
-    ["오늘도 왔네. …나쁘지 않다냥.", "주인님 서류부터 봐주겠다냥.", "다른 결재는 잠깐 밀어뒀다냥.", "왔냥. 순서는 주인님이 맨 앞이다냥. 규정은 아니다냥."],
-    ["왔냥. 기다린 건 아니고, 계속 반가웠다냥.", "전담 자리다냥. 편하게 있으라냥.", "몇 번이든 불러라냥. 어차피 전담이다냥.", "여긴 주인님 자리다냥. 집사는 그 옆이다냥."]
+    ["뭐냥. 금일 처리 업무 0건이다냥.", "불렀냥? 별일 아니어도 된다냥.", "왜 자꾸 누르냥. …싫다는 건 아니다냥.", "집사 여기 있다냥. 계속 있었다냥."],
+    ["또 눌렀냥. …싫다는 말은 안 했다냥.", "주인님 자리만 정리해뒀다냥.", "업무 중이었다냥. …지금은 아니다냥.", "올 시간은 알고 있었다냥. 기다린 건 아니다냥."],
+    ["귀가 먼저 돌아갔다냥. 집사는 나중이다냥.", "주인님 서류만 손이 먼저 간다냥.", "왔네. 꼬리는 보지 말라냥.", "오늘 좀 보고 싶었다냥. 업무상이다냥."],
+    ["필요한 건 미리 꺼내뒀다냥.", "부를 줄 알고 여기 있었다냥. …우연이다냥.", "펜 떨어뜨렸다냥. 아무 일 없었다냥.", "주인님 자리 비워뒀다냥. 늘 그렇다냥."],
+    ["주인님 서류부터 본다냥. 순서가 그렇다냥.", "다른 결재는 잠깐 밀어뒀다냥.", "오늘도 왔네. …나쁘지 않다냥.", "의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
+    ["여긴 주인님 자리다냥. 집사는 그 옆이다냥.", "몇 번이든 불러라냥. 이 파일은 집사 담당이다냥.", "전담 자리다냥. 편하게 있으라냥.", "담당 변경 신청은 안 냈다냥. 낼 생각도 없다냥."]
   ];
   let lastCatHomeLine = "";
   function catHomeLine() {
+    // 주인님이 고른 명패는 가끔 집사 입으로 다시 나온다. 선택이 어딘가에
+    // 남아 있다는 걸 말로도 확인시켜 준다 — 자주 나오면 잔소리가 되므로 낮은 확률.
+    const plate = DESK_PLATES[state.deskPlate];
+    if (plate && Math.random() < 0.18 && plate.recall !== lastCatHomeLine) {
+      lastCatHomeLine = plate.recall;
+      return plate.recall;
+    }
     const stageLines = CAT_HOME_LINES[stageIndexFor(state.obsession)] || CAT_HOME_LINES[0];
     const pool = stageLines.filter(line => line !== lastCatHomeLine);
     const chosen = (pool.length ? pool : stageLines)[Math.floor(Math.random() * (pool.length || stageLines.length))];
@@ -3111,12 +3339,38 @@
     saveState();
   }
 
+  /* 방에 놓인 물건을 누르면 집사가 그 물건 이야기를 한다.
+     주의: 월드가 포인터를 캡처하는 탓에 이 버튼들에는 click이 오지 않는다.
+     실제 호출은 endCatHomeDrag(누르고 안 민 채로 뗀 경우)에서 하고,
+     click 경로는 키보드 Enter 전용으로만 남는다. */
+  let roomItemAnsweredAt = 0;
+  const ROOM_ITEM_SELECTOR = "[data-room-gift],[data-room-trace],[data-room-storage]";
+
+  function respondToRoomItem(target) {
+    if (!target) return;
+    roomItemAnsweredAt = Date.now();
+    haptic(12);
+    if (target.dataset.roomStorage) {
+      showCatHomeSpeech(`보관함에 ${target.dataset.roomStorage}점 들어 있다냥. 하나도 안 버렸다냥.`);
+      return;
+    }
+    if (target.dataset.roomTrace) {
+      const trace = CAT_ROOM_TRACES.find(item => item?.key === target.dataset.roomTrace);
+      if (trace) showCatHomeSpeech(fillContentTemplate(trace.say));
+      return;
+    }
+    // 자리표시자를 먼저 갈아끼우면 조사 교정이 볼 게 없어진다 — "츄르은"이
+    // 나가던 자리다. 선물 이름은 값으로 넘겨서 뒤 조사까지 같이 맞춘다.
+    showCatHomeSpeech(fillContentTemplate(randomItem(CAT_ROOM_GIFT_LINES), { gift: target.dataset.roomGift }));
+  }
+
   function startCatHomeDrag(event) {
     if (state.character !== "cat" || event.button > 0) return;
     catHomeDragged = false;
     catHomeDrag = {
       pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
       startOffset: catHomeOffsetX, moved: false,
+      roomItem: event.target.closest(ROOM_ITEM_SELECTOR),
       onCharacter: Boolean(event.target.closest("#cat-home-character"))
     };
     $("#cat-home-room").classList.add("is-dragging");
@@ -3140,14 +3394,16 @@
 
   function endCatHomeDrag(event) {
     if (!catHomeDrag || event.pointerId !== catHomeDrag.pointerId) return;
-    const { moved, onCharacter } = catHomeDrag;
+    const { moved, onCharacter, roomItem } = catHomeDrag;
     catHomeDragged = moved;
     catHomeDrag = null;
     $("#cat-home-room").classList.remove("is-dragging");
     setCatHomeOffset(catHomeOffsetX, true);
     // 방을 잡아 끌 수 있게 하려고 포인터를 월드에 캡처하는 탓에 집사 버튼의 click이
     // 오지 않는다. 밀지 않고 뗀 경우는 여기서 직접 말을 건다.
-    if (!moved && onCharacter) interactWithCatHome();
+    if (moved) return;
+    if (roomItem) respondToRoomItem(roomItem);
+    else if (onCharacter) interactWithCatHome();
   }
 
   function openManagerDetails(target = "info") {
@@ -3251,6 +3507,14 @@
     $("#manager-gift-points").textContent = state.points;
     const giftSay = $("#manager-gift-say");
     if (giftSay) giftSay.textContent = GIFT_WAITING_LINES[state.character] || GIFT_WAITING_LINES.ai;
+    // 방 사진은 방이 있는 캐릭터만 낼 수 있다. 빈 책상을 찍어봐야 자랑이 아니라
+    // 아직 아무것도 없다는 통지라, 놓인 것이 하나라도 생긴 뒤에 나타난다.
+    const roomCardButton = $("#room-card-button");
+    if (roomCardButton) {
+      const { display, rare } = catRoomGiftItems();
+      roomCardButton.hidden = state.character !== "cat"
+        || (!display.length && !rare && !catRoomTraces().length);
+    }
     $("#manager-roster-count").textContent = rosterKeys.length;
     $("#manager-roster").innerHTML = rosterKeys.map(key => {
       const rosterProfile = CHARACTER_PROFILES[key];
@@ -3975,6 +4239,7 @@
     document.body.style.overflow = "";
     currentResult = null;
     showView("home");
+    if (pendingPlateChoice) { pendingPlateChoice = false; window.setTimeout(openPlateChoice, 800); }
     // 첫 대업 토스트는 걷어냈다 — 같은 정보가 결과서 각주에 이미 있었고,
     // 방으로 돌아온 happy 표정 위에 시스템 문구가 겹치면 표정이 죽는다.
     void firstRecord;
@@ -4485,6 +4750,211 @@
     return canvasToBlob(canvas);
   }
 
+  /* ── 집사 방 사진 ──
+     인증서는 "한 건의 대업"을 증명한다. 이건 다른 것을 보여준다 — 그동안 쌓인
+     것이 놓인 방 자체다. 자랑할 만한 것은 판정이 아니라 이 방이라, 공유 이미지가
+     하나 더 필요했다.
+
+     증서와 절대 같은 물건으로 보이면 안 된다. 금박은 인증서·축하 전용이므로
+     여기서는 한 줄도 쓰지 않고, 크라프트 서류 톤으로만 짠다. 등급·점수·수치도
+     넣지 않는다 — 방은 성적표가 아니다.
+
+     방 좌표는 CSS(manager-final.css)와 CAT_ROOM_LAYOUTS를 그대로 따라간다.
+     화면과 다른 방이 나가면 "내 방을 찍었다"가 성립하지 않는다. */
+  const ROOM_CARD = Object.freeze({
+    worldRatio: 1.55,      // .cat-home-world 폭 = 방 폭 × 1.55
+    roomAspect: 388 / 277, // 390px 화면에서 방 요소의 가로세로
+    catWidthPct: 112 / 388,// .cat-home-character 폭 ÷ 방 폭
+    catAspect: 112 / 153,
+    catLeftPct: 40.7,      // 월드 기준 고양이 왼쪽
+    catBottomPct: 24.4
+  });
+
+  async function createRoomCardBlob() {
+    if (document.fonts?.ready) await document.fonts.ready;
+    const { display, rare, stored } = catRoomGiftItems();
+    const traces = catRoomTraces();
+    const layout = catRoomLayout(rare);
+    const butlerName = state.butlerName || CHARACTER_PROFILES.cat.defaultName;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    const DISP = 'Paperlogy, "Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const BODY = '"Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const SERIF = '"Song Myung", "Noto Serif KR", serif';
+    const HAND = 'Gaegu, cursive';
+    const INK = "#332a20";
+    const INK_SOFT = "#7a6c5c";
+    const INK_FAINT = "#a3927c";
+    const IVORY = "#faf7f0";
+    const KRAFT = "#c8a878";
+    const KRAFT_DEEP = "#8a6a45";
+
+    ctx.fillStyle = "#efe8da";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(94, 72, 58, .05)";
+    ctx.lineWidth = 2;
+    for (let x = 0; x <= canvas.width; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y <= canvas.height; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+    const P = { x: 44, y: 40, w: 992, h: 1270 };
+    ctx.fillStyle = "rgba(45, 35, 22, .13)";
+    ctx.fillRect(P.x + 14, P.y + 16, P.w, P.h);
+    ctx.fillStyle = IVORY;
+    ctx.fillRect(P.x, P.y, P.w, P.h);
+    ctx.strokeStyle = KRAFT_DEEP;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(P.x, P.y, P.w, P.h);
+
+    // 머리글 — 방 위에 걸린 창구 명패와 같은 문구를 쓴다.
+    const headerH = 92;
+    ctx.fillStyle = "#41372a";
+    ctx.fillRect(P.x + 3, P.y + 3, P.w - 6, headerH);
+    ctx.fillStyle = "#f0e2c8";
+    ctx.font = `800 32px ${DISP}`;
+    ctx.textAlign = "center";
+    drawTrackedText(ctx, `창구 01 · 전담 ${butlerName}`, P.x + P.w / 2, P.y + 3 + headerH / 2 + 11, 5);
+
+    // 방 사진 — 서류에 붙인 인화지 한 장
+    const photo = { x: P.x + 40, w: P.w - 80 };
+    photo.h = Math.round(photo.w / ROOM_CARD.roomAspect);
+    photo.y = P.y + headerH + 34;
+    const worldW = photo.w * ROOM_CARD.worldRatio;
+    const worldX = photo.x - (worldW - photo.w) / 2;
+    const scale = worldW / (388 * ROOM_CARD.worldRatio); // 화면 1px당 캔버스 px
+    const worldAt = leftPct => worldX + worldW * (leftPct / 100);
+    const bottomAt = bottomPct => photo.y + photo.h - photo.h * (bottomPct / 100);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(photo.x, photo.y, photo.w, photo.h);
+    ctx.clip();
+    const room = await loadCanvasImage("design/rooms/cat-office-room.webp");
+    // 화면은 background-size: cover다. 월드 상자가 원본보다 납작해서 위아래가
+    // 잘리므로, 같은 방을 찍으려면 여기서도 세로 가운데를 그만큼 잘라내야 한다.
+    const srcH = Math.min(room.naturalHeight, room.naturalWidth / (worldW / photo.h));
+    ctx.drawImage(room, 0, (room.naturalHeight - srcH) / 2, room.naturalWidth, srcH,
+      worldX, photo.y, worldW, photo.h);
+
+    const catW = photo.w * ROOM_CARD.catWidthPct;
+    const catH = catW / ROOM_CARD.catAspect;
+    const cat = await loadCanvasImage(`${DESK_FACE_PATH}${DESK_FACES.base}.webp`);
+    ctx.drawImage(cat, worldAt(ROOM_CARD.catLeftPct), bottomAt(ROOM_CARD.catBottomPct) - catH, catW, catH);
+
+    // 물건 — 화면과 같은 슬롯, 같은 순서. 흐트러짐(drift)은 빼고 정돈된 방을 찍는다.
+    const placed = [
+      ...display.map((item, index) => ({ art: item.art, slot: layout.gifts[index], height: ROOM_GIFT_HEIGHT })),
+      ...(rare ? [{ art: rare.art, slot: layout.rare, height: layout.rare.height }] : []),
+      ...traces.map((trace, index) => ({
+        art: trace.art ? `${GIFT_ART_PATH}${trace.art}.webp` : "",
+        plate: trace.key === "plate" ? deskPlateText() : "",
+        slot: layout.traces[index] || layout.traces[0], height: ROOM_TRACE_HEIGHT
+      })),
+      ...(stored > 0 ? [{ art: `${GIFT_ART_PATH}${CAT_ROOM_STORAGE_ART}.webp`, slot: layout.storage, height: ROOM_STORAGE_HEIGHT }] : [])
+    ].filter(entry => entry.slot);
+
+    for (const entry of placed) {
+      const h = entry.height * scale;
+      const bottom = bottomAt(entry.slot.bottom);
+      if (entry.plate) {
+        // 명패는 그림이 없다 — 화면에서도 CSS로 그리므로 여기서도 직접 그린다.
+        ctx.font = `800 ${Math.round(7.5 * scale)}px ${DISP}`;
+        const textW = ctx.measureText(entry.plate).width;
+        const padX = 5 * scale;
+        const boxW = textW + padX * 2;
+        const boxH = 16 * scale;
+        const boxX = worldAt(entry.slot.left) - boxW / 2;
+        ctx.fillStyle = "#74522f";
+        ctx.fillRect(boxX, bottom - boxH, boxW, boxH);
+        ctx.strokeStyle = "#4a3320";
+        ctx.lineWidth = Math.max(1, scale);
+        ctx.strokeRect(boxX, bottom - boxH, boxW, boxH);
+        ctx.fillStyle = "#f4e5ce";
+        ctx.textAlign = "center";
+        ctx.fillText(entry.plate, boxX + boxW / 2, bottom - boxH / 2 + 3 * scale);
+        continue;
+      }
+      if (!entry.art) continue;
+      const image = await loadCanvasImage(entry.art);
+      const w = h * (image.naturalWidth / image.naturalHeight);
+      ctx.drawImage(image, worldAt(entry.slot.left) - w / 2, bottom - h, w, h);
+    }
+    ctx.restore();
+    ctx.strokeStyle = "rgba(74, 51, 32, .55)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(photo.x, photo.y, photo.w, photo.h);
+
+    // 집사 한 줄 — 방을 설명하지 않고, 방에 있는 사람이 말한다.
+    const sayY = photo.y + photo.h + 74;
+    ctx.textAlign = "center";
+    ctx.fillStyle = INK;
+    ctx.font = `900 40px ${SERIF}`;
+    ctx.fillText(`${butlerName}의 자리`, P.x + P.w / 2, sayY);
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `500 28px ${BODY}`;
+    const stageLine = relationshipStageLine("cat") || "주인님 자리는 늘 비워둔다냥.";
+    drawCenteredCanvasLines(ctx, canvasTextLines(ctx, stageLine, P.w - 200, 2), P.x + P.w / 2, sayY + 52, 40);
+
+    // 놓인 것 — 이름만 적는다. 개수·등급·값은 쓰지 않는다.
+    const named = [
+      ...display.map(item => item.name),
+      ...(rare ? [rare.name] : []),
+      ...traces.map(trace => trace.label)
+    ];
+    const listTop = sayY + 148;
+    ctx.strokeStyle = "rgba(138, 106, 69, .45)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(P.x + 62, listTop);
+    ctx.lineTo(P.x + P.w - 62, listTop);
+    ctx.stroke();
+    ctx.textAlign = "left";
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `700 24px ${DISP}`;
+    drawTrackedText(ctx, "책상에 놓인 것", P.x + 62, listTop + 44, 3, "left");
+    ctx.fillStyle = INK;
+    ctx.font = `600 27px ${BODY}`;
+    drawCenteredCanvasLines(
+      ctx, canvasTextLines(ctx, named.join(" · ") || "아직 아무것도 없다", P.w - 124, 2),
+      P.x + 62, listTop + 92, 40
+    );
+    if (stored > 0) {
+      ctx.fillStyle = INK_SOFT;
+      ctx.font = `500 23px ${BODY}`;
+      ctx.fillText(`그리고 보관함 ${stored}점 — 하나도 안 버렸다냥`, P.x + 62, listTop + 92 + 48);
+    }
+
+    // 발신 — 이 종이를 누가 냈는지. 육필은 서명에만 쓴다.
+    const bandTop = P.y + P.h - 96;
+    ctx.save();
+    ctx.fillStyle = "rgba(200, 168, 120, .16)";
+    ctx.fillRect(P.x + 3, bandTop, P.w - 6, P.h - (bandTop - P.y) - 3);
+    ctx.strokeStyle = "rgba(138, 106, 69, .5)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(P.x + 3, bandTop);
+    ctx.lineTo(P.x + P.w - 3, bandTop);
+    ctx.stroke();
+    ctx.restore();
+    ctx.textAlign = "left";
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `700 20px ${DISP}`;
+    drawTrackedText(ctx, "과잉집사 · OVERBUTLER DUTY OFFICE", P.x + 62, bandTop + 56, 2, "left");
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#b1604a";
+    ctx.font = `700 38px ${HAND}`;
+    ctx.fillText(butlerName, P.x + P.w - 62, bandTop + 62);
+    ctx.textAlign = "center";
+    void KRAFT;
+    return canvasToBlob(canvas);
+  }
+
   function downloadCertificateBlob(blob, record) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -4574,6 +5044,58 @@
       }
     } finally {
       setCertificateActionPending(button, false, "");
+    }
+  }
+
+  /* 방 사진은 증서와 발행 경로가 다르다. 증서는 한 건에 묶여 있어 다시 열면 같은
+     장이 나와야 하지만(그래서 blob을 캐시한다), 방 사진은 누를 때마다 그 순간의
+     방이다 — 물건이 하나 늘면 다른 사진이어야 한다. 캐시하지 않는다. */
+  function roomCardShareText() {
+    const butlerName = state.butlerName || CHARACTER_PROFILES.cat.defaultName;
+    return `${templateOwner("주인님")} 담당, ${butlerName}의 책상입니다.\n${relationshipStageLine("cat")}\n#과잉집사 #집사방`;
+  }
+
+  // 방 사진 버튼은 텍스트 한 줄이 아니라 클립·제목·설명이 든 종이다.
+  // 증서 버튼용 헬퍼처럼 textContent를 갈아끼우면 속이 통째로 날아간다.
+  function setRoomCardPending(button, pending, label) {
+    if (!button) return;
+    const title = button.querySelector("b");
+    if (!title) return;
+    if (pending) title.dataset.originalLabel = title.textContent;
+    button.disabled = pending;
+    button.setAttribute("aria-busy", String(pending));
+    title.textContent = pending ? label : title.dataset.originalLabel || title.textContent;
+  }
+
+  async function shareRoomCard() {
+    if (state.character !== "cat") return;
+    const button = $("#room-card-button");
+    const text = roomCardShareText();
+    const filename = `과잉집사-${state.butlerName || "집사"}의-책상.png`;
+    setRoomCardPending(button, true, "방 사진 만드는 중…");
+    try {
+      const blob = await createRoomCardBlob();
+      const file = new File([blob], filename, { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "과잉집사 집사 방", text, files: [file] });
+        trackEvent("room_card_share", { source: "native_file" });
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = url;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const copied = await copyCertificateText(text);
+      trackEvent("room_card_share", { source: copied ? "download_copy" : "download" });
+      showToast(copied ? "집사 방 사진을 저장하고 문구를 복사했습니다." : "집사 방 사진을 저장했습니다.");
+    } catch (error) {
+      if (error.name === "AbortError") { trackEvent("room_card_share", { source: "cancelled" }); return; }
+      trackEvent("room_card_share", { source: "failed" });
+      showToast("방 사진을 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setRoomCardPending(button, false, "");
     }
   }
 
@@ -4811,12 +5333,33 @@
   }
 
   function giftCatalogFor(character = state.character) {
-    return (GIFT_CATALOGS[normalizeCharacter(character)] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({ emoji, name, cost: GIFT_COSTS[index] }));
+    const key = normalizeCharacter(character);
+    return (GIFT_CATALOGS[key] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({
+      emoji, name, cost: GIFT_COSTS[index],
+      art: key === "cat" ? `${GIFT_ART_PATH}${CAT_GIFT_ART[index]}.webp` : "",
+      tall: key === "cat" && CAT_GIFT_TALL.includes(index)
+    }));
+  }
+
+  /* 선물 이력을 새 품목 이름으로 맞춘 사본. 저장 배열 자체는 손대지 않는다.
+     읽는 쪽은 전부 이 함수를 거쳐야 옛 선물이 방·보관함·중복 판정에서
+     빠지지 않는다. */
+  function giftHistoryFor(character = state.character) {
+    const key = normalizeCharacter(character);
+    const owned = key === "cat" ? new Map(giftCatalogFor("cat").map(gift => [gift.name, gift])) : null;
+    return state.giftHistory
+      .filter(item => normalizeCharacter(item.character) === key)
+      .map(item => {
+        if (!owned) return item;
+        const name = CAT_GIFT_RENAMES[item.name] || item.name;
+        const gift = owned.get(name);
+        return gift ? { ...item, name, emoji: gift.emoji, art: gift.art } : item;
+      });
   }
 
   function renderGiftDesk() {
     const catalog = giftCatalogFor();
-    const history = state.giftHistory.filter(item => normalizeCharacter(item.character) === state.character);
+    const history = giftHistoryFor();
     $("#gift-desk-points").textContent = state.points;
     $("#gift-desk-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-desk-butler-line").textContent = templateOwner(CHARACTER_PROFILES[state.character].briefings[0]);
@@ -4831,7 +5374,9 @@
       // "건네준다"가 "옮긴다"가 된다. 가로 선반이라 어느 칸이든 위로 한 번이면 닿는다.
       return `<button class="gift-shelf-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
         ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}
-        <span class="gift-shelf-thumb">${gift.emoji}</span>
+        <span class="gift-shelf-thumb${gift.art ? " has-art" : ""}">${gift.art
+          ? `<img src="${gift.art}" alt="" loading="lazy" draggable="false">`
+          : gift.emoji}</span>
         <b>${escapeHtml(gift.name)}</b>
         <small>${gift.cost}P</small>${affordable ? "" : `<em>${shortfall}P 더</em>`}
       </button>`;
@@ -4840,7 +5385,8 @@
     $("#gift-history-list").innerHTML = history.length
       ? history.slice(0, 5).map(item => {
         const labels = { favorite: "취향 적중", duplicate: "또 기억", rare: "희귀 선물" };
-        return `<li><span>${item.emoji}</span><b>${escapeHtml(item.name)}${labels[item.reactionType] ? `<em>${labels[item.reactionType]}</em>` : ""}</b><time>${escapeHtml(item.date || "")}</time></li>`;
+        const face = item.art ? `<img src="${item.art}" alt="" loading="lazy" draggable="false">` : item.emoji;
+        return `<li><span class="${item.art ? "has-art" : ""}">${face}</span><b>${escapeHtml(item.name)}${labels[item.reactionType] ? `<em>${labels[item.reactionType]}</em>` : ""}</b><time>${escapeHtml(item.date || "")}</time></li>`;
       }).join("")
       : '<li class="empty">아직 이 집사에게 준 선물이 없습니다.</li>';
     selectedGiftIndex = null;
@@ -4876,7 +5422,9 @@
     const key = normalizeCharacter(character);
     const content = launchContentFor(key);
     if (!gift) return { type: "normal", label: "선물 접수", delta: BALANCE.giftRelationship.normal, duplicateCount: 0 };
-    const priorCount = state.giftHistory.filter(item => normalizeCharacter(item.character) === key && item.name === gift.name).length;
+    // 옛 이름으로 저장된 선물도 "또 기억"으로 세어야 한다 — 이름만 바뀌었지
+    // 주인님이 그걸 준 적 없는 게 되면 안 된다.
+    const priorCount = giftHistoryFor(key).filter(item => item.name === gift.name).length;
     const rare = index >= 7;
     const favorite = Boolean(content?.favorites?.includes(gift.name));
     const repeat = priorCount > 0;
@@ -4999,7 +5547,10 @@
     const giftTitles = GIFT_RESULT_TITLES[state.character] || GIFT_RESULT_TITLES.ai;
     $("#gift-title").innerHTML = giftTitles[interaction.type] || giftTitles.normal;
     $("#gift-message").textContent = message;
-    $("#gift-received-name").textContent = `${gift.emoji} ${gift.name}`;
+    // 인수증에도 이모지가 아니라 방금 건넨 그 그림이 올라온다.
+    $("#gift-received-name").innerHTML = gift.art
+      ? `<img class="gift-received-art" src="${gift.art}" alt="" draggable="false">${escapeHtml(gift.name)}`
+      : escapeHtml(`${gift.emoji} ${gift.name}`);
     $("#gift-count").textContent = stat.gifts;
     $("#gift-obsession").textContent = state.obsession;
     renderRelationshipResult("gift", previousObsession, state.obsession, interaction.delta, "gift");
@@ -5028,8 +5579,14 @@
     if (!gift || state.points < gift.cost) return;
     selectGift(index);
     const ghost = document.createElement("div");
-    ghost.className = "gift-drag-ghost";
-    ghost.textContent = gift.emoji;
+    // 손끝에 붙어 따라오는 것과 창구에 놓이는 것이 달라 보이면 "건네준다"가
+    // 끊긴다. 선반 그림 그대로 끌려가야 한다.
+    ghost.className = `gift-drag-ghost${gift.art ? " has-art" : ""}`;
+    if (gift.art) {
+      const face = document.createElement("img");
+      face.src = gift.art; face.alt = ""; face.draggable = false;
+      ghost.appendChild(face);
+    } else ghost.textContent = gift.emoji;
     document.body.appendChild(ghost);
     activeGiftDrag = { index, ghost, pointerId: event.pointerId };
     button.setPointerCapture?.(event.pointerId);
@@ -5064,6 +5621,7 @@
     if (state.character === "cat" && $("#main-screen").dataset.currentView === "manager") {
       closeManagerDetails(false);
       window.scrollTo({ top: 0, behavior: "auto" });
+      if (pendingPlateChoice) { pendingPlateChoice = false; window.setTimeout(openPlateChoice, 800); }
       // 예약 반응은 여기서 소비하지 않는다 — 접수대는 홈에 있고, 집사 탭에서
       // 슬립을 바꿔봐야 아무도 못 본다. 홈으로 돌아온 순간 configureCatHome이 낸다.
     }
@@ -5108,12 +5666,16 @@
     $("#report-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("clip"); submitAchievement(); });
     $("#briefing-character-action").addEventListener("click", interactWithButler);
     $("#diary-open-note").addEventListener("click", () => { haptic(15); OfficeSound.cue("paper"); openPendingDiary(); });
+    // 포인터 탭은 endCatHomeDrag가 받는다. 여기로 오는 건 키보드 Enter뿐이지만,
+    // 브라우저가 click을 흘려보내는 경우까지 대비해 직전 응답은 한 번 걸러낸다.
     $("#cat-room-gifts").addEventListener("click", event => {
-      const item = event.target.closest("[data-room-gift]");
-      if (!item) return;
-      if (catHomeDragged) { catHomeDragged = false; return; }
-      const line = randomItem(CAT_ROOM_GIFT_LINES).replaceAll("{gift}", item.dataset.roomGift);
-      showCatHomeSpeech(fillContentTemplate(line));
+      const target = event.target.closest(ROOM_ITEM_SELECTOR);
+      if (!target) return;
+      // 키보드 Enter는 detail 0으로 온다. 방을 민 직후 걸러야 하는 건 포인터
+      // 클릭뿐이라, 여기서 구분하지 않으면 드래그 한 번이 다음 Enter를 먹는다.
+      if (event.detail > 0 && catHomeDragged) { catHomeDragged = false; return; }
+      if (Date.now() - roomItemAnsweredAt < 400) return;
+      respondToRoomItem(target);
     });
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
     $("#first-deed-guide").addEventListener("click", () => {
@@ -5205,6 +5767,10 @@
       if (trigger) handleCatHomeAction(trigger.dataset.catHomeAction);
     });
     $("#manager-details-back").addEventListener("click", () => closeManagerDetails());
+    $("#plate-choice-options").addEventListener("click", event => {
+      const button = event.target.closest("[data-plate]");
+      if (button) choosePlate(button.dataset.plate);
+    });
     $("#gift-desk-close").addEventListener("click", closeGiftDesk);
     $("#gift-desk-overlay").addEventListener("click", event => { if (event.target.id === "gift-desk-overlay") closeGiftDesk(); });
     $("#gift-catalog").addEventListener("click", event => {
@@ -5231,6 +5797,7 @@
     $("#close-certificate").addEventListener("click", closeCertificate);
     $("[data-certificate-close]").addEventListener("click", closeCertificate);
     $("#share-certificate").addEventListener("click", shareCertificate);
+    $("#room-card-button").addEventListener("click", () => { haptic(15); OfficeSound.cue("paper"); shareRoomCard(); });
     $("#home-gift-link").addEventListener("click", openGiftDesk);
     $("#analysis-overlay").addEventListener("click", finishAnalysisNow);
     $("#analysis-overlay").addEventListener("keydown", event => {

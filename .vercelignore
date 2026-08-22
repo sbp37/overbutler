@@ -13,6 +13,7 @@ design/character-concept-board/
 # 캐릭터 원본 png. 런타임은 전부 webp를 읽는다(2026-08-18 전환).
 # 원본은 리터치·재출력에 필요해서 저장소에는 남기고 배포에서만 뺀다.
 design/character-assets/**/*.png
+design/gift-assets/**/*.png
 
 # 옛 빌드와 실험용 사본. dist/index.html은 초기 릴리스 버전이라
 # 배포되면 옛날 앱이 공개 URL로 접근 가능해진다.

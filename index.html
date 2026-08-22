@@ -63,7 +63,7 @@
           <span class="assignment-paperclip" aria-hidden="true"></span>
           <p class="bureau-name">과잉집사 중앙인사국 공식 발령</p>
           <h1 id="assignment-title">담당 집사가<br>배정되었습니다</h1>
-          <p class="assignment-copy">주인님의 사소한 행동을 대업으로 기록할 전담 직원을 정식 배정합니다.</p>
+          <p class="assignment-copy">한 명의 주인님 파일을 처음부터 끝까지 맡는 전담 직원을 배정합니다.</p>
           <div class="assignment-character-stage">
             <span class="assignment-seal" aria-hidden="true">전담<br>배정</span>
             <img class="assignment-character" src="design/character-assets/cat-butler/ui-poses/cat-base.webp" data-butler-pose="base" alt="클립보드를 든 고양이 집사">
@@ -73,10 +73,12 @@
             <h2>고양이 집사</h2>
             <p class="character-line">“규정이라서 챙기는 거다냥. 딱히 특별대우 아니다냥.”</p>
           </div>
+          <!-- 이 세 줄이 이후 모든 대사의 근거다. 담당이 주인님 하나뿐이라서
+               "물 마심" 한 줄이 집사에게는 그날의 업무 전부가 된다. -->
           <dl class="personnel-facts">
-            <div><dt>소속</dt><dd>과잉접수과</dd></div>
-            <div><dt>담당</dt><dd>기록·판정·칭찬</dd></div>
-            <div><dt>상태</dt><dd>꼬리 반응 통제 중</dd></div>
+            <div><dt>소속</dt><dd>기록1과</dd></div>
+            <div><dt>담당</dt><dd>주인님 · 단독 담당</dd></div>
+            <div><dt>비고</dt><dd>현재 다른 담당 없음</dd></div>
           </dl>
           <label class="owner-name-field" for="owner-name-input">
             <span>주인님 호칭 등록</span>
@@ -344,6 +346,8 @@
             <div class="manager-character-stage">
               <i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i><i class="photo-mount" aria-hidden="true"></i>
               <img src="design/character-assets/cat-butler/ui-poses/cat-base.webp" data-butler-pose="base" alt="고양이 집사">
+              <!-- 명패 문구는 주인님이 3단계 승급 때 직접 고른 것이다. -->
+              <span class="manager-nameplate" id="manager-nameplate" hidden></span>
             </div>
             <div class="manager-profile-copy">
               <div class="manager-status-line"><span id="manager-role-title">현 담당 집사</span></div>
@@ -372,6 +376,12 @@
               <strong id="relationship-stage-title">첫 만남</strong>
               <p id="relationship-stage-summary">처음부터 다정한 집사가 작은 이야기도 귀 기울여 듣습니다.</p>
             </div>
+            <!-- 자랑할 만한 것은 판정이 아니라 방이다. 인증서와 다른 종이 한 장. -->
+            <button class="room-card-button" id="room-card-button" type="button" hidden>
+              <span class="of-clip" aria-hidden="true"></span>
+              <b>집사 방 사진 발급</b>
+              <small>지금 책상에 놓인 그대로 나옵니다</small>
+            </button>
           </div>
         </section>
 
@@ -598,6 +608,23 @@
       <label><input id="owner-name-late-input" type="text" maxlength="12" placeholder="예: 별명 또는 이름" autocomplete="nickname"><em>주인님</em></label>
       <button class="primary-button" type="submit">호칭 등록하기 <b>→</b></button>
     </form>
+  </div>
+
+  <!-- 관계 단계가 처음 오를 때만 뜨는 1회 선택. 옳고 그름도, 보상 차이도 없다.
+       고른 문구는 집사 카드 명패에 실제로 새겨진다. -->
+  <div class="overlay plate-choice-overlay" id="plate-choice-overlay" role="dialog" aria-modal="true" aria-labelledby="plate-choice-title" hidden>
+    <article class="plate-choice-sheet document-card">
+      <span class="of-clip" aria-hidden="true"></span>
+      <div class="reaction-document-meta"><span>비 품 신 청 서 · FORM B-01</span></div>
+      <h2 id="plate-choice-title">전담 파일 명패 제작</h2>
+      <p class="plate-choice-copy">담당 집사가 명패 제작을 신청했습니다. 새길 문구를 주인님이 정해주세요.</p>
+      <div class="plate-choice-options" id="plate-choice-options">
+        <button type="button" data-plate="owner"><b>주인님 전용</b><small>있는 그대로 적는다</small></button>
+        <button type="button" data-plate="plain"><b>특별대우 아님</b><small>집사가 늘 하는 말로</small></button>
+        <button type="button" data-plate="cat"><b>치즈냥 마음대로</b><small>집사에게 맡긴다</small></button>
+      </div>
+      <p class="plate-choice-footnote">제작된 명패는 집사 인사기록 카드에 부착됩니다.</p>
+    </article>
   </div>
 
   <div class="overlay gift-desk-overlay" id="gift-desk-overlay" role="dialog" aria-modal="true" aria-labelledby="gift-desk-title" hidden>
