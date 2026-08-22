@@ -4484,3 +4484,21 @@
 #view-home .quick-actions { margin: 4px 0 6px; }
 #view-home .report-button { min-height: 52px; margin-top: 8px; }
 #view-home .report-button .report-ticket-inner { padding: 5px 0; }
+
+/* Legacy commemorative certificates stay visible without entering the current
+   official 5/7-certificate lineage. */
+#view-archive .record-legacy-cert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px double var(--ink-soft);
+  border-radius: 50%;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, .34);
+  font: 800 11px/1.05 var(--body);
+  letter-spacing: -.04em;
+  text-align: center;
+  rotate: -5deg;
+}

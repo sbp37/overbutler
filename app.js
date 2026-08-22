@@ -1135,10 +1135,16 @@
     merged.soundOn = Boolean(raw.soundOn);
     merged.fastTrackNoticed = Boolean(raw.fastTrackNoticed);
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
-    const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : legacyAchievements;
-    const certificateSource = Array.isArray(raw.certificates)
-      ? raw.certificates.filter(item => objectValue(item) === item)
-      : legacyAchievements.filter(item => item.isCertificate !== false);
+    const rawCertificates = Array.isArray(raw.certificates) ? raw.certificates.filter(item => objectValue(item) === item) : [];
+    const recordSource = Array.isArray(raw.records) ? raw.records.filter(item => objectValue(item) === item) : [...legacyAchievements];
+    // 옛 버전은 achievements의 isCertificate 항목을 certificates에 그대로 복제했다.
+    // 이 기념 증서는 기록으로 보존하되 새 공식 인정 계보와 발급 회차에는 넣지 않는다.
+    // 이미 한 번 마이그레이션되어 records에서 빠진 항목도 id 기준으로 되살린다.
+    const recordIds = new Set(recordSource.map(item => String(item.id)));
+    rawCertificates.filter(isLegacyCertificate).forEach(item => {
+      if (!recordIds.has(String(item.id))) recordSource.push(item);
+    });
+    const certificateSource = rawCertificates.filter(item => !isLegacyCertificate(item));
     merged.records = recordSource.map(migrateRecord);
     merged.certificates = certificateSource.map(migrateRecord);
     merged.achievements = [...merged.records];
@@ -1251,6 +1257,11 @@
         ? storedRelationshipGain
         : relationshipDifference || 7
     };
+  }
+
+  function isLegacyCertificate(record) {
+    const source = objectValue(record);
+    return Object.prototype.hasOwnProperty.call(source, "isCertificate") && source.isCertificate !== false;
   }
 
   function loadState() {
@@ -2726,7 +2737,8 @@
 
   function ownerFileRecordCard(record, officialIds, repeatCount = 1) {
     const official = officialIds.has(record.id);
-    const statusClass = official ? "official" : record.stampEligible === false ? "praise" : "candidate";
+    const legacyCertificate = !official && isLegacyCertificate(record);
+    const statusClass = official ? "official" : legacyCertificate ? "legacy-certificate" : record.stampEligible === false ? "praise" : "candidate";
     const listNumber = String(state.records.indexOf(record) + 1).padStart(2, "0");
     const sourceText = storedText(record.sourceText).trim();
     const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
@@ -2739,7 +2751,7 @@
     return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
       <div class="record-number"><b>${listNumber}</b><span>NO.</span></div>
       <div class="record-main"><strong>${escapeHtml(record.deed)}${repeatCount > 1 ? ` <i class="record-repeat-badge">×${repeatCount}</i>` : ""}</strong><p>${escapeHtml(contextLine)}</p>${appellation ? `<small>칭호 · ${escapeHtml(appellation)}</small>` : ""}</div>
-      ${official ? `<div class="record-approval">${approvalAction}</div>` : ""}
+      ${official ? `<div class="record-approval">${approvalAction}</div>` : legacyCertificate ? '<div class="record-approval"><span class="record-legacy-cert" aria-label="이전 버전 기념 증서">기념<br>증서</span></div>' : ""}
     </article>`;
   }
 
@@ -2867,13 +2879,14 @@
     if (!record) return;
     const butler = record.butler || snapshotButler(record);
     const isOfficial = state.certificates.some(item => item.id === record.id);
+    const legacyCertificate = !isOfficial && isLegacyCertificate(record);
     const sourceText = storedText(record.sourceText || record.deed || record.report, "보관된 이야기");
     const discoveredAchievement = storedText(record.discoveredAchievement || record.officialTitle || record.deed || record.report, "보관된 대업");
     const reactionLines = normalizeReactionLines(record.reactionLines, record.report);
     currentRecordDetail = record;
     $("#record-detail-number").textContent = `RECORD NO. ${String(record.number || state.records.indexOf(record) + 1).padStart(2, "0")}`;
     $("#record-detail-date").textContent = record.date;
-    $("#record-detail-status").textContent = isOfficial ? "공식 인정" : record.stampEligible === false ? "칭찬 완료" : "대업 후보";
+    $("#record-detail-status").textContent = isOfficial ? "공식 인정" : legacyCertificate ? "기념 증서 보관" : record.stampEligible === false ? "칭찬 완료" : "대업 후보";
     $("#record-detail-grade").textContent = record.grade;
     $("#record-detail-title").textContent = record.deed;
     $("#record-detail-nickname").textContent = `#${record.nickname}`;
@@ -2882,7 +2895,7 @@
     $("#record-detail-reactions").innerHTML = reactionLines.map(line => `<p>${escapeHtml(line)}</p>`).join("");
     $("#record-detail-butler").textContent = butler.name;
     $("#record-detail-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
-    $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
+    $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : legacyCertificate ? "이전 버전 기념 증서 보존" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
     // 인증서가 없는 기록에서 "다시 열기"를 누르면 없는 증서를 지어내게 된다.
     $("#record-detail-certificate").hidden = !isOfficial;
     setPoseImage($("#record-detail-image"), butler.character, "base");
