@@ -2097,6 +2097,7 @@
   // records로 고정한다 — 파란 회색 accent와 기록 카드 조판을 그대로 승계한다.
   function renderOwnerFileCover() {
     const cover = ownerFileCover();
+    const isCat = normalizeCharacter(state.character) === "cat";
     $("#owner-file-thickness").textContent = cover.thickness;
     $("#owner-file-days").textContent = cover.daysTogether;
     // 기록 한 건으로 "최다 대업 청소 · 1건"이라고 적으면 집계가 아니라 농담이 된다.
@@ -2106,12 +2107,14 @@
       : cover.thickness ? "3건부터 집계" : "아직 없음";
     $("#owner-file-official").textContent = cover.officialCount;
     $("#owner-file-remark").textContent = cover.remark;
-    $("#archive-butler-role").textContent = `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
+    $("#archive-butler-role").textContent = isCat
+      ? "첫 담당 집사와 함께 쓴 기록 · 언제든 열람 가능"
+      : `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
 
     // 표지에는 누가 언제 연 파일인지가 적힌다. 개설일은 가장 오래된 기록의 날짜다.
     const opened = [...state.records].map(record => record.date).filter(Boolean).sort()[0] || today();
     const alias = ensureButlerStat(state.character).customName || CHARACTER_PROFILES[state.character].defaultName;
-    $("#archive-butler-name").textContent = `담당 ${alias} · ${opened.replace(/-/g, ". ")} 개설`;
+    $("#archive-butler-name").textContent = `${isCat ? "첫 담당" : "담당"} ${alias} · ${opened.replace(/-/g, ". ")} 개설`;
     const openedStamp = $("#owner-file-opened-stamp");
     if (openedStamp) openedStamp.textContent = opened.slice(5).replace("-", ". ");
   }
@@ -2138,8 +2141,10 @@
     // 어제 것일 때만 "어제"라고 말한다. 더 오래됐으면 날짜를 말하되 공백은 세지 않는다.
     const yesterday = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
       .format(new Date(Date.now() - 86400000)).replace(/\. /g, ".").replace(/\.$/, "");
-    $("#diary-open-title").textContent = date === yesterday ? "어제 일기가 개봉됐습니다" : "봉인됐던 일기가 개봉됐습니다";
     const alias = ensureButlerStat(state.character).customName || CHARACTER_PROFILES[state.character].defaultName;
+    $("#diary-open-title").textContent = normalizeCharacter(state.character) === "cat"
+      ? `${alias}의 ${date === yesterday ? "어제 일기" : "일기"}가 도착했습니다`
+      : date === yesterday ? "어제 일기가 개봉됐습니다" : "봉인됐던 일기가 개봉됐습니다";
     $("#diary-open-sub").textContent = `${withParticle(alias, "이", "가")} ${date === yesterday ? "어제" : date.slice(5)} 적어둔 소견 · 열람 →`;
   }
 
@@ -2207,9 +2212,14 @@
     // 창을 겹치지 않고, 결과서를 닫고 방으로 돌아온 뒤에 띄운다.
     if (upgraded && nextIndex >= PLATE_CHOICE_STAGE && state.character === "cat" && !state.deskPlate) pendingPlateChoice = true;
     // 평소에는 한 줄이면 된다. 결재란을 매번 펼치면 단계가 오른 날이 특별해지지 않는다.
-    $(`#${prefix}-relationship-kicker`).textContent = upgraded
-      ? `관계 단계 상승 · ${previousStage.name} → ${currentStage.name}`
-      : `관계 +${delta} · ${currentStage.name}`;
+    const isCat = normalizeCharacter(state.character) === "cat";
+    $(`#${prefix}-relationship-kicker`).textContent = isCat
+      ? upgraded
+        ? `집사 근무 인정 · ${previousStage.name} → ${currentStage.name}`
+        : `함께 쌓은 근무 기록 · ${currentStage.name}`
+      : upgraded
+        ? `관계 단계 상승 · ${previousStage.name} → ${currentStage.name}`
+        : `관계 +${delta} · ${currentStage.name}`;
     const approval = $(`#${prefix}-relationship-approval`);
     if (approval) {
       approval.hidden = !upgraded;
@@ -2779,12 +2789,16 @@
   function ownerFileMarginNote(pageEntries) {
     const sample = pageEntries.at(-1);
     const butler = sample.butler || snapshotButler(sample);
+    const catStage = normalizeCharacter(butler.character) === "cat"
+      ? storedText([...pageEntries].reverse().find(entry => entry.relationshipStage)?.relationshipStage)
+      : "";
+    const stageLabel = catStage ? ` · ${escapeHtml(catStage)}` : "";
     const sealed = nonNegativeInteger(sample.diaryRevealVersion) > 0 && !sample.diaryRevealed && sample.date === today();
     if (sealed) {
       const teaser = diaryTeaser(butler.character, pageEntries);
       return `<section class="diary-teaser file-margin-note sealed">
         <span class="of-staple" aria-hidden="true"></span>
-        <span>✎ ${escapeHtml(butler.name)}의 오늘 일기</span>
+        <span>✎ ${escapeHtml(butler.name)}의 오늘 일기${stageLabel}</span>
         <strong>${escapeHtml(teaser.count)}</strong>
         <blockquote>${escapeHtml(teaser.quote)}</blockquote>
         <small>${escapeHtml(teaser.release)}</small>
@@ -2794,7 +2808,7 @@
       || diaryReflection(butler.character, pageEntries, sample.ownerName);
     return `<aside class="file-margin-note">
       <span class="of-staple" aria-hidden="true"></span>
-      <span>✎ ${escapeHtml(butler.name)}의 일기</span>
+      <span>✎ ${escapeHtml(butler.name)}의 일기${stageLabel}</span>
       <p>${escapeHtml(reflection)}</p>
     </aside>`;
   }
@@ -2948,6 +2962,13 @@
     const sourceText = storedText(record.sourceText || record.deed || record.report, "보관된 이야기");
     const discoveredAchievement = storedText(record.discoveredAchievement || record.officialTitle || record.deed || record.report, "보관된 대업");
     const reactionLines = normalizeReactionLines(record.reactionLines, record.report);
+    const recordCharacter = normalizeCharacter(butler.character);
+    const isCat = recordCharacter === "cat";
+    const firstCatRecord = state.records.find(item => {
+      const itemButler = item.butler || snapshotButler(item);
+      return normalizeCharacter(itemButler.character) === "cat";
+    });
+    const isFirstCatRecord = isCat && firstCatRecord && String(firstCatRecord.id) === String(record.id);
     currentRecordDetail = record;
     $("#record-detail-number").textContent = `RECORD NO. ${String(record.number || state.records.indexOf(record) + 1).padStart(2, "0")}`;
     $("#record-detail-date").textContent = record.date;
@@ -2959,8 +2980,16 @@
     $("#record-detail-achievement").textContent = discoveredAchievement;
     $("#record-detail-reactions").innerHTML = reactionLines.map(line => `<p>${escapeHtml(line)}</p>`).join("");
     $("#record-detail-butler").textContent = butler.name;
-    $("#record-detail-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
+    $("#record-detail-field-label").textContent = isCat ? "당시 집사 단계" : "분야";
+    $("#record-detail-field").textContent = isCat
+      ? storedText(record.relationshipStage, "이전 버전 기록")
+      : OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
     $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : legacyCertificate ? "이전 버전 기념 증서 보존" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
+    $("#record-detail-note-copy").textContent = isFirstCatRecord
+      ? "첫 담당 집사와 주인님이 함께 시작한 첫 업무 기록입니다."
+      : isCat
+        ? "주인님과 함께 쌓은 당시 기록과 집사의 반응을 그대로 보존합니다."
+        : "이 기록은 작성 당시 담당 집사의 정보와 말투로 보존됩니다.";
     // 인증서가 없는 기록에서 "다시 열기"를 누르면 없는 증서를 지어내게 된다.
     const certificateButton = $("#record-detail-certificate");
     certificateButton.hidden = !(isOfficial || isCatLegacyCertificate(record));
@@ -4193,6 +4222,7 @@
 
   function openCertificate(record) {
     const butler = record.butler || snapshotButler(record);
+    const isCat = normalizeCharacter(butler.character) === "cat";
     const rare = record.verdictType === "rare" || record.rare;
     const legacyCertificate = isCatLegacyCertificate(record);
     const deedLength = Array.from(String(record.deed || "")).length;
@@ -4202,10 +4232,15 @@
     $("#certificate-card").dataset.deedLength = deedLength > 42 ? "extra-long" : deedLength > 24 ? "long" : "normal";
     $("#certificate-document-kind").textContent = legacyCertificate ? "보관 문서" : "공식 문서";
     $("#certificate-screen-title").textContent = legacyCertificate ? "기념 증서" : "공식 인정 증서";
-    $("#certificate-screen-copy").textContent = legacyCertificate ? "이전 사무국에서 발급된 기록을 보존합니다." : "당신의 대업을 공식적으로 인증합니다.";
+    $("#certificate-screen-copy").textContent = legacyCertificate
+      ? "이전 사무국에서 발급된 기록을 보존합니다."
+      : isCat ? "주인님과 담당 집사가 함께 쌓은 대업을 공식 인정합니다." : "당신의 대업을 공식적으로 인증합니다.";
     $("#certificate-title").textContent = legacyCertificate ? "기념 증서" : "공식 인정 증서";
+    const issueIndex = certificateIssueIndex(record);
     $("#certificate-declaration").textContent = legacyCertificate
       ? "아래의 기록이 이전 사무국 기준으로 발급된\n기념 증서임을 확인합니다"
+      : isCat
+        ? `아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에\n주인님과 담당 집사가 함께 받은 ${issueIndex === 1 ? "첫 공식 인정" : `제 ${issueIndex}차 공식 인정`}임을 증명합니다`
       : `아래의 기록이 ${certificateTargetFor(record)}건의 대업 끝에\n사무국의 공식 인정을 받았음을 기쁘게 증명합니다`;
     $$("#certificate-card .cert-sidetext").forEach(side => { side.textContent = `OVERBUTLER DUTY OFFICE · ${legacyCertificate ? "ARCHIVE" : "OFFICIAL"}`; });
     const serial = `${new Date().getFullYear()}-${String(record.number).padStart(6, "0")}`;
@@ -4218,16 +4253,21 @@
     $("#certificate-nickname").textContent = record.nickname;
     $("#certificate-field").textContent = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상 대업";
     $("#certificate-intake").textContent = `NO. ${record.number} / 누적 ${state.records.length}건`;
-    $("#certificate-issue").textContent = legacyCertificate ? "이전 버전 기념 증서" : `제 ${certificateIssueIndex(record)}차 공식 인정`;
+    $("#certificate-issue").textContent = legacyCertificate ? "이전 버전 기념 증서" : `제 ${issueIndex}차 공식 인정`;
     $("#certificate-owner-name").textContent = certificateOwnerName(record);
-    $("#certificate-butler-name").textContent = `발급 담당 ${butler.name}`;
+    const recordedStage = isCat ? storedText(record.relationshipStage) : "";
+    $("#certificate-butler-name").textContent = `발급 담당 ${butler.name}${recordedStage ? ` · ${recordedStage}` : ""}`;
     $("#certificate-date").textContent = record.date;
     $("#certificate-autograph").textContent = `${butler.name} 印`;
     const certificateStamp = $("#certificate-card .official-stamp");
     certificateStamp.setAttribute("aria-label", legacyCertificate ? "이전 버전 기념 증서" : "공식 대업 인증");
     certificateStamp.querySelector("span").innerHTML = legacyCertificate ? "기념<br>증서" : rare ? "희귀<br>인정" : "공식<br>인정";
-    $("#certificate-footnote").textContent = legacyCertificate ? "✦ 이전 버전 발급본을 주인님 파일에 그대로 보존했습니다. ✦" : "✦ 증서는 주인님 파일에서 다시 확인할 수 있어요. ✦";
-    $("#close-certificate").textContent = certificateOpenedFromFile ? "주인님 파일로 돌아가기" : "닫고 다른 대업 세우기";
+    $("#certificate-footnote").textContent = legacyCertificate
+      ? "✦ 이전 버전 발급본을 주인님 파일에 그대로 보존했습니다. ✦"
+      : isCat ? "✦ 주인님과 집사가 함께 받은 증서는 주인님 파일에 계속 보관됩니다. ✦" : "✦ 증서는 주인님 파일에서 다시 확인할 수 있어요. ✦";
+    $("#close-certificate").textContent = certificateOpenedFromFile
+      ? "주인님 파일로 돌아가기"
+      : isCat ? "증서 보관하고 홈으로" : "닫고 다른 대업 세우기";
     setPoseImage($("#certificate-butler-image"), butler.character, record.pose || "praise");
     $("#certificate-overlay").hidden = false;
     document.body.style.overflow = "hidden";

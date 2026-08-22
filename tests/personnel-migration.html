@@ -40,6 +40,13 @@
     runFixtureAssertions({
       target: "../index.html?personnel-fixture=1&fixture-no-overlay-observer=1",
       check: async (frame, assert, wait) => {
+        const until = async (test, timeout = 5000) => {
+          const started = Date.now();
+          while (!test()) {
+            if (Date.now() - started >= timeout) throw new Error("personnel fixture timed out");
+            await wait(50);
+          }
+        };
         const win = frame.contentWindow;
         const doc = frame.contentDocument;
         const migrated = win.OVERBUTLER_APP.migrateState(seed);
@@ -61,6 +68,24 @@
         assert.equal(doc.querySelector("#certificate-title").textContent, "기념 증서", "legacy keepsake opens in commemorative mode");
         assert.equal(doc.querySelector("#certificate-document-kind").textContent, "보관 문서", "legacy keepsake is not labelled as an official document");
         assert.equal(doc.querySelector("#certificate-issue").textContent, "이전 버전 기념 증서", "legacy keepsake does not enter the official issue count");
+        assert(doc.querySelector(".certificate-serialband").textContent.includes("다시 열람"), "certificate serial band agrees with owner-file reopening");
+        doc.querySelector("[data-certificate-close]").click();
+        await wait(30);
+        doc.querySelector('[data-view="home"]').click();
+        const storyInput = doc.querySelector("#achievement-input");
+        storyInput.value = "밥 먹었어";
+        storyInput.dispatchEvent(new Event("input", { bubbles: true }));
+        doc.querySelector("#report-button").click();
+        await until(() => !doc.querySelector("#analysis-overlay").hidden);
+        doc.querySelector("#analysis-overlay").click();
+        await until(() => !doc.querySelector("#praise-result-overlay").hidden);
+        assert(!doc.querySelector("#result-certificate-button").hidden, "fifth CAT record earns the first official certificate");
+        doc.querySelector("#result-certificate-button").click();
+        await until(() => !doc.querySelector("#certificate-overlay").hidden);
+        assert(doc.querySelector("#certificate-screen-copy").textContent.includes("주인님과 담당 집사") && doc.querySelector("#certificate-screen-copy").textContent.includes("함께 쌓은"), "CAT certificate credits owner and butler together");
+        assert(doc.querySelector("#certificate-declaration").textContent.includes("함께 받은 첫 공식 인정"), "first CAT certificate marks the shared first recognition");
+        assert(doc.querySelector("#certificate-butler-name").textContent.includes("첫 발령"), "CAT certificate preserves the butler stage at issue time");
+        assert.equal(doc.querySelector("#close-certificate").textContent, "증서 보관하고 홈으로", "CAT certificate closes without pressuring another achievement");
         doc.querySelector("[data-certificate-close]").click();
         await wait(30);
         win.OVERBUTLER_APP.openHandover("ai");
