@@ -71,6 +71,7 @@
   --hand: Gaegu, cursive;
 }
 
+
 /* ═══════════ 0. 사무용품 부품 ═══════════
    전부 CSS만 쓴다. 이미지 에셋을 늘리지 않고, 캐릭터 중립이라
    담당이 고양이든 아니든 같은 사무국 책상 위로 읽힌다.
@@ -4567,4 +4568,16 @@
 
 @media (max-width: 370px) {
   .personnel-incident-board article { grid-template-columns: 64px 1fr; gap-column: 7px; }
+}
+
+/* Compact quick actions: keep all five labels intact at 360px. */
+@media (max-width: 370px) {
+  #view-home .quick-actions {
+    gap: 5px;
+  }
+
+  #view-home .quick-actions button {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
 }
