@@ -1,8 +1,10 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>Diary reveal fixture</title>
+<script src="fixture-assertions.js"></script>
 <script>
-  const character = new URLSearchParams(location.search).get("character") || "cat";
+  const params = new URLSearchParams(location.search);
+  const character = params.get("character") || "cat";
   const names = { cat: "치즈냥", ai: "오류봇", dog: "멍대리" };
   const formatDate = date => new Intl.DateTimeFormat("ko-KR", {
     year: "numeric", month: "2-digit", day: "2-digit"
@@ -67,7 +69,7 @@
     diaryRevealVersion: 1,
     diaryRevealed: true
   });
-  localStorage.setItem("butlermaker_v1", JSON.stringify({
+  const seed = {
     onboarded: true,
     username: "테스트",
     character,
@@ -75,6 +77,27 @@
     ownedButlers: ["cat", "ai", "dog", character],
     lastActiveDate: today,
     diary: entries
-  }));
-  location.replace(`../index.html?diary-fixture=${character}`);
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (params.has("assert")) {
+    runFixtureAssertions({
+      target: `../index.html?diary-fixture=${character}`,
+      check: async (frame, assert, wait) => {
+        const win = frame.contentWindow;
+        const doc = frame.contentDocument;
+        const migrated = win.OVERBUTLER_APP.migrateState(seed);
+        assert.equal(migrated.diary.length, entries.length, "all diary entries survive migration");
+        doc.querySelector('[data-view="archive"]').click();
+        await wait(50);
+        const mixedNote = [...doc.querySelectorAll(".file-margin-note")]
+          .find(note => note.textContent.includes("신규 기록과 함께 있어도 공개되는 기존 일기 본문"));
+        assert(Boolean(mixedNote), "mixed same-day group keeps the legacy reflection visible");
+        assert(!mixedNote.classList.contains("sealed"), "legacy-public mixed group is not sealed again");
+        assert(doc.body.textContent.includes("기존 legacy 일기 본문 공개 유지"), "standalone legacy diary remains public");
+        assert(doc.body.textContent.includes("한번 공개된 일기 본문 공개 유지"), "already revealed diary remains public");
+      }
+    });
+  } else {
+    location.replace(`../index.html?diary-fixture=${character}`);
+  }
 </script>

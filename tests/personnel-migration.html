@@ -1,7 +1,9 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>과잉집사 인사 데이터 마이그레이션 픽스처</title>
+<script src="fixture-assertions.js"></script>
 <script>
+  const params = new URLSearchParams(location.search);
   const days = Array.from({ length: 7 }, (_, index) => `2026.08.${String(index + 1).padStart(2, "0")}`);
   const achievements = ["물 마심", "씻음", "답장함", "침대에서 일어남"].map((deed, index) => ({
     id: `legacy-${index}`,
@@ -16,7 +18,7 @@
     character: "cat",
     butlerName: "치즈대리"
   }));
-  localStorage.setItem("butlermaker_v1", JSON.stringify({
+  const seed = {
     onboarded: true,
     character: "cat",
     butlerName: "치즈대리",
@@ -31,6 +33,26 @@
       cat: { obsession: 35, gifts: 0, achievements: 4, activeDates: days, assignments: 1, customName: "치즈대리" }
     },
     diary: [{ id: "old-ai-diary", date: "2026.07.31", deed: "메일 확인", text: "[원조 AI] 기록 보존 테스트", character: "ai", butlerName: "오류팀장" }]
-  }));
-  location.replace("../index.html?personnel-fixture=1");
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (params.has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?personnel-fixture=1",
+      check: async (frame, assert, wait) => {
+        const win = frame.contentWindow;
+        const doc = frame.contentDocument;
+        const migrated = win.OVERBUTLER_APP.migrateState(seed);
+        assert.equal(migrated.records.length, 4, "legacy achievements become four records");
+        assert.equal(migrated.records[0].sourceText, "물 마심", "legacy record text becomes sourceText");
+        assert.equal(migrated.certificates.length, 0, "legacy keepsakes stay out of official certificates");
+        doc.querySelector('[data-view="archive"]').click();
+        await wait(50);
+        assert.equal(doc.querySelector("#records-official-count").textContent, "0", "official summary matches migrated certificates");
+        assert(doc.querySelector("#record-legend").textContent.includes("1건 남음"), "first-five progress counts the four migrated records");
+        assert.equal(doc.querySelectorAll(".record-legacy-cert").length, 4, "all four legacy keepsakes remain visible");
+      }
+    });
+  } else {
+    location.replace("../index.html?personnel-fixture=1");
+  }
 </script>

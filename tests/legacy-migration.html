@@ -1,8 +1,10 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>Legacy migration fixture</title>
+<script src="fixture-assertions.js"></script>
 <script>
-  localStorage.setItem("butlermaker_v1", JSON.stringify({
+  const params = new URLSearchParams(location.search);
+  const seed = {
     username: "테스트주인님",
     butlerName: "옛오류봇",
     character: "ai",
@@ -14,6 +16,20 @@
     startDate: new Date().toDateString(),
     todos: [{ id: "legacy-1", text: "옛 할 일", done: true, date: new Date().toDateString() }],
     diary: [{ date: "2026.08.07", todos: ["옛 할 일"], text: "[일일보고] 원문 보존", character: "ai" }]
-  }));
-  location.replace("../index.html");
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (params.has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?legacy-fixture=1",
+      check: async (frame, assert) => {
+        const migrated = frame.contentWindow.OVERBUTLER_APP.migrateState(seed);
+        assert.equal(migrated.obsession, 44, "legacy emotion becomes obsession");
+        assert.equal(migrated.gifts, 2, "legacy totalGifts becomes gifts");
+        assert.equal(migrated.diary.length, 1, "legacy diary entry is retained");
+        assert.equal(migrated.diary[0].sourceText, "옛 할 일", "legacy diary todo becomes sourceText fallback");
+      }
+    });
+  } else {
+    location.replace("../index.html");
+  }
 </script>
