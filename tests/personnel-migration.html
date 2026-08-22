@@ -11,7 +11,7 @@
     createdAt: `2026-08-0${index + 1}T09:00:00.000Z`,
     contribution: `${90 + index}점`,
     docNo: `대업-2026-${String(index + 1).padStart(4, "0")}`,
-    grade: "소소한 기적",
+    grade: index === 0 ? "인류사적 대업" : index === 1 ? "우주 최초 기록" : "소소한 기적",
     nickname: "생활력의 수호자",
     report: `원조 기록 ${index + 1}`,
     isCertificate: true,
@@ -45,6 +45,9 @@
         const migrated = win.OVERBUTLER_APP.migrateState(seed);
         assert.equal(migrated.records.length, 4, "legacy achievements become four records");
         assert.equal(migrated.records[0].sourceText, "물 마심", "legacy record text becomes sourceText");
+        assert.equal(migrated.records[0].grade, "인류사적 대업", "stored legacy grade remains unchanged");
+        assert.equal(win.OVERBUTLER_APP.displayGrade(migrated.records[0]), "사무국 정식 대업", "CAT normal grade uses office display wording");
+        assert.equal(win.OVERBUTLER_APP.displayGrade(migrated.records[1]), "과몰입 특별 대업", "CAT power grade uses office display wording");
         assert.equal(migrated.certificates.length, 0, "legacy keepsakes stay out of official certificates");
         doc.querySelector('[data-view="archive"]').click();
         await wait(50);

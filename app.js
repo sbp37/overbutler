@@ -341,6 +341,12 @@
     "대기 발령 확인서 뒷면에 주인님 파일 보관 규정을 별도로 적어 제출함.",
     "후임 서명란 옆에 ‘일기는 작성자별 보존’ 항목을 붉은 펜으로 재확인함."
   ]);
+  const CAT_GRADE_DISPLAY = Object.freeze({
+    "인류사적 대업": "사무국 정식 대업",
+    "국가적 성취": "금일 주요 대업",
+    "우주 최초 기록": "과몰입 특별 대업",
+    "설명 불가한 위업": "희귀 대업 판정"
+  });
   const GIFT_MESSAGES = {
     ai: "{gift} 입력 완료. WARNING: 행복 수치 최대치 도달. 논리 회로 잠시 오프라인.",
     cat: "이걸 집사한테 주는 거냥...? 흥, 딱히 꼬리가 올라간 건 아니다냥.",
@@ -1035,6 +1041,15 @@
   function normalizeCharacter(key) {
     const aliased = LEGACY_CHARACTER_ALIASES[key] || key;
     return CHARACTER_PROFILES[aliased] ? aliased : "cat";
+  }
+
+  // grade는 옛 기록·검색·공유 호환을 위해 저장값을 그대로 둔다. CAT 화면에서만
+  // 세계관 밖의 거대 비유를 사무국 문서 어휘로 바꿔 보여준다.
+  function displayGrade(record) {
+    const source = objectValue(record);
+    const grade = storedText(source.grade, "소소한 기적");
+    const character = normalizeCharacter(source.character || objectValue(source.butler).character);
+    return character === "cat" ? CAT_GRADE_DISPLAY[grade] || grade : grade;
   }
 
   // 저장된 명부/기록의 옛 키를 현재 키로 옮긴다. 목록에 없는 값은 그대로 통과시킨다.
@@ -2748,11 +2763,11 @@
     const sourceText = storedText(record.sourceText).trim();
     const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
       ? sourceText
-      : storedText(record.report || record.grade, "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
+      : storedText(record.report || displayGrade(record), "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
     // 공식 인정 건은 도장 자체가 인증서 진입로다(진입로 2). 카드 상세와 겹치지 않게 버튼으로 둔다.
     const approvalAction = `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">공식<br>인정</button>`;
     // 칭호는 해시태그가 아니라 수여된 이름이다. 공문 서체로 적어야 그 무게가 산다.
-    const appellation = record.nickname || record.grade;
+    const appellation = record.nickname || displayGrade(record);
     return `<article class="office-record-card ${statusClass}" data-record-id="${escapeHtml(String(record.id))}" tabindex="0" role="button" aria-label="${escapeHtml(record.deed)} 기록 상세 열기">
       <div class="record-number"><b>${listNumber}</b><span>NO.</span></div>
       <div class="record-main"><strong>${escapeHtml(record.deed)}${repeatCount > 1 ? ` <i class="record-repeat-badge">×${repeatCount}</i>` : ""}</strong><p>${escapeHtml(contextLine)}</p>${appellation ? `<small>칭호 · ${escapeHtml(appellation)}</small>` : ""}</div>
@@ -2817,7 +2832,7 @@
       if (recordGrade === "official" && !officialIds.has(record.id)) return false;
       if (recordGrade === "daily" && (record.rare || officialIds.has(record.id))) return false;
       if (!query) return true;
-      return normalizeDeed([record.deed, record.nickname, record.grade, record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
+      return normalizeDeed([record.deed, record.nickname, record.grade, displayGrade(record), record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
     };
     // 필터·검색 중에는 일지를 붙이지 않는다. 찾는 기록만 보여주는 게 그 화면의 일이다.
     const narrowed = recordGrade !== "all" || Boolean(query);
@@ -2892,7 +2907,7 @@
     $("#record-detail-number").textContent = `RECORD NO. ${String(record.number || state.records.indexOf(record) + 1).padStart(2, "0")}`;
     $("#record-detail-date").textContent = record.date;
     $("#record-detail-status").textContent = isOfficial ? "공식 인정" : legacyCertificate ? "기념 증서 보관" : record.stampEligible === false ? "칭찬 완료" : "대업 후보";
-    $("#record-detail-grade").textContent = record.grade;
+    $("#record-detail-grade").textContent = displayGrade(record);
     $("#record-detail-title").textContent = record.deed;
     $("#record-detail-nickname").textContent = `#${record.nickname}`;
     $("#record-detail-source").textContent = sourceText;
@@ -4137,7 +4152,7 @@
     $("#certificate-number").textContent = `SERIAL · 대업-${serial}`;
     const certRegno = $("#certificate-regno");
     if (certRegno) certRegno.textContent = `제 ${serial}호`;
-    $("#certificate-grade").textContent = `이번 인정 사유 · ${record.grade}`;
+    $("#certificate-grade").textContent = `이번 인정 사유 · ${displayGrade(record)}`;
     $("#certificate-deed").textContent = record.deed;
     // 기록 요지 4행 — 별점·점수 대신 사무국이 실제로 기재하는 항목만 남긴다.
     $("#certificate-nickname").textContent = record.nickname;
@@ -4191,7 +4206,7 @@
     $("#result-verdict").textContent = rare ? "희귀 채택" : power ? "과몰입 폭주" : "칭찬 지급";
     $("#result-stamp").innerHTML = rare ? "희귀<br>채택" : power ? "과몰입<br>폭주" : "승인";
     const fieldLabel = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
-    $("#result-butler-name").textContent = `${fieldLabel} 분야 · ${record.grade}`;
+    $("#result-butler-name").textContent = `${fieldLabel} 분야 · ${displayGrade(record)}`;
     $("#result-deed").textContent = `“${record.deed}”`;
     const pointsEarned = Number(record.pointsEarned) || 0;
     const relationshipGain = Number(record.relationshipGain) || 0;
@@ -4597,7 +4612,7 @@
     ctx.textAlign = "center";
 
     // 인정 사유 금박 칩
-    const chipLabel = `이번 인정 사유 · ${record.grade}`;
+    const chipLabel = `이번 인정 사유 · ${displayGrade(record)}`;
     ctx.font = `800 26px ${DISP}`;
     const chipWidth = ctx.measureText(chipLabel).width + 72;
     const chipY = ruleY + 160;
@@ -4999,7 +5014,7 @@
 
   function certificateShareText(record) {
     const result = "사무국의 공식 인정을 받았습니다.";
-    return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${record.grade} · ${record.nickname}\n#과잉집사 #오늘의대업`;
+    return `${certificateOwnerName(record)}의 하찮은 대업이 ${result}\n${record.deed}\n${displayGrade(record)} · ${record.nickname}\n#과잉집사 #오늘의대업`;
   }
 
   async function copyCertificateText(text) {
@@ -5928,6 +5943,7 @@
     judgeAchievement, getPraise, giftResponse, giftInteractionFor, pointsEarnedFor, relationshipGainFor,
     applicantStatus, checkApplicantUnlocks, hireApplicant, deferApplicant, openHandover, switchButler, renameCurrentButler,
     migrateState: normalizeState,
+    displayGrade,
     certificationStatus,
     // 공유 이미지는 화면과 같은 증서여야 한다. 회귀 확인용으로 생성기를 그대로 연다.
     createCertificateBlob,
