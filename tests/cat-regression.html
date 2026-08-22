@@ -155,7 +155,12 @@
           row.dataset.status = "fail";
           row.querySelector("output").textContent = `FAIL · ${error.message}`;
         } finally {
-          frame.dataset.fixtureComplete = "true";
+          await new Promise(resolve => {
+            frame.addEventListener("load", resolve, { once: true });
+            frame.src = "about:blank";
+          });
+          await new Promise(resolve => window.setTimeout(resolve, 250));
+          frame.remove();
         }
         summary.querySelector("span").textContent = `${index + 1} / ${CASES.length}`;
       }
@@ -166,7 +171,7 @@
       rerun.disabled = false;
     }
 
-    rerun.addEventListener("click", () => window.location.reload());
+    rerun.addEventListener("click", run);
     run();
   </script>
 </body>

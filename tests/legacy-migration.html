@@ -20,7 +20,7 @@
   localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
   if (params.has("assert")) {
     runFixtureAssertions({
-      target: "../index.html?legacy-fixture=1",
+      target: "../index.html?legacy-fixture=1&fixture-no-overlay-observer=1",
       check: async (frame, assert) => {
         const migrated = frame.contentWindow.OVERBUTLER_APP.migrateState(seed);
         assert.equal(migrated.obsession, 44, "legacy emotion becomes obsession");

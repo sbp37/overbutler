@@ -81,7 +81,7 @@
   localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
   if (params.has("assert")) {
     runFixtureAssertions({
-      target: `../index.html?diary-fixture=${character}`,
+      target: `../index.html?diary-fixture=${character}&fixture-no-overlay-observer=1`,
       check: async (frame, assert, wait) => {
         const win = frame.contentWindow;
         const doc = frame.contentDocument;

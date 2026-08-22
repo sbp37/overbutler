@@ -9,7 +9,7 @@
 
   if (params.has("assert")) {
     runFixtureAssertions({
-      target: "../index.html?cat-relationship-stages-fixture=1",
+      target: "../index.html?cat-relationship-stages-fixture=1&fixture-no-overlay-observer=1",
       check: async (frame, assert, wait) => {
         const until = async (test, timeout = 5000) => {
           const started = Date.now();
@@ -63,7 +63,7 @@
               resolve();
             }, { once: true });
           });
-          nextFrame.src = `../index.html?cat-relationship-stages-fixture=1&stage=${stage.obsession}`;
+          nextFrame.src = `../index.html?cat-relationship-stages-fixture=1&stage=${stage.obsession}&fixture-no-overlay-observer=1`;
           document.body.append(nextFrame);
           await loaded;
           appFrame = nextFrame;
@@ -82,6 +82,7 @@
           const rendered = await renderStage(stage, recordedState);
           assert.equal(rendered.title, stage.title, `${stage.obsession} CAT stage shows career title`);
           assert.equal(rendered.badge, stage.badge, `${stage.obsession} CAT stage shows career badge`);
+          assert(!/(감사실|적발|징계|감시)/.test(rendered.summary), `${stage.obsession} CAT stage avoids punitive or surveillance framing`, rendered.summary);
         }
 
         const withoutRecord = await renderStage(stages[2], emptyState);
@@ -90,7 +91,13 @@
 
         const withRecord = await renderStage(stages[2], recordedState);
         assert(withRecord.summary.includes("집사 서류"), "recorded stage can praise CAT paperwork");
-        assert(withRecord.summary.includes("테스트주인님 이야기 덕"), "recorded stage credits the actual owner's story");
+        assert(withRecord.summary.includes("테스트주인님 이야기") && withRecord.summary.includes("잘 맡은 덕"), "recorded stage credits the actual owner's story");
+
+        const recognized = await renderStage(stages[3], recordedState);
+        assert(recognized.summary.includes("들뜬 건 아니다냥") && recognized.summary.includes("주인님 덕"), "mid-career recognition keeps one restrained CAT excitement beat");
+
+        const finalStage = await renderStage(stages[5], recordedState);
+        assert(finalStage.summary.includes("앞으로도 잘 맡겠다냥"), "final CAT stage ends with continued responsibility");
       }
     });
   } else {
