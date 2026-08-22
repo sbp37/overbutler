@@ -1,0 +1,116 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CAT weekly report and return fixture</title>
+<script src="fixture-assertions.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const formatDate = date => new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric", month: "2-digit", day: "2-digit"
+  }).format(date).replace(/\. /g, ".").replace(/\.$/, "");
+  const now = new Date();
+  const previous = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const today = formatDate(now);
+  const yesterday = formatDate(previous);
+  const record = {
+    id: "weekly-cat-1",
+    number: 1,
+    date: today,
+    deed: "힘든 날 물 한 잔 챙기기",
+    sourceText: "오늘 힘들었는데 물 한 잔 마셨어",
+    discoveredAchievement: "힘든 날 물 한 잔 챙기기",
+    report: "힘든 날에도 물을 챙긴 기록이다냥.",
+    reactionLines: ["집사가 반듯하게 기록했다냥."],
+    character: "cat",
+    butlerName: "치즈냥",
+    grade: "소소한 기적",
+    nickname: "수분을 지킨 주인님",
+    category: "health",
+    stampEligible: true,
+    relationshipStage: "업무 인정"
+  };
+  const seed = {
+    onboarded: true,
+    username: "테스트주인님",
+    character: "cat",
+    butlerName: "치즈냥",
+    obsession: 40,
+    fame: 12,
+    records: [record],
+    certificates: [],
+    diary: [],
+    ownedButlers: ["cat"],
+    lastActiveDate: yesterday,
+    butlerStats: {
+      cat: { obsession: 40, achievements: 1, activeDates: [today], assignments: 1, customName: "치즈냥" }
+    }
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+
+  if (params.has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?cat-weekly-return-fixture=1&fixture-no-overlay-observer=1",
+      check: async (frame, assert, wait) => {
+        const until = async (test, timeout = 5000) => {
+          const started = Date.now();
+          while (!test()) {
+            if (Date.now() - started >= timeout) throw new Error("CAT weekly fixture timed out");
+            await wait(50);
+          }
+        };
+        let doc = frame.contentDocument;
+        await until(() => {
+          const message = doc.querySelector("#briefing-message").textContent;
+          return message.includes("기록1과에서 칭찬받은 집사") && message.includes("주인님 덕");
+        });
+        assert(doc.querySelector("#briefing-message").textContent.includes("주인님 덕"), "return greeting reflects the current CAT career stage");
+        assert(!/(며칠|오랜만|안 왔|기다린 지)/.test(doc.querySelector("#briefing-message").textContent), "return greeting does not measure absence");
+
+        doc.querySelector('[data-view="report"]').click();
+        await until(() => doc.querySelector("#view-report").classList.contains("active"));
+        assert(doc.querySelector("#report-butler-intro").textContent.includes("1건 맡았다냥"), "CAT weekly intro uses CAT voice and submitted count");
+        assert(doc.querySelector("#weekly-comment-copy").textContent.includes("기록1과") && doc.querySelector("#weekly-comment-copy").textContent.includes("잘 맡은 덕"), "CAT weekly comment connects current career recognition");
+        assert(doc.querySelector("#weekly-comment-signature").textContent.includes("첫 담당 치즈냥"), "CAT weekly report uses the assigned CAT name");
+        assert(doc.querySelector("#report-memo").textContent.includes("집사 성장 기록"), "CAT weekly memo frames records as shared growth");
+        assert(!doc.querySelector("#weekly-next-button").textContent.includes("다음 대업"), "CAT weekly CTA does not pressure another achievement");
+
+        const emptySeed = {
+          ...seed,
+          obsession: 40,
+          records: [],
+          fame: 0,
+          lastActiveDate: yesterday,
+          butlerStats: { cat: { ...seed.butlerStats.cat, obsession: 40, achievements: 0, activeDates: [] } }
+        };
+        localStorage.setItem("butlermaker_v1", JSON.stringify(emptySeed));
+        const emptyFrame = document.createElement("iframe");
+        emptyFrame.hidden = true;
+        const loaded = new Promise((resolve, reject) => {
+          const timeout = window.setTimeout(() => reject(new Error("empty weekly frame timed out")), 5000);
+          emptyFrame.addEventListener("load", () => {
+            window.clearTimeout(timeout);
+            resolve();
+          }, { once: true });
+        });
+        emptyFrame.src = "../index.html?cat-weekly-empty-fixture=1&fixture-no-overlay-observer=1";
+        document.body.append(emptyFrame);
+        await loaded;
+        doc = emptyFrame.contentDocument;
+        await until(() => doc.querySelector("#briefing-message").textContent.includes("접수대 준비가 반듯하다고 칭찬받았다냥"));
+        assert(!doc.querySelector("#briefing-message").textContent.includes("기록1과"), "gift-grown CAT return does not invent owner records");
+        doc.querySelector('[data-view="report"]').click();
+        await until(() => doc.querySelector("#view-report").classList.contains("active"));
+        assert(doc.querySelector("#report-butler-intro").textContent.includes("빈 주도 그대로 보관"), "empty CAT week is treated as a valid archived week");
+        assert(doc.querySelector("#weekly-comment-copy").textContent.includes("쉬는 주") && doc.querySelector("#weekly-comment-copy").textContent.includes("자리는 그대로"), "empty CAT report keeps presence without guilt");
+        assert(!/(늦지 않았|접수해볼까요|기다리고 있어)/.test(doc.querySelector("#view-report").textContent), "empty CAT report removes achievement pressure");
+        await new Promise(resolve => {
+          emptyFrame.addEventListener("load", resolve, { once: true });
+          emptyFrame.src = "about:blank";
+        });
+        await wait(250);
+        emptyFrame.remove();
+      }
+    });
+  } else {
+    location.replace("../index.html?cat-weekly-return-fixture=1");
+  }
+</script>

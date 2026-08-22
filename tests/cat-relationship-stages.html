@@ -68,6 +68,11 @@
           await loaded;
           appFrame = nextFrame;
           doc = appFrame.contentDocument;
+          await new Promise(resolve => {
+            previousFrame.addEventListener("load", resolve, { once: true });
+            previousFrame.src = "about:blank";
+          });
+          await wait(250);
           previousFrame.remove();
           doc.querySelector('[data-view="manager"]').click();
           await wait(250);

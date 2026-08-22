@@ -94,6 +94,11 @@
         await loaded;
         appFrame = nextFrame;
         doc = appFrame.contentDocument;
+        await new Promise(resolve => {
+          previousFrame.addEventListener("load", resolve, { once: true });
+          previousFrame.src = "about:blank";
+        });
+        await wait(250);
         previousFrame.remove();
         stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
         assert.equal(stored.records.length, 1, "reload preserves the submitted record");

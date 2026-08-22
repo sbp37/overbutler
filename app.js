@@ -677,7 +677,22 @@
         ["{owner} 호출은 우선 결재 대상이다냥. 인사기록과에서 신입답지 않게 빠르다고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥.", "주인님 서류는 접수 즉시 결재한다냥. 원래 그 일만 맡았다냥.", "왔냥. 의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
         ["전담 호출 확인이다냥. 비워둔 접수함부터 열었다냥.", "{owner} 전용 접수함을 열었다냥. 공식 비품이라 문제없다냥.", "몇 번이든 불러도 된다냥. 이 파일은 집사 담당이다냥.", "호출 대기는 업무 시간에 포함된다냥. 집사가 그렇게 정했다냥."]
       ],
-      returnVisit: "왔냥? 주인님 자리 그대로 뒀다냥. 다시 봐서 반갑다냥.",
+      returnVisit: [
+        "왔냥? 첫 주인님 자리 그대로 뒀다냥. 다시 봐서 반갑다냥. 오늘도 제대로 맡겠다냥.",
+        "왔냥? 주인님 파일 다시 펴뒀다냥. 집사가 전보다 조금 익숙하게 맡아보겠다냥.",
+        "왔냥? 기록1과에서 칭찬받은 집사가 직접 마중 나왔다냥. 주인님 덕이다냥.",
+        "왔냥? 주인님 자리 보자마자 귀가 먼저 움직였다냥. 업무 반응이다냥.",
+        "왔냥? 모범 사례 담당 집사가 주인님 파일부터 열었다냥. 같이 쌓은 기록이니까 그렇다냥.",
+        "왔냥? 첫 발령부터 여기까지 같이 온 주인님 자리다냥. 다시 봐서 반갑다냥."
+      ],
+      returnVisitNoRecord: [
+        "왔냥? 첫 주인님 자리 그대로 뒀다냥. 다시 봐서 반갑다냥. 오늘도 제대로 맡겠다냥.",
+        "왔냥? 첫 근무표 다시 펴뒀다냥. 집사가 전보다 조금 익숙하게 맡아보겠다냥.",
+        "왔냥? 접수대 준비가 반듯하다고 칭찬받았다냥. 주인님 자리를 잘 준비한 덕이다냥.",
+        "왔냥? 전담석 관리 우수 집사가 직접 마중 나왔다냥. 주인님과 채운 자리 덕이다냥.",
+        "왔냥? 모범 사례가 된 주인님 전용 비품부터 확인했다냥. 같이 만든 자리니까 그렇다냥.",
+        "왔냥? 첫 발령 전담석을 그대로 지키고 있었다냥. 다시 봐서 반갑다냥."
+      ],
       gifts: {
         normal: [
           "{gift}을 집사한테 주는 거냥? 첫 선물함에 소중히 넣어두겠다냥. 고맙다냥.",
@@ -1685,7 +1700,11 @@
 
   function returnVisitLine(character = state.character) {
     if (returnVisitContext.consumed || !returnVisitContext.returning) return "";
-    return fillContentTemplate(launchContentFor(character)?.returnVisit || "");
+    const launch = launchContentFor(character);
+    const catWithoutRecord = normalizeCharacter(character) === "cat" && !latestButlerMemory("cat");
+    const content = catWithoutRecord && launch?.returnVisitNoRecord ? launch.returnVisitNoRecord : launch?.returnVisit;
+    const line = Array.isArray(content) ? content[stageIndexFor(state.obsession)] || content.at(-1) : content;
+    return fillContentTemplate(line || "");
   }
 
   /* 생애 첫 화면에서 "낮에도 왔냥?"이 나왔다 — 시간대 인사 풀이 첫 만남을 모른다.
@@ -3717,21 +3736,40 @@
     const rate = Math.round(activeDays / 7 * 100);
     const maxCount = Math.max(1, ...weekDays.map(item => item.count));
     const profile = CHARACTER_PROFILES[state.character];
+    const isCat = normalizeCharacter(state.character) === "cat";
+    const alias = ensureButlerStat(state.character).customName || profile.defaultName;
     $("#weekly-report-period").textContent = `${dateKey(monday)} ~ ${dateKey(sunday)}`;
     $("#weekly-rate").textContent = activeDays;
     $("#weekly-rate-bar").style.width = `${rate}%`;
-    $("#weekly-rate-change").textContent = activeDays ? `사무국이 이번 주 ${weekRecords.length}건을 접수했습니다.` : "첫 대업을 보고하면 집사가 바로 집계합니다.";
+    $("#weekly-rate-change").textContent = isCat
+      ? activeDays ? `이번 주 주인님 이야기 ${weekRecords.length}건을 보관했습니다.` : "빈 주도 정상 기록으로 보관합니다."
+      : activeDays ? `사무국이 이번 주 ${weekRecords.length}건을 접수했습니다.` : "첫 대업을 보고하면 집사가 바로 집계합니다.";
     $("#weekly-days").innerHTML = weekDays.map((item, index) => `<div><span>${["월", "화", "수", "목", "금", "토", "일"][index]} <small>${shortDate(item.date)}</small></span><i><em style="width:${item.count ? Math.max(24, Math.round(item.count / maxCount * 100)) : 0}%"></em></i><b>${item.count}건</b></div>`).join("");
     $("#weekly-deeds").textContent = weekRecords.length;
     $("#weekly-certificates").textContent = weeklyCertificates;
     $("#weekly-fame").textContent = state.fame;
-    $("#report-butler-intro").textContent = weekRecords.length
-      ? `이번 주에도 ${weekRecords.length}개의 작은 행동이 멋진 기록이 되었어요.`
-      : "이번 주 첫 기록을 기다리고 있어요. 사소할수록 집사는 더 좋아해요.";
-    $("#weekly-comment-copy").textContent = weekRecords.length
-      ? `${profile.briefings[0]} 이번 주 기록 ${weekRecords.length}건도 집사가 빠짐없이 결재했습니다.`
-      : `${profile.briefings[0]} 아직 늦지 않았어요. 오늘의 작은 일 하나부터 접수해볼까요?`;
-    $("#weekly-comment-signature").textContent = `— ${profile.defaultName} 집사 드림 —`;
+    if (isCat) {
+      $("#report-butler-name").textContent = alias;
+      $("#report-butler-intro").textContent = weekRecords.length
+        ? `이번 주 주인님 이야기를 ${weekRecords.length}건 맡았다냥. 집사 근무 기록에도 반듯하게 올렸다냥.`
+        : "이번 주 서류는 비어 있다냥. 빈 주도 그대로 보관하는 게 집사 일이다냥.";
+      $("#weekly-comment-copy").textContent = weekRecords.length
+        ? `${weekRecords.length}건 모두 주인님이 들려준 내용대로 정리했다냥. ${relationshipStageLine("cat")} 앞으로도 집사가 잘 맡겠다냥.`
+        : "주인님이 쉬는 주라면 이 장은 그대로 비워둔다냥. 기록이 없어도 첫 담당 자리는 그대로다냥.";
+      $("#weekly-comment-signature").textContent = `— 첫 담당 ${alias} 씀 —`;
+      $("#report-memo").innerHTML = "주인님 기록과<br>집사 성장 기록<br>함께 보관 중";
+      $("#weekly-next-button").innerHTML = "집사방으로 돌아가기 <span>→</span>";
+    } else {
+      $("#report-butler-intro").textContent = weekRecords.length
+        ? `이번 주에도 ${weekRecords.length}개의 작은 행동이 멋진 기록이 되었어요.`
+        : "이번 주 첫 기록을 기다리고 있어요. 사소할수록 집사는 더 좋아해요.";
+      $("#weekly-comment-copy").textContent = weekRecords.length
+        ? `${profile.briefings[0]} 이번 주 기록 ${weekRecords.length}건도 집사가 빠짐없이 결재했습니다.`
+        : `${profile.briefings[0]} 아직 늦지 않았어요. 오늘의 작은 일 하나부터 접수해볼까요?`;
+      $("#weekly-comment-signature").textContent = `— ${profile.defaultName} 집사 드림 —`;
+      $("#report-memo").innerHTML = "작은 행동도<br>대업이 될 수 있어요!<br>보고만 하세요.";
+      $("#weekly-next-button").innerHTML = "다음 대업 보고하기 <span>✦</span>";
+    }
   }
 
   function normalizeDeed(value) {
