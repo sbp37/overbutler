@@ -22,6 +22,14 @@
     { name: "특별대우", badge: "우선 처리", summary: "주인님 관련 서류만 슬쩍 먼저 처리하는 편애가 들킵니다.", upgrade: "일반 업무보다 주인님 관련 서류가 먼저 결재되기 시작했습니다." },
     { name: "전담 확정", badge: "전담 유지", summary: "업무 연속성을 핑계로 계속 전담하겠다고 주장합니다.", upgrade: "전담 유지 타당성 보고서가 사무국에서 정식 승인됐습니다." }
   ];
+  const CAT_RELATIONSHIP_STAGE_DISPLAY = Object.freeze([
+    { name: "첫 발령", badge: "신입 준비" },
+    { name: "첫 결재 통과", badge: "결재 통과" },
+    { name: "칭찬받는 신입", badge: "기록1과 칭찬" },
+    { name: "전담 업무 인정", badge: "근무평 인정" },
+    { name: "모범 전담석", badge: "모범 사례" },
+    { name: "전담 집사 인정", badge: "전담 인정" }
+  ]);
   const STAGES = RELATIONSHIP_STAGES.map(stage => stage.name);
   // 단계 경계는 chat-engine이 들고 있다. 화면 단계와 대사 티어가 같은 눈금을 쓰기 위해서다.
   const STAGE_BOUNDARIES = CHAT_ENGINE?.RELATIONSHIP_BOUNDARIES || [0, 18, 40, 60, 80, 100];
@@ -657,7 +665,7 @@
         "{owner} 파일이 집사 첫 발령이다냥. 접수도 판정도 기록도 제대로 맡겠다냥.",
         "첫 근무표에 준비 완료 도장을 받았다냥. 주인님 자리 맡은 덕이다냥.",
         "기록1과에서 접수대 준비가 반듯하다고 칭찬했다냥… 들뜬 건 아니다냥.",
-        "전담석 관리가 신입답지 않게 안정적이라고 했다냥. 주인님이 곁을 채워준 덕이다냥.",
+        "전담석 관리가 신입답지 않게 안정적이라고 했다냥. 주인님과 채운 자리 덕이다냥.",
         "주인님 전용 비품 배치가 사무국 모범 사례로 등록됐다냥… 같이 채운 자리 덕이다냥.",
         "첫 발령 전담석이 공식 근무 사례로 남았다냥. 주인님 덕이다냥."
       ],
@@ -1486,6 +1494,11 @@
     return Math.min(RELATIONSHIP_STAGES.length - 1, index);
   }
   function relationshipStageFor(obsession) { return RELATIONSHIP_STAGES[stageIndexFor(obsession)]; }
+  function relationshipStageDisplayFor(obsession, character = state.character) {
+    const index = stageIndexFor(obsession);
+    const base = RELATIONSHIP_STAGES[index];
+    return normalizeCharacter(character) === "cat" ? { ...base, ...CAT_RELATIONSHIP_STAGE_DISPLAY[index] } : base;
+  }
   function pointsToNextStage(obsession) {
     const index = stageIndexFor(obsession);
     return index >= RELATIONSHIP_STAGES.length - 1 ? 0 : STAGE_BOUNDARIES[index + 1] - clamp(obsession, 0, 100);
@@ -2135,7 +2148,7 @@
   }
 
   function renderRelationshipStatus() {
-    const stage = relationshipStageFor(state.obsession);
+    const stage = relationshipStageDisplayFor(state.obsession);
     const remaining = pointsToNextStage(state.obsession);
     $("#home-relationship-stage").textContent = stage.name;
     $("#home-relationship-next").textContent = remaining ? "다음 칸 결재 대기" : "최고 관계 도달";
@@ -2157,8 +2170,9 @@
     const index = stageIndexFor(obsession);
     // 마지막 칸은 도달하는 순간이 곧 완료다 — 그 위로 더 갈 눈금이 없으니
     // 점선으로 두면 "아직 진행 중"이라는 거짓말이 된다.
-    const last = RELATIONSHIP_STAGES.length - 1;
-    return RELATIONSHIP_STAGES.map((stage, position) => {
+    const displayStages = normalizeCharacter(state.character) === "cat" ? CAT_RELATIONSHIP_STAGE_DISPLAY : RELATIONSHIP_STAGES;
+    const last = displayStages.length - 1;
+    return displayStages.map((stage, position) => {
       const reached = position < index || (position === index && index === last);
       const status = reached ? "done" : position === index ? "now" : "locked";
       const label = position <= index ? escapeHtml(stage.name) : "「?」";
@@ -2170,8 +2184,8 @@
   function renderRelationshipResult(prefix, before, after, delta, source) {
     const element = $(`#${prefix}-relationship-result`);
     if (!element) return;
-    const previousStage = relationshipStageFor(before);
-    const currentStage = relationshipStageFor(after);
+    const previousStage = relationshipStageDisplayFor(before);
+    const currentStage = relationshipStageDisplayFor(after);
     const nextIndex = stageIndexFor(after);
     const upgraded = nextIndex > stageIndexFor(before);
     element.classList.toggle("upgraded", upgraded);
