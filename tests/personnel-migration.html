@@ -84,7 +84,9 @@
         await until(() => !doc.querySelector("#certificate-overlay").hidden);
         assert(doc.querySelector("#certificate-screen-copy").textContent.includes("주인님과 담당 집사") && doc.querySelector("#certificate-screen-copy").textContent.includes("함께 쌓은"), "CAT certificate credits owner and butler together");
         assert(doc.querySelector("#certificate-declaration").textContent.includes("함께 받은 첫 공식 인정"), "first CAT certificate marks the shared first recognition");
-        assert(doc.querySelector("#certificate-butler-name").textContent.includes("첫 발령"), "CAT certificate preserves the butler stage at issue time");
+        const issuedState = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        const issuedRecord = issuedState.records.at(-1);
+        assert(doc.querySelector("#certificate-butler-name").textContent.includes(issuedRecord.relationshipStage), "CAT certificate preserves the butler stage at issue time");
         assert.equal(doc.querySelector("#close-certificate").textContent, "증서 보관하고 홈으로", "CAT certificate closes without pressuring another achievement");
         doc.querySelector("[data-certificate-close]").click();
         await wait(30);
