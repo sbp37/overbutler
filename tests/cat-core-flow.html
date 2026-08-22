@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CAT core flow fixture</title>
+<script src="fixture-assertions.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  localStorage.removeItem("butlermaker_v1");
+  localStorage.removeItem("overbutler-v2-state");
+
+  if (params.has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?cat-core-fixture=1",
+      check: async (frame, assert, wait) => {
+        const until = async (test, timeout = 5000) => {
+          const started = Date.now();
+          while (!test()) {
+            if (Date.now() - started >= timeout) throw new Error("core flow timed out");
+            await wait(50);
+          }
+        };
+        let doc = frame.contentDocument;
+        const win = frame.contentWindow;
+
+        assert(!doc.querySelector("#assignment-screen").hidden, "empty storage opens CAT assignment");
+        assert(doc.querySelector("#assignment-screen").textContent.includes("고양이 집사"), "first assigned character is CAT");
+        const ownerInput = doc.querySelector("#owner-name-input");
+        ownerInput.value = "테스트주인님";
+        ownerInput.dispatchEvent(new Event("input", { bubbles: true }));
+        doc.querySelector("#accept-butler").click();
+        await until(() => doc.querySelector("#assignment-screen").hidden && !doc.querySelector("#main-screen").hidden);
+        let stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
+        assert.equal(stored.username, "테스트주인님", "onboarding owner name is persisted");
+        assert.equal(stored.character, "cat", "onboarding persists CAT assignment");
+
+        const storyInput = doc.querySelector("#achievement-input");
+        storyInput.value = "씻었어";
+        storyInput.dispatchEvent(new Event("input", { bubbles: true }));
+        doc.querySelector("#report-button").click();
+        await until(() => !doc.querySelector("#praise-result-overlay").hidden);
+        assert(Boolean(doc.querySelector("#result-title").textContent.trim()), "first submission reaches the result sheet");
+        assert(doc.querySelector("#result-deed").textContent.includes("씻"), "result sheet reflects the submitted story");
+        stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
+        assert.equal(stored.records.length, 1, "first submission creates one record");
+        assert.equal(stored.records[0].sourceText, "씻었어", "record preserves exact sourceText");
+        assert(Boolean(stored.records[0].discoveredAchievement), "record preserves discovered achievement");
+        assert(stored.records[0].reactionLines.length >= 1 && stored.records[0].reactionLines.length <= 3, "record preserves one to three reaction lines");
+        assert.equal(stored.diary.length, 1, "first submission creates one diary entry");
+        assert(stored.diary[0].diaryRevealVersion > 0, "today diary entry is created with reveal version");
+
+        doc.querySelector("#result-close").click();
+        await until(() => doc.querySelector("#praise-result-overlay").hidden);
+        doc.querySelector('[data-view="archive"]').click();
+        await until(() => doc.querySelector(".office-record-card"));
+        const recordId = stored.records[0].id;
+        const recordCard = doc.querySelector(`[data-record-id="${CSS.escape(String(recordId))}"]`);
+        assert(Boolean(recordCard), "owner file renders the new record card");
+        recordCard.click();
+        await until(() => !doc.querySelector("#record-detail-overlay").hidden);
+        assert.equal(doc.querySelector("#record-detail-source").textContent, "씻었어", "record detail shows exact sourceText");
+        assert.equal(doc.querySelector("#record-detail-achievement").textContent, stored.records[0].discoveredAchievement, "record detail shows discovered achievement");
+        assert(doc.querySelectorAll("#record-detail-reactions p").length >= 1, "record detail shows the original butler reaction");
+        doc.querySelector("#record-detail-back").click();
+        await until(() => doc.querySelector("#record-detail-overlay").hidden);
+        const teaser = doc.querySelector(".diary-teaser.file-margin-note.sealed");
+        assert(Boolean(teaser), "today diary is visible as a sealed teaser");
+        assert(teaser.textContent.includes("다음 날짜"), "today teaser explains next-date reveal");
+
+        win.location.reload();
+        await wait(250);
+        await until(() => frame.contentDocument.readyState === "complete" && frame.contentDocument.querySelector("#main-screen"));
+        doc = frame.contentDocument;
+        stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
+        assert.equal(stored.records.length, 1, "reload preserves the submitted record");
+        doc.querySelector('[data-view="archive"]').click();
+        await until(() => doc.querySelector(`[data-record-id="${CSS.escape(String(recordId))}"]`));
+        assert(Boolean(doc.querySelector(".diary-teaser.file-margin-note.sealed")), "reload preserves today's sealed diary teaser");
+      }
+    });
+  } else {
+    location.replace("../index.html?cat-core-fixture=1");
+  }
+</script>

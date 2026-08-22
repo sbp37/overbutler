@@ -86,7 +86,7 @@
       <p>브라우저와 localStorage가 필요한 핵심 계약을 순서대로 확인합니다.</p>
     </header>
     <section id="summary" data-status="running" role="status" aria-live="polite">
-      <strong>검사 준비 중</strong><span>0 / 3</span>
+      <strong>검사 준비 중</strong><span>0 / 4</span>
     </section>
     <ol id="cases"></ol>
     <button id="rerun" type="button" disabled>검사 다시 실행</button>
@@ -95,7 +95,8 @@
     const CASES = [
       { name: "Legacy state migration", note: "옛 상태값과 일기 fallback", src: "legacy-migration.html?assert=1" },
       { name: "CAT personnel archive", note: "기념 증서·발령·사내 사건", src: "personnel-migration.html?assert=1" },
-      { name: "CAT diary reveal", note: "혼합 그룹 공개 우선", src: "diary-reveal.html?assert=1&character=cat" }
+      { name: "CAT diary reveal", note: "혼합 그룹 공개 우선", src: "diary-reveal.html?assert=1&character=cat" },
+      { name: "CAT core journey", note: "온보딩·접수·기록·티저·새로고침", src: "cat-core-flow.html?assert=1" }
     ];
     const list = document.querySelector("#cases");
     const summary = document.querySelector("#summary");
@@ -130,7 +131,7 @@
     async function run() {
       rerun.disabled = true;
       summary.dataset.status = "running";
-      summary.innerHTML = "<strong>검사 실행 중</strong><span>0 / 3</span>";
+      summary.innerHTML = `<strong>검사 실행 중</strong><span>0 / ${CASES.length}</span>`;
       list.innerHTML = CASES.map((item, index) => `<li data-status="pending"><b>${String(index + 1).padStart(2, "0")}</b><div><strong>${item.name}</strong><small>${item.note}</small></div><output>대기</output></li>`).join("");
       let passed = 0;
       let checks = 0;
