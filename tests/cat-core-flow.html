@@ -23,6 +23,10 @@
 
         assert(!doc.querySelector("#assignment-screen").hidden, "empty storage opens CAT assignment");
         assert(doc.querySelector("#assignment-screen").textContent.includes("고양이 집사"), "first assigned character is CAT");
+        const assignmentCopy = doc.querySelector(".assignment-copy");
+        const assignmentCopyStyle = doc.defaultView.getComputedStyle(assignmentCopy);
+        assert(assignmentCopyStyle.display !== "none" && assignmentCopyStyle.visibility !== "hidden", "first-assignment world rule is visible on onboarding");
+        assert(assignmentCopy.textContent.includes("첫 발령") && assignmentCopy.textContent.includes("생애 첫 주인님"), "onboarding identifies CAT's first assignment and first owner");
         const ownerInput = doc.querySelector("#owner-name-input");
         ownerInput.value = "테스트주인님";
         ownerInput.dispatchEvent(new Event("input", { bubbles: true }));

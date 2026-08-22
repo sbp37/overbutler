@@ -14,6 +14,7 @@
 .assignment-document .bureau-name{position:relative;z-index:1;margin:0 0 7px;color:#976d36;font-size:9px;font-weight:850;letter-spacing:.11em}
 .assignment-document h1{position:relative;z-index:1;margin:0;color:#493737;font:900 29px/1.22 "Noto Serif KR",serif;letter-spacing:-.045em}
 .assignment-copy{position:relative;z-index:1;margin:10px auto 4px;max-width:300px;color:#776861;font-size:11px;line-height:1.5;word-break:keep-all}
+.assignment-copy strong{color:#721c2b;font-weight:850}
 .assignment-character-stage{position:relative;z-index:1;height:238px;margin:2px auto 0;display:flex;align-items:flex-end;justify-content:center}
 .assignment-character-stage:before{content:"OVERBUTLER";position:absolute;left:50%;top:35px;width:128px;height:128px;display:grid;place-items:center;border:4px double rgba(130,72,56,.08);border-radius:50%;color:rgba(130,72,56,.11);font-size:9px;font-weight:900;letter-spacing:.08em;transform:translateX(-50%) rotate(-15deg)}
 .assignment-character{position:relative;z-index:1;width:200px;height:235px;margin:0;object-fit:contain;clip-path:none;filter:drop-shadow(0 7px 2px rgba(70,44,31,.08))}
@@ -90,7 +91,7 @@
   .assignment-document{padding:14px 12px 13px}
   .assignment-document .bureau-name{margin-bottom:4px;font-size:8px}
   .assignment-document h1{font-size:25px;line-height:1.14}
-  .assignment-copy{margin:6px auto 1px;font-size:10px;line-height:1.4}
+  .assignment-copy{margin:6px auto 1px;max-width:270px;font-size:11px;line-height:1.45}
   .assignment-character-stage{height:169px;margin-top:0}
   .assignment-character-stage:before{top:18px;width:102px;height:102px}
   .assignment-character{width:165px;height:166px}
