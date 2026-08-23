@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>과잉집사 사운드 검수실</title>
+  <style>
+    :root { --ink:#342820; --paper:#f8f0df; --paper2:#efe1c4; --wine:#8d1730; --green:#546846; --line:#b9a584; --shadow:rgba(66,42,24,.14); }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:#dfcfad; font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif; }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:radial-gradient(#705b3f .55px, transparent .7px); background-size:7px 7px; }
+    main { position:relative; width:min(760px,100%); margin:auto; min-height:100vh; padding:28px 18px 64px; }
+    header { padding:24px 22px 20px; border:1px solid #9b825f; border-radius:18px 18px 7px 7px; background:var(--paper); box-shadow:0 8px 24px var(--shadow); }
+    .eyebrow { margin:0 0 7px; color:var(--wine); font:800 12px/1.2 Georgia,serif; letter-spacing:.16em; }
+    h1 { margin:0; font:800 clamp(27px,7vw,42px)/1.1 Georgia,"Apple SD Gothic Neo",serif; }
+    header p { margin:12px 0 0; color:#65584b; line-height:1.55; font-size:14px; }
+    .status { position:sticky; top:8px; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:12px; margin:12px 5px 18px; padding:10px 12px; border:1px solid #a99574; border-radius:10px; background:rgba(248,240,223,.96); box-shadow:0 4px 14px var(--shadow); font-size:13px; }
+    #now { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    #stop { flex:none; border:0; border-radius:7px; padding:7px 11px; color:#fff; background:#493c31; font-weight:800; }
+    section { margin:14px 0; padding:18px 16px 16px; border:1px solid #aa936d; border-radius:8px; background:var(--paper); box-shadow:0 6px 18px var(--shadow); }
+    .section-head { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:12px; }
+    h2 { margin:0; font-size:20px; }
+    .role { color:#766653; font-size:12px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+    .sound { min-height:76px; border:1px solid var(--line); border-radius:10px; padding:11px 12px; text-align:left; color:var(--ink); background:#fffaf0; box-shadow:inset 0 -2px 0 rgba(109,84,48,.08); cursor:pointer; }
+    .sound:active { transform:translateY(1px); }
+    .sound.active { color:#fff; border-color:var(--wine); background:var(--wine); }
+    .sound strong { display:block; margin-bottom:5px; font-size:15px; }
+    .sound span { display:block; opacity:.76; font-size:12px; line-height:1.35; }
+    .tag { display:inline-block; min-width:21px; margin-right:6px; color:var(--wine); font:800 12px Georgia,serif; }
+    .active .tag { color:#ffe4b0; }
+    footer { padding:12px 6px 0; color:#675946; text-align:center; font-size:12px; line-height:1.55; }
+    @media (max-width:430px) { main{padding:16px 11px 48px} header{padding:20px 17px 17px} section{padding:16px 12px 13px}.grid{grid-template-columns:1fr}.sound{min-height:68px} }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">OVERBUTLER SOUND OFFICE · REVIEW V1</p>
+    <h1>사운드 검수실</h1>
+    <p>앱에는 아직 미적용 상태입니다. 한 번에 하나씩 재생되며, 버튼과 고양이 탭은 서로 다른 감촉으로 설계했습니다.</p>
+  </header>
+  <div class="status"><span id="now">재생 대기 중</span><button id="stop" type="button">정지</button></div>
+  <div id="sections"></div>
+  <footer>추천 시작점: 일반 버튼 A/B · 고양이 탭 A/B · 완료 도장 A · 조명 A</footer>
+</main>
+<script>
+const groups = [
+  {title:'일반 버튼', role:'짧고 둥근 조작감', files:[['A','부드러운 나무 버튼','button-soft-wood.mp3','포근한 톡'],['B','종이 탭','button-paper-tab.mp3','서류 모서리를 누르는 느낌'],['C','말랑 팝','button-bubble-pop.mp3','작고 귀여운 물방울'],['D','두 음 확인','button-double-pip.mp3','가벼운 두 음 응답']]},
+  {title:'고양이 탭', role:'버튼과 다른 캐릭터 반응', files:[['A','작은 므릉','cat-mrrp-soft.mp3','짧게 대답하는 고양이'],['B','골골 인사','cat-purr-pip.mp3','낮은 골골 뒤 작은 음'],['C','궁금한 짹','cat-curious-chirp.mp3','호기심 있게 올라가는 소리'],['D','앞발 인사','cat-paw-greeting.mp3','보드라운 발소리와 대답']]},
+  {title:'종이 · 서류', role:'기록과 브리핑 문서', files:[['A','서류 펼침','paper-open-soft.mp3','얇은 종이를 스르륵'],['B','연필 사각','pencil-scribble.mp3','아주 짧은 기록 소리'],['C','종이 내려놓기','paper-place.mp3','책상에 부드럽게 놓기']]},
+  {title:'도장 · 완료', role:'처리 완료의 확정감', files:[['A','말랑 고무도장','stamp-rubber-soft.mp3','타격감 없이 푹'],['B','둥근 승인도장','stamp-round-thump.mp3','낮고 짧은 승인'],['C','작은 처리 완료','stamp-tiny-approve.mp3','도장 뒤 가벼운 확인음']]},
+  {title:'선물 · 해금', role:'드문 보상 순간', files:[['A','따뜻한 선물벨','gift-warm-chime.mp3','포근한 세 음'],['B','작은 반짝임','gift-tiny-sparkle.mp3','과하지 않은 반짝'],['C','봉인 해제','unlock-seal-chime.mp3','서류 봉인이 풀리는 음']]},
+  {title:'조명', role:'스탠드 켜기와 끄기', files:[['A','부드러운 스위치','lamp-soft-switch.mp3','딸깍 대신 둥근 전환'],['B','둥근 삑','lamp-round-beep.mp3','짧고 낮은 전자음'],['C','두 번 토글','lamp-double-toggle.mp3','켜짐과 꺼짐을 구분하기 쉬움']]}
+];
+const base='../sound-assets/review-v1/';
+const root=document.querySelector('#sections');
+const now=document.querySelector('#now');
+let audio=null, active=null;
+for(const group of groups){
+  const section=document.createElement('section');
+  section.innerHTML=`<div class="section-head"><h2>${group.title}</h2><span class="role">${group.role}</span></div><div class="grid"></div>`;
+  const grid=section.querySelector('.grid');
+  for(const [code,name,file,desc] of group.files){
+    const button=document.createElement('button'); button.type='button'; button.className='sound';
+    button.innerHTML=`<strong><i class="tag">${code}</i>${name}</strong><span>${desc}</span>`;
+    button.addEventListener('click',()=>play(button,group.title,name,file)); grid.append(button);
+  }
+  root.append(section);
+}
+function stop(){ if(audio){audio.pause();audio.currentTime=0;} if(active)active.classList.remove('active'); audio=null;active=null;now.textContent='재생 대기 중'; }
+function play(button,group,name,file){ stop(); active=button; button.classList.add('active'); now.textContent=`${group} · ${name} 재생 중`; audio=new Audio(base+file); audio.volume=.72; audio.addEventListener('ended',stop,{once:true}); audio.addEventListener('error',()=>{now.textContent='파일 재생 실패';},{once:true}); audio.play().catch(()=>{now.textContent='재생을 다시 눌러주세요';}); }
+document.querySelector('#stop').addEventListener('click',stop);
+</script>
+</body>
+</html>
