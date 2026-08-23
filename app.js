@@ -973,6 +973,7 @@
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
+    briefings: [], briefingIntroDates: [], briefingEveningDates: [],
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false, deskPlate: "",
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -1169,6 +1170,24 @@
     }) : [];
   }
 
+  function migrateBriefings(briefings) {
+    return (Array.isArray(briefings) ? briefings : []).filter(entry => objectValue(entry) === entry).map((entry, index) => ({
+      id: storedText(entry.id, `briefing-${index + 1}`),
+      date: /^\d{4}-\d{2}-\d{2}$/.test(storedText(entry.date)) ? storedText(entry.date) : today(),
+      title: storedText(entry.title).trim().slice(0, 40),
+      time: /^\d{2}:\d{2}$/.test(storedText(entry.time)) ? storedText(entry.time) : null,
+      completed: Boolean(entry.completed),
+      completedAt: storedText(entry.completedAt) || null,
+      carriedFromPreviousDay: Boolean(entry.carriedFromPreviousDay),
+      askAfter: entry.askAfter !== false,
+      askedAt: storedText(entry.askedAt) || null,
+      promptPending: Boolean(entry.promptPending),
+      closedAt: storedText(entry.closedAt) || null,
+      storyStartedAt: storedText(entry.storyStartedAt) || null,
+      createdAt: storedText(entry.createdAt) || new Date().toISOString()
+    })).filter(entry => entry.title).slice(-200);
+  }
+
   function normalizeState(rawState) {
     const raw = objectValue(rawState);
     const merged = { ...DEFAULT_STATE, ...raw };
@@ -1207,6 +1226,9 @@
     merged.achievements = [...merged.records];
     merged.todos = Array.isArray(raw.todos) ? raw.todos.filter(todo => objectValue(todo) === todo) : [];
     merged.diary = migrateDiary(raw.diary, merged);
+    merged.briefings = migrateBriefings(raw.briefings);
+    merged.briefingIntroDates = (Array.isArray(raw.briefingIntroDates) ? raw.briefingIntroDates : []).map(value => storedText(value)).filter(Boolean).slice(-60);
+    merged.briefingEveningDates = (Array.isArray(raw.briefingEveningDates) ? raw.briefingEveningDates : []).map(value => storedText(value)).filter(Boolean).slice(-60);
     const legacyOwned = Array.isArray(raw.roster) ? raw.roster : [];
     merged.ownedButlers = Array.from(new Set([
       ...INITIAL_OWNED_BUTLERS,
@@ -6110,6 +6132,492 @@
     timeGreetingFor: getTimeGreeting
   });
   init();
+  /* TODAY'S BRIEFING
+     사용자가 직접 맡긴 오늘 일만 집사가 기억한다. 일정 관리가 아니라
+     다시 돌아왔을 때 결과를 물어보는 관계 루프다. */
+  const BRIEFING_DAILY_LIMIT = 5;
+  let briefingImportEnvelope = null;
+
+  function briefingDateKey(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function briefingTomorrowKey() {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    return briefingDateKey(date);
+  }
+
+  function briefingItems(date = briefingDateKey()) {
+    return state.briefings.filter(item => item.date === date);
+  }
+
+  function activeBriefingItems(date = briefingDateKey()) {
+    return briefingItems(date).filter(item => !item.closedAt);
+  }
+
+  function briefingEscape(value) {
+    return String(value ?? "").replace(/[&<>"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);
+  }
+
+  function briefingTimeLabel(item) {
+    return item.time || "시간 미정";
+  }
+
+  function briefingTimeSpeech(item) {
+    if (!item.time) return "시간은 아직 안 정해졌다냥";
+    const [hourText, minuteText] = item.time.split(":");
+    const hour = Number(hourText);
+    const minute = Number(minuteText);
+    const period = hour < 12 ? "오전" : "오후";
+    const spokenHour = hour % 12 || 12;
+    return `${period} ${spokenHour}시${minute ? ` ${minute}분` : ""}`;
+  }
+
+  function catBriefingStage() {
+    const obsession = ensureButlerStat("cat").obsession;
+    let stage = 0;
+    STAGE_BOUNDARIES.forEach((boundary, index) => {
+      if (obsession >= boundary) stage = index;
+    });
+    return Math.min(stage, 5);
+  }
+
+  function catBriefingRegisteredLine(items) {
+    const first = items[0];
+    const detail = items.length === 1
+      ? `${briefingTimeSpeech(first)}에 ${first.title} 있다냥.`
+      : `오늘 일정 ${items.length}건 확인했다냥.`;
+    const stage = catBriefingStage();
+    if (stage <= 1) return `${detail} 빠뜨리지 않게 일정표 위에 적어뒀다냥.`;
+    if (stage <= 3) return `${detail} 주인님 일정표는 찾기 편하게 맨 위에 뒀다냥.`;
+    return `${detail} 제 서류보다 먼저 펴둔 건 업무 순서 때문이라냥.`;
+  }
+
+  function catBriefingQuestionLine(item) {
+    const stage = catBriefingStage();
+    if (stage <= 1) return `${item.title} 일정은 끝났냥? 처리 여부만 알려주면 된다냥.`;
+    if (stage <= 3) return `${item.title}은 어땠냥? 아직이면 그대로 두겠다냥.`;
+    return `${item.title} 끝났냥? 주인님 서류라 먼저 확인하는 것뿐이다냥.`;
+  }
+
+  function catBriefingCompletedLine(item) {
+    const stage = catBriefingStage();
+    if (stage <= 1) return `${item.title} 처리 완료 확인했다냥. 오늘 큰 서류 하나 치웠다냥.`;
+    if (stage <= 3) return `${item.title} 끝냈냥. 고생한 내용은 집사가 따로 받아두겠다냥.`;
+    return `${item.title} 처리 완료다냥. 주인님 건이라 도장을 조금 반듯하게 찍었다냥.`;
+  }
+
+  function showBriefingSpeech(line, pose = "working") {
+    if (state.character !== "cat") return;
+    showCatHomeSpeech(line, 3600, pose);
+  }
+
+  function ensureBriefingUI() {
+    const entryForm = $("#view-home .entry-form");
+    if (!entryForm || $("#daily-briefing")) return;
+    entryForm.insertAdjacentHTML("afterend", `
+      <section class="daily-briefing" id="daily-briefing" aria-labelledby="daily-briefing-title">
+        <span class="of-clip" aria-hidden="true"></span>
+        <header>
+          <div><small>TODAY'S BRIEFING</small><h2 id="daily-briefing-title">오늘의 브리핑</h2></div>
+          <b id="daily-briefing-count">오늘 0건</b>
+        </header>
+        <div class="daily-briefing-list" id="daily-briefing-list"></div>
+        <button class="daily-briefing-add" id="daily-briefing-add" type="button">+ 일정 적어두기</button>
+      </section>`);
+
+    document.body.insertAdjacentHTML("beforeend", `
+      <div class="overlay briefing-editor-overlay" id="briefing-editor-overlay" role="dialog" aria-modal="true" aria-labelledby="briefing-editor-title" hidden>
+        <form class="briefing-editor" id="briefing-editor-form">
+          <span class="of-clip" aria-hidden="true"></span>
+          <header><small>TODAY'S BRIEFING · FORM 02</small><h2 id="briefing-editor-title">오늘 집사가 챙겨둘 일</h2><p>오늘 일정만 간단히 적어두면 된다냥.</p></header>
+          <label><span>일정명</span><input id="briefing-title-input" name="title" type="text" maxlength="40" autocomplete="off" required placeholder="예: 병원, 회의, 장보기"></label>
+          <label><span>시간</span><input id="briefing-time-input" name="time" type="time"><small>비워두면 시간 미정으로 보관</small></label>
+          <label class="briefing-ask-option"><input id="briefing-ask-input" name="askAfter" type="checkbox" checked><i aria-hidden="true"></i><span><b>끝나고 물어봐줘</b><small>시간이 지난 뒤 다시 들어오면 집사가 확인합니다.</small></span></label>
+          <div class="briefing-editor-actions"><button type="button" data-briefing-close>취소</button><button type="submit">일정표에 적기</button></div>
+        </form>
+      </div>
+      <div class="overlay owner-backup-overlay" id="owner-backup-overlay" role="dialog" aria-modal="true" aria-labelledby="owner-backup-dialog-title" hidden>
+        <form class="owner-backup-dialog" id="owner-backup-form">
+          <span class="of-clip" aria-hidden="true"></span>
+          <header><small>OWNER FILE · PRIVATE COPY</small><h2 id="owner-backup-dialog-title">주인님 파일 보관</h2><p id="owner-backup-dialog-copy">보관본을 잠글 암호를 입력하세요.</p></header>
+          <label><span>보관 암호</span><input id="owner-backup-password" type="password" minlength="6" maxlength="80" autocomplete="off" required><small>복구할 때 같은 암호가 필요합니다. 사무국에는 전송되지 않습니다.</small></label>
+          <p class="owner-backup-status" id="owner-backup-status" role="status"></p>
+          <div class="briefing-editor-actions"><button type="button" data-backup-close>취소</button><button type="submit" id="owner-backup-submit">암호화 보관본 만들기</button></div>
+        </form>
+      </div>`);
+
+    const ownerRemark = $(".owner-file-remark");
+    if (ownerRemark) ownerRemark.insertAdjacentHTML("afterend", `
+      <section class="owner-file-backup" aria-labelledby="owner-file-backup-title">
+        <div><small>PRIVATE BACKUP</small><h2 id="owner-file-backup-title">내 파일 보관</h2><p>가입 없이 암호화된 파일로 기기 밖에 보관합니다.</p></div>
+        <div><button id="owner-backup-export" type="button">보관본 만들기</button><button id="owner-backup-import" type="button">보관본 불러오기</button></div>
+        <input id="owner-backup-file" type="file" accept=".overbutler,application/json" hidden>
+      </section>`);
+
+    $("#daily-briefing-add").addEventListener("click", openBriefingEditor);
+    $("#briefing-editor-overlay").addEventListener("click", event => {
+      if (event.target === event.currentTarget || event.target.closest("[data-briefing-close]")) closeBriefingEditor();
+    });
+    $("#briefing-editor-form").addEventListener("submit", submitBriefingItem);
+    $("#daily-briefing-list").addEventListener("click", handleBriefingAction);
+    $("#owner-backup-export")?.addEventListener("click", () => openBackupDialog("export"));
+    $("#owner-backup-import")?.addEventListener("click", () => $("#owner-backup-file").click());
+    $("#owner-backup-file")?.addEventListener("change", selectBackupImport);
+    $("#owner-backup-overlay").addEventListener("click", event => {
+      if (event.target === event.currentTarget || event.target.closest("[data-backup-close]")) closeBackupDialog();
+    });
+    $("#owner-backup-form").addEventListener("submit", submitBackupDialog);
+  }
+
+  function openBriefingEditor() {
+    if (briefingItems().length >= BRIEFING_DAILY_LIMIT) {
+      showBriefingSpeech("오늘 일정표는 다섯 칸까지다냥. 더 적으면 집사가 먼저 헷갈린다냥.", "annoyed");
+      return;
+    }
+    const overlay = $("#briefing-editor-overlay");
+    overlay.hidden = false;
+    document.body.classList.add("overlay-open");
+    $("#briefing-editor-form").reset();
+    $("#briefing-ask-input").checked = true;
+    window.setTimeout(() => $("#briefing-title-input").focus(), 40);
+  }
+
+  function closeBriefingEditor() {
+    $("#briefing-editor-overlay").hidden = true;
+    document.body.classList.remove("overlay-open");
+  }
+
+  function submitBriefingItem(event) {
+    event.preventDefault();
+    const title = $("#briefing-title-input").value.trim();
+    if (!title || briefingItems().length >= BRIEFING_DAILY_LIMIT) return;
+    state.briefings.push({
+      id: `briefing-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      date: briefingDateKey(),
+      title: title.slice(0, 40),
+      time: $("#briefing-time-input").value || null,
+      completed: false,
+      completedAt: null,
+      carriedFromPreviousDay: false,
+      askAfter: $("#briefing-ask-input").checked,
+      askedAt: null,
+      promptPending: false,
+      closedAt: null,
+      storyStartedAt: null,
+      createdAt: new Date().toISOString()
+    });
+    saveState();
+    closeBriefingEditor();
+    renderDailyBriefing();
+    showBriefingSpeech(catBriefingRegisteredLine(activeBriefingItems()), "working");
+  }
+
+  function briefingDue(item, now = new Date()) {
+    if (!item.askAfter || item.completed || item.closedAt || item.askedAt || item.date !== briefingDateKey(now)) return false;
+    if (!item.time) return now.getHours() >= 18;
+    const [hour, minute] = item.time.split(":").map(Number);
+    return now.getHours() * 60 + now.getMinutes() >= hour * 60 + minute;
+  }
+
+  function maybeAskBriefing() {
+    if (state.character !== "cat") return false;
+    const pending = activeBriefingItems().find(item => item.promptPending);
+    const due = pending || activeBriefingItems().find(item => briefingDue(item));
+    if (!due) return false;
+    if (!due.promptPending) {
+      due.askedAt = new Date().toISOString();
+      due.promptPending = true;
+      saveState();
+    }
+    renderDailyBriefing();
+    showBriefingSpeech(catBriefingQuestionLine(due), "base");
+    return true;
+  }
+
+  function maybeBriefToday() {
+    if (state.character !== "cat") return;
+    const date = briefingDateKey();
+    const items = activeBriefingItems();
+    if (!items.length || maybeAskBriefing()) return;
+    if (!state.briefingIntroDates.includes(date)) {
+      state.briefingIntroDates.push(date);
+      saveState();
+      showBriefingSpeech(catBriefingRegisteredLine(items), "working");
+      return;
+    }
+    if (new Date().getHours() < 18 || state.briefingEveningDates.includes(date)) return;
+    state.briefingEveningDates.push(date);
+    const completed = items.filter(item => item.completed);
+    saveState();
+    if (completed.length) {
+      const titles = completed.slice(0, 2).map(item => item.title).join("도 하고 ");
+      showBriefingSpeech(`${titles}도 끝냈네냥. 오늘 서류는 이 정도면 충분하다냥.`, "happy");
+    } else {
+      showBriefingSpeech("오늘 일정표는 여기까지 펴두겠다냥. 남은 건 내일 다시 보면 된다냥.", "base");
+    }
+  }
+
+  function briefingStatusLabel(item) {
+    if (item.completed) return "처리 완료";
+    if (item.closedAt) return "오늘은 접어둠";
+    return "처리 전";
+  }
+
+  function renderDailyBriefing() {
+    ensureBriefingUI();
+    const section = $("#daily-briefing");
+    if (!section) return;
+    section.hidden = state.character !== "cat" || !state.onboarded;
+    if (section.hidden) return;
+    const items = briefingItems();
+    $("#daily-briefing-count").textContent = `오늘 ${items.length}건`;
+    $("#daily-briefing-add").hidden = items.length >= BRIEFING_DAILY_LIMIT;
+    const list = $("#daily-briefing-list");
+    if (!items.length) {
+      list.innerHTML = `<p class="daily-briefing-empty">오늘 집사가 챙겨둘 일정이 있냥?</p>`;
+    } else {
+      list.innerHTML = items.map(item => `
+        <article class="daily-briefing-item${item.completed ? " is-complete" : ""}${item.closedAt ? " is-closed" : ""}">
+          <button class="briefing-status-stamp" type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}" ${item.closedAt ? "disabled" : ""}><i aria-hidden="true"></i><span>${briefingStatusLabel(item)}</span></button>
+          <div class="briefing-item-copy"><time>${briefingEscape(briefingTimeLabel(item))}</time><b>${briefingEscape(item.title)}</b>${item.carriedFromPreviousDay ? "<small>전날 서류에서 넘겨옴</small>" : ""}</div>
+          <div class="briefing-item-actions">
+            ${item.completed ? `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">이야기 남기기</button>` : ""}
+            ${!item.completed && !item.closedAt && new Date().getHours() >= 18 ? `<button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로 넘기기</button>` : ""}
+          </div>
+          ${item.promptPending ? `<div class="briefing-followup"><span>집사가 처리 여부를 기다리는 중</span><button type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}">끝났어</button><button type="button" data-briefing-action="later" data-briefing-id="${briefingEscape(item.id)}">아직이야</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">오늘은 접어둬</button></div>` : ""}
+        </article>`).join("");
+    }
+    syncBriefingRoomTrace(items.filter(item => !item.closedAt).length);
+  }
+
+  function handleBriefingAction(event) {
+    const button = event.target.closest("[data-briefing-action]");
+    if (!button) return;
+    const item = state.briefings.find(entry => entry.id === button.dataset.briefingId);
+    if (!item) return;
+    const action = button.dataset.briefingAction;
+    if (action === "complete") completeBriefingItem(item);
+    if (action === "later") {
+      item.promptPending = false;
+      saveState();
+      renderDailyBriefing();
+      showBriefingSpeech("아직이면 그대로 두겠다냥. 서류는 도망가지 않는다냥.");
+    }
+    if (action === "close") {
+      item.promptPending = false;
+      item.closedAt = new Date().toISOString();
+      saveState();
+      renderDailyBriefing();
+      showBriefingSpeech("오늘은 이 서류 접어두겠다냥. 별일 아니다냥.");
+    }
+    if (action === "carry") carryBriefingItem(item);
+    if (action === "story") startBriefingStory(item);
+  }
+
+  function completeBriefingItem(item) {
+    if (item.completed || item.closedAt) return;
+    item.completed = true;
+    item.completedAt = new Date().toISOString();
+    item.promptPending = false;
+    saveState();
+    renderDailyBriefing();
+    const row = document.querySelector(`[data-briefing-id="${CSS.escape(item.id)}"]`)?.closest(".daily-briefing-item");
+    row?.classList.add("just-stamped");
+    showBriefingSpeech(catBriefingCompletedLine(item), "happy");
+  }
+
+  function carryBriefingItem(item) {
+    const tomorrow = briefingTomorrowKey();
+    if (briefingItems(tomorrow).length >= BRIEFING_DAILY_LIMIT) {
+      showBriefingSpeech("내일 일정표도 다섯 칸이 찼다냥. 이 서류는 오늘 자리에 두겠다냥.");
+      return;
+    }
+    item.date = tomorrow;
+    item.carriedFromPreviousDay = true;
+    item.askedAt = null;
+    item.promptPending = false;
+    saveState();
+    renderDailyBriefing();
+    showBriefingSpeech("내일 일정표로 옮겨뒀다냥. 오늘 서류에서는 빼뒀다냥.");
+  }
+
+  function startBriefingStory(item) {
+    item.storyStartedAt = new Date().toISOString();
+    saveState();
+    const textarea = $("#view-home .entry-form textarea");
+    if (!textarea) return;
+    textarea.value = `${item.title} 끝났어`;
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    textarea.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }, 320);
+    showBriefingSpeech("완료 도장은 찍었다냥. 어떤 하루였는지는 주인님 말로 받아두겠다냥.", "working");
+  }
+
+  function syncBriefingRoomTrace(count) {
+    const world = $("#cat-home-world");
+    if (!world) return;
+    let sheet = world.querySelector(".cat-room-briefing-sheet");
+    if (!sheet) {
+      sheet = document.createElement("span");
+      sheet.className = "cat-room-briefing-sheet";
+      sheet.setAttribute("aria-hidden", "true");
+      world.appendChild(sheet);
+    }
+    sheet.hidden = count === 0;
+    sheet.innerHTML = `<small>오늘의 브리핑</small><b>${count}건</b>`;
+  }
+
+  function openBackupDialog(mode) {
+    const overlay = $("#owner-backup-overlay");
+    const title = $("#owner-backup-dialog-title");
+    const copy = $("#owner-backup-dialog-copy");
+    const submit = $("#owner-backup-submit");
+    overlay.dataset.mode = mode;
+    title.textContent = mode === "export" ? "주인님 파일 보관" : "주인님 파일 복구";
+    copy.textContent = mode === "export" ? "보관본을 잠글 암호를 입력하세요." : "보관할 때 사용한 암호를 입력하세요.";
+    submit.textContent = mode === "export" ? "암호화 보관본 만들기" : "보관본 불러오기";
+    $("#owner-backup-status").textContent = "";
+    $("#owner-backup-password").value = "";
+    overlay.hidden = false;
+    document.body.classList.add("overlay-open");
+    window.setTimeout(() => $("#owner-backup-password").focus(), 40);
+  }
+
+  function closeBackupDialog() {
+    $("#owner-backup-overlay").hidden = true;
+    document.body.classList.remove("overlay-open");
+    briefingImportEnvelope = null;
+    const file = $("#owner-backup-file");
+    if (file) file.value = "";
+  }
+
+  function byteArrayToBase64(bytes) {
+    let binary = "";
+    for (let index = 0; index < bytes.length; index += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+    }
+    return btoa(binary);
+  }
+
+  function base64ToByteArray(value) {
+    const binary = atob(value);
+    return Uint8Array.from(binary, character => character.charCodeAt(0));
+  }
+
+  async function deriveBackupKey(password, salt, usage) {
+    const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 180000, hash: "SHA-256" }, material, { name: "AES-GCM", length: 256 }, false, usage);
+  }
+
+  async function createEncryptedBackup(password) {
+    saveState();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveBackupKey(password, salt, ["encrypt"]);
+    const payload = new TextEncoder().encode(JSON.stringify({ createdAt: new Date().toISOString(), state }));
+    const encrypted = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, payload));
+    return { format: "overbutler-backup", version: 1, encryption: "AES-GCM", keyDerivation: "PBKDF2-SHA256-180000", salt: byteArrayToBase64(salt), iv: byteArrayToBase64(iv), data: byteArrayToBase64(encrypted) };
+  }
+
+  async function decryptBackup(envelope, password) {
+    if (envelope?.format !== "overbutler-backup" || envelope?.version !== 1) throw new Error("지원하지 않는 보관본입니다.");
+    const salt = base64ToByteArray(envelope.salt);
+    const iv = base64ToByteArray(envelope.iv);
+    const encrypted = base64ToByteArray(envelope.data);
+    const key = await deriveBackupKey(password, salt, ["decrypt"]);
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encrypted);
+    const payload = JSON.parse(new TextDecoder().decode(decrypted));
+    if (objectValue(payload.state) !== payload.state) throw new Error("주인님 파일을 찾을 수 없습니다.");
+    return normalizeState(payload.state);
+  }
+
+  function downloadBackup(envelope) {
+    const blob = new Blob([JSON.stringify(envelope)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `overbutler-${briefingDateKey()}.overbutler`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function selectBackupImport(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      briefingImportEnvelope = JSON.parse(await file.text());
+      if (briefingImportEnvelope?.format !== "overbutler-backup") throw new Error();
+      openBackupDialog("import");
+    } catch {
+      window.alert("과잉집사 보관본 파일을 확인할 수 없습니다.");
+      event.target.value = "";
+    }
+  }
+
+  async function submitBackupDialog(event) {
+    event.preventDefault();
+    const password = $("#owner-backup-password").value;
+    const status = $("#owner-backup-status");
+    const submit = $("#owner-backup-submit");
+    if (password.length < 6 || !window.crypto?.subtle) {
+      status.textContent = window.crypto?.subtle ? "암호는 6자 이상 적어주세요." : "이 브라우저에서는 암호화 보관을 사용할 수 없습니다.";
+      return;
+    }
+    submit.disabled = true;
+    status.textContent = "주인님 파일 정리 중…";
+    try {
+      if (event.currentTarget.closest("#owner-backup-overlay").dataset.mode === "export") {
+        downloadBackup(await createEncryptedBackup(password));
+        status.textContent = "암호화 보관본을 만들었습니다.";
+        window.setTimeout(closeBackupDialog, 900);
+      } else {
+        const restored = await decryptBackup(briefingImportEnvelope, password);
+        if (!window.confirm("현재 기기 파일을 이 보관본으로 교체할까요? 기존 파일은 먼저 따로 보관하는 편이 안전합니다.")) return;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
+        window.location.reload();
+      }
+    } catch {
+      status.textContent = "암호가 다르거나 보관본이 손상되었습니다.";
+    } finally {
+      submit.disabled = false;
+    }
+  }
+
+  function initDailyBriefing() {
+    ensureBriefingUI();
+    renderDailyBriefing();
+    window.setTimeout(maybeBriefToday, 700);
+    window.setInterval(() => {
+      if ($("#view-home")?.classList.contains("active")) maybeAskBriefing();
+    }, 60000);
+    document.addEventListener("click", event => {
+      if (event.target.closest('[data-view="home"]')) window.setTimeout(() => {
+        renderDailyBriefing();
+        maybeBriefToday();
+      }, 80);
+      if ($("#daily-briefing")?.hidden) window.setTimeout(() => {
+        if (state.onboarded && state.character === "cat") renderDailyBriefing();
+      }, 120);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && $("#view-home")?.classList.contains("active")) {
+        renderDailyBriefing();
+        maybeBriefToday();
+      }
+    });
+  }
+
+  initDailyBriefing();
 })();
 
 /* CAT OFFICE TIME-OF-DAY - local visual state only */
