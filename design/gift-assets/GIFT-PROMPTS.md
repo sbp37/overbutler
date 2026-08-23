@@ -159,9 +159,10 @@ text, watermark, signature, frame, border, cropped edges, cat, animal, character
 가장 처음 주는 선물이고 제일 자주 보인다. 여기서 톤이 정해진다.
 
 ```
-An open tin can of tuna. Round shallow silver-cream can with the lid peeled
-halfway back and curled up, showing pale pink flaked tuna inside. The peeled
-lid catches a warm highlight. Simple bold shape, no label text.
+A closed tin can of tuna. Round shallow can with a muted vintage cobalt label,
+cream cat emblem, silver-cream rim, and a fully sealed flat lid with the pull
+tab attached. Use a low tabletop perspective: front label dominant, only a
+narrow shallow ellipse of the lid visible. No exposed tuna and no label text.
 ```
 
 ### ② 우유 접시 (15P)
@@ -240,7 +241,7 @@ top to bottom.
 
 ---
 
-## 부록 — 관계 흔적 4종 + 보관함 1종 (같이 뽑아야 한다)
+## 부록 — 관계 흔적 5종 + 보관함 1종 (같이 뽑아야 한다)
 
 선물만 그림이 되고 흔적이 이모지로 남으면, **흔적이 선물에 진다.**
 그러면 이 방은 관계가 쌓이는 공간이 아니라 쇼핑 진열대가 된다
@@ -257,8 +258,10 @@ top to bottom.
 | `box` | 전용 서류함 | `trace-03-box.png` | `A small archive storage box in warm kraft cardboard, lid slightly ajar, with a cream label plate on the front face and two round finger holes on the sides. Stacked document edges just visible under the lid.` |
 | `seal` | 전담 인장 | `trace-04-seal.png` | `A paper tag hanging from a short twine loop, ivory card stock with a punched hole and a maroon wax seal pressed onto its lower half. The wax seal is round with a simple paw-shaped impression. Slightly tilted.` |
 | `storage` | 비품 보관함 | `trace-05-storage.png` | `A closed archive storage box in warm kraft cardboard, lid fully on, with a cream label plate on the front and a twine handle. Neatly sealed, nothing spilling out. Simple sturdy container.` |
+| `plate` | 주인님 명패 | `trace-06-nameplate-frame.png` | `A wide low blank desk plaque with a rounded walnut frame, muted maroon inner face, broad cream text inset, and one small paw detail. No lettering inside the image.` |
 
-`plate`(전담 명패)는 주인님이 고른 문구가 들어가야 해서 **CSS로 그린다** — 이미지 없음.
+`plate`는 빈 명패 프레임만 이미지로 두고, `OO님의 냥집사`는 사용자 이름에 맞춰
+HTML/CSS 텍스트로 올린다. 구매·해금 전에는 렌더링하지 않는 책상 앞 고정 슬롯이다.
 
 ⚠️ 보관함은 **닫혀 있어야** 한다. "집사가 하나도 안 버리고 정리해서 보관 중"이
 이 칸의 정서다. 열려서 물건이 삐져나오면 "쌓아둔 잡동사니"가 된다.
@@ -340,7 +343,8 @@ top to bottom.
 즉 희귀 슬롯은 하나가 아니라 형태별로 둘이어야 한다.
 
 - **가로형 희귀**(창가 방석) → 중앙 `bottom 13%`, 폭 44px — 고양이 앞에 놓인 자리
-- **세로형 희귀**(캣타워) → 측면 `left 22%` 또는 `78%`, `bottom 17%`, 폭 38px — 책상 옆에 선 가구
+- **세로형 희귀**(캣타워) → 구매 시에만 나타나는 오른쪽 고정 슬롯. 이동 금지.
+  `방 배경 < 캣타워 < 고양이 < 책상 전경` 순서로 두고 하단을 책상이 가린다.
 
 R5에서 에셋을 연결할 때 `CAT_ROOM_RARE_SLOT` 하나를 형태별 두 슬롯으로 나눈다.
 에셋 쪽에서 고칠 것은 없다.
