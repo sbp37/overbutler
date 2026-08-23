@@ -56,10 +56,15 @@
       <div class="select-row">
         <select id="pose" aria-label="조절할 고양이 포즈">
           <option value="working">WORKING · 일하는 중</option>
-          <option value="idle">IDLE · 기본</option>
+          <option value="idle">ACTION IDLE · 기본</option>
           <option value="gift">GIFT · 선물</option>
-          <option value="surprised">SURPRISED · 놀람</option>
+          <option value="surprised">ACTION SURPRISED · 놀람</option>
           <option value="lazy">LAZY TAP · 귀찮음</option>
+          <option value="base">BASE · 원래 표정</option>
+          <option value="blink">BLINK · 눈 감음</option>
+          <option value="happy">HAPPY · 씨익 웃음</option>
+          <option value="annoyed">ANNOYED · 귀찮음</option>
+          <option value="faceSurprised">FACE SURPRISED · 흠칫</option>
         </select>
         <button id="reference">기준 숨기기</button>
       </div>
@@ -89,14 +94,21 @@
     const box = document.querySelector('#cat-box');
     const scale = document.querySelector('#scale');
     const POSES = {
-      working: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-working-no-paper-normalized-v2.webp',
-      idle: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-idle-edge-clean-v1.webp',
-      gift: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-gift.webp',
-      surprised: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-surprised.webp',
-      lazy: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-lazy-tap.webp'
+      working: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-working.webp',
+      idle: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-idle.webp',
+      gift: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-gift.webp',
+      surprised: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-surprised.webp',
+      lazy: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-lazy-tap.webp',
+      base: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-base.webp',
+      blink: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-blink.webp',
+      happy: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-happy.webp',
+      annoyed: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-annoyed.webp',
+      faceSurprised: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-surprised.webp'
     };
-    const initial = { x: 631, y: 112, scale: 90 };
-    const key = 'overbutler_cat_room_position_v2';
+    const referenceDefault = { x: 631, y: 112, scale: 90 };
+    const DEFAULTS = { working: { x: 629, y: 135, scale: 90 } };
+    const initial = { ...DEFAULTS.working };
+    const key = 'overbutler_cat_room_position_v3';
     let poseKey = 'working';
     let state = (() => { try { return { ...initial, ...JSON.parse(localStorage.getItem(key) || '{}') }; } catch { return { ...initial }; } })();
     let action = null;
@@ -112,9 +124,9 @@
       box.style.left = `${state.x * ratio}px`;
       box.style.top = `${state.y * ratio}px`;
       box.style.width = `${widthFor(state.scale) * ratio}px`;
-      referenceBox.style.left = `${initial.x * ratio}px`;
-      referenceBox.style.top = `${initial.y * ratio}px`;
-      referenceBox.style.width = `${widthFor(initial.scale) * ratio}px`;
+      referenceBox.style.left = `${referenceDefault.x * ratio}px`;
+      referenceBox.style.top = `${referenceDefault.y * ratio}px`;
+      referenceBox.style.width = `${widthFor(referenceDefault.scale) * ratio}px`;
       document.querySelector('#xy').textContent = `X ${Math.round(state.x)} · Y ${Math.round(state.y)}`;
       document.querySelector('#size').textContent = `크기 ${state.scale}%`;
       document.querySelector('#scale-out').textContent = `${state.scale}%`;
@@ -158,9 +170,9 @@
     }));
     document.querySelector('#minus').addEventListener('click', () => { scale.value = Math.max(55, state.scale - 1); scale.dispatchEvent(new Event('input')); });
     document.querySelector('#plus').addEventListener('click', () => { scale.value = Math.min(125, state.scale + 1); scale.dispatchEvent(new Event('input')); });
-    document.querySelector('#reset').addEventListener('click', () => { state = { ...initial }; render(); });
+    document.querySelector('#reset').addEventListener('click', () => { state = { ...(DEFAULTS[poseKey] || referenceDefault) }; render(); });
     document.querySelector('#pose').addEventListener('change', event => {
-      poseKey = event.target.value; cat.src = RAW + POSES[poseKey]; state = { ...initial }; render();
+      poseKey = event.target.value; cat.src = RAW + POSES[poseKey]; state = { ...(DEFAULTS[poseKey] || referenceDefault) }; render();
     });
     document.querySelector('#reference').addEventListener('click', event => {
       const hidden = referenceBox.hidden; referenceBox.hidden = !hidden; event.currentTarget.textContent = hidden ? '기준 숨기기' : '기준 보이기';
