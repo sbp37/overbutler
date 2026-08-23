@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Briefing story flow fixture</title>
+<body>
+<script src="fixture-assertions.js"></script>
+<script>
+  const dateKey = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const today = dateKey(new Date());
+  const seed = {
+    onboarded: true,
+    username: "테스트",
+    character: "cat",
+    butlerName: "치즈냥",
+    ownedButlers: ["cat"],
+    briefings: [{
+      id: "briefing-hospital", date: today, title: "병원", time: "11:00",
+      completed: false, completedAt: null, carriedFromPreviousDay: false,
+      askAfter: true, askedAt: null, promptPending: false, closedAt: null,
+      storyStartedAt: null, createdAt: new Date().toISOString()
+    }]
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (new URLSearchParams(location.search).has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?briefing-story-fixture=1&fixture-no-overlay-observer=1",
+      check: async (frame, assert, wait) => {
+        const doc = frame.contentDocument;
+        const win = frame.contentWindow;
+        await wait(80);
+        const briefing = doc.querySelector("#daily-briefing");
+        const hero = doc.querySelector("#view-home .home-hero");
+        assert(Boolean(briefing.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING), "briefing strip appears before the story form");
+
+        doc.querySelector('[data-briefing-action="complete"]').click();
+        await wait(900);
+        assert(doc.querySelector(".briefing-item-reaction").textContent.includes("병원"), "completion leaves the cat reaction on the briefing sheet");
+        assert(doc.querySelector("#cat-home-speech").textContent.includes("병원"), "completion reaction is immediately spoken by the cat");
+
+        doc.querySelector('[data-briefing-action="story"]').click();
+        await wait(40);
+        const input = doc.querySelector("#achievement-input");
+        assert.equal(input.value, "", "briefing follow-up keeps the owner's input empty");
+        assert(!doc.querySelector("#briefing-story-context").hidden, "briefing context is visible above the story input");
+        input.value = "병원은 생각보다 힘들었어";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        doc.querySelector("#report-button").click();
+        await wait(100);
+        const stored = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        const story = stored.journalEntries.find(entry => entry.sourceBriefingId === "briefing-hospital");
+        assert.equal(story.sourceText, "병원은 생각보다 힘들었어", "actual owner text is stored with its briefing id");
+        assert(stored.diary.some(entry => entry.sourceBriefingId === "briefing-hospital"), "the story feeds the next diary group");
+
+        doc.querySelector('[data-view="archive"]').click();
+        await wait(50);
+        assert(doc.querySelector(".owner-story-note").textContent.includes("병원은 생각보다 힘들었어"), "owner file shows the non-achievement story");
+      }
+    });
+  } else {
+    location.replace("../index.html?briefing-story-fixture=1");
+  }
+</script>
+</body>

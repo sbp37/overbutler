@@ -973,7 +973,7 @@
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
-    briefings: [], briefingIntroDates: [], briefingEveningDates: [],
+    briefings: [], journalEntries: [], briefingIntroDates: [], briefingEveningDates: [],
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false, deskPlate: "",
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -1184,6 +1184,10 @@
       promptPending: Boolean(entry.promptPending),
       closedAt: storedText(entry.closedAt) || null,
       storyStartedAt: storedText(entry.storyStartedAt) || null,
+      storyLoggedAt: storedText(entry.storyLoggedAt) || null,
+      storyRecordId: storedText(entry.storyRecordId) || null,
+      storyEntryId: storedText(entry.storyEntryId) || null,
+      reactionLine: storedText(entry.reactionLine) || null,
       createdAt: storedText(entry.createdAt) || new Date().toISOString()
     })).filter(entry => entry.title).slice(-200);
   }
@@ -1227,6 +1231,20 @@
     merged.todos = Array.isArray(raw.todos) ? raw.todos.filter(todo => objectValue(todo) === todo) : [];
     merged.diary = migrateDiary(raw.diary, merged);
     merged.briefings = migrateBriefings(raw.briefings);
+    merged.journalEntries = Array.isArray(raw.journalEntries) ? raw.journalEntries.map((entry, index) => {
+      const item = objectValue(entry);
+      return {
+        ...item,
+        id: storedText(item.id, `legacy-story-${index + 1}`),
+        date: storedText(item.date, today()),
+        sourceText: storedText(item.sourceText).trim().slice(0, 160),
+        reactionLines: Array.isArray(item.reactionLines) ? item.reactionLines.map(line => storedText(line)).filter(Boolean).slice(0, 3) : [],
+        sourceBriefingId: storedText(item.sourceBriefingId) || null,
+        character: normalizeCharacter(item.character || item.butler?.character || "cat"),
+        butlerName: storedText(item.butlerName || item.butler?.name),
+        createdAt: storedText(item.createdAt) || new Date().toISOString()
+      };
+    }).filter(entry => entry.sourceText).slice(-500) : [];
     merged.briefingIntroDates = (Array.isArray(raw.briefingIntroDates) ? raw.briefingIntroDates : []).map(value => storedText(value)).filter(Boolean).slice(-60);
     merged.briefingEveningDates = (Array.isArray(raw.briefingEveningDates) ? raw.briefingEveningDates : []).map(value => storedText(value)).filter(Boolean).slice(-60);
     const legacyOwned = Array.isArray(raw.roster) ? raw.roster : [];
@@ -2379,7 +2397,7 @@
     const homeStamp = $("#home-datestamp");
     if (homeStamp) homeStamp.textContent = `${pad(now.getMonth() + 1)}. ${pad(now.getDate())}`;
     const archiveNo = $("#archive-regno");
-    if (archiveNo) archiveNo.textContent = `총 ${state.records.length}건`;
+    if (archiveNo) archiveNo.textContent = `총 ${state.records.length + (state.journalEntries?.length || 0)}건`;
   }
 
   function render(options = {}) {
@@ -2420,7 +2438,8 @@
     renderOwnerFileCover();
     $("#view-archive").dataset.archiveMode = "records";
     $("#archive-date").textContent = today();
-    $("#records-today-count").textContent = state.records.filter(record => record.date === today()).length;
+    $("#records-today-count").textContent = state.records.filter(record => record.date === today()).length
+      + (state.journalEntries || []).filter(entry => entry.date === today()).length;
     $("#records-official-count").textContent = state.certificates.length;
     $("#records-fame-count").textContent = state.fame;
     const status = certificationStatus();
@@ -2761,6 +2780,7 @@
 
   function ownerFileCover() {
     const records = Array.isArray(state.records) ? state.records : [];
+    const journalEntries = Array.isArray(state.journalEntries) ? state.journalEntries : [];
     const counts = new Map();
     records.forEach(record => {
       const key = OWNER_FILE_CATEGORY_LABELS[record.category] ? record.category : "other";
@@ -2770,8 +2790,8 @@
     const order = Object.keys(OWNER_FILE_CATEGORY_LABELS);
     const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || order.indexOf(a[0]) - order.indexOf(b[0]))[0];
     return {
-      thickness: records.length,
-      daysTogether: new Set(records.map(record => record.date).filter(Boolean)).size,
+      thickness: records.length + journalEntries.length,
+      daysTogether: new Set([...records, ...journalEntries].map(entry => entry.date).filter(Boolean)).size,
       topCategory: top ? { key: top[0], label: OWNER_FILE_CATEGORY_LABELS[top[0]], count: top[1] } : null,
       officialCount: Array.isArray(state.certificates) ? state.certificates.length : 0,
       remark: ownerFileRemark()
@@ -2781,10 +2801,11 @@
   function groupRecordsByDate() {
     const records = Array.isArray(state.records) ? state.records : [];
     const diary = Array.isArray(state.diary) ? state.diary : [];
+    const journalEntries = Array.isArray(state.journalEntries) ? state.journalEntries : [];
     const officialIds = new Set((state.certificates || []).map(record => String(record.id)));
     const groups = new Map();
     const bucket = date => {
-      if (!groups.has(date)) groups.set(date, { date, records: [], diaryEntries: [], giftLetters: [], hasOfficial: false });
+      if (!groups.has(date)) groups.set(date, { date, records: [], journalEntries: [], diaryEntries: [], giftLetters: [], hasOfficial: false });
       return groups.get(date);
     };
     records.forEach(record => {
@@ -2792,12 +2813,23 @@
       group.records.push(record);
       if (officialIds.has(String(record.id))) group.hasOfficial = true;
     });
+    journalEntries.forEach(entry => bucket(entry.date || "날짜 미상").journalEntries.push(entry));
     // 일지는 기록이 없는 날에도 남을 수 있어 별도로 넣는다. 캐릭터는 저장된 값을 그대로 쓴다.
     diary.forEach(entry => bucket(entry.date || "날짜 미상").diaryEntries.push(entry));
     // 감사 편지 — 희귀 선물에만 동봉된다. unshift로 쌓이므로 시간순으로 뒤집는다.
     (state.giftHistory || []).filter(item => item.reactionType === "rare").reverse()
       .forEach(item => bucket(item.date || "날짜 미상").giftLetters.push(item));
     return [...groups.values()].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  }
+
+  function ownerFileJournalMarkup(entry) {
+    const butlerName = storedText(entry.butlerName || entry.butler?.name, "담당 집사");
+    const reaction = Array.isArray(entry.reactionLines) ? entry.reactionLines.filter(Boolean).slice(0, 1)[0] : "";
+    return `<article class="owner-story-note">
+      <small>내가 들려준 이야기</small>
+      <blockquote>“${escapeHtml(entry.sourceText)}”</blockquote>
+      ${reaction ? `<p><b>${escapeHtml(butlerName)}</b> ${escapeHtml(reaction)}</p>` : ""}
+    </article>`;
   }
 
   // 최근 14일 그룹만 먼저 그린다. 기록이 쌓여도 진입 시 한 번에 다 그리지 않는다.
@@ -2909,11 +2941,12 @@
       if (thisRank > keptRank) kept.record = record;
     });
     const cards = collapsed.map(entry => ownerFileRecordCard(entry.record, officialIds, entry.repeatCount)).join("");
+    const stories = (group.journalEntries || []).slice().reverse().map(ownerFileJournalMarkup).join("");
     const letters = (group.giftLetters || []).map(giftLetterMarkup).join("");
     const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
     return `<section class="file-date-group" data-file-date="${escapeHtml(group.date)}" aria-label="${escapeHtml(group.date)} 기록">
       <div class="file-date-divider"><span>${escapeHtml(ownerFileDateLabel(group.date))}</span></div>
-      ${cards}${letters}${notes}
+      ${stories}${cards}${letters}${notes}
     </section>`;
   }
 
@@ -2935,23 +2968,26 @@
       if (!query) return true;
       return normalizeDeed([record.deed, record.nickname, record.grade, displayGrade(record), record.report, record.sourceText, record.discoveredAchievement, record.butlerName, record.butler?.name].filter(Boolean).join(" ")).includes(query);
     };
+    const keepJournal = entry => recordGrade === "all" && (!query || normalizeDeed([entry.sourceText, ...(entry.reactionLines || [])].join(" ")).includes(query));
     // 필터·검색 중에는 일지를 붙이지 않는다. 찾는 기록만 보여주는 게 그 화면의 일이다.
     const narrowed = recordGrade !== "all" || Boolean(query);
     const groups = groupRecordsByDate()
       .map(group => ({
         ...group,
         records: group.records.filter(keep).slice().reverse(),
+        journalEntries: group.journalEntries.filter(keepJournal),
         diaryEntries: narrowed ? [] : group.diaryEntries,
         giftLetters: narrowed ? [] : group.giftLetters
       }))
-      .filter(group => group.records.length || group.diaryEntries.length || group.giftLetters?.length);
+      .filter(group => group.records.length || group.journalEntries.length || group.diaryEntries.length || group.giftLetters?.length);
 
     const list = $("#archive-record-list");
     if (!groups.length) {
-      const emptyCopy = state.records.length
+      const hasAnyStory = state.records.length || state.journalEntries.length;
+      const emptyCopy = hasAnyStory
         ? "이 분류에 해당하는 기록이 아직 없습니다."
         : "파일이 아직 얇습니다.<br>첫 기록이 접수되면 이 파일이 시작됩니다.";
-      const action = state.records.length
+      const action = hasAnyStory
         ? ""
         : '<button type="button" data-view="home" data-nav="home">첫 기록 접수하러 가기 →</button>';
       list.innerHTML = `<div class="records-empty"><span>EMPTY FILE</span><p>${emptyCopy}</p>${action}</div>`;
@@ -3909,7 +3945,13 @@
     const loudModes = ["achievement", "special-achievement"];
     // 대화만 하거나, 위로가 먼저인데 남길 행동이 없으면 기록을 만들지 않는다.
     if (!interpreted.achievementCandidate) {
-      if (!saveState()) { achievementSubmissionActive = false; reportButton.disabled = false; reportButton.removeAttribute("aria-busy"); return; }
+      const briefingStoryId = activeBriefingStoryId;
+      if (state.character === "cat" && interpreted.futurePlans?.length && !briefingStoryId) {
+        queueBriefingSuggestion(story, interpreted);
+        if (!saveState()) { achievementSubmissionActive = false; reportButton.disabled = false; reportButton.removeAttribute("aria-busy"); return; }
+      } else if (state.character === "cat") {
+        saveJournalEntry(story, interpreted, briefingStoryId);
+      } else if (!saveState()) { achievementSubmissionActive = false; reportButton.disabled = false; reportButton.removeAttribute("aria-busy"); return; }
       input.value = "";
       $("#char-count").textContent = "0";
       // 실사용 영상 리뷰(2026-08-19): 답이 버튼 아래 박스에 뜨니 "고양이가
@@ -3925,10 +3967,11 @@
       achievementSubmissionActive = false;
       reportButton.disabled = false;
       reportButton.removeAttribute("aria-busy");
+      if (briefingStoryId) clearBriefingStoryContext();
       return;
     }
     const deed = interpreted.achievementTitle || story;
-    pendingMessageAnalysis = { ...interpreted, sourceText: story };
+    pendingMessageAnalysis = { ...interpreted, sourceText: story, sourceBriefingId: activeBriefingStoryId };
     // 위로/일상 기록은 심사 연출 없이 조용히 접수하고 작은 카드로만 알린다.
     if (!loudModes.includes(mode)) {
       input.value = "";
@@ -4071,6 +4114,7 @@
       stampEligible: !duplicate, character: butler.character, ownerName: ownerDisplayName(),
       butlerName: butler.name, voice: butler.voice, butler,
       sourceText: messageAnalysis?.sourceText || deed,
+      sourceBriefingId: messageAnalysis?.sourceBriefingId || null,
       discoveredAchievement: deed,
       reactionLines,
       interpretation: messageAnalysis ? {
@@ -4083,6 +4127,13 @@
         confidence: messageAnalysis.confidence
       } : undefined
     };
+    if (record.sourceBriefingId) {
+      const briefingItem = state.briefings.find(item => item.id === record.sourceBriefingId);
+      if (briefingItem) {
+        briefingItem.storyRecordId = record.id;
+        briefingItem.storyLoggedAt = new Date().toISOString();
+      }
+    }
     state.records.push(record);
     state.todos.push({ id: record.id, text: deed, done: true, date: new Date().toDateString(), overbutlerRecordId: record.id });
     const diaryEntry = {
@@ -4095,6 +4146,7 @@
       activities: Array.isArray(messageAnalysis?.activities) ? messageAnalysis.activities.slice(0, 4) : [],
       relationshipStage: record.relationshipStage
     };
+    diaryEntry.sourceBriefingId = record.sourceBriefingId;
     const sameDayEntries = state.diary.filter(entry =>
       entry.date === diaryEntry.date &&
       normalizeCharacter(entry.butler?.character || entry.character) === butler.character &&
@@ -4138,6 +4190,7 @@
     });
     $("#achievement-input").value = "";
     $("#char-count").textContent = "0";
+    clearBriefingStoryContext();
     achievementSubmissionActive = false;
     $("#report-button").disabled = false;
     $("#report-button").removeAttribute("aria-busy");
@@ -6137,6 +6190,9 @@
      다시 돌아왔을 때 결과를 물어보는 관계 루프다. */
   const BRIEFING_DAILY_LIMIT = 5;
   let briefingImportEnvelope = null;
+  let activeBriefingStoryId = null;
+  let pendingBriefingSuggestion = null;
+  let editingBriefingId = null;
 
   function briefingDateKey(date = new Date()) {
     const year = date.getFullYear();
@@ -6216,19 +6272,96 @@
     showCatHomeSpeech(line, 3600, pose);
   }
 
+  function briefingSuggestionTitle(sourceText) {
+    return storedText(sourceText)
+      .replace(/^(오늘|내일)\s*/u, "")
+      .replace(/(오전|오후)?\s*\d{1,2}(?::\d{2})?\s*시?(?:\s*\d{1,2}\s*분)?/u, "")
+      .replace(/(가야\s*(해|돼)|해야\s*(해|돼)|할\s*(거야|거임|예정이야)|하려고.*)$/u, "")
+      .replace(/^[에\s]+/u, "")
+      .replace(/\s+/g, " ").trim().slice(0, 40) || storedText(sourceText).trim().slice(0, 40);
+  }
+
+  function queueBriefingSuggestion(sourceText, interpretation) {
+    pendingBriefingSuggestion = {
+      sourceText,
+      title: briefingSuggestionTitle(sourceText),
+      reaction: templateOwner(interpretation.reply),
+      interpretation
+    };
+    renderDailyBriefing();
+  }
+
+  function saveJournalEntry(sourceText, interpretation, sourceBriefingId = null) {
+    const butler = snapshotButler();
+    const reaction = templateOwner(interpretation?.reply || "이 이야기는 그대로 받아두겠다냥.");
+    const entry = {
+      id: `story-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      date: today(), sourceText: storedText(sourceText).trim().slice(0, 160),
+      reactionLines: normalizeReactionLines(reaction, reaction),
+      sourceBriefingId: sourceBriefingId || null,
+      character: butler.character, butlerName: butler.name, butler,
+      mood: interpretation?.mood || null,
+      interpretation: interpretation ? {
+        intents: interpretation.intents,
+        activities: interpretation.activities,
+        mood: interpretation.mood,
+        sentiment: interpretation.sentiment,
+        responseMode: interpretation.responseMode
+      } : undefined,
+      createdAt: new Date().toISOString()
+    };
+    state.journalEntries.push(entry);
+    if (sourceBriefingId) {
+      const item = state.briefings.find(candidate => candidate.id === sourceBriefingId);
+      if (item) {
+        item.storyEntryId = entry.id;
+        item.storyLoggedAt = entry.createdAt;
+      }
+    }
+    const diaryEntry = {
+      id: entry.id, date: entry.date, todos: [], deed: "", sourceText: entry.sourceText,
+      text: reaction, character: butler.character, butlerName: butler.name,
+      voice: butler.voice, butler, pose: "base", ownerName: ownerDisplayName(),
+      snapshotVersion: 1, diaryRevealVersion: 1, diaryRevealed: false,
+      mood: entry.mood, obsession: state.obsession, responseMode: interpretation?.responseMode || "conversation",
+      activities: Array.isArray(interpretation?.activities) ? interpretation.activities.slice(0, 4) : [],
+      relationshipStage: relationshipStageDisplayFor(state.obsession, butler.character).name,
+      sourceBriefingId: entry.sourceBriefingId
+    };
+    const sameDayEntries = state.diary.filter(item =>
+      item.date === diaryEntry.date &&
+      normalizeCharacter(item.butler?.character || item.character) === butler.character &&
+      (item.butler?.name || item.butlerName || "") === butler.name
+    );
+    diaryEntry.reflection = diaryReflection(butler.character, [...sameDayEntries, diaryEntry], diaryEntry.ownerName);
+    diaryEntry.reflectionVersion = 2;
+    state.diary.push(diaryEntry);
+    saveState();
+    renderArchive();
+    renderDailyBriefing();
+    return entry;
+  }
+
   function ensureBriefingUI() {
     const entryForm = $("#view-home .entry-form");
     if (!entryForm || $("#daily-briefing")) return;
-    entryForm.insertAdjacentHTML("afterend", `
+    $("#view-home .home-hero").insertAdjacentHTML("beforebegin", `
       <section class="daily-briefing" id="daily-briefing" aria-labelledby="daily-briefing-title">
         <span class="of-clip" aria-hidden="true"></span>
         <header>
           <div><small>TODAY'S BRIEFING</small><h2 id="daily-briefing-title">오늘의 브리핑</h2></div>
           <b id="daily-briefing-count">오늘 0건</b>
         </header>
+        <button class="daily-briefing-toggle" id="daily-briefing-toggle" type="button" aria-expanded="false">일정표 펼치기</button>
+        <div class="briefing-suggestion" id="briefing-suggestion" hidden></div>
         <div class="daily-briefing-list" id="daily-briefing-list"></div>
-        <button class="daily-briefing-add" id="daily-briefing-add" type="button">+ 일정 적어두기</button>
+        <button class="daily-briefing-add" id="daily-briefing-add" type="button">+ 집사에게 맡길 일</button>
       </section>`);
+    entryForm.querySelector(".field-heading").insertAdjacentHTML("afterend", `
+      <div class="briefing-story-context" id="briefing-story-context" hidden>
+        <span><small>브리핑에 이어서</small><b id="briefing-story-context-title"></b></span>
+        <button type="button" id="briefing-story-context-close" aria-label="브리핑 연결 취소">×</button>
+      </div>`);
 
     document.body.insertAdjacentHTML("beforeend", `
       <div class="overlay briefing-editor-overlay" id="briefing-editor-overlay" role="dialog" aria-modal="true" aria-labelledby="briefing-editor-title" hidden>
@@ -6259,12 +6392,14 @@
         <input id="owner-backup-file" type="file" accept=".overbutler,application/json" hidden>
       </section>`);
 
-    $("#daily-briefing-add").addEventListener("click", openBriefingEditor);
+    $("#daily-briefing-add").addEventListener("click", () => openBriefingEditor());
+    $("#daily-briefing-toggle").addEventListener("click", toggleDailyBriefing);
+    $("#briefing-story-context-close").addEventListener("click", clearBriefingStoryContext);
     $("#briefing-editor-overlay").addEventListener("click", event => {
       if (event.target === event.currentTarget || event.target.closest("[data-briefing-close]")) closeBriefingEditor();
     });
     $("#briefing-editor-form").addEventListener("submit", submitBriefingItem);
-    $("#daily-briefing-list").addEventListener("click", handleBriefingAction);
+    $("#daily-briefing").addEventListener("click", handleBriefingSectionAction);
     $("#owner-backup-export")?.addEventListener("click", () => openBackupDialog("export"));
     $("#owner-backup-import")?.addEventListener("click", () => $("#owner-backup-file").click());
     $("#owner-backup-file")?.addEventListener("change", selectBackupImport);
@@ -6274,8 +6409,8 @@
     $("#owner-backup-form").addEventListener("submit", submitBackupDialog);
   }
 
-  function openBriefingEditor() {
-    if (briefingItems().length >= BRIEFING_DAILY_LIMIT) {
+  function openBriefingEditor(item = null) {
+    if (!item?.id && briefingItems().length >= BRIEFING_DAILY_LIMIT) {
       showBriefingSpeech("오늘 일정표는 다섯 칸까지다냥. 더 적으면 집사가 먼저 헷갈린다냥.", "annoyed");
       return;
     }
@@ -6283,24 +6418,36 @@
     overlay.hidden = false;
     document.body.classList.add("overlay-open");
     $("#briefing-editor-form").reset();
-    $("#briefing-ask-input").checked = true;
+    editingBriefingId = item?.id || null;
+    $("#briefing-editor-title").textContent = editingBriefingId ? "맡긴 일 고치기" : "오늘 집사가 챙겨둘 일";
+    $("#briefing-editor-form button[type='submit']").textContent = editingBriefingId ? "일정표 고치기" : "집사에게 맡기기";
+    $("#briefing-title-input").value = item?.title || "";
+    $("#briefing-time-input").value = item?.time || "";
+    $("#briefing-ask-input").checked = item ? item.askAfter !== false : true;
     window.setTimeout(() => $("#briefing-title-input").focus(), 40);
   }
 
   function closeBriefingEditor() {
     $("#briefing-editor-overlay").hidden = true;
     document.body.classList.remove("overlay-open");
+    editingBriefingId = null;
   }
 
   function submitBriefingItem(event) {
     event.preventDefault();
     const title = $("#briefing-title-input").value.trim();
-    if (!title || briefingItems().length >= BRIEFING_DAILY_LIMIT) return;
-    state.briefings.push({
-      id: `briefing-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      date: briefingDateKey(),
+    const existing = state.briefings.find(item => item.id === editingBriefingId);
+    if (!title || (!existing && briefingItems().length >= BRIEFING_DAILY_LIMIT)) return;
+    const values = {
       title: title.slice(0, 40),
       time: $("#briefing-time-input").value || null,
+      askAfter: $("#briefing-ask-input").checked
+    };
+    if (existing) Object.assign(existing, values);
+    else state.briefings.push({
+      id: `briefing-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      date: briefingDateKey(),
+      ...values,
       completed: false,
       completedAt: null,
       carriedFromPreviousDay: false,
@@ -6311,10 +6458,11 @@
       storyStartedAt: null,
       createdAt: new Date().toISOString()
     });
+    pendingBriefingSuggestion = null;
     saveState();
     closeBriefingEditor();
     renderDailyBriefing();
-    showBriefingSpeech(catBriefingRegisteredLine(activeBriefingItems()), "working");
+    showBriefingSpeech(existing ? "일정표 고쳐뒀다냥. 이제 이 내용으로 챙기겠다냥." : catBriefingRegisteredLine(activeBriefingItems()), "working");
   }
 
   function briefingDue(item, now = new Date()) {
@@ -6375,24 +6523,55 @@
     section.hidden = state.character !== "cat" || !state.onboarded;
     if (section.hidden) return;
     const items = briefingItems();
+    const ordered = items.slice().sort((a, b) => Number(Boolean(b.promptPending)) - Number(Boolean(a.promptPending)) || Number(Boolean(a.completed)) - Number(Boolean(b.completed)) || String(a.time || "99:99").localeCompare(String(b.time || "99:99")));
     $("#daily-briefing-count").textContent = `오늘 ${items.length}건`;
     $("#daily-briefing-add").hidden = items.length >= BRIEFING_DAILY_LIMIT;
     const list = $("#daily-briefing-list");
+    const suggestion = $("#briefing-suggestion");
+    suggestion.hidden = !pendingBriefingSuggestion;
+    suggestion.innerHTML = pendingBriefingSuggestion ? `<p><b>이건 앞으로 할 일이냥.</b><span>오늘의 브리핑에 맡겨둘까냥?</span></p><div><button type="button" data-briefing-suggestion="assign">브리핑에 맡기기</button><button type="button" data-briefing-suggestion="journal">그냥 이야기로 남기기</button></div>` : "";
+    section.classList.toggle("needs-action", Boolean(pendingBriefingSuggestion || ordered.some(item => item.promptPending)));
     if (!items.length) {
       list.innerHTML = `<p class="daily-briefing-empty">오늘 집사가 챙겨둘 일정이 있냥?</p>`;
     } else {
-      list.innerHTML = items.map(item => `
+      list.innerHTML = ordered.map((item, index) => `
         <article class="daily-briefing-item${item.completed ? " is-complete" : ""}${item.closedAt ? " is-closed" : ""}">
           <button class="briefing-status-stamp" type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}" ${item.closedAt ? "disabled" : ""}><i aria-hidden="true"></i><span>${briefingStatusLabel(item)}</span></button>
           <div class="briefing-item-copy"><time>${briefingEscape(briefingTimeLabel(item))}</time><b>${briefingEscape(item.title)}</b>${item.carriedFromPreviousDay ? "<small>전날 서류에서 넘겨옴</small>" : ""}</div>
           <div class="briefing-item-actions">
-            ${item.completed ? `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">이야기 남기기</button>` : ""}
+            ${item.completed && !item.storyLoggedAt ? `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">어땠는지 한 줄</button>` : ""}
+            ${item.storyLoggedAt ? `<span>이야기 보관됨</span>` : ""}
+            ${!item.completed && !item.closedAt ? `<button type="button" data-briefing-action="edit" data-briefing-id="${briefingEscape(item.id)}">수정</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">접어두기</button>` : ""}
             ${!item.completed && !item.closedAt && new Date().getHours() >= 18 ? `<button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로 넘기기</button>` : ""}
           </div>
           ${item.promptPending ? `<div class="briefing-followup"><span>집사가 처리 여부를 기다리는 중</span><button type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}">끝났어</button><button type="button" data-briefing-action="later" data-briefing-id="${briefingEscape(item.id)}">아직이야</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">오늘은 접어둬</button></div>` : ""}
+          ${item.reactionLine ? `<p class="briefing-item-reaction"><b>치즈냥</b> ${briefingEscape(item.reactionLine)}</p>` : ""}
         </article>`).join("");
     }
     syncBriefingRoomTrace(items.filter(item => !item.closedAt).length);
+  }
+
+  function toggleDailyBriefing() {
+    const section = $("#daily-briefing");
+    const expanded = !section.classList.contains("is-expanded");
+    section.classList.toggle("is-expanded", expanded);
+    $("#daily-briefing-toggle").setAttribute("aria-expanded", String(expanded));
+    $("#daily-briefing-toggle").textContent = expanded ? "일정표 접기" : "일정표 펼치기";
+  }
+
+  function handleBriefingSectionAction(event) {
+    const suggestionAction = event.target.closest("[data-briefing-suggestion]")?.dataset.briefingSuggestion;
+    if (suggestionAction && pendingBriefingSuggestion) {
+      if (suggestionAction === "assign") openBriefingEditor({ title: pendingBriefingSuggestion.title, time: null, askAfter: true });
+      if (suggestionAction === "journal") {
+        const pending = pendingBriefingSuggestion;
+        pendingBriefingSuggestion = null;
+        saveJournalEntry(pending.sourceText, pending.interpretation);
+        showBriefingSpeech("앞으로 할 일로 올리진 않고, 오늘 들려준 이야기로 보관했다냥.");
+      }
+      return;
+    }
+    handleBriefingAction(event);
   }
 
   function handleBriefingAction(event) {
@@ -6402,6 +6581,7 @@
     if (!item) return;
     const action = button.dataset.briefingAction;
     if (action === "complete") completeBriefingItem(item);
+    if (action === "edit") openBriefingEditor(item);
     if (action === "later") {
       item.promptPending = false;
       saveState();
@@ -6424,11 +6604,12 @@
     item.completed = true;
     item.completedAt = new Date().toISOString();
     item.promptPending = false;
+    item.reactionLine = catBriefingCompletedLine(item);
     saveState();
     renderDailyBriefing();
     const row = document.querySelector(`[data-briefing-id="${CSS.escape(item.id)}"]`)?.closest(".daily-briefing-item");
     row?.classList.add("just-stamped");
-    showBriefingSpeech(catBriefingCompletedLine(item), "happy");
+    showBriefingSpeech(item.reactionLine, "happy");
   }
 
   function carryBriefingItem(item) {
@@ -6448,10 +6629,14 @@
 
   function startBriefingStory(item) {
     item.storyStartedAt = new Date().toISOString();
+    activeBriefingStoryId = item.id;
     saveState();
     const textarea = $("#view-home .entry-form textarea");
     if (!textarea) return;
-    textarea.value = `${item.title} 끝났어`;
+    textarea.value = "";
+    textarea.placeholder = `${item.title}은 어땠는지 한 줄 남겨도 된다냥`;
+    $("#briefing-story-context").hidden = false;
+    $("#briefing-story-context-title").textContent = item.title;
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
     textarea.scrollIntoView({ behavior: "smooth", block: "center" });
     window.setTimeout(() => {
@@ -6459,6 +6644,14 @@
       textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     }, 320);
     showBriefingSpeech("완료 도장은 찍었다냥. 어떤 하루였는지는 주인님 말로 받아두겠다냥.", "working");
+  }
+
+  function clearBriefingStoryContext() {
+    activeBriefingStoryId = null;
+    const context = $("#briefing-story-context");
+    const textarea = $("#achievement-input");
+    if (context) context.hidden = true;
+    if (textarea) textarea.placeholder = "예: 씻었어 / 오늘 좀 힘들었는데 집 와서 씻었어";
   }
 
   function syncBriefingRoomTrace(count) {
@@ -6726,7 +6919,10 @@
   const roomObserver = new MutationObserver(() => {
     window.requestAnimationFrame(() => applyCatOfficeTime());
   });
-  roomObserver.observe(document.documentElement, { childList: true, subtree: true });
+  const roomObserverRoot = document.documentElement;
+  if (roomObserverRoot?.nodeType === Node.ELEMENT_NODE) {
+    try { roomObserver.observe(roomObserverRoot, { childList: true, subtree: true }); } catch { /* hidden fixture document */ }
+  }
   window.addEventListener("DOMContentLoaded", () => applyCatOfficeTime(true), { once: true });
   window.addEventListener("focus", () => applyCatOfficeTime());
   window.setInterval(() => applyCatOfficeTime(), 60 * 1000);

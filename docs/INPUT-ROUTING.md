@@ -80,9 +80,9 @@ FORM05(대업 판정) 라우팅 규칙을 정리한다.
 |---|---|---|---|
 | SHORT_ACTION | true | achievement | FORM05 (심사 연출 O) |
 | ACTION_LIST | true | achievement | FORM05, 대표 행동 하나로 기록 |
-| EMOTION_ONLY | false | comfort | 기록 없음, 공감 답변만 |
-| FUTURE_PLAN | false | conversation | 기록 없음, "아직 안 했다" 답변 |
-| STORY (완료 행동 없음) | false | conversation | 기록 없음 |
+| EMOTION_ONLY | false | comfort | CAT은 원문과 공감 답변을 오늘 이야기로 보관 |
+| FUTURE_PLAN | false | conversation | CAT은 완료로 처리하지 않고 브리핑 등록을 제안 |
+| STORY (완료 행동 없음) | false | conversation | CAT은 대업 없이 날짜별 오늘 이야기로 보관 |
 | MIXED_STORY (부정+완료행동) | true | comfort | FORM05 생략, 조용히 접수(gentle-note) + 도장 반영 |
 | MIXED_STORY (부정+계획만) | false | comfort | 기록 없음, 계획 인정 답변만 |
 
@@ -105,8 +105,8 @@ FORM05(대업 판정) 라우팅 규칙을 정리한다.
 
 ## 5. 이번 패스에서 다루지 않은 것
 
-- STORY(순수 서사, 완료 행동 없음)에 대한 전용 대사 확충 — 기존 conversation 경로
-  그대로 사용. 필요하면 별도 패스.
+- STORY(순수 서사, 완료 행동 없음)는 CAT에 한해 원문과 당시 반응을 날짜별로 보관한다.
+  공식 대업·도장·관계 수치는 만들지 않는다.
 - AI/DOG 등 다른 캐릭터의 toneShift/multi-activity 전용 대사 — 의도적으로 만들지
   않았다(§15 "CAT 하나만"). 기존 동작이 깨지지 않는 것만 확인했다.
 - 완벽한 형태소 분석 — `FUTURE_TENSE`/`POSITIVE_TONE_HINT`는 로컬 휴리스틱 정규식이다.
