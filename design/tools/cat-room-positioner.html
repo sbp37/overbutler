@@ -17,10 +17,13 @@
     #room { display: block; width: 100%; height: 100%; object-fit: fill; pointer-events: none; user-select: none; }
     #cat-box { position: absolute; cursor: grab; touch-action: none; border: 1px dashed rgba(255,255,255,.8); filter: drop-shadow(0 0 2px rgba(40,20,8,.12)); }
     #cat-box.dragging { cursor: grabbing; }
-    #cat { display: block; width: 100%; height: auto; pointer-events: none; user-select: none; }
+    #cat, #reference-cat { display: block; width: 100%; height: auto; pointer-events: none; user-select: none; }
+    #reference-box { position: absolute; pointer-events: none; opacity: .32; border: 2px solid #36a8a2; filter: saturate(.65); }
     .handle { position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px; border: 2px solid white; border-radius: 50%; background: #8b172d; box-shadow: 0 1px 5px #0008; touch-action: none; }
     .panel { background: #f4ead8; border-top: 1px solid #bca88d; padding: 12px 14px max(14px, env(safe-area-inset-bottom)); }
     .readout { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 9px; font-size: 13px; font-weight: 700; }
+    .select-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 10px; }
+    select { width: 100%; min-height: 40px; border: 1px solid #bba58a; border-radius: 10px; padding: 0 10px; background: #fffaf0; color: #3c2a20; font: inherit; font-weight: 700; }
     .scale-row { display: grid; grid-template-columns: 44px 1fr 48px; align-items: center; gap: 8px; }
     input[type="range"] { width: 100%; accent-color: #8b172d; }
     .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 10px; }
@@ -37,11 +40,12 @@
   <div class="wrap">
     <header>
       <h1>고양이 집사 배치 조절</h1>
-      <p>고양이를 직접 끌어서 옮기고 오른쪽 아래 점으로 크기를 조절하세요.</p>
+      <p>청록색 반투명 IDLE을 기준으로 선택한 포즈의 위치와 크기를 맞추세요.</p>
     </header>
     <main class="viewport">
       <div id="stage">
         <img id="room" alt="고양이 집사 사무실">
+        <div id="reference-box" aria-hidden="true"><img id="reference-cat" alt=""></div>
         <div id="cat-box" aria-label="드래그 가능한 고양이 집사">
           <img id="cat" alt="고양이 집사">
           <span class="handle" aria-hidden="true"></span>
@@ -49,6 +53,16 @@
       </div>
     </main>
     <section class="panel">
+      <div class="select-row">
+        <select id="pose" aria-label="조절할 고양이 포즈">
+          <option value="working">WORKING · 일하는 중</option>
+          <option value="idle">IDLE · 기본</option>
+          <option value="gift">GIFT · 선물</option>
+          <option value="surprised">SURPRISED · 놀람</option>
+          <option value="lazy">LAZY TAP · 귀찮음</option>
+        </select>
+        <button id="reference">기준 숨기기</button>
+      </div>
       <div class="readout"><span id="xy">X 631 · Y 132</span><span id="size">크기 90%</span></div>
       <div class="scale-row"><span>크기</span><input id="scale" type="range" min="55" max="125" step="1" value="90"><output id="scale-out">90%</output></div>
       <div class="nudge">
@@ -69,16 +83,27 @@
     const RAW = 'https://raw.githubusercontent.com/sbp37/overbutler/codex/cat-world-contract/design/';
     const room = document.querySelector('#room');
     const cat = document.querySelector('#cat');
+    const referenceCat = document.querySelector('#reference-cat');
+    const referenceBox = document.querySelector('#reference-box');
     const stage = document.querySelector('#stage');
     const box = document.querySelector('#cat-box');
     const scale = document.querySelector('#scale');
-    const initial = { x: 631, y: 132, scale: 90 };
-    const key = 'overbutler_cat_room_position_v1';
+    const POSES = {
+      working: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-working-no-paper-normalized-v2.webp',
+      idle: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-idle-edge-clean-v1.webp',
+      gift: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-gift.webp',
+      surprised: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-surprised.webp',
+      lazy: 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-lazy-tap.webp'
+    };
+    const initial = { x: 631, y: 112, scale: 90 };
+    const key = 'overbutler_cat_room_position_v2';
+    let poseKey = 'working';
     let state = (() => { try { return { ...initial, ...JSON.parse(localStorage.getItem(key) || '{}') }; } catch { return { ...initial }; } })();
     let action = null;
-    room.crossOrigin = cat.crossOrigin = 'anonymous';
+    room.crossOrigin = cat.crossOrigin = referenceCat.crossOrigin = 'anonymous';
     room.src = RAW + 'rooms/cat-office-original-fern-signage-v6-review-v1.png';
-    cat.src = RAW + 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-idle-edge-clean-v1.webp';
+    cat.src = RAW + POSES[poseKey];
+    referenceCat.src = RAW + POSES.idle;
 
     const widthFor = s => 464 * s / 100;
     const heightFor = s => 630 * s / 100;
@@ -87,6 +112,9 @@
       box.style.left = `${state.x * ratio}px`;
       box.style.top = `${state.y * ratio}px`;
       box.style.width = `${widthFor(state.scale) * ratio}px`;
+      referenceBox.style.left = `${initial.x * ratio}px`;
+      referenceBox.style.top = `${initial.y * ratio}px`;
+      referenceBox.style.width = `${widthFor(initial.scale) * ratio}px`;
       document.querySelector('#xy').textContent = `X ${Math.round(state.x)} · Y ${Math.round(state.y)}`;
       document.querySelector('#size').textContent = `크기 ${state.scale}%`;
       document.querySelector('#scale-out').textContent = `${state.scale}%`;
@@ -131,6 +159,12 @@
     document.querySelector('#minus').addEventListener('click', () => { scale.value = Math.max(55, state.scale - 1); scale.dispatchEvent(new Event('input')); });
     document.querySelector('#plus').addEventListener('click', () => { scale.value = Math.min(125, state.scale + 1); scale.dispatchEvent(new Event('input')); });
     document.querySelector('#reset').addEventListener('click', () => { state = { ...initial }; render(); });
+    document.querySelector('#pose').addEventListener('change', event => {
+      poseKey = event.target.value; cat.src = RAW + POSES[poseKey]; state = { ...initial }; render();
+    });
+    document.querySelector('#reference').addEventListener('click', event => {
+      const hidden = referenceBox.hidden; referenceBox.hidden = !hidden; event.currentTarget.textContent = hidden ? '기준 숨기기' : '기준 보이기';
+    });
     document.querySelector('#outline').addEventListener('click', event => {
       const hidden = box.style.borderColor === 'transparent';
       box.style.borderColor = hidden ? 'rgba(255,255,255,.8)' : 'transparent';
@@ -138,14 +172,14 @@
       event.currentTarget.textContent = hidden ? '선 숨기기' : '선 보이기';
     });
     document.querySelector('#copy').addEventListener('click', async event => {
-      const value = `고양이 배치: x=${Math.round(state.x)}, y=${Math.round(state.y)}, scale=${state.scale}%`;
+      const value = `고양이 배치: pose=${poseKey}, x=${Math.round(state.x)}, y=${Math.round(state.y)}, scale=${state.scale}%`;
       await navigator.clipboard.writeText(value); event.currentTarget.textContent = '복사됨'; setTimeout(() => event.currentTarget.textContent = '좌표 복사', 900);
     });
     document.querySelector('#save').addEventListener('click', () => {
       const canvas = document.createElement('canvas'); canvas.width = 1680; canvas.height = 936;
       const ctx = canvas.getContext('2d'); ctx.drawImage(room, 0, 0, 1680, 936);
       ctx.drawImage(cat, state.x, state.y, widthFor(state.scale), heightFor(state.scale));
-      const link = document.createElement('a'); link.download = `cat-room-x${Math.round(state.x)}-y${Math.round(state.y)}-s${state.scale}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+      const link = document.createElement('a'); link.download = `cat-room-${poseKey}-x${Math.round(state.x)}-y${Math.round(state.y)}-s${state.scale}.png`; link.href = canvas.toDataURL('image/png'); link.click();
     });
     new ResizeObserver(render).observe(stage); render();
   </script>
