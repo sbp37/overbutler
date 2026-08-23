@@ -4613,20 +4613,62 @@
   transition: filter 520ms ease, opacity 220ms ease;
 }
 
-html[data-cat-room-light="dawn"] [data-desk-pose] {
-  filter: brightness(.84) saturate(.8) contrast(.94);
-}
-
-html[data-cat-room-light="sunset"] [data-desk-pose] {
-  filter: brightness(.93) saturate(.94) sepia(.08);
-}
-
+html[data-cat-room-light="dawn"] [data-desk-pose],
+html[data-cat-room-light="morning"] [data-desk-pose],
+html[data-cat-room-light="day"] [data-desk-pose],
+html[data-cat-room-light="sunset"] [data-desk-pose],
 html[data-cat-room-light="night-on"] [data-desk-pose] {
-  filter: brightness(.82) saturate(.86) contrast(.94) sepia(.05);
+  filter: none;
 }
 
 html[data-cat-room-light="night-off"] [data-desk-pose] {
   filter: brightness(.66) saturate(.72) contrast(.9);
+}
+
+#cat-home-world .cat-home-background,
+#cat-home-world .cat-home-foreground {
+  transition: filter 520ms ease;
+}
+
+html[data-cat-room-light="dawn"] #cat-home-world .cat-home-background,
+html[data-cat-room-light="dawn"] #cat-home-world .cat-home-foreground {
+  filter: brightness(.82) saturate(.78) contrast(.94);
+}
+
+html[data-cat-room-light="sunset"] #cat-home-world .cat-home-background,
+html[data-cat-room-light="sunset"] #cat-home-world .cat-home-foreground {
+  filter: brightness(.92) saturate(.95) sepia(.06);
+}
+
+html[data-cat-room-light="night-on"] #cat-home-world .cat-home-background,
+html[data-cat-room-light="night-on"] #cat-home-world .cat-home-foreground {
+  filter: brightness(.72) saturate(.78) contrast(.95) sepia(.06);
+}
+
+html[data-cat-room-light="night-off"] #cat-home-world .cat-home-background,
+html[data-cat-room-light="night-off"] #cat-home-world .cat-home-foreground {
+  filter: brightness(.56) saturate(.68) contrast(.92);
+}
+
+#cat-home-world .cat-home-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 520ms ease;
+}
+
+html[data-cat-room-light="night-on"] #cat-home-world .cat-home-background::after {
+  opacity: 1;
+  background:
+    radial-gradient(circle at 13% 70%, rgba(255, 196, 105, .23), transparent 20%),
+    radial-gradient(circle at 91% 52%, rgba(255, 181, 90, .28), transparent 24%);
+}
+
+html[data-cat-room-light="night-off"] #cat-home-world .cat-home-background::after {
+  opacity: 1;
+  background: radial-gradient(circle at 91% 52%, rgba(255, 181, 90, .3), transparent 25%);
 }
 
 .cat-room-lamp-hotspot {
@@ -4669,5 +4711,5 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
 }
 
 #view-home .reception-slip {
-  margin: 8px 16px 0;
+  margin: -8px 16px 0;
 }

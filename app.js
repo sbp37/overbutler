@@ -6124,6 +6124,7 @@
   });
   let nightLampOn = sessionStorage.getItem("overbutler_cat_room_lamp") !== "off";
   let currentRoomState = "";
+  let lampAudioContext = null;
 
   Object.values(ROOM_IMAGES).forEach((src) => {
     const image = new Image();
@@ -6146,6 +6147,26 @@
     });
   }
 
+  function playCatOfficeLampBeep() {
+    if (!document.querySelector("#sound-toggle")?.checked) return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    lampAudioContext ||= new AudioContextClass();
+    const oscillator = lampAudioContext.createOscillator();
+    const gain = lampAudioContext.createGain();
+    const now = lampAudioContext.currentTime;
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(620, now);
+    oscillator.frequency.exponentialRampToValueAtTime(470, now + 0.065);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.035, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
+    oscillator.connect(gain);
+    gain.connect(lampAudioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.08);
+  }
+
   function ensureCatOfficeLampHotspot(host) {
     if (!host) return;
     let hotspot = host.querySelector(".cat-room-lamp-hotspot");
@@ -6158,6 +6179,7 @@
       hotspot.addEventListener("pointerup", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        playCatOfficeLampBeep();
         nightLampOn = !nightLampOn;
         sessionStorage.setItem("overbutler_cat_room_lamp", nightLampOn ? "on" : "off");
         applyCatOfficeTime(true);
