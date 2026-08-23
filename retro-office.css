@@ -4475,7 +4475,10 @@
    fixed navigation on an 800px-tall phone. */
 #view-home { padding-top: 12px; }
 #view-home .home-office-header { min-height: 68px; margin-bottom: 6px; }
-#view-home #cat-home-room { height: 220px; }
+#view-home #cat-home-room {
+  height: clamp(260px, 34vh, 300px);
+  touch-action: none;
+}
 #view-home .home-hero { padding-top: 20px; }
 #view-home .home-hero h1 { margin-top: 4px; }
 #view-home #entry-description { margin-top: 6px; }
@@ -4585,8 +4588,8 @@
    coordinates into the draggable 155% room world without changing its pan. */
 #cat-home-world .cat-home-character{
   left:39.43%;
-  top:20.99%;
-  bottom:auto;
+  top:auto;
+  bottom:28%;
   width:21.15%;
   height:auto;
   aspect-ratio:822/1117;
@@ -4594,12 +4597,14 @@
 }
 #cat-home-world .cat-home-character[data-desk-pose="working"]{
   left:39.31%;
-  top:23.44%;
+  top:auto;
+  bottom:28%;
   width:21.15%;
 }
 #cat-home-world .cat-home-character[data-desk-pose="surprised"]{
   left:38.26%;
-  top:16.31%;
+  top:auto;
+  bottom:28%;
   width:23.48%;
 }
 
@@ -4648,4 +4653,21 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
 .cat-room-lamp-hotspot:focus-visible {
   outline: 3px solid rgba(255, 239, 184, .9);
   outline-offset: 2px;
+}
+
+/* Wider room view with two-axis drag; speech sits below instead of masking art. */
+#view-home #cat-home-world {
+  inset: 0 auto auto 0;
+  width: 138%;
+  height: 112%;
+  touch-action: none;
+}
+
+#view-home #cat-home-world .cat-home-background,
+#view-home #cat-home-world .cat-home-foreground {
+  background-image: url("design/rooms/cat-office-time-day.webp");
+}
+
+#view-home .reception-slip {
+  margin: 8px 16px 0;
 }

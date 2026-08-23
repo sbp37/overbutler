@@ -1030,6 +1030,7 @@
   let handlingBrowserBack = false;
   let focusReturnTarget = null;
   let catHomeOffsetX = 0;
+  let catHomeOffsetY = 0;
   let catHomeDrag = null;
   let catHomeDragged = false;
   let catHomeInitialized = false;
@@ -3212,18 +3213,22 @@
   function catHomeBounds() {
     const room = $("#cat-home-room");
     const world = $("#cat-home-world");
-    if (!room || !world || state.character !== "cat") return { min: 0, max: 0, center: 0 };
+    if (!room || !world || state.character !== "cat") {
+      return { min: 0, max: 0, center: 0, minY: 0, maxY: 0, centerY: 0 };
+    }
     const min = Math.min(0, room.clientWidth - world.offsetWidth);
-    return { min, max: 0, center: min / 2 };
+    const minY = Math.min(0, room.clientHeight - world.offsetHeight);
+    return { min, max: 0, center: min / 2, minY, maxY: 0, centerY: minY / 2 };
   }
 
-  function setCatHomeOffset(value, settle = false) {
+  function setCatHomeOffset(value, settle = false, verticalValue = catHomeOffsetY) {
     const world = $("#cat-home-world");
     if (!world) return;
     const bounds = catHomeBounds();
     catHomeOffsetX = clamp(Number(value) || 0, bounds.min, bounds.max);
+    catHomeOffsetY = clamp(Number(verticalValue) || 0, bounds.minY, bounds.maxY);
     world.classList.toggle("is-settling", settle);
-    world.style.transform = `translate3d(${catHomeOffsetX}px,0,0)`;
+    world.style.transform = `translate3d(${catHomeOffsetX}px,${catHomeOffsetY}px,0)`;
   }
 
   // 쓴 슬립은 위로 빠지고 새 슬립이 아래에서 올라온다. 첫 발행과 감소 모드에서는
@@ -3349,9 +3354,10 @@
       const room = $("#cat-home-room");
       if (!room?.clientWidth) return;
       if (!catHomeInitialized) {
-        setCatHomeOffset(catHomeBounds().center);
+        const bounds = catHomeBounds();
+        setCatHomeOffset(bounds.center, false, bounds.centerY);
         catHomeInitialized = true;
-      } else setCatHomeOffset(catHomeOffsetX);
+      } else setCatHomeOffset(catHomeOffsetX, false, catHomeOffsetY);
     });
     scheduleCatHomeBlink();
     warmDeskFaces();
@@ -3515,7 +3521,7 @@
     catHomeDragged = false;
     catHomeDrag = {
       pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
-      startOffset: catHomeOffsetX, moved: false,
+      startOffsetX: catHomeOffsetX, startOffsetY: catHomeOffsetY, moved: false,
       roomItem: event.target.closest(ROOM_ITEM_SELECTOR),
       onCharacter: Boolean(event.target.closest("#cat-home-character"))
     };
@@ -3529,13 +3535,12 @@
     const dx = event.clientX - catHomeDrag.startX;
     const dy = event.clientY - catHomeDrag.startY;
     if (!catHomeDrag.moved) {
-      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6) return;
-      if (Math.abs(dx) < 5) return;
+      if (Math.hypot(dx, dy) < 5) return;
       catHomeDrag.moved = true;
       dismissCatHomeHint();
     }
     event.preventDefault();
-    setCatHomeOffset(catHomeDrag.startOffset + dx);
+    setCatHomeOffset(catHomeDrag.startOffsetX + dx, false, catHomeDrag.startOffsetY + dy);
   }
 
   function endCatHomeDrag(event) {
@@ -3544,7 +3549,7 @@
     catHomeDragged = moved;
     catHomeDrag = null;
     $("#cat-home-room").classList.remove("is-dragging");
-    setCatHomeOffset(catHomeOffsetX, true);
+    setCatHomeOffset(catHomeOffsetX, true, catHomeOffsetY);
     // 방을 잡아 끌 수 있게 하려고 포인터를 월드에 캡처하는 탓에 집사 버튼의 click이
     // 오지 않는다. 밀지 않고 뗀 경우는 여기서 직접 말을 건다.
     if (moved) return;
@@ -5975,7 +5980,7 @@
     window.addEventListener("pointermove", moveCatHomeDrag, { passive: false });
     window.addEventListener("pointerup", endCatHomeDrag);
     window.addEventListener("pointercancel", endCatHomeDrag);
-    window.addEventListener("resize", () => setCatHomeOffset(catHomeOffsetX));
+    window.addEventListener("resize", () => setCatHomeOffset(catHomeOffsetX, false, catHomeOffsetY));
     $("#view-manager").addEventListener("click", event => {
       const trigger = event.target.closest("[data-cat-home-action]");
       if (trigger) handleCatHomeAction(trigger.dataset.catHomeAction);
@@ -6141,8 +6146,7 @@
     });
   }
 
-  function ensureCatOfficeLampHotspot(roomImage) {
-    const host = roomImage.parentElement;
+  function ensureCatOfficeLampHotspot(host) {
     if (!host) return;
     let hotspot = host.querySelector(".cat-room-lamp-hotspot");
     if (!hotspot) {
@@ -6167,7 +6171,11 @@
   function applyCatOfficeTime(force = false) {
     const nextState = catOfficePeriod();
     const roomImages = catOfficeRoomImages();
-    if (!roomImages.length) return;
+    const roomLayers = Array.from(document.querySelectorAll(
+      "#cat-home-world .cat-home-background, #cat-home-world .cat-home-foreground"
+    ));
+    const world = document.querySelector("#cat-home-world");
+    if (!roomImages.length && !roomLayers.length) return;
 
     currentRoomState = nextState;
     document.documentElement.dataset.catRoomLight = nextState;
@@ -6175,8 +6183,14 @@
       if (force || roomImage.getAttribute("src") !== ROOM_IMAGES[nextState]) {
         roomImage.src = ROOM_IMAGES[nextState];
       }
-      ensureCatOfficeLampHotspot(roomImage);
     });
+    roomLayers.forEach((layer) => {
+      const nextBackground = `url("${ROOM_IMAGES[nextState]}")`;
+      if (force || layer.style.backgroundImage !== nextBackground) {
+        layer.style.backgroundImage = nextBackground;
+      }
+    });
+    ensureCatOfficeLampHotspot(world || roomImages[0]?.parentElement);
   }
 
   const roomObserver = new MutationObserver(() => {
