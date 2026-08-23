@@ -59,7 +59,6 @@
           <option value="idle">ACTION IDLE · 기본</option>
           <option value="gift">GIFT · 선물</option>
           <option value="surprised">ACTION SURPRISED · 놀람</option>
-          <option value="lazy">LAZY TAP · 귀찮음</option>
           <option value="base">BASE · 원래 표정</option>
           <option value="blink">BLINK · 눈 감음</option>
           <option value="happy">HAPPY · 씨익 웃음</option>
@@ -98,7 +97,6 @@
       idle: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-idle.webp',
       gift: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-gift.webp',
       surprised: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-surprised.webp',
-      lazy: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-lazy-tap.webp',
       base: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-base.webp',
       blink: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-blink.webp',
       happy: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-happy.webp',
@@ -106,7 +104,10 @@
       faceSurprised: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-surprised.webp'
     };
     const referenceDefault = { x: 631, y: 112, scale: 90 };
-    const DEFAULTS = { working: { x: 629, y: 135, scale: 90 } };
+    const DEFAULTS = {
+      working: { x: 629, y: 135, scale: 90 },
+      surprised: { x: 608, y: 59, scale: 100 }
+    };
     const initial = { ...DEFAULTS.working };
     const key = 'overbutler_cat_room_position_v3';
     let poseKey = 'working';
