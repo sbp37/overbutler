@@ -260,8 +260,18 @@ top to bottom.
 | `storage` | 비품 보관함 | `trace-05-storage.png` | `A closed archive storage box in warm kraft cardboard, lid fully on, with a cream label plate on the front and a twine handle. Neatly sealed, nothing spilling out. Simple sturdy container.` |
 | `plate` | 주인님 명패 | `trace-06-nameplate-frame.png` | `A wide low blank desk plaque with a rounded walnut frame, muted maroon inner face, broad cream text inset, and one small paw detail. No lettering inside the image.` |
 
-`plate`는 빈 명패 프레임만 이미지로 두고, `OO님의 냥집사`는 사용자 이름에 맞춰
-HTML/CSS 텍스트로 올린다. 구매·해금 전에는 렌더링하지 않는 책상 앞 고정 슬롯이다.
+`plate`는 빈 명패 프레임만 이미지로 두고, `{닉네임}님의 냥집사`는 사용자 이름에 맞춰
+HTML/CSS 텍스트로 올린다. 닉네임 입력은 최대 3글자로 안내하고, 기존 저장값이 더 길면
+데이터를 자르지 않고 명패 표시에서만 3글자 말줄임한다. 명패 글자는 모바일에서도 읽히도록
+굵은 고딕 700~800 weight를 쓰며 프레임 안쪽 높이의 약 45%를 채운다. 구매·해금 전에는
+렌더링하지 않는 책상 앞 고정 슬롯이다.
+
+전체 보유 상태 검수 배치는 다음처럼 잡는다.
+
+- 책상: 작은 닫힌 참치캔, 우유 세트, 화분, 연필꽂이, 명패. 모든 바닥면을 책상 상판에 붙인다.
+- 뒤 수납장: 츄르·깃털 장난감과 관계 흔적 5종을 선반 높이에 맞춰 정리한다.
+- 바닥: 방울공·쥐돌이·스크래처·창가 쿠션. 벽이나 책상보다 앞쪽 바닥 원근을 따른다.
+- 캣타워: 구매 시에만 오른쪽 고정 가구로 나타나며 방 자체와 같은 투시·광원으로 합성한다.
 
 ⚠️ 보관함은 **닫혀 있어야** 한다. "집사가 하나도 안 버리고 정리해서 보관 중"이
 이 칸의 정서다. 열려서 물건이 삐져나오면 "쌓아둔 잡동사니"가 된다.
