@@ -6355,7 +6355,7 @@
         <button class="daily-briefing-toggle" id="daily-briefing-toggle" type="button" aria-expanded="false">일정표 펼치기</button>
         <div class="briefing-suggestion" id="briefing-suggestion" hidden></div>
         <div class="daily-briefing-list" id="daily-briefing-list"></div>
-        <button class="daily-briefing-add" id="daily-briefing-add" type="button">+ 집사에게 맡길 일</button>
+        <button class="daily-briefing-add" id="daily-briefing-add" type="button">+ 일정 적기</button>
       </section>`);
     entryForm.querySelector(".field-heading").insertAdjacentHTML("afterend", `
       <div class="briefing-story-context" id="briefing-story-context" hidden>

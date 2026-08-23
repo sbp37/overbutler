@@ -4801,3 +4801,19 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-sheet { filter: brightn
     padding-block: 2px;
   }
 }
+
+/* 일정 추가는 접힌 브리핑에서도 사라지지 않아야 한다. */
+#view-home .daily-briefing .daily-briefing-add:not([hidden]) {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  display: block;
+  margin: 0;
+  padding: 4px 7px;
+  border-style: solid;
+  font-size: 9px;
+}
+
+#view-home .daily-briefing .daily-briefing-add[hidden] {
+  display: none;
+}
