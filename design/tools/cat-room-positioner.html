@@ -40,7 +40,7 @@
   <div class="wrap">
     <header>
       <h1>고양이 집사 배치 조절</h1>
-      <p>청록색 반투명 IDLE을 기준으로 선택한 포즈의 위치와 크기를 맞추세요.</p>
+      <p>청록색 반투명 BASE를 기준으로 선택한 포즈의 위치와 크기를 맞추세요.</p>
     </header>
     <main class="viewport">
       <div id="stage">
@@ -56,7 +56,6 @@
       <div class="select-row">
         <select id="pose" aria-label="조절할 고양이 포즈">
           <option value="working">WORKING · 일하는 중</option>
-          <option value="idle">ACTION IDLE · 기본</option>
           <option value="gift">GIFT · 선물</option>
           <option value="surprised">ACTION SURPRISED · 놀람</option>
           <option value="base">BASE · 원래 표정</option>
@@ -94,7 +93,6 @@
     const scale = document.querySelector('#scale');
     const POSES = {
       working: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-working.webp',
-      idle: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-idle.webp',
       gift: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-gift.webp',
       surprised: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-action-surprised.webp',
       base: 'character-assets/cat-butler/desk-poses/final-v1/cat-desk-base.webp',
@@ -116,7 +114,7 @@
     room.crossOrigin = cat.crossOrigin = referenceCat.crossOrigin = 'anonymous';
     room.src = RAW + 'rooms/cat-office-original-fern-signage-v6-review-v1.png';
     cat.src = RAW + POSES[poseKey];
-    referenceCat.src = RAW + POSES.idle;
+    referenceCat.src = RAW + POSES.base;
 
     const widthFor = s => 464 * s / 100;
     const heightFor = s => 630 * s / 100;

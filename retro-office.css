@@ -4581,3 +4581,24 @@
     padding-left: 10px;
   }
 }
+/* Final CAT desk pose placement. Percentages map the approved 1680x936 room
+   coordinates into the draggable 155% room world without changing its pan. */
+#cat-home-world .cat-home-character{
+  left:37.56%;
+  top:11.97%;
+  bottom:auto;
+  width:24.88%;
+  height:auto;
+  aspect-ratio:822/1117;
+  transform:none;
+}
+#cat-home-world .cat-home-character[data-desk-pose="working"]{
+  left:37.44%;
+  top:14.42%;
+  width:24.88%;
+}
+#cat-home-world .cat-home-character[data-desk-pose="surprised"]{
+  left:36.19%;
+  top:6.3%;
+  width:27.62%;
+}

@@ -3259,9 +3259,12 @@
     blink: "cat-desk-blink",
     annoyed: "cat-desk-annoyed",
     happy: "cat-desk-happy",
-    surprised: "cat-desk-surprised"
+    surprised: "cat-desk-action-surprised",
+    working: "cat-desk-action-working",
+    gift: "cat-desk-action-gift"
   });
-  const DESK_FACE_PATH = "design/character-assets/cat-butler/desk-poses/";
+  const DESK_POSE_KIND = Object.freeze({ surprised: "surprised", working: "working" });
+  const DESK_FACE_PATH = "design/character-assets/cat-butler/desk-poses/final-v1/";
 
   // 표정은 칭찬을 받은 바로 그 순간에 뜬다. 그때 처음 내려받느라 한 프레임이라도
   // 비면 연출이 아니라 버그로 보인다. 방에 처음 들어올 때 미리 받아둔다.
@@ -3269,7 +3272,7 @@
   function warmDeskFaces() {
     if (deskFacesWarmed) return;
     deskFacesWarmed = true;
-    ["annoyed", "happy", "surprised"].forEach(name => {
+    ["annoyed", "happy", "surprised", "working", "gift"].forEach(name => {
       const preload = new Image();
       preload.src = `${DESK_FACE_PATH}${DESK_FACES[name]}.webp`;
     });
@@ -3278,7 +3281,10 @@
   function setDeskFace(name) {
     const image = $("#cat-home-character-image");
     if (!image) return null;
-    image.src = `${DESK_FACE_PATH}${DESK_FACES[name] || DESK_FACES.base}.webp`;
+    const resolved = DESK_FACES[name] ? name : "base";
+    image.src = `${DESK_FACE_PATH}${DESK_FACES[resolved]}.webp`;
+    const character = $("#cat-home-character");
+    if (character) character.dataset.deskPose = DESK_POSE_KIND[resolved] || "face";
     return image;
   }
 
@@ -3297,7 +3303,7 @@
   function blinkOnce() {
     const image = $("#cat-home-character-image");
     if (!image || catFaceTimer) return;
-    image.src = `${DESK_FACE_PATH}${DESK_FACES.blink}.webp`;
+    setDeskFace("blink");
     window.setTimeout(() => { if (!catFaceTimer) setDeskFace("base"); }, 180);
     scheduleCatHomeBlink();
   }
@@ -3318,7 +3324,8 @@
     catHomeBlinkTimer = window.setTimeout(() => {
       if (!deskIdleVisible()) return; // 화면을 떠났다 — 돌아올 때 다시 건다
       if (catHomeDrag) { scheduleCatHomeBlink(); return; } // 방을 미는 중엔 한 박자 쉰다
-      blinkOnce();
+      if (Math.random() < 0.22) showDeskFace("working", 2600);
+      else blinkOnce();
     }, 6000 + Math.floor(Math.random() * 6000));
   }
 
@@ -5741,7 +5748,7 @@
     // 여기서 예약만 해두고, 사용자가 방으로 돌아왔을 때 나온다.
     if (state.character === "cat") {
       catHomePendingReaction = "선물은 책상에 잘 두었다냥. 주인님이 준 거라 자꾸 보게 된다냥.";
-      catHomePendingFace = "happy";
+      catHomePendingFace = "gift";
     }
     typeMessage($("#briefing-message"), message);
     renderManager();
