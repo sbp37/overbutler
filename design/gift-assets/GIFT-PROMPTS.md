@@ -1,4 +1,4 @@
-# 고양이 집사 선물 에셋 14종 — 제작 프롬프트
+# 고양이 집사 선물 에셋 16종 — 제작 프롬프트
 
 ## 이 문서가 푸는 문제
 
@@ -73,6 +73,16 @@
 | 8 | 200 | 창가 방석 ✦희귀 | 볕 드는 자리 쿠션 | `gift-cat-08-cushion.png` |
 | 9 | 300 | 캣타워 ✦희귀 | 3단 원목 캣타워 | `gift-cat-09-tower.png` |
 
+### 추가 사무실 선물 2종
+
+기존 9칸 가격과 저장 계약은 코드 연결 전까지 건드리지 않는다. 아래 두 종은
+에셋과 방 배치부터 검수한 뒤 카탈로그 확장 방식과 가격을 결정한다.
+
+| 이름 | 물건 | 파일명 |
+|---|---|---|
+| 연필꽂이 | 원조 방의 발바닥 컵 + 필기구 3개 | `gift-cat-10-pencil-cup.png` |
+| 화분 | 둥근 잎 6장 + 크림색 발바닥 화분 | `gift-cat-11-plant.png` |
+
 ### 저장 데이터 제약 — 이름을 그냥 바꾸면 안 된다
 
 `giftHistory`는 선물을 **이름 문자열**로 저장한다. 카탈로그에서 이름이 사라지면
@@ -104,24 +114,19 @@ no texture noise, no rendering detail.
 Clean uniform dark brown outline, color #4A3320, about 3% of the image width,
 fully closed around the whole silhouette, same thickness everywhere.
 
-Warm retro-office palette shared with a 1970s Korean government office:
-cream #F3E3C8, amber #D9A05B, maroon #7A2C36, sage green #7C8F6A,
-walnut brown #6B4A2E. The object itself must sit in the LIGHT half of that
-range so it reads clearly brighter than a dark walnut desk. Colors one step
-more saturated than a faded vintage illustration — warm and inviting,
-never neon, never fluorescent.
-
-STRICTLY NO COOL COLORS anywhere on the object: no blue, no purple, no violet,
-no teal, no cool grey. Sage green is the ONLY green and the ONLY colour that
-may lean cool. Every other coloured area must be cream, amber, tan, rust,
-or maroon. If a real-world version of this object would normally be blue,
-recolour it to maroon or amber instead.
+Balanced retro-office palette shared with the current cat room: cream
+#F3E3C8, amber #D9A05B, maroon #7A2C36, sage green #7C8F6A, walnut brown
+#6B4A2E, vintage cobalt #355A8A, emerald #25835B, and pale mint #A8D7B8.
+The full set must distribute these accents rather than concentrating every
+item in maroon or amber. Cool accents are welcome when they help an item read,
+but must stay softened and vintage — never neon, fluorescent, or icy.
 
 Simple bold silhouette with at most three shape elements, still readable when
 shrunk to 30 pixels wide.
 
 Transparent background. Object centered with a small even margin on all sides.
-A soft elliptical contact shadow directly beneath the object only.
+No painted contact shadow and no cast shadow. Placement code owns any shadow
+so movable gifts remain natural on desks, shelves, and floors.
 
 No text, no numbers, no logo, no sparkles, no glow, no gold foil, no border.
 ```
@@ -133,8 +138,8 @@ photo, photorealistic, 3d render, clay render, gradient mesh, noisy texture,
 fine rendering detail, multiple separate objects, cluttered composition,
 tiny details, thin hairline strokes, uneven line weight, missing outline,
 white outline, light outline, dark object, black object, muddy brown object,
-blue, navy, sky blue, teal, cyan, purple, violet, lavender, magenta, pink
-plastic, cool grey, grey object, desaturated grey, washed out, neon,
+neon blue, neon teal, fluorescent cyan, purple, violet, lavender, magenta,
+pink plastic, cool grey, grey object, desaturated grey, washed out, neon,
 fluorescent, saturated primary colors,
 gold foil, glitter, sparkles, star effects, glow, lens flare, long cast shadow,
 shadow stretching away from object, background scenery, desk, table, floor,
@@ -269,7 +274,7 @@ top to bottom.
       **묻히지 않는지** 확인 (제일 중요)
 - [ ] 아이템 어디에도 **금박·반짝임 없음** — 금박은 인증서와 축하 전용이다
       (희귀 아이템 아래 금박 받침은 코드가 그리는 것이고 그림에는 넣지 않는다)
-- [ ] 그림자가 물건 **바로 아래**에만 있고 옆으로 늘어지지 않음
+- [ ] 에셋 자체에는 접지·캐스트 그림자 없음 — 배치 위치에 맞춰 코드가 담당
 - [ ] 텍스트·숫자·로고 없음
 - [ ] 고양이나 캐릭터가 같이 그려지지 않음 — 물건만
 - [ ] 희귀 2종이 세로로 서 있고, 일반 7종보다 확실히 크게 읽힘
