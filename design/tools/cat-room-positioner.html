@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>고양이 집사 배치 조절</title>
+  <style>
+    :root { color-scheme: light; font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #171411; color: #2d2119; overscroll-behavior: none; }
+    .wrap { min-height: 100svh; display: grid; grid-template-rows: auto 1fr auto; }
+    header { padding: 12px 16px; background: #f4ead8; border-bottom: 1px solid #bca88d; }
+    h1 { margin: 0; font-size: 17px; }
+    header p { margin: 4px 0 0; color: #725f50; font-size: 12px; }
+    .viewport { display: grid; place-items: center; min-height: 0; overflow: auto; background: #111; }
+    #stage { position: relative; width: min(100vw, 1280px); aspect-ratio: 1680 / 936; overflow: hidden; touch-action: none; background: #51341f; }
+    #room { display: block; width: 100%; height: 100%; object-fit: fill; pointer-events: none; user-select: none; }
+    #cat-box { position: absolute; cursor: grab; touch-action: none; border: 1px dashed rgba(255,255,255,.8); filter: drop-shadow(0 0 2px rgba(40,20,8,.12)); }
+    #cat-box.dragging { cursor: grabbing; }
+    #cat { display: block; width: 100%; height: auto; pointer-events: none; user-select: none; }
+    .handle { position: absolute; right: -8px; bottom: -8px; width: 18px; height: 18px; border: 2px solid white; border-radius: 50%; background: #8b172d; box-shadow: 0 1px 5px #0008; touch-action: none; }
+    .panel { background: #f4ead8; border-top: 1px solid #bca88d; padding: 12px 14px max(14px, env(safe-area-inset-bottom)); }
+    .readout { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 9px; font-size: 13px; font-weight: 700; }
+    .scale-row { display: grid; grid-template-columns: 44px 1fr 48px; align-items: center; gap: 8px; }
+    input[type="range"] { width: 100%; accent-color: #8b172d; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 10px; }
+    button { min-height: 40px; border: 1px solid #bba58a; border-radius: 10px; background: #fffaf0; color: #3c2a20; font: inherit; font-size: 13px; font-weight: 700; }
+    button:active { transform: translateY(1px); background: #eadcc8; }
+    .primary { background: #7f1428; color: white; border-color: #7f1428; }
+    .wide { grid-column: span 2; }
+    .nudge { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 7px; }
+    .hint { margin: 8px 0 0; color: #806e5e; font-size: 11px; text-align: center; }
+    @media (min-width: 800px) { .panel { width: min(760px, 100%); margin: 0 auto; border-inline: 1px solid #bca88d; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>고양이 집사 배치 조절</h1>
+      <p>고양이를 직접 끌어서 옮기고 오른쪽 아래 점으로 크기를 조절하세요.</p>
+    </header>
+    <main class="viewport">
+      <div id="stage">
+        <img id="room" alt="고양이 집사 사무실">
+        <div id="cat-box" aria-label="드래그 가능한 고양이 집사">
+          <img id="cat" alt="고양이 집사">
+          <span class="handle" aria-hidden="true"></span>
+        </div>
+      </div>
+    </main>
+    <section class="panel">
+      <div class="readout"><span id="xy">X 631 · Y 132</span><span id="size">크기 90%</span></div>
+      <div class="scale-row"><span>크기</span><input id="scale" type="range" min="55" max="125" step="1" value="90"><output id="scale-out">90%</output></div>
+      <div class="nudge">
+        <button data-dx="-10">← 10</button><button data-dx="10">10 →</button>
+        <button data-dy="-10">↑ 10</button><button data-dy="10">10 ↓</button>
+      </div>
+      <div class="grid">
+        <button id="reset">원래 위치</button>
+        <button id="outline">선 숨기기</button>
+        <button id="copy" class="primary wide">좌표 복사</button>
+        <button id="save" class="primary wide">PNG 저장</button>
+        <button id="minus">크기 -1</button><button id="plus">크기 +1</button>
+      </div>
+      <p class="hint">위치는 이 기기에 자동 저장됩니다. 좌표 복사 후 채팅에 붙여 넣으면 그대로 적용할 수 있습니다.</p>
+    </section>
+  </div>
+  <script>
+    const RAW = 'https://raw.githubusercontent.com/sbp37/overbutler/codex/cat-world-contract/design/';
+    const room = document.querySelector('#room');
+    const cat = document.querySelector('#cat');
+    const stage = document.querySelector('#stage');
+    const box = document.querySelector('#cat-box');
+    const scale = document.querySelector('#scale');
+    const initial = { x: 631, y: 132, scale: 90 };
+    const key = 'overbutler_cat_room_position_v1';
+    let state = (() => { try { return { ...initial, ...JSON.parse(localStorage.getItem(key) || '{}') }; } catch { return { ...initial }; } })();
+    let action = null;
+    room.crossOrigin = cat.crossOrigin = 'anonymous';
+    room.src = RAW + 'rooms/cat-office-original-fern-signage-v6-review-v1.png';
+    cat.src = RAW + 'character-assets/cat-butler/desk-poses/reviews/action-v1/cat-desk-idle-edge-clean-v1.webp';
+
+    const widthFor = s => 464 * s / 100;
+    const heightFor = s => 630 * s / 100;
+    function render() {
+      const ratio = stage.clientWidth / 1680;
+      box.style.left = `${state.x * ratio}px`;
+      box.style.top = `${state.y * ratio}px`;
+      box.style.width = `${widthFor(state.scale) * ratio}px`;
+      document.querySelector('#xy').textContent = `X ${Math.round(state.x)} · Y ${Math.round(state.y)}`;
+      document.querySelector('#size').textContent = `크기 ${state.scale}%`;
+      document.querySelector('#scale-out').textContent = `${state.scale}%`;
+      scale.value = state.scale;
+      localStorage.setItem(key, JSON.stringify(state));
+    }
+    function clamp() {
+      state.x = Math.max(-widthFor(state.scale) * .7, Math.min(1680 - widthFor(state.scale) * .3, state.x));
+      state.y = Math.max(-heightFor(state.scale) * .5, Math.min(936 - heightFor(state.scale) * .15, state.y));
+    }
+    box.addEventListener('pointerdown', event => {
+      event.preventDefault();
+      box.setPointerCapture(event.pointerId);
+      const ratio = stage.clientWidth / 1680;
+      action = event.target.classList.contains('handle')
+        ? { type: 'scale', startX: event.clientX, startScale: state.scale }
+        : { type: 'move', startX: event.clientX, startY: event.clientY, x: state.x, y: state.y, ratio };
+      box.classList.add('dragging');
+    });
+    box.addEventListener('pointermove', event => {
+      if (!action) return;
+      if (action.type === 'move') {
+        state.x = action.x + (event.clientX - action.startX) / action.ratio;
+        state.y = action.y + (event.clientY - action.startY) / action.ratio;
+      } else {
+        state.scale = Math.max(55, Math.min(125, Math.round(action.startScale + (event.clientX - action.startX) / 4)));
+      }
+      clamp(); render();
+    });
+    box.addEventListener('pointerup', () => { action = null; box.classList.remove('dragging'); });
+    scale.addEventListener('input', () => {
+      const oldW = widthFor(state.scale), oldH = heightFor(state.scale);
+      const cx = state.x + oldW / 2, bottom = state.y + oldH;
+      state.scale = Number(scale.value);
+      state.x = cx - widthFor(state.scale) / 2;
+      state.y = bottom - heightFor(state.scale);
+      clamp(); render();
+    });
+    document.querySelectorAll('[data-dx],[data-dy]').forEach(button => button.addEventListener('click', () => {
+      state.x += Number(button.dataset.dx || 0); state.y += Number(button.dataset.dy || 0); clamp(); render();
+    }));
+    document.querySelector('#minus').addEventListener('click', () => { scale.value = Math.max(55, state.scale - 1); scale.dispatchEvent(new Event('input')); });
+    document.querySelector('#plus').addEventListener('click', () => { scale.value = Math.min(125, state.scale + 1); scale.dispatchEvent(new Event('input')); });
+    document.querySelector('#reset').addEventListener('click', () => { state = { ...initial }; render(); });
+    document.querySelector('#outline').addEventListener('click', event => {
+      const hidden = box.style.borderColor === 'transparent';
+      box.style.borderColor = hidden ? 'rgba(255,255,255,.8)' : 'transparent';
+      box.querySelector('.handle').style.display = hidden ? '' : 'none';
+      event.currentTarget.textContent = hidden ? '선 숨기기' : '선 보이기';
+    });
+    document.querySelector('#copy').addEventListener('click', async event => {
+      const value = `고양이 배치: x=${Math.round(state.x)}, y=${Math.round(state.y)}, scale=${state.scale}%`;
+      await navigator.clipboard.writeText(value); event.currentTarget.textContent = '복사됨'; setTimeout(() => event.currentTarget.textContent = '좌표 복사', 900);
+    });
+    document.querySelector('#save').addEventListener('click', () => {
+      const canvas = document.createElement('canvas'); canvas.width = 1680; canvas.height = 936;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(room, 0, 0, 1680, 936);
+      ctx.drawImage(cat, state.x, state.y, widthFor(state.scale), heightFor(state.scale));
+      const link = document.createElement('a'); link.download = `cat-room-x${Math.round(state.x)}-y${Math.round(state.y)}-s${state.scale}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+    });
+    new ResizeObserver(render).observe(stage); render();
+  </script>
+</body>
+</html>
