@@ -4817,3 +4817,34 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-sheet { filter: brightn
 #view-home .daily-briefing .daily-briefing-add[hidden] {
   display: none;
 }
+
+/* CAT briefing: keep compact controls clear of the count stamp. */
+#view-home .daily-briefing-toggle {
+  top: 4px;
+  right: 70px;
+  padding: 2px 5px;
+}
+
+#view-home .daily-briefing .daily-briefing-add:not([hidden]) {
+  top: 4px;
+  right: 8px;
+  padding: 2px 6px;
+}
+
+/* Let the butler's reply sit across the desk edge instead of below the room. */
+#home-butler-room #cat-home-speech {
+  position: relative;
+  z-index: 8;
+  margin-top: -24px;
+}
+
+/* Registration feedback stays visible above the mobile keyboard. */
+body:has(#daily-briefing:not([hidden])) #toast {
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  bottom: auto;
+}
+
+/* Morning keeps clear daylight while retaining a little of the room's warmth. */
+#cat-home-room .cat-home-background[style*="cat-office-time-morning.webp"] {
+  filter: brightness(1.12) saturate(1.06) sepia(0.06);
+}

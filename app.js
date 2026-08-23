@@ -6462,6 +6462,12 @@
     saveState();
     closeBriefingEditor();
     renderDailyBriefing();
+    if (!existing) {
+      const section = $("#daily-briefing");
+      section.classList.add("is-expanded");
+      $("#daily-briefing-toggle").setAttribute("aria-expanded", "true");
+      $("#daily-briefing-toggle").textContent = "일정표 접기";
+    }
     showBriefingSpeech(existing ? "일정표 고쳐뒀다냥. 이제 이 내용으로 챙기겠다냥." : catBriefingRegisteredLine(activeBriefingItems()), "working");
   }
 
