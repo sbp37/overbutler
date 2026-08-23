@@ -4584,23 +4584,23 @@
 /* Final CAT desk pose placement. Percentages map the approved 1680x936 room
    coordinates into the draggable 155% room world without changing its pan. */
 #cat-home-world .cat-home-character{
-  left:37.56%;
-  top:11.97%;
+  left:39.43%;
+  top:20.99%;
   bottom:auto;
-  width:24.88%;
+  width:21.15%;
   height:auto;
   aspect-ratio:822/1117;
   transform:none;
 }
 #cat-home-world .cat-home-character[data-desk-pose="working"]{
-  left:37.44%;
-  top:14.42%;
-  width:24.88%;
+  left:39.31%;
+  top:23.44%;
+  width:21.15%;
 }
 #cat-home-world .cat-home-character[data-desk-pose="surprised"]{
-  left:36.19%;
-  top:6.3%;
-  width:27.62%;
+  left:38.26%;
+  top:16.31%;
+  width:23.48%;
 }
 
 /* CAT OFFICE TIME-OF-DAY LIGHTING */
