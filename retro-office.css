@@ -4602,3 +4602,50 @@
   top:6.3%;
   width:27.62%;
 }
+
+/* CAT OFFICE TIME-OF-DAY LIGHTING */
+[data-desk-pose] {
+  transition: filter 520ms ease, opacity 220ms ease;
+}
+
+html[data-cat-room-light="dawn"] [data-desk-pose] {
+  filter: brightness(.84) saturate(.8) contrast(.94);
+}
+
+html[data-cat-room-light="sunset"] [data-desk-pose] {
+  filter: brightness(.93) saturate(.94) sepia(.08);
+}
+
+html[data-cat-room-light="night-on"] [data-desk-pose] {
+  filter: brightness(.82) saturate(.86) contrast(.94) sepia(.05);
+}
+
+html[data-cat-room-light="night-off"] [data-desk-pose] {
+  filter: brightness(.66) saturate(.72) contrast(.9);
+}
+
+.cat-room-lamp-hotspot {
+  position: absolute;
+  z-index: 12;
+  top: 39%;
+  left: 88%;
+  width: 10%;
+  height: 25%;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cat-room-lamp-hotspot[hidden] {
+  display: none;
+}
+
+.cat-room-lamp-hotspot:focus-visible {
+  outline: 3px solid rgba(255, 239, 184, .9);
+  outline-offset: 2px;
+}

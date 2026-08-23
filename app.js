@@ -6106,3 +6106,84 @@
   });
   init();
 })();
+
+/* CAT OFFICE TIME-OF-DAY - local visual state only */
+(() => {
+  const ROOM_IMAGES = Object.freeze({
+    dawn: "design/rooms/cat-office-time-dawn.webp",
+    morning: "design/rooms/cat-office-time-morning.webp",
+    day: "design/rooms/cat-office-time-day.webp",
+    sunset: "design/rooms/cat-office-time-sunset.webp",
+    "night-on": "design/rooms/cat-office-time-night-on.webp",
+    "night-off": "design/rooms/cat-office-time-night-off.webp"
+  });
+  let nightLampOn = sessionStorage.getItem("overbutler_cat_room_lamp") !== "off";
+  let currentRoomState = "";
+
+  Object.values(ROOM_IMAGES).forEach((src) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = src;
+  });
+
+  function catOfficePeriod(hour = new Date().getHours()) {
+    if (hour >= 4 && hour < 7) return "dawn";
+    if (hour >= 7 && hour < 11) return "morning";
+    if (hour >= 11 && hour < 17) return "day";
+    if (hour >= 17 && hour < 20) return "sunset";
+    return nightLampOn ? "night-on" : "night-off";
+  }
+
+  function catOfficeRoomImages() {
+    return Array.from(document.images).filter((image) => {
+      const src = image.getAttribute("src") || "";
+      return /design\/rooms\/cat-office-(?:room|original|time-)/.test(src);
+    });
+  }
+
+  function ensureCatOfficeLampHotspot(roomImage) {
+    const host = roomImage.parentElement;
+    if (!host) return;
+    let hotspot = host.querySelector(".cat-room-lamp-hotspot");
+    if (!hotspot) {
+      hotspot = document.createElement("button");
+      hotspot.type = "button";
+      hotspot.className = "cat-room-lamp-hotspot";
+      hotspot.setAttribute("aria-label", "Toggle office lamp");
+      hotspot.addEventListener("pointerdown", (event) => event.stopPropagation());
+      hotspot.addEventListener("pointerup", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        nightLampOn = !nightLampOn;
+        sessionStorage.setItem("overbutler_cat_room_lamp", nightLampOn ? "on" : "off");
+        applyCatOfficeTime(true);
+      });
+      host.appendChild(hotspot);
+    }
+    hotspot.hidden = !currentRoomState.startsWith("night-");
+    hotspot.setAttribute("aria-pressed", String(nightLampOn));
+  }
+
+  function applyCatOfficeTime(force = false) {
+    const nextState = catOfficePeriod();
+    const roomImages = catOfficeRoomImages();
+    if (!roomImages.length) return;
+
+    currentRoomState = nextState;
+    document.documentElement.dataset.catRoomLight = nextState;
+    roomImages.forEach((roomImage) => {
+      if (force || roomImage.getAttribute("src") !== ROOM_IMAGES[nextState]) {
+        roomImage.src = ROOM_IMAGES[nextState];
+      }
+      ensureCatOfficeLampHotspot(roomImage);
+    });
+  }
+
+  const roomObserver = new MutationObserver(() => {
+    window.requestAnimationFrame(() => applyCatOfficeTime());
+  });
+  roomObserver.observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener("DOMContentLoaded", () => applyCatOfficeTime(true), { once: true });
+  window.addEventListener("focus", () => applyCatOfficeTime());
+  window.setInterval(() => applyCatOfficeTime(), 60 * 1000);
+})();
