@@ -98,13 +98,15 @@
       { name: "CAT diary reveal", note: "혼합 그룹 공개 우선", src: "diary-reveal.html?assert=1&character=cat" },
       { name: "CAT career stages", note: "6단계 명칭·기록 유무 대사", src: "cat-relationship-stages.html?assert=1" },
       { name: "CAT weekly and return", note: "성장형 복귀 인사·빈 주 무압박", src: "cat-weekly-return.html?assert=1" },
-      { name: "CAT core journey", note: "온보딩·접수·기록·티저·새로고침", src: "cat-core-flow.html?assert=1" }
+      { name: "CAT core journey", note: "온보딩·접수·기록·티저·새로고침", src: "cat-core-flow.html?assert=1" },
+      { name: "CAT briefing story", note: "완료 반응·이야기 연결·파일 보관", src: "briefing-story-flow.html?assert=1" }
     ];
     const list = document.querySelector("#cases");
     const summary = document.querySelector("#summary");
     const rerun = document.querySelector("#rerun");
 
-    function waitForResult(frame, timeout = 10000) {
+    // 25 checks짜리 fixture가 9초를 쓰는 걸 봤다. 10초는 통과할 검사도 떨어뜨린다.
+    function waitForResult(frame, timeout = 20000) {
       return new Promise((resolve, reject) => {
         const started = Date.now();
         const inspect = () => {
@@ -121,7 +123,7 @@
             return;
           }
           if (Date.now() - started >= timeout) {
-            reject(new Error("10초 안에 결과가 도착하지 않음"));
+            reject(new Error(`${Math.round(timeout / 1000)}초 안에 결과가 도착하지 않음`));
             return;
           }
           window.setTimeout(inspect, 60);
