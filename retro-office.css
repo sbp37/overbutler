@@ -4807,6 +4807,13 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
 .briefing-suggestion div { display: flex; gap: 5px; margin-top: 7px; }
 .briefing-suggestion button { min-height: 30px; padding: 6px 8px; border: 1px solid var(--doc-line); background: var(--paper); color: var(--ink); font: 700 9px/1 var(--disp); }
 .briefing-suggestion button:first-child { border-color: var(--stamp-red); background: var(--stamp-red); color: var(--ivory); }
+.briefing-evening-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 4px 20px; padding: 8px 9px; border-top: 1px solid var(--doc-line); border-bottom: 1px solid var(--doc-line); background: rgba(255,255,255,.22); }
+.briefing-evening-summary[hidden] { display: none; }
+.briefing-evening-summary p { min-width: 0; margin: 0; }
+.briefing-evening-summary b { display: block; color: var(--stamp-red); font: 800 9px/1 var(--disp); letter-spacing: .08em; }
+.briefing-evening-summary span { display: block; margin-top: 4px; color: var(--ink); font: 800 11px/1.2 var(--disp); }
+.briefing-evening-summary small { display: block; margin-top: 3px; color: var(--ink-soft); font: 600 9px/1.35 var(--body); }
+.briefing-evening-summary button { flex: none; min-height: 34px; padding: 7px 9px; border: 1px solid var(--stamp-red); background: var(--paper); color: var(--stamp-red); font: 800 9px/1.15 var(--disp); }
 .briefing-story-context { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 7px 0 9px; padding: 9px 10px; border: 1px solid rgba(157,47,58,.2); border-left: 3px solid var(--stamp-red); background: rgba(157,47,58,.06); }
 .briefing-story-context[hidden] { display: none; }
 .briefing-story-context span { min-width: 0; }
@@ -4840,6 +4847,8 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
   .briefing-editor { max-height: calc(100dvh - 8px); padding: 18px 16px 0; }
   .briefing-editor header p { margin-bottom: 10px; }
   .briefing-editor .briefing-editor-actions { bottom: 0; margin-right: -16px; margin-left: -16px; padding-right: 16px; padding-left: 16px; }
+  .briefing-evening-summary { align-items: stretch; flex-direction: column; margin-left: 16px; }
+  .briefing-evening-summary button { width: 100%; }
 
   .daily-briefing-item {
     grid-template-columns: 52px minmax(0, 1fr);

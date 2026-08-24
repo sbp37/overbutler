@@ -6370,6 +6370,7 @@
           <b id="daily-briefing-count">오늘 0건</b>
         </header>
         <button class="daily-briefing-toggle" id="daily-briefing-toggle" type="button" aria-expanded="false">일정표 펼치기</button>
+        <div class="briefing-evening-summary" id="briefing-evening-summary" hidden></div>
         <div class="briefing-suggestion" id="briefing-suggestion" hidden></div>
         <div class="daily-briefing-list" id="daily-briefing-list"></div>
         <button class="daily-briefing-add" id="daily-briefing-add" type="button">+ 일정 적기</button>
@@ -6548,10 +6549,12 @@
     if (new Date().getHours() < 18 || state.briefingEveningDates.includes(date)) return;
     state.briefingEveningDates.push(date);
     const completed = items.filter(item => item.completed);
+    const remaining = items.filter(item => !item.completed);
     saveState();
     if (completed.length) {
-      const titles = completed.slice(0, 2).map(item => item.title).join("도 하고 ");
-      showBriefingSpeech(`${titles}도 끝냈네냥. 오늘 서류는 이 정도면 충분하다냥.`, "happy");
+      showBriefingSpeech(remaining.length
+        ? `오늘 일정 ${completed.length}건 처리 확인했다냥. 남은 건 오늘 두거나 내일로 넘겨도 된다냥.`
+        : `오늘 일정 ${completed.length}건 처리 확인했다냥. 오늘 서류는 이 정도면 충분하다냥.`, "happy");
     } else {
       showBriefingSpeech("오늘 일정표는 여기까지 펴두겠다냥. 남은 건 내일 다시 보면 된다냥.", "base");
     }
@@ -6577,6 +6580,15 @@
     addButton.textContent = items.length ? "+ 일정 적기" : "+ 첫 일정 적기";
     $("#daily-briefing-toggle").hidden = items.length <= 1;
     const list = $("#daily-briefing-list");
+    const eveningSummary = $("#briefing-evening-summary");
+    const activeItems = items.filter(item => !item.closedAt);
+    const completedItems = activeItems.filter(item => item.completed);
+    const remainingItems = activeItems.filter(item => !item.completed);
+    const isEvening = new Date().getHours() >= 18 && activeItems.length > 0;
+    eveningSummary.hidden = !isEvening;
+    eveningSummary.innerHTML = isEvening
+      ? `<p><b>저녁 정리</b><span>처리 ${completedItems.length}건 · 남은 일정 ${remainingItems.length}건</span><small>${remainingItems.length ? "남은 일정은 오늘 두어도 되고, 내일로 넘겨도 된다냥." : "오늘 일정표는 여기까지 정리했다냥."}</small></p>${remainingItems.length ? '<button type="button" data-briefing-evening="carry">남은 일정 내일로</button>' : ""}`
+      : "";
     const suggestion = $("#briefing-suggestion");
     suggestion.hidden = !pendingBriefingSuggestion;
     suggestion.innerHTML = pendingBriefingSuggestion ? `<p><b>이건 앞으로 할 일이냥.</b><span>오늘의 브리핑에 맡겨둘까냥?</span></p><div><button type="button" data-briefing-suggestion="assign">브리핑에 맡기기</button><button type="button" data-briefing-suggestion="journal">그냥 이야기로 남기기</button></div>` : "";
@@ -6609,6 +6621,10 @@
   }
 
   function handleBriefingSectionAction(event) {
+    if (event.target.closest("[data-briefing-evening='carry']")) {
+      carryRemainingBriefings();
+      return;
+    }
     const suggestionAction = event.target.closest("[data-briefing-suggestion]")?.dataset.briefingSuggestion;
     if (suggestionAction && pendingBriefingSuggestion) {
       if (suggestionAction === "assign") openBriefingEditor({ title: pendingBriefingSuggestion.title, time: null, askAfter: true });
@@ -6674,6 +6690,28 @@
     saveState();
     renderDailyBriefing();
     showBriefingSpeech("내일 일정표로 옮겨뒀다냥. 오늘 서류에서는 빼뒀다냥.");
+  }
+
+  function carryRemainingBriefings() {
+    const remaining = activeBriefingItems().filter(item => !item.completed);
+    const tomorrow = briefingTomorrowKey();
+    const available = Math.max(0, BRIEFING_DAILY_LIMIT - briefingItems(tomorrow).length);
+    const moving = remaining.slice(0, available);
+    if (!moving.length) {
+      showBriefingSpeech("내일 일정표는 이미 다섯 칸이 찼다냥. 남은 서류는 오늘 자리에 두겠다냥.");
+      return;
+    }
+    moving.forEach(item => {
+      item.date = tomorrow;
+      item.carriedFromPreviousDay = true;
+      item.askedAt = null;
+      item.promptPending = false;
+    });
+    saveState();
+    renderDailyBriefing();
+    showBriefingSpeech(moving.length === remaining.length
+      ? `남은 일정 ${moving.length}건, 내일 일정표로 옮겨뒀다냥.`
+      : `${moving.length}건은 내일로 옮겼다냥. 자리가 모자란 서류는 오늘 자리에 그대로 뒀다냥.`);
   }
 
   function startBriefingStory(item) {
