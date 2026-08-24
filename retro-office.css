@@ -4971,3 +4971,32 @@ body:has(#daily-briefing:not([hidden])) #toast {
 #cat-home-room .cat-home-background[style*="cat-office-time-morning.webp"] {
   filter: brightness(1.12) saturate(1.06) sepia(0.06);
 }
+
+/* ═══════════ QA 수리 라운드 1 (2026-08-24) ═══════════ */
+
+/* 결과서 종이가 화면을 뚫던 버그.
+   브리핑 배너가 width: max-content(줄바꿈 무시 폭)로 뻗고, 오버레이가 flex라
+   modal의 min-width:auto가 그 내용 폭(400px+)을 이겨서 종이째로 부풀었다.
+   배너 제목이 길수록 오른쪽 변·승인 도장·FORM 라벨이 잘려 나갔다. */
+.praise-result-modal { min-width: 0; }
+.result-briefing-origin {
+  width: fit-content;
+  max-width: calc(100% - 30px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 온보딩 복구 링크 — 발령서 각주 아래 한 줄. 버튼이 아니라 서류 끝의 안내문처럼 */
+.assignment-restore-link {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft, #7a6c5c);
+  font: 500 12px/1.4 var(--body, sans-serif);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
