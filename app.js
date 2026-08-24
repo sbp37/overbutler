@@ -3284,9 +3284,12 @@
     if (!world) return;
     const bounds = catHomeBounds();
     catHomeOffsetX = clamp(Number(value) || 0, bounds.min, bounds.max);
-    catHomeOffsetY = clamp(Number(verticalValue) || 0, bounds.minY, bounds.maxY);
+    // Keep the approved vertical crop fixed. The room itself only pans sideways;
+    // vertical swipes remain available to scroll the HOME page.
+    catHomeOffsetY = bounds.centerY;
     world.classList.toggle("is-settling", settle);
     world.style.transform = `translate3d(${catHomeOffsetX}px,${catHomeOffsetY}px,0)`;
+    void verticalValue;
   }
 
   // 쓴 슬립은 위로 빠지고 새 슬립이 아래에서 올라온다. 첫 발행과 감소 모드에서는
@@ -3593,12 +3596,12 @@
     const dx = event.clientX - catHomeDrag.startX;
     const dy = event.clientY - catHomeDrag.startY;
     if (!catHomeDrag.moved) {
-      if (Math.hypot(dx, dy) < 5) return;
+      if (Math.abs(dx) < 5 || Math.abs(dx) <= Math.abs(dy)) return;
       catHomeDrag.moved = true;
       dismissCatHomeHint();
     }
     event.preventDefault();
-    setCatHomeOffset(catHomeDrag.startOffsetX + dx, false, catHomeDrag.startOffsetY + dy);
+    setCatHomeOffset(catHomeDrag.startOffsetX + dx, false);
   }
 
   function endCatHomeDrag(event) {
@@ -6663,15 +6666,16 @@
   function syncBriefingRoomTrace(count) {
     const world = $("#cat-home-world");
     if (!world) return;
-    let sheet = world.querySelector(".cat-room-briefing-sheet");
-    if (!sheet) {
-      sheet = document.createElement("span");
-      sheet.className = "cat-room-briefing-sheet";
-      sheet.setAttribute("aria-hidden", "true");
-      world.appendChild(sheet);
+    let board = world.querySelector(".cat-room-briefing-board");
+    if (!board) {
+      board = document.createElement("img");
+      board.className = "cat-room-briefing-board";
+      board.src = "design/rooms/cat-briefing-board.webp";
+      board.alt = "";
+      board.setAttribute("aria-hidden", "true");
+      world.appendChild(board);
     }
-    sheet.hidden = count === 0;
-    sheet.innerHTML = `<small>오늘의 브리핑</small><b>${count}건</b>`;
+    board.hidden = count === 0;
   }
 
   function openBackupDialog(mode) {

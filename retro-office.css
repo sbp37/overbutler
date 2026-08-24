@@ -4477,7 +4477,7 @@
 #view-home .home-office-header { min-height: 68px; margin-bottom: 6px; }
 #view-home #cat-home-room {
   height: clamp(260px, 34vh, 300px);
-  touch-action: none;
+  touch-action: pan-y;
 }
 #view-home .home-hero { padding-top: 20px; }
 #view-home .home-hero h1 { margin-top: 4px; }
@@ -4651,12 +4651,12 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
   outline-offset: 2px;
 }
 
-/* Wider room view with two-axis drag; speech sits below instead of masking art. */
+/* Wider room view with horizontal drag; the approved vertical crop stays fixed. */
 #view-home #cat-home-world {
   inset: 0 auto auto 0;
   width: 138%;
   height: 112%;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 #view-home #cat-home-world .cat-home-background,
@@ -4719,11 +4719,17 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
 .briefing-editor-actions { display: grid; grid-template-columns: .8fr 1.2fr; gap: 8px; margin-top: 18px; }
 .briefing-editor-actions button { min-height: 45px; border: 1px solid var(--doc-line); background: var(--paper); color: var(--ink-soft); font: 800 12px/1 var(--disp); }
 .briefing-editor-actions button[type="submit"] { border-color: var(--stamp-red); background: var(--stamp-red); color: var(--ivory); }
-.cat-room-briefing-sheet { position: absolute; z-index: 6; top: 67%; left: 44%; display: grid; place-items: center; width: 10%; min-width: 54px; aspect-ratio: 1.35; border: 1px solid rgba(75, 52, 31, .7); background: #efe1be; box-shadow: 1px 2px 0 rgba(45, 31, 18, .2); color: #5a3d27; pointer-events: none; transform: rotate(-2deg); }
-.cat-room-briefing-sheet[hidden] { display: none; }
-.cat-room-briefing-sheet small { font: 700 6px/1 var(--disp); }
-.cat-room-briefing-sheet b { font: 900 9px/1 var(--disp); }
-html[data-cat-room-light="night-off"] .cat-room-briefing-sheet { filter: brightness(.66) saturate(.72); }
+.cat-room-briefing-board {
+  position: absolute;
+  z-index: 6;
+  left: 60.5%;
+  top: 55.5%;
+  width: 8.4%;
+  height: auto;
+  pointer-events: none;
+}
+.cat-room-briefing-board[hidden] { display: none; }
+html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightness(.66) saturate(.72); }
 .owner-file-backup { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 13px; padding: 12px; border: 1px dashed var(--doc-line); background: rgba(255, 255, 255, .3); }
 .owner-file-backup h2 { margin: 3px 0 0; color: var(--ink); font: 800 14px/1.2 var(--disp); }
 .owner-file-backup p { margin: 4px 0 0; color: var(--ink-soft); font: 600 9.5px/1.35 var(--body); }
