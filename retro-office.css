@@ -4615,31 +4615,25 @@
 /* Final CAT desk pose placement. Percentages map the approved 1680x936 room
    coordinates into the draggable 155% room world without changing its pan. */
 #cat-home-world .cat-home-character{
-  left:37.56%;
-  top:11.97%;
-  bottom:auto;
-  width:24.88%;
+  left:39.43%;
+  top:auto;
+  bottom:28%;
+  width:21.15%;
   height:auto;
   aspect-ratio:822/1117;
   transform:none;
 }
 #cat-home-world .cat-home-character[data-desk-pose="working"]{
-  left:37.44%;
-  top:14.42%;
-  bottom:auto;
-  width:24.88%;
-}
-#cat-home-world .cat-home-character[data-desk-pose="lazy"]{
-  left:37.56%;
-  top:13.03%;
-  bottom:auto;
-  width:24.88%;
+  left:39.31%;
+  top:auto;
+  bottom:25.5%;
+  width:21.15%;
 }
 #cat-home-world .cat-home-character[data-desk-pose="surprised"]{
-  left:36.19%;
-  top:6.3%;
-  bottom:auto;
-  width:27.62%;
+  left:38.26%;
+  top:auto;
+  bottom:28%;
+  width:23.48%;
 }
 
 /* CAT OFFICE TIME-OF-DAY LIGHTING */
@@ -4688,7 +4682,7 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
 /* Wider room view with horizontal drag; the approved vertical crop stays fixed. */
 #view-home #cat-home-world {
   inset: 0 auto auto 0;
-  width: 155%;
+  width: 138%;
   height: 112%;
   touch-action: pan-y;
 }
@@ -5161,8 +5155,9 @@ body:has(#daily-briefing:not([hidden])) #toast {
 }
 
 #view-home .briefing-evening-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  flex-direction: row;
   margin: 5px 0 3px 18px;
   padding: 7px 0;
   border-top: 1px solid var(--doc-line);
@@ -5175,7 +5170,13 @@ body:has(#daily-briefing:not([hidden])) #toast {
   font: 700 10px/1.35 var(--body);
 }
 
+#view-home .briefing-evening-summary p {
+  width: auto;
+  min-width: 0;
+}
+
 #view-home .briefing-evening-summary button {
+  width: auto;
   min-height: 40px;
   padding: 8px 9px;
 }
@@ -5273,7 +5274,8 @@ body:has(#daily-briefing:not([hidden])) #toast {
   padding: 10px 12px;
   border-style: solid;
   border-color: rgba(157, 47, 58, .38);
-  color: var(--stamp-red);
+  background: var(--stamp-red);
+  color: var(--ivory);
   font-size: 11px;
 }
 

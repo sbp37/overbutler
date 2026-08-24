@@ -3411,7 +3411,7 @@
     working: "cat-desk-action-working",
     gift: "cat-desk-action-gift"
   });
-  const DESK_POSE_KIND = Object.freeze({ annoyed: "lazy", surprised: "surprised", working: "working" });
+  const DESK_POSE_KIND = Object.freeze({ surprised: "surprised", working: "working" });
   const DESK_FACE_PATH = "design/character-assets/cat-butler/desk-poses/final-v1/";
 
   // 표정은 칭찬을 받은 바로 그 순간에 뜬다. 그때 처음 내려받느라 한 프레임이라도
