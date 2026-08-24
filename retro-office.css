@@ -4766,25 +4766,25 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
 .cat-room-briefing-board {
   position: absolute;
   z-index: 6;
-  left: 60.5%;
-  top: 55.5%;
+  left: var(--board-x, 61.5%);
+  top: var(--board-y, 60.5%);
   display: grid;
-  width: 8.4%;
-  aspect-ratio: .78;
+  width: 8.8%;
+  aspect-ratio: 1;
   place-content: center;
   gap: 3px;
-  border: 3px solid #755038;
-  border-radius: 3px;
-  background: #31584a;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.13), 1px 2px 2px rgba(45,35,22,.18);
+  border: 0;
+  background: url("design/rooms/cat-briefing-board-empty.webp") center / contain no-repeat;
   color: #fff4d7;
   text-align: center;
-  pointer-events: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
-.cat-room-briefing-board small { font: 800 6px/1 var(--disp); }
-.cat-room-briefing-board b { font: 900 20px/.9 var(--disp); }
-.cat-room-briefing-board span { font-size: 18px; line-height: 1; }
-.cat-room-briefing-board.is-done { background: #3b654f; }
+.cat-room-briefing-board.is-dragging { z-index: 9; cursor: grabbing; filter: drop-shadow(0 3px 2px rgba(45,35,22,.22)); }
+.cat-room-briefing-board small { font: 800 5.5px/1 var(--disp); text-shadow: 0 1px rgba(45,35,22,.24); }
+.cat-room-briefing-board b { font: 900 19px/.9 var(--disp); text-shadow: 0 1px rgba(45,35,22,.24); }
+.cat-room-briefing-board span { font-size: 17px; line-height: 1; }
 .cat-room-briefing-board[hidden] { display: none; }
 html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightness(.66) saturate(.72); }
 .owner-file-backup { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 13px; padding: 12px; border: 1px dashed var(--doc-line); background: rgba(255, 255, 255, .3); }
@@ -5414,6 +5414,71 @@ body:has(#daily-briefing:not([hidden])) #toast {
 
 @media (prefers-reduced-motion: reduce) {
   .gift-heart-pop { animation: none; opacity: 1; }
+}
+
+/* Briefing rows use a single paperwork line: stamp, title, two compact actions. */
+#view-home .daily-briefing-item {
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 8px;
+  min-height: 47px;
+  padding: 5px 2px 5px 6px;
+}
+
+#view-home .briefing-status-stamp {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+#view-home .briefing-status-stamp i {
+  width: 24px;
+  height: 24px;
+  border: 1.5px dashed rgba(83,69,51,.42);
+  border-radius: 50%;
+  background: rgba(255,255,255,.28);
+  box-shadow: inset 0 -2px 0 rgba(83,69,51,.07);
+}
+
+#view-home .briefing-item-copy b { font-size: 13.5px; }
+
+#view-home .briefing-item-actions {
+  grid-column: 3;
+  flex-wrap: nowrap;
+  align-self: center;
+  gap: 5px;
+}
+
+#view-home .briefing-item-actions button {
+  min-height: 31px;
+  padding: 6px 9px;
+  border: 1px solid #c8b89f;
+  border-radius: 2px;
+  background: #f7efe2;
+  color: #756756;
+  box-shadow: inset 0 -2px 0 #dfd1bc, 1px 1px 0 rgba(45,35,22,.08);
+  font: 800 9px/1 var(--disp);
+}
+
+#view-home .briefing-completed-item {
+  grid-template-columns: 38px minmax(0, 1fr);
+  min-height: 42px;
+}
+
+#view-home .briefing-completed-item > .briefing-completed-stamp {
+  display: grid;
+  width: 31px;
+  height: 23px;
+  place-items: center;
+  border: 2px double var(--stamp-red);
+  border-radius: 50%;
+  color: var(--stamp-red);
+  font: 800 8px/1 var(--disp);
+  transform: rotate(-5deg);
+}
+
+body:has(.briefing-editor-overlay:not([hidden])) #toast {
+  z-index: 140;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  bottom: auto;
 }
 
 /* 접수 창구로 내려가는 단서. 고양이 홈에는 이게 없었다 — 첫 대업 안내 버튼은

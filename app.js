@@ -670,8 +670,8 @@
         "첫 발령 전담석이 공식 근무 사례로 남았다냥. 주인님과 같이 만든 자리 덕이다냥."
       ],
       touchLines: [
-        ["불렀냥? 집사 여기 있다냥. 첫 담당이라 바로 대답하는 연습 중이다냥.", "용건 없어도 된다냥. 주인님이 불러보는 것도 집사 일이다냥.", "부르면 오는 건 첫 업무부터 제대로 하겠다냥.", "호출 접수다냥. 잘 들리는 자리로 책상을 옮겨뒀다냥."],
-        ["{owner} 호출이냥. 이제 목소리도 익숙하다냥.", "불렀냥? 하던 일은 잠깐 덮어뒀다냥.", "손이 먼저 서류를 덮었다냥. 호출이 익숙해진 모양이다냥.", "호출 접수다냥. 무슨 일이냥?"],
+        ["냥? 집사 여기 있다냥. 바로 대답하는 연습 중이다냥.", "용건 없어도 된다냥. 주인님이 불러보는 것도 집사 일이다냥.", "부르면 오는 건 제대로 익혀두겠다냥.", "호출 접수다냥. 잘 들리는 자리로 책상을 옮겨뒀다냥."],
+        ["{owner} 호출이냥. 이제 목소리도 익숙하다냥.", "냥? 하던 일은 잠깐 덮어뒀다냥.", "손이 먼저 서류를 덮었다냥. 호출이 익숙해진 모양이다냥.", "호출 접수다냥. 무슨 일이냥?"],
         ["{owner}이 불렀냥! 집사 여기 있다냥. 칭찬 필요한 거냥?", "귀가 먼저 돌아갔다냥. 집사는 나중에 돌아봤다냥.", "한 번 더 누르면 골골송 나올 수도 있다냥… 업무 반응이다냥.", "부르자마자 서류를 덮었다냥. 우연히 손이 빨랐다냥."],
         ["{owner} 호출은 먼저 확인한다냥. 자주 맡은 서류라 그런 거다냥.", "호출 접수 칸을 따로 만들었다냥. 업무 효율 때문이다냥.", "필요한 거 있으면 말하라냥. 이미 꺼내놨을 수도 있다냥.", "펜을 놓고 왔다냥. …급한 건 아니었다냥."],
         ["{owner} 호출은 우선 결재 대상이다냥. 인사기록과에서 신입답지 않게 빠르다고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥.", "주인님 서류는 접수 즉시 결재한다냥. 원래 그 일만 맡았다냥.", "왔냥. 의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
@@ -974,6 +974,7 @@
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
     briefings: [], journalEntries: [], briefingIntroDates: [], briefingEveningDates: [],
+    catBriefingBoardPosition: { x: 61.5, y: 60.5 },
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false, deskPlate: "",
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -1232,6 +1233,11 @@
     merged.todos = Array.isArray(raw.todos) ? raw.todos.filter(todo => objectValue(todo) === todo) : [];
     merged.diary = migrateDiary(raw.diary, merged);
     merged.briefings = migrateBriefings(raw.briefings);
+    const storedBoardPosition = objectValue(raw.catBriefingBoardPosition);
+    merged.catBriefingBoardPosition = {
+      x: finiteNumber(storedBoardPosition.x, 61.5, 2, 90),
+      y: finiteNumber(storedBoardPosition.y, 60.5, 8, 82)
+    };
     merged.journalEntries = Array.isArray(raw.journalEntries) ? raw.journalEntries.map((entry, index) => {
       const item = objectValue(entry);
       return {
@@ -6521,9 +6527,9 @@
   // 저녁에 마지막 남은 일정을 끝내면 그 자리가 곧 하루의 마무리다. 평범한 완료
   // 확인만 내보내면 하루가 닫히는 걸 아무도 말해주지 않는다.
   const CAT_LAST_ITEM_LINES = Object.freeze([
-    "{title} 처리 완료다냥. 이걸로 오늘 일정표는 다 비웠다냥.",
-    "{title} 끝났다냥. 오늘 남은 서류는 이제 없다냥.",
-    "{title} 확인했다냥. 오늘 접수분은 여기서 마감이다냥."
+    "{title} 해냈냥. 오늘 끝!",
+    "{title} 끝났냥. 오늘 끝!",
+    "{title} 확인했다냥. 오늘 끝!"
   ]);
 
   function briefingSuggestionTitle(sourceText) {
@@ -6721,6 +6727,7 @@
     saveState();
     closeBriefingEditor();
     renderDailyBriefing();
+    showToast(existing ? "일정표를 고쳤습니다." : "오늘의 브리핑에 적었습니다.");
     showBriefingSpeech("일정표에서 지워뒀다냥. 다시 적어도 된다냥.");
   }
 
@@ -6840,7 +6847,7 @@
     } else {
       const pendingMarkup = remainingItems.map(item => `
         <article class="daily-briefing-item${item.carriedFromPreviousDay ? " is-carried" : ""}${item.time ? "" : " is-unscheduled"}">
-          <button class="briefing-status-stamp" type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}" aria-label="${briefingEscape(item.title)} 처리 완료"><i aria-hidden="true"></i><span>처리 전</span></button>
+          <button class="briefing-status-stamp" type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}" aria-label="${briefingEscape(item.title)} 완료 도장 찍기"><i aria-hidden="true"></i><span class="visually-hidden">완료 도장</span></button>
           <div class="briefing-item-copy">${item.time ? `<time>${briefingEscape(briefingTimeLabel(item))}</time>` : ""}<b>${briefingEscape(item.title)}</b>${item.carriedFromPreviousDay ? "<small>어제 일정표에서 넘겨옴</small>" : ""}</div>
           <div class="briefing-item-actions">
             <button type="button" data-briefing-action="edit" data-briefing-id="${briefingEscape(item.id)}">수정</button><button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로</button>
@@ -6850,7 +6857,7 @@
         <section class="briefing-completed-group">
           <header class="briefing-completed-head"><span><b>오늘 해낸 일 ${completedItems.length}개</b></span></header>
           <div class="briefing-completed-list">${completedItems.map(item => `
-            <article class="briefing-completed-item"><span aria-hidden="true">✓</span><b>${briefingEscape(item.title)}</b></article>`).join("")}
+            <article class="briefing-completed-item"><span class="briefing-completed-stamp" aria-hidden="true">완료</span><b>${briefingEscape(item.title)}</b></article>`).join("")}
           </div>
         </section>` : "";
       list.innerHTML = pendingMarkup + completedMarkup;
@@ -6930,7 +6937,7 @@
       if (status) {
         status.disabled = true;
         const label = status.querySelector("span");
-        if (label) label.textContent = "처리 완료";
+        if (label) label.textContent = "완료 도장";
       }
       window.setTimeout(renderDailyBriefing, 320);
     } else renderDailyBriefing();
@@ -7002,6 +7009,79 @@
     if (textarea) textarea.placeholder = "예: 씻었어 / 오늘 좀 힘들었는데 집 와서 씻었어";
   }
 
+  let briefingBoardDrag = null;
+
+  function briefingBoardPosition() {
+    const position = objectValue(state.catBriefingBoardPosition);
+    return {
+      x: finiteNumber(position.x, 61.5, 2, 90),
+      y: finiteNumber(position.y, 60.5, 8, 82)
+    };
+  }
+
+  function applyBriefingBoardPosition(board) {
+    const position = briefingBoardPosition();
+    board.style.setProperty("--board-x", `${position.x}%`);
+    board.style.setProperty("--board-y", `${position.y}%`);
+  }
+
+  function startBriefingBoardDrag(event) {
+    if (event.button > 0) return;
+    event.stopPropagation();
+    const board = event.currentTarget;
+    const position = briefingBoardPosition();
+    briefingBoardDrag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      x: position.x,
+      y: position.y,
+      moved: false
+    };
+    board.classList.add("is-dragging");
+    board.setPointerCapture?.(event.pointerId);
+  }
+
+  function moveBriefingBoardDrag(event) {
+    if (!briefingBoardDrag || event.pointerId !== briefingBoardDrag.pointerId) return;
+    const board = event.currentTarget;
+    const world = board.closest("#cat-home-world");
+    const worldRect = world?.getBoundingClientRect();
+    if (!worldRect?.width || !worldRect?.height) return;
+    const dx = event.clientX - briefingBoardDrag.startX;
+    const dy = event.clientY - briefingBoardDrag.startY;
+    if (!briefingBoardDrag.moved && Math.hypot(dx, dy) < 4) return;
+    briefingBoardDrag.moved = true;
+    event.preventDefault();
+    const boardRect = board.getBoundingClientRect();
+    const maxX = Math.max(2, 98 - (boardRect.width / worldRect.width * 100));
+    const maxY = Math.max(8, 92 - (boardRect.height / worldRect.height * 100));
+    state.catBriefingBoardPosition = {
+      x: clamp(briefingBoardDrag.x + dx / worldRect.width * 100, 2, maxX),
+      y: clamp(briefingBoardDrag.y + dy / worldRect.height * 100, 8, maxY)
+    };
+    applyBriefingBoardPosition(board);
+  }
+
+  function endBriefingBoardDrag(event) {
+    if (!briefingBoardDrag || event.pointerId !== briefingBoardDrag.pointerId) return;
+    event.stopPropagation();
+    const board = event.currentTarget;
+    const moved = briefingBoardDrag.moved;
+    briefingBoardDrag = null;
+    board.classList.remove("is-dragging");
+    if (moved) saveState();
+  }
+
+  function connectBriefingBoardDrag(board) {
+    if (board.dataset.dragReady) return;
+    board.dataset.dragReady = "true";
+    board.addEventListener("pointerdown", startBriefingBoardDrag);
+    board.addEventListener("pointermove", moveBriefingBoardDrag, { passive: false });
+    board.addEventListener("pointerup", endBriefingBoardDrag);
+    board.addEventListener("pointercancel", endBriefingBoardDrag);
+  }
+
   function syncBriefingRoomTrace(count, hasItems = false) {
     const world = $("#cat-home-world");
     if (!world) return;
@@ -7012,9 +7092,11 @@
       board = replacement;
       board.className = "cat-room-briefing-board";
       board.setAttribute("role", "img");
-      board.setAttribute("aria-hidden", "true");
+      board.setAttribute("aria-label", "오늘의 브리핑 칠판. 손으로 위치를 옮길 수 있습니다.");
       if (!board.parentNode) world.appendChild(board);
     }
+    connectBriefingBoardDrag(board);
+    applyBriefingBoardPosition(board);
     board.hidden = !hasItems;
     board.classList.toggle("is-done", hasItems && count === 0);
     board.innerHTML = count > 0
