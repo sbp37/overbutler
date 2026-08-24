@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>과잉집사 효과음 비교 v4</title>
+  <style>
+    :root{--paper:#f7efdf;--ink:#302820;--muted:#7d6f62;--burgundy:#9f283d;--line:#d8c7aa;--soft:#fffaf0}
+    *{box-sizing:border-box}body{margin:0;background:#e9dec7;color:var(--ink);font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+    main{width:min(920px,100%);margin:auto;padding:28px 18px 60px;background:var(--paper);min-height:100vh}
+    h1{font-size:clamp(26px,6vw,42px);margin:0 0 8px}.lead{margin:0 0 24px;color:var(--muted);line-height:1.6}
+    .notice{padding:14px 16px;margin-bottom:18px;border-left:4px solid var(--burgundy);background:#fff7e8;line-height:1.55}
+    .group{margin:16px 0;padding:18px;border:1px solid var(--line);background:rgba(255,255,255,.38);box-shadow:3px 4px 0 rgba(89,67,40,.08)}
+    .group h2{margin:0 0 5px;font-size:20px}.use{margin:0 0 14px;color:var(--muted);font-size:14px}
+    .choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+    button{min-height:74px;padding:11px 9px;border:1px solid #bba98d;border-radius:8px;background:var(--soft);color:var(--ink);font:inherit;font-weight:700;cursor:pointer;box-shadow:0 3px 0 #cbbb9f;text-align:left}
+    button:active{transform:translateY(2px);box-shadow:0 1px 0 #cbbb9f}.current{border-color:var(--burgundy);background:#fff1f1}.tag{display:block;margin-bottom:6px;color:var(--burgundy);font-size:11px;letter-spacing:.08em}.name{display:block;font-size:15px}.source{display:block;margin-top:5px;color:var(--muted);font-size:11px;font-weight:400}
+    footer{margin-top:24px;color:var(--muted);font-size:13px;line-height:1.6}
+    @media(max-width:640px){main{padding:22px 12px 42px}.group{padding:14px}.choices{grid-template-columns:1fr 1fr}button{min-height:82px}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>효과음 비교 v4</h1>
+  <p class="lead">전자음 후보 폐기. 현재 앱 소리와 실제 물성 기반 후보를 같은 자리에서 비교합니다.</p>
+  <div class="notice"><strong>고양이 음성은 수정 대상 아님.</strong><br>자동 재생 없음. 각 버튼은 한 번에 한 소리만 재생합니다.</div>
+
+  <section class="group">
+    <h2>1. 일반 버튼 · 하단 메뉴</h2><p class="use">화면 이동과 작은 버튼을 누를 때</p>
+    <div class="choices">
+      <button class="current" data-audio="../sound-assets/final-v3/ui-wood-tick.mp3"><span class="tag">현재</span><span class="name">나무 틱</span></button>
+      <button data-audio="../sound-assets/foley-v1/ui-typewriter-soft.mp3"><span class="tag">A</span><span class="name">타자기 소프트 톡</span><span class="source">단일 폴리</span></button>
+      <button data-audio="../sound-assets/foley-v1/ui-bubble-soft.mp3"><span class="tag">B</span><span class="name">말랑 버블 톡</span><span class="source">단일 폴리</span></button>
+      <button data-audio="../sound-assets/foley-v1/ui-key-soft.mp3"><span class="tag">C</span><span class="name">부드러운 키 톡</span><span class="source">단일 폴리</span></button>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>2. 말풍선 종이</h2><p class="use">장면에서 종이 찢는 듯 들렸던 누락 항목</p>
+    <div class="choices">
+      <button class="current" data-synth="paper"><span class="tag">현재</span><span class="name">고역 노이즈</span><span class="source">찢는 소리처럼 들림</span></button>
+      <button data-audio="../sound-assets/foley-v1/paper-slide.mp3"><span class="tag">A</span><span class="name">종이 살짝 놓기</span><span class="source">실제 종이</span></button>
+      <button data-audio="../sound-assets/foley-v1/paper-page-turn.mp3"><span class="tag">B</span><span class="name">한 장 넘기기</span><span class="source">실제 종이</span></button>
+      <button data-audio="../sound-assets/foley-v1/paper-scroll.mp3"><span class="tag">C</span><span class="name">서류 짧게 펴기</span><span class="source">실제 종이</span></button>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>3. 클립 · 서류 고정</h2><p class="use">종이 카드와 브리핑 서류가 나타날 때</p>
+    <div class="choices">
+      <button class="current" data-synth="clip"><span class="tag">현재</span><span class="name">금속성 클립</span><span class="source">날카로운 합성 노이즈</span></button>
+      <button data-audio="../sound-assets/foley-v1/clip-switch-soft.mp3"><span class="tag">A</span><span class="name">작은 스위치 톡</span><span class="source">단일 폴리</span></button>
+      <button data-audio="../sound-assets/foley-v1/clip-pen-soft.mp3"><span class="tag">B</span><span class="name">펜 똑</span><span class="source">단일 폴리</span></button>
+      <button data-audio="../sound-assets/foley-v1/clip-staple.mp3"><span class="tag">C</span><span class="name">서류 스테이플</span><span class="source">실제 사무용품</span></button>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>4. 결과서 큰 도장</h2><p class="use">대업 결과서와 공식 판정</p>
+    <div class="choices">
+      <button class="current" data-synth="stamp"><span class="tag">현재</span><span class="name">이중 도장</span><span class="source">둔탁음 + 노이즈</span></button>
+      <button data-audio="../sound-assets/review-v1/stamp-rubber-soft.mp3"><span class="tag">A</span><span class="name">고무도장 포근</span></button>
+      <button data-audio="../sound-assets/review-v1/stamp-round-thump.mp3"><span class="tag">B</span><span class="name">둥근 도장 툭</span></button>
+      <button data-audio="../sound-assets/claude-candidates/complete-stamp-warm.mp3"><span class="tag">C</span><span class="name">따뜻한 도장</span></button>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>5. 브리핑 완료 도장</h2><p class="use">오늘 할 일을 완료했을 때</p>
+    <div class="choices">
+      <button class="current" data-audio="../sound-assets/final-v3/stamp-tiny-bounce.mp3"><span class="tag">현재</span><span class="name">작은 처리 완료</span></button>
+      <button data-audio="../sound-assets/review-v1/stamp-tiny-approve.mp3"><span class="tag">A</span><span class="name">작은 승인 도장</span></button>
+      <button data-audio="../sound-assets/foley-v1/clip-staple.mp3"><span class="tag">B</span><span class="name">짧은 서류 콕</span><span class="source">단일 폴리</span></button>
+      <button data-audio="../sound-assets/claude-candidates/complete-stamp-bounce.mp3"><span class="tag">C</span><span class="name">가벼운 도장</span></button>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>6. 선물 전달</h2><p class="use">고양이에게 선물을 직접 건넬 때</p>
+    <div class="choices">
+      <button class="current" data-audio="../sound-assets/final-v3/gift-pop.mp3"><span class="tag">현재</span><span class="name">선물 팝</span></button>
+      <button data-audio="../sound-assets/foley-v1/gift-paper-crinkle.mp3"><span class="tag">A</span><span class="name">포장지 사각</span><span class="source">실제 종이</span></button>
+      <button data-audio="../sound-assets/foley-v1/paper-slide.mp3"><span class="tag">B</span><span class="name">선물 살짝 놓기</span><span class="source">실제 종이</span></button>
+      <button data-audio="../sound-assets/foley-v1/gift-bubble.mp3"><span class="tag">C</span><span class="name">말랑한 한 번 톡</span><span class="source">단일 폴리</span></button>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>7. 관계 해금</h2><p class="use">새 관계 기록이나 보관함이 열릴 때</p>
+    <div class="choices">
+      <button class="current" data-audio="../sound-assets/final-v3/relationship-unlock.mp3"><span class="tag">현재</span><span class="name">봉인 해제</span></button>
+      <button data-audio="../sound-assets/foley-v1/unlock-cupboard.mp3"><span class="tag">A</span><span class="name">작은 서랍 열기</span><span class="source">나무 폴리</span></button>
+      <button data-audio="../sound-assets/foley-v1/unlock-cabinet.mp3"><span class="tag">B</span><span class="name">보관함 밀기</span><span class="source">단일 폴리</span></button>
+      <button data-audio="../sound-assets/foley-v1/unlock-wood-slide.mp3"><span class="tag">C</span><span class="name">나무 서류함 열기</span><span class="source">나무 폴리</span></button>
+    </div>
+  </section>
+
+  <footer>새 후보 원본: Mixkit 무료 SFX 라이선스. 비교용으로 시작 무음 제거, 모노 44.1kHz, 96kbps, 평균 음량 정리만 적용.</footer>
+</main>
+<script>
+  const sounds = new Map();
+  document.querySelectorAll('[data-audio]').forEach(button => {
+    const audio = new Audio(button.dataset.audio);
+    audio.preload = 'auto'; audio.volume = .72; audio.load(); sounds.set(button, audio);
+  });
+  let active = null;
+  function stopActive(){ if(active){ active.pause(); active.currentTime = 0; active = null; } }
+  function noiseCue(kind){
+    stopActive();
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = noiseCue.ctx || (noiseCue.ctx = new AC());
+    const length = Math.floor(ctx.sampleRate * (kind === 'stamp' ? .18 : .1));
+    const buffer = ctx.createBuffer(1, length, ctx.sampleRate), data = buffer.getChannelData(0);
+    for(let i=0;i<length;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/length, kind==='stamp'?3:2);
+    const source=ctx.createBufferSource(), filter=ctx.createBiquadFilter(), gain=ctx.createGain();
+    source.buffer=buffer; filter.type=kind==='stamp'?'lowpass':'bandpass'; filter.frequency.value=kind==='paper'?2400:kind==='clip'?4200:430; filter.Q.value=kind==='clip'?2.2:.8;
+    gain.gain.value=kind==='stamp'?.42:.22; source.connect(filter).connect(gain).connect(ctx.destination); source.start();
+  }
+  document.addEventListener('pointerdown', event => {
+    const button=event.target.closest('button'); if(!button) return;
+    if(button.dataset.audio){ stopActive(); const audio=sounds.get(button); audio.currentTime=0; active=audio; audio.play(); }
+    else noiseCue(button.dataset.synth);
+  });
+</script>
+</body>
+</html>
