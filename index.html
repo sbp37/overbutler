@@ -30,6 +30,38 @@
   <link rel="icon" type="image/png" sizes="192x192" href="design/brand/app-icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="design/brand/apple-touch-icon-180.png">
   <link rel="apple-touch-startup-image" href="design/brand/launch-splash-1170x2532.png">
+  <script>
+    /* The room and butler must arrive in the same first paint. */
+    (() => {
+      const roomImages = {
+        dawn: "design/rooms/cat-office-time-dawn.webp",
+        morning: "design/rooms/cat-office-time-morning.webp",
+        day: "design/rooms/cat-office-time-day.webp",
+        sunset: "design/rooms/cat-office-time-sunset.webp",
+        "night-on": "design/rooms/cat-office-time-night-on.webp",
+        "night-off": "design/rooms/cat-office-time-night-off.webp"
+      };
+      const hour = new Date().getHours();
+      let lampOn = true;
+      try { lampOn = sessionStorage.getItem("overbutler_cat_room_lamp") !== "off"; } catch {}
+      const state = hour >= 4 && hour < 7 ? "dawn"
+        : hour < 11 ? "morning"
+        : hour < 17 ? "day"
+        : hour < 20 ? "sunset"
+        : lampOn ? "night-on" : "night-off";
+      const source = roomImages[state];
+      document.documentElement.dataset.catRoomLight = state;
+      document.documentElement.style.setProperty("--cat-room-image", `url("${source}")`);
+      [source, "design/character-assets/cat-butler/desk-poses/final-v1/cat-desk-base.webp"].forEach((href) => {
+        const preload = document.createElement("link");
+        preload.rel = "preload";
+        preload.as = "image";
+        preload.href = href;
+        preload.setAttribute("fetchpriority", "high");
+        document.head.appendChild(preload);
+      });
+    })();
+  </script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;800;900&amp;display=swap">
   <!-- 세트④ — 기계 인쇄=Paperlogy / 공문=Song Myung / 집사 육필=Gaegu.

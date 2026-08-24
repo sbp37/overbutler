@@ -6362,7 +6362,7 @@
       </section>`);
     entryForm.querySelector(".field-heading").insertAdjacentHTML("afterend", `
       <div class="briefing-story-context" id="briefing-story-context" hidden>
-        <span><small>브리핑에 이어서</small><b id="briefing-story-context-title"></b></span>
+        <span><small>처리 완료 일정 → 오늘 이야기</small><b id="briefing-story-context-title"></b></span>
         <button type="button" id="briefing-story-context-close" aria-label="브리핑 연결 취소">×</button>
       </div>`);
 
@@ -6548,7 +6548,7 @@
           <button class="briefing-status-stamp" type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}" ${item.closedAt ? "disabled" : ""}><i aria-hidden="true"></i><span>${briefingStatusLabel(item)}</span></button>
           <div class="briefing-item-copy"><time>${briefingEscape(briefingTimeLabel(item))}</time><b>${briefingEscape(item.title)}</b>${item.carriedFromPreviousDay ? "<small>전날 서류에서 넘겨옴</small>" : ""}</div>
           <div class="briefing-item-actions">
-            ${item.completed && !item.storyLoggedAt ? `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">어땠는지 한 줄</button>` : ""}
+            ${item.completed && !item.storyLoggedAt ? `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">오늘 이야기로 남기기</button>` : ""}
             ${item.storyLoggedAt ? `<span>이야기 보관됨</span>` : ""}
             ${!item.completed && !item.closedAt ? `<button type="button" data-briefing-action="edit" data-briefing-id="${briefingEscape(item.id)}">수정</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">접어두기</button>` : ""}
             ${!item.completed && !item.closedAt && new Date().getHours() >= 18 ? `<button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로 넘기기</button>` : ""}

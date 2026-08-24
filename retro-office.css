@@ -4668,7 +4668,7 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
 
 #view-home #cat-home-world .cat-home-background,
 #view-home #cat-home-world .cat-home-foreground {
-  background-image: url("design/rooms/cat-office-time-day.webp");
+  background-image: var(--cat-room-image, url("design/rooms/cat-office-time-day.webp"));
 }
 
 #view-home .reception-slip {
@@ -4770,11 +4770,11 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
 .briefing-suggestion div { display: flex; gap: 5px; margin-top: 7px; }
 .briefing-suggestion button { min-height: 30px; padding: 6px 8px; border: 1px solid var(--doc-line); background: var(--paper); color: var(--ink); font: 700 9px/1 var(--disp); }
 .briefing-suggestion button:first-child { border-color: var(--stamp-red); background: var(--stamp-red); color: var(--ivory); }
-.briefing-story-context { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 4px; padding: 8px 10px; border-left: 3px solid var(--stamp-red); background: rgba(157,47,58,.06); }
+.briefing-story-context { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 7px 0 9px; padding: 9px 10px; border: 1px solid rgba(157,47,58,.2); border-left: 3px solid var(--stamp-red); background: rgba(157,47,58,.06); }
 .briefing-story-context[hidden] { display: none; }
 .briefing-story-context span { min-width: 0; }
-.briefing-story-context small { display: block; color: var(--stamp-red); font: 800 8px/1 var(--disp); letter-spacing: .08em; }
-.briefing-story-context b { display: block; margin-top: 3px; overflow: hidden; color: var(--ink); font: 700 12px/1.2 var(--body); text-overflow: ellipsis; white-space: nowrap; }
+.briefing-story-context small { display: block; color: var(--stamp-red); font: 800 9px/1 var(--disp); letter-spacing: .06em; }
+.briefing-story-context b { display: block; margin-top: 4px; overflow: hidden; color: var(--ink); font: 750 13px/1.2 var(--body); text-overflow: ellipsis; white-space: nowrap; }
 .briefing-story-context button { flex: none; width: 28px; height: 28px; border: 0; background: transparent; color: var(--ink-faint); font-size: 19px; }
 .owner-story-note { margin: 7px 4px 10px 16px; padding: 11px 12px; border: 1px solid rgba(83,69,51,.18); border-left: 3px solid #d9822f; background: rgba(255,250,240,.58); }
 .owner-story-note > small { color: var(--stamp-red); font: 800 8px/1 var(--disp); letter-spacing: .1em; }
