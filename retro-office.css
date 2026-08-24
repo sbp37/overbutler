@@ -4831,17 +4831,6 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
   .briefing-item-reaction { grid-column: 1 / -1; }
   .owner-story-note { margin-left: 10px; }
 }
-/* CAT HOME input hierarchy: plans stay compact; lived moments remain the primary form. */
-#daily-briefing:not([hidden]) ~ .entry-form .field-heading strong {
-  font-size: 0;
-}
-
-#daily-briefing:not([hidden]) ~ .entry-form .field-heading strong::after {
-  content: "오늘 이야기 · FORM 01";
-  font-size: 11px;
-  letter-spacing: .08em;
-}
-
 @media (max-width: 430px) {
   .briefing-editor-overlay { padding: 8px 8px 0; }
   .briefing-editor { max-height: calc(100dvh - 8px); padding: 18px 16px 0; }
@@ -5051,6 +5040,56 @@ body:has(#daily-briefing:not([hidden])) #toast {
 
 #view-home .entry-form {
   margin-top: 6px;
+}
+
+/* 360/390 첫 화면에서도 오늘 이야기 입력칸이 고정 메뉴 뒤로 숨지 않게 한다. */
+@media (max-width: 390px) and (max-height: 850px) {
+  #view-home .home-office-header {
+    min-height: 60px;
+    margin-bottom: 3px;
+  }
+
+  #view-home #cat-home-room {
+    height: clamp(216px, 27vh, 240px);
+  }
+
+  #home-butler-room #cat-home-speech {
+    margin-top: -36px;
+  }
+
+  #view-home .daily-briefing {
+    margin-top: 5px;
+  }
+
+  #daily-briefing:not([hidden]) ~ .home-hero {
+    padding-top: 8px;
+  }
+
+  #view-home .entry-form {
+    margin-top: 2px;
+  }
+}
+
+/* 고양이에게 직접 건네면 한 번만 뜨는 작은 수령 하트. */
+.gift-heart-pop {
+  position: fixed;
+  z-index: 150;
+  color: var(--stamp-red);
+  font: 900 28px/1 var(--disp);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(.7) rotate(-8deg);
+  text-shadow: 0 2px 0 rgba(255, 250, 240, .9);
+  animation: gift-heart-receive .68s ease-out both;
+}
+
+@keyframes gift-heart-receive {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.65) rotate(-8deg); }
+  35% { opacity: 1; transform: translate(-50%, -55%) scale(1.08) rotate(4deg); }
+  100% { opacity: 0; transform: translate(-50%, -105%) scale(.92) rotate(-2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gift-heart-pop { animation: none; opacity: 1; }
 }
 
 /* 접수 창구로 내려가는 단서. 고양이 홈에는 이게 없었다 — 첫 대업 안내 버튼은

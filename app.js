@@ -2199,7 +2199,7 @@
     $("#main-screen").hidden = false;
     render();
     startTimeBriefing();
-    showToast("발령 완료 · 첫 대업을 접수해주세요.");
+    showToast("발령 완료 · 오늘 이야기를 들려주세요.");
   }
 
   function showView(name, navKey = name === "archive" ? "certificates" : name) {
@@ -5785,7 +5785,7 @@
       }).join("")
       : '<li class="empty">아직 이 집사에게 준 선물이 없습니다.</li>';
     selectedGiftIndex = null;
-    $("#gift-drop-status").textContent = "선물을 여기에 올려주세요";
+    $("#gift-drop-status").textContent = "선물을 집사에게 직접 건네주세요";
     $("#gift-drop-zone").classList.remove("receiving", "selected");
   }
 
@@ -5810,7 +5810,7 @@
     selectedGiftIndex = index;
     $$("#gift-catalog [data-gift-index]").forEach(button => button.classList.toggle("selected", Number(button.dataset.giftIndex) === index));
     $("#gift-drop-zone").classList.add("selected");
-    $("#gift-drop-status").textContent = `${gift.emoji} ${gift.name} 선택 · 접수대를 누르면 전달됩니다`;
+    $("#gift-drop-status").textContent = `${gift.emoji} ${gift.name} 선택 · 고양이에게 끌어다 주면 전달됩니다`;
   }
 
   function giftInteractionFor(character, gift, index = giftCatalogFor(character).findIndex(item => item.name === gift?.name)) {
@@ -5969,7 +5969,7 @@
   }
 
   function startGiftDrag(event, button) {
-    if (activeGiftDrag || giftTransferActive) return;
+    if (activeGiftDrag || giftTransferActive || $("#gift-drop-zone").classList.contains("handoff-pending")) return;
     const index = Number(button.dataset.giftIndex);
     const gift = giftCatalogFor()[index];
     if (!gift || state.points < gift.cost) return;
@@ -5993,22 +5993,43 @@
     if (!activeGiftDrag || event.pointerId !== activeGiftDrag.pointerId) return;
     event.preventDefault();
     activeGiftDrag.ghost.style.transform = `translate(${event.clientX - 30}px,${event.clientY - 30}px)`;
-    const rect = $("#gift-drop-zone").getBoundingClientRect();
+    const rect = $("#gift-desk-butler-image").getBoundingClientRect();
     const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     $("#gift-drop-zone").classList.toggle("receiving", inside);
     setPoseImage($("#gift-desk-butler-image"), state.character, inside ? "gift" : "base");
   }
 
+  function showGiftHeartPop() {
+    const rect = $("#gift-desk-butler-image").getBoundingClientRect();
+    const heart = document.createElement("span");
+    heart.className = "gift-heart-pop";
+    heart.textContent = "♥";
+    heart.style.left = `${rect.left + rect.width * .66}px`;
+    heart.style.top = `${rect.top + rect.height * .28}px`;
+    heart.setAttribute("aria-hidden", "true");
+    document.body.appendChild(heart);
+    window.setTimeout(() => heart.remove(), 720);
+  }
+
   function endGiftDrag(event) {
     if (!activeGiftDrag || event.pointerId !== activeGiftDrag.pointerId) return;
-    const rect = $("#gift-drop-zone").getBoundingClientRect();
+    const rect = $("#gift-desk-butler-image").getBoundingClientRect();
     const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     const index = activeGiftDrag.index;
     activeGiftDrag.ghost.remove();
     activeGiftDrag = null;
     $("#gift-drop-zone").classList.remove("receiving");
-    if (inside) giveGift(index);
-    else setPoseImage($("#gift-desk-butler-image"), state.character, "base");
+    if (inside) {
+      $("#gift-drop-zone").classList.add("handoff-pending");
+      setPoseImage($("#gift-desk-butler-image"), state.character, "gift");
+      showGiftHeartPop();
+      window.setTimeout(() => {
+        $("#gift-drop-zone").classList.remove("handoff-pending");
+        giveGift(index);
+      }, 280);
+    } else {
+      setPoseImage($("#gift-desk-butler-image"), state.character, "base");
+    }
   }
 
   function closeGift() {
@@ -6200,7 +6221,7 @@
     window.addEventListener("pointermove", moveGiftDrag, { passive: false });
     window.addEventListener("pointerup", endGiftDrag);
     window.addEventListener("pointercancel", endGiftDrag);
-    $("#gift-drop-zone").addEventListener("click", () => { if (selectedGiftIndex !== null) giveGift(selectedGiftIndex); });
+    $("#gift-desk-butler-image").addEventListener("click", () => { if (selectedGiftIndex !== null) giveGift(selectedGiftIndex); });
     $("#owner-name-form").addEventListener("submit", event => {
       event.preventDefault();
       if (!registerOwnerName($("#owner-name-late-input").value)) { showToast("집사가 기억할 이름을 적어주세요."); $("#owner-name-late-input").focus(); }
