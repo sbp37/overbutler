@@ -5000,3 +5000,85 @@ body:has(#daily-briefing:not([hidden])) #toast {
   text-underline-offset: 3px;
   cursor: pointer;
 }
+
+/* ═══════════ QA 수리 라운드 2 (2026-08-24) ═══════════ */
+
+/* 팬 힌트가 책상 위 명패 그림을 정통으로 덮고 있었다. 방을 처음 보는 사람에게
+   가장 먼저 읽혀야 할 소품이 안내 문구에 가리는 셈이라, 힌트를 창구 명패
+   바로 아래로 올린다. 그 자리는 창틀 위 벽이라 가릴 소품이 없다. */
+#view-home .room-pan-hint {
+  top: 54px;
+  bottom: auto;
+}
+
+/* 홈 세로 압축 — 첫 화면에서 접수 입력칸이 통째로 하단 네비에 가려 있었다.
+   방·브리핑·머리글에서 조금씩 걷어내 입력칸 윗동이 접히는 선 위로 올라오게
+   한다. 방은 세계관의 얼굴이라 마지막에, 가장 적게 줄였다. */
+#view-home #cat-home-room {
+  height: clamp(228px, 30vh, 264px);
+}
+
+#home-butler-room #cat-home-speech {
+  margin-top: -30px;
+}
+
+/* 일정이 하나도 없는 날의 브리핑은 안내 두 줄과 버튼뿐인데 자리를 크게 먹었다.
+   빈 상태에서만 조인다 — 일정이 들어차면 원래 여백으로 돌아간다. */
+#view-home .daily-briefing:has(.daily-briefing-empty) {
+  padding-top: 9px;
+  padding-bottom: 8px;
+}
+
+#view-home .daily-briefing:has(.daily-briefing-empty) .daily-briefing-empty {
+  padding-top: 4px;
+  padding-bottom: 2px;
+}
+
+#view-home .daily-briefing:has(.daily-briefing-empty) .daily-briefing-add:not([hidden]) {
+  min-height: 34px;
+  margin-top: 8px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero {
+  padding-top: 13px;
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero h1 {
+  margin-top: 4px;
+}
+
+#view-home .entry-form {
+  margin-top: 6px;
+}
+
+/* 접수 창구로 내려가는 단서. 고양이 홈에는 이게 없었다 — 첫 대업 안내 버튼은
+   집사 응답 카드 안에 있는데 그 카드는 방이 대신하느라 숨겨져 있어서다.
+   블록을 새로 얹지 않으려고 머리글 자체를 누를 수 있게 하고, 눌리는 곳이라는
+   표시만 제목 옆에 붙였다. */
+#view-home .home-hero h1 {
+  cursor: pointer;
+}
+
+#view-home .home-hero h1::after {
+  content: "↓";
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--stamp-red);
+  font-size: .62em;
+  font-weight: 800;
+  vertical-align: 0.14em;
+  opacity: .75;
+  transform: translateY(0);
+  transition: transform .25s ease, opacity .25s ease;
+}
+
+#view-home .home-hero h1:active::after {
+  transform: translateY(3px);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #view-home .home-hero h1::after { transition: none; }
+}
