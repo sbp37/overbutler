@@ -6336,7 +6336,6 @@
   let activeBriefingStoryId = null;
   let pendingBriefingSuggestion = null;
   let editingBriefingId = null;
-  let briefingCompletedExpanded = false;
 
   function briefingDateKey(date = new Date()) {
     const year = date.getFullYear();
@@ -6845,11 +6844,9 @@
           ${item.promptPending ? `<div class="briefing-followup"><span>집사가 처리 여부를 기다리는 중</span><button type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}">끝났어</button><button type="button" data-briefing-action="later" data-briefing-id="${briefingEscape(item.id)}">아직이야</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">오늘은 접어둬</button></div>` : ""}
         </article>`).join("");
       const completedMarkup = completedItems.length ? `
-        <section class="briefing-completed-group${briefingCompletedExpanded ? " is-open" : ""}">
-          <button class="briefing-completed-toggle" type="button" data-briefing-completed-toggle aria-expanded="${briefingCompletedExpanded}">
-            <span><b>처리 완료 ${completedItems.length}건</b><small>집사가 완료 도장을 모아뒀다냥.</small></span><i>${briefingCompletedExpanded ? "접기" : "보기"}</i>
-          </button>
-          <div class="briefing-completed-list" ${briefingCompletedExpanded ? "" : "hidden"}>${completedItems.map(item => `
+        <section class="briefing-completed-group">
+          <header class="briefing-completed-head"><span><b>처리 완료 ${completedItems.length}건</b><small>집사가 완료 도장을 모아뒀다냥.</small></span></header>
+          <div class="briefing-completed-list">${completedItems.map(item => `
             <article class="briefing-completed-item"><span aria-hidden="true">✓</span><b>${briefingEscape(item.title)}</b>${item.storyLoggedAt ? "<small>이야기 보관됨</small>" : `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">이야기로 남기기</button>`}</article>`).join("")}
           </div>
         </section>` : "";
@@ -6867,11 +6864,6 @@
   }
 
   function handleBriefingSectionAction(event) {
-    if (event.target.closest("[data-briefing-completed-toggle]")) {
-      briefingCompletedExpanded = !briefingCompletedExpanded;
-      renderDailyBriefing();
-      return;
-    }
     if (event.target.closest("[data-briefing-evening='carry']")) {
       carryRemainingBriefings();
       return;

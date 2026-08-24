@@ -5186,6 +5186,27 @@ body:has(#daily-briefing:not([hidden])) #toast {
   border-top: 1px solid rgba(83, 69, 51, .14);
 }
 
+#view-home .briefing-completed-head {
+  min-height: 48px;
+  padding: 9px 4px 7px;
+  color: var(--ink);
+}
+
+#view-home .briefing-completed-head b,
+#view-home .briefing-completed-head small {
+  display: block;
+}
+
+#view-home .briefing-completed-head b {
+  font: 800 13px/1.2 var(--disp);
+}
+
+#view-home .briefing-completed-head small {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font: 650 10px/1.3 var(--body);
+}
+
 #view-home .briefing-completed-toggle {
   display: flex;
   width: 100%;
@@ -5248,7 +5269,8 @@ body:has(#daily-briefing:not([hidden])) #toast {
 
 #view-home .briefing-completed-item > b {
   overflow: hidden;
-  font: 650 12px/1.3 var(--body);
+  color: var(--ink);
+  font: 700 14px/1.3 var(--body);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5261,10 +5283,10 @@ body:has(#daily-briefing:not([hidden])) #toast {
 #view-home .briefing-completed-item > button {
   min-height: 38px;
   padding: 7px 8px;
-  border: 1px solid var(--doc-line);
-  background: var(--paper);
-  color: var(--ink-soft);
-  font: 700 8px/1 var(--disp);
+  border: 1px solid rgba(83, 69, 51, .48);
+  background: #fffaf0;
+  color: var(--ink);
+  font: 800 9px/1 var(--disp);
 }
 
 #view-home .daily-briefing .daily-briefing-add:not([hidden]) {
@@ -5297,6 +5319,46 @@ body:has(#daily-briefing:not([hidden])) #toast {
     grid-column: 2;
     margin-left: 0;
   }
+}
+
+/* Restore the owner-approved HOME crop from 2cd3159. The later compact-height
+   override made the unchanged cat coordinates look enlarged and too high. */
+#view-home #cat-home-room {
+  height: clamp(260px, 34vh, 300px);
+}
+
+#home-butler-room #cat-home-speech {
+  margin-top: -24px;
+}
+
+#view-home .daily-briefing-toggle {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+
+#view-home .briefing-item-actions button,
+#view-home .briefing-followup button {
+  border-color: rgba(83, 69, 51, .5);
+  background: #fffaf0;
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: 1px 1px 0 rgba(45, 35, 22, .08);
+}
+
+#view-home .briefing-followup {
+  background: rgba(157, 47, 58, .07);
+  color: var(--ink);
+}
+
+#view-home .briefing-followup span {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+#view-home .briefing-followup button:first-of-type {
+  border-color: var(--stamp-red);
+  background: var(--stamp-red);
+  color: var(--ivory);
 }
 
 /* 고양이에게 직접 건네면 한 번만 뜨는 작은 수령 하트. */
