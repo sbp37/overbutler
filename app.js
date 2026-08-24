@@ -974,7 +974,8 @@
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
     briefings: [], journalEntries: [], briefingIntroDates: [], briefingEveningDates: [],
-    catBriefingBoardPosition: { x: 61.5, y: 60.5 },
+    catBriefingBoardPosition: { x: 62.5, y: 60.5 },
+    catBriefingBoardPositionVersion: 2,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false, deskPlate: "",
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -1234,10 +1235,12 @@
     merged.diary = migrateDiary(raw.diary, merged);
     merged.briefings = migrateBriefings(raw.briefings);
     const storedBoardPosition = objectValue(raw.catBriefingBoardPosition);
+    const useCurrentBoardDefault = nonNegativeInteger(raw.catBriefingBoardPositionVersion) < 2;
     merged.catBriefingBoardPosition = {
-      x: finiteNumber(storedBoardPosition.x, 61.5, 2, 90),
-      y: finiteNumber(storedBoardPosition.y, 60.5, 8, 82)
+      x: useCurrentBoardDefault ? 62.5 : finiteNumber(storedBoardPosition.x, 62.5, 2, 90),
+      y: useCurrentBoardDefault ? 60.5 : finiteNumber(storedBoardPosition.y, 60.5, 8, 82)
     };
+    merged.catBriefingBoardPositionVersion = 2;
     merged.journalEntries = Array.isArray(raw.journalEntries) ? raw.journalEntries.map((entry, index) => {
       const item = objectValue(entry);
       return {
@@ -7014,7 +7017,7 @@
   function briefingBoardPosition() {
     const position = objectValue(state.catBriefingBoardPosition);
     return {
-      x: finiteNumber(position.x, 61.5, 2, 90),
+      x: finiteNumber(position.x, 62.5, 2, 90),
       y: finiteNumber(position.y, 60.5, 8, 82)
     };
   }
