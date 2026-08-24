@@ -4477,7 +4477,7 @@
 #view-home .home-office-header { min-height: 68px; margin-bottom: 6px; }
 #view-home .home-brand-image {
   display: block;
-  width: clamp(138px, 40vw, 158px);
+  width: clamp(136px, 39vw, 154px);
   height: auto;
 }
 #view-home .home-logo-lockup small { margin-top: 3px; }
