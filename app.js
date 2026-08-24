@@ -3411,7 +3411,7 @@
     working: "cat-desk-action-working",
     gift: "cat-desk-action-gift"
   });
-  const DESK_POSE_KIND = Object.freeze({ surprised: "surprised", working: "working" });
+  const DESK_POSE_KIND = Object.freeze({ annoyed: "lazy", surprised: "surprised", working: "working" });
   const DESK_FACE_PATH = "design/character-assets/cat-butler/desk-poses/final-v1/";
 
   // 표정은 칭찬을 받은 바로 그 순간에 뜬다. 그때 처음 내려받느라 한 프레임이라도
@@ -6336,6 +6336,7 @@
   let activeBriefingStoryId = null;
   let pendingBriefingSuggestion = null;
   let editingBriefingId = null;
+  let briefingCompletedExpanded = false;
 
   function briefingDateKey(date = new Date()) {
     const year = date.getFullYear();
@@ -6809,45 +6810,50 @@
     section.hidden = state.character !== "cat" || !state.onboarded;
     if (section.hidden) return;
     const items = briefingItems();
-    const ordered = items.slice().sort((a, b) => Number(Boolean(b.promptPending)) - Number(Boolean(a.promptPending)) || Number(Boolean(a.completed)) - Number(Boolean(b.completed)) || String(a.time || "99:99").localeCompare(String(b.time || "99:99")));
-    $("#daily-briefing-count").textContent = `오늘 ${items.length}건`;
+    const activeItems = items.filter(item => !item.closedAt);
+    const completedItems = activeItems.filter(item => item.completed);
+    const remainingItems = activeItems.filter(item => !item.completed).sort((a, b) => Number(Boolean(b.promptPending)) - Number(Boolean(a.promptPending)) || String(a.time || "99:99").localeCompare(String(b.time || "99:99")));
+    $("#daily-briefing-count").textContent = remainingItems.length
+      ? `남은 ${remainingItems.length}건`
+      : completedItems.length ? "오늘 정리됨" : "오늘 0건";
     const addButton = $("#daily-briefing-add");
     addButton.hidden = items.length >= BRIEFING_DAILY_LIMIT;
     addButton.textContent = items.length ? "+ 일정 적기" : "+ 첫 일정 적기";
-    $("#daily-briefing-toggle").hidden = items.length <= 1;
+    $("#daily-briefing-toggle").hidden = remainingItems.length <= 1 && !completedItems.length;
     const list = $("#daily-briefing-list");
     const eveningSummary = $("#briefing-evening-summary");
-    const activeItems = items.filter(item => !item.closedAt);
-    const completedItems = activeItems.filter(item => item.completed);
-    const remainingItems = activeItems.filter(item => !item.completed);
     const isEvening = new Date().getHours() >= 18 && activeItems.length > 0;
     eveningSummary.hidden = !isEvening;
     eveningSummary.innerHTML = isEvening
-      ? `<p><b>저녁 정리</b><span>처리 ${completedItems.length}건 · 남은 일정 ${remainingItems.length}건</span><small>${remainingItems.length ? "남은 일정은 오늘 두어도 되고, 내일로 넘겨도 된다냥." : "오늘 일정표는 여기까지 정리했다냥."}</small></p>${remainingItems.length ? '<button type="button" data-briefing-evening="carry">남은 일정 내일로</button>' : ""}`
+      ? `<p><b>저녁 정리</b><span>${remainingItems.length ? `남은 일정 ${remainingItems.length}건. 오늘 두어도 된다냥.` : "오늘 일정표는 여기까지 정리했다냥."}</span></p>${remainingItems.length ? '<button type="button" data-briefing-evening="carry">내일로 넘기기</button>' : ""}`
       : "";
     const suggestion = $("#briefing-suggestion");
     suggestion.hidden = !pendingBriefingSuggestion;
     suggestion.innerHTML = pendingBriefingSuggestion ? `<p><b>이건 앞으로 할 일이냥.</b><span>오늘의 브리핑에 맡겨둘까냥?</span></p><div><button type="button" data-briefing-suggestion="assign">브리핑에 맡기기</button><button type="button" data-briefing-suggestion="journal">그냥 이야기로 남기기</button></div>` : "";
-    section.classList.toggle("needs-action", Boolean(pendingBriefingSuggestion || ordered.some(item => item.promptPending)));
+    section.classList.toggle("needs-action", Boolean(pendingBriefingSuggestion || remainingItems.some(item => item.promptPending)));
     if (!items.length) {
       list.innerHTML = `<p class="daily-briefing-empty"><b>오늘 집사가 챙겨둘 일정이 있냥?</b><span>시간은 정하지 않아도 된다냥.</span></p>`;
     } else {
-      list.innerHTML = ordered.map((item, index) => `
-        <article class="daily-briefing-item${item.completed ? " is-complete" : ""}${item.closedAt ? " is-closed" : ""}${item.carriedFromPreviousDay ? " is-carried" : ""}${item.time ? "" : " is-unscheduled"}">
-          <button class="briefing-status-stamp" type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}" ${item.closedAt ? "disabled" : ""}><i aria-hidden="true"></i><span>${briefingStatusLabel(item)}</span></button>
-          <div class="briefing-item-copy"><time>${briefingEscape(briefingTimeLabel(item))}</time><b>${briefingEscape(item.title)}</b>${item.carriedFromPreviousDay ? "<small>어제 일정표에서 넘겨옴</small>" : ""}</div>
+      const pendingMarkup = remainingItems.map(item => `
+        <article class="daily-briefing-item${item.carriedFromPreviousDay ? " is-carried" : ""}${item.time ? "" : " is-unscheduled"}">
+          <button class="briefing-status-stamp" type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}" aria-label="${briefingEscape(item.title)} 처리 완료"><i aria-hidden="true"></i><span>처리 전</span></button>
+          <div class="briefing-item-copy">${item.time ? `<time>${briefingEscape(briefingTimeLabel(item))}</time>` : ""}<b>${briefingEscape(item.title)}</b>${item.carriedFromPreviousDay ? "<small>어제 일정표에서 넘겨옴</small>" : ""}</div>
           <div class="briefing-item-actions">
-            ${item.completed && !item.storyLoggedAt ? `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">오늘 이야기로 남기기</button>` : ""}
-            ${item.storyLoggedAt ? `<span>이야기 보관됨</span>` : ""}
-            ${!item.completed && !item.closedAt ? `<button type="button" data-briefing-action="edit" data-briefing-id="${briefingEscape(item.id)}">수정</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">접어두기</button>` : ""}
-            ${!item.completed && !item.closedAt && new Date().getHours() >= 18 ? `<button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로 넘기기</button>` : ""}
+            <button type="button" data-briefing-action="edit" data-briefing-id="${briefingEscape(item.id)}">수정</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">오늘은 빼기</button>
+            ${isEvening ? `<button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로 넘기기</button>` : ""}
           </div>
-          <!-- 완료 반응은 슬립에 잠깐 떴다 사라진다. 서류에도 한 줄 남겨야 나중에
-               일정표를 다시 볼 때 집사가 뭐라고 했는지가 남는다. 스타일과 fixture는
-               이미 있었는데 그리는 쪽만 빠져 있었다. -->
-          ${item.reactionLine ? `<p class="briefing-item-reaction"><b>${briefingEscape(state.butlerName || CHARACTER_PROFILES.cat.defaultName)}</b>${briefingEscape(item.reactionLine)}</p>` : ""}
           ${item.promptPending ? `<div class="briefing-followup"><span>집사가 처리 여부를 기다리는 중</span><button type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}">끝났어</button><button type="button" data-briefing-action="later" data-briefing-id="${briefingEscape(item.id)}">아직이야</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">오늘은 접어둬</button></div>` : ""}
         </article>`).join("");
+      const completedMarkup = completedItems.length ? `
+        <section class="briefing-completed-group${briefingCompletedExpanded ? " is-open" : ""}">
+          <button class="briefing-completed-toggle" type="button" data-briefing-completed-toggle aria-expanded="${briefingCompletedExpanded}">
+            <span><b>처리 완료 ${completedItems.length}건</b><small>집사가 완료 도장을 모아뒀다냥.</small></span><i>${briefingCompletedExpanded ? "접기" : "보기"}</i>
+          </button>
+          <div class="briefing-completed-list" ${briefingCompletedExpanded ? "" : "hidden"}>${completedItems.map(item => `
+            <article class="briefing-completed-item"><span aria-hidden="true">✓</span><b>${briefingEscape(item.title)}</b>${item.storyLoggedAt ? "<small>이야기 보관됨</small>" : `<button type="button" data-briefing-action="story" data-briefing-id="${briefingEscape(item.id)}">이야기로 남기기</button>`}</article>`).join("")}
+          </div>
+        </section>` : "";
+      list.innerHTML = pendingMarkup + completedMarkup;
     }
     syncBriefingRoomTrace(items.filter(item => !item.closedAt).length);
   }
@@ -6861,6 +6867,11 @@
   }
 
   function handleBriefingSectionAction(event) {
+    if (event.target.closest("[data-briefing-completed-toggle]")) {
+      briefingCompletedExpanded = !briefingCompletedExpanded;
+      renderDailyBriefing();
+      return;
+    }
     if (event.target.closest("[data-briefing-evening='carry']")) {
       carryRemainingBriefings();
       return;
@@ -6917,9 +6928,17 @@
       ? fillContentTemplate(randomItem(CAT_LAST_ITEM_LINES), { title: item.title })
       : catBriefingCompletedLine(item);
     saveState();
-    renderDailyBriefing();
     const row = document.querySelector(`[data-briefing-id="${CSS.escape(item.id)}"]`)?.closest(".daily-briefing-item");
-    row?.classList.add("just-stamped");
+    if (row) {
+      row.classList.add("just-stamped", "is-complete");
+      const status = row.querySelector(".briefing-status-stamp");
+      if (status) {
+        status.disabled = true;
+        const label = status.querySelector("span");
+        if (label) label.textContent = "처리 완료";
+      }
+      window.setTimeout(renderDailyBriefing, 320);
+    } else renderDailyBriefing();
     OfficeSound.cue("stampTiny");
     showBriefingSpeech(item.reactionLine, "happy");
   }
