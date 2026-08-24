@@ -6386,7 +6386,15 @@
           <span class="of-clip" aria-hidden="true"></span>
           <header><small>TODAY'S BRIEFING · FORM 02</small><h2 id="briefing-editor-title">오늘 집사가 챙겨둘 일</h2><p>오늘 일정만 간단히 적어두면 된다냥.</p></header>
           <label><span>일정명</span><input id="briefing-title-input" name="title" type="text" maxlength="40" autocomplete="off" required placeholder="예: 병원, 회의, 장보기"></label>
-          <label><span>시간</span><input id="briefing-time-input" name="time" type="time"><small>비워두면 시간 미정으로 보관</small></label>
+          <fieldset class="briefing-time-field">
+            <legend>시간</legend>
+            <div class="briefing-time-mode" id="briefing-time-mode">
+              <label><input type="radio" name="timeMode" value="unset" checked><span>시간 미정</span></label>
+              <label><input type="radio" name="timeMode" value="timed"><span>시간 정하기</span></label>
+            </div>
+            <input id="briefing-time-input" name="time" type="time" disabled>
+            <small>시간을 정하지 않아도 집사가 일정표에 보관합니다.</small>
+          </fieldset>
           <label class="briefing-ask-option"><input id="briefing-ask-input" name="askAfter" type="checkbox" checked><i aria-hidden="true"></i><span><b>끝나고 물어봐줘</b><small>시간이 지난 뒤 다시 들어오면 집사가 확인합니다.</small></span></label>
           <div class="briefing-editor-actions"><button type="button" data-briefing-close>취소</button><button type="submit">일정표에 적기</button></div>
         </form>
@@ -6416,6 +6424,7 @@
       if (event.target === event.currentTarget || event.target.closest("[data-briefing-close]")) closeBriefingEditor();
     });
     $("#briefing-editor-form").addEventListener("submit", submitBriefingItem);
+    $("#briefing-time-mode").addEventListener("change", () => syncBriefingTimeMode(true));
     $("#daily-briefing").addEventListener("click", handleBriefingSectionAction);
     $("#owner-backup-export")?.addEventListener("click", () => openBackupDialog("export"));
     $("#owner-backup-import")?.addEventListener("click", () => $("#owner-backup-file").click());
@@ -6439,9 +6448,22 @@
     $("#briefing-editor-title").textContent = editingBriefingId ? "맡긴 일 고치기" : "오늘 집사가 챙겨둘 일";
     $("#briefing-editor-form button[type='submit']").textContent = editingBriefingId ? "일정표 고치기" : "집사에게 맡기기";
     $("#briefing-title-input").value = item?.title || "";
+    $("#briefing-time-mode input[value='unset']").checked = !item?.time;
+    $("#briefing-time-mode input[value='timed']").checked = Boolean(item?.time);
     $("#briefing-time-input").value = item?.time || "";
+    syncBriefingTimeMode(false);
     $("#briefing-ask-input").checked = item ? item.askAfter !== false : true;
     window.setTimeout(() => $("#briefing-title-input").focus(), 40);
+  }
+
+  function syncBriefingTimeMode(shouldFocus = false) {
+    const timeInput = $("#briefing-time-input");
+    const timed = $("#briefing-editor-form").elements.timeMode.value === "timed";
+    timeInput.disabled = !timed;
+    timeInput.required = timed;
+    $(".briefing-time-field").classList.toggle("is-timed", timed);
+    if (!timed) timeInput.value = "";
+    if (timed && shouldFocus) window.setTimeout(() => timeInput.focus(), 0);
   }
 
   function closeBriefingEditor() {
@@ -6457,7 +6479,9 @@
     if (!title || (!existing && briefingItems().length >= BRIEFING_DAILY_LIMIT)) return;
     const values = {
       title: title.slice(0, 40),
-      time: $("#briefing-time-input").value || null,
+      time: $("#briefing-editor-form").elements.timeMode.value === "timed"
+        ? $("#briefing-time-input").value || null
+        : null,
       askAfter: $("#briefing-ask-input").checked
     };
     if (existing) Object.assign(existing, values);
