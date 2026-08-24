@@ -6090,12 +6090,18 @@
       respondToRoomItem(target);
     });
     $("#briefing-refresh").addEventListener("click", cycleBriefing);
-    $("#first-deed-guide").addEventListener("click", () => {
+    // 접수 창구로 내려가는 동작. 첫 대업 안내 버튼과 홈 머리글이 같이 쓴다 —
+    // 고양이 홈에서는 그 버튼이 든 카드가 방에 자리를 내주고 숨으므로, 머리글이
+    // 유일한 안내가 된다(「오늘은 어떻게 보내셨나요?」를 누르면 칸이 열린다).
+    const scrollToEntry = () => {
       const entry = $("#view-home .entry-form");
+      if (!entry) return;
       const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
       entry.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
-      window.setTimeout(() => $("#achievement-input").focus(), reducedMotion ? 0 : 360);
-    });
+      window.setTimeout(() => $("#achievement-input")?.focus(), reducedMotion ? 0 : 360);
+    };
+    $("#first-deed-guide").addEventListener("click", scrollToEntry);
+    $("#home-title")?.addEventListener("click", scrollToEntry);
     $("#fame-button").addEventListener("click", () => showView("archive"));
     // 필터 칩은 탭 자리를 물려받았다. 목록만 다시 그리고 표지는 그대로 둔다
     // (설계: 필터를 걸어도 표지는 항상 유지).
@@ -6358,39 +6364,146 @@
     return Math.min(stage, 5);
   }
 
+  /* ── 브리핑 대사 풀 ──
+     단계마다 한 줄씩만 있으면 매일 쓰는 사람에게는 같은 말을 하는 기계가 된다.
+     단계별로 세 갈래를 두고, 직전에 나간 줄은 건너뛴다. 톤은 단계를 따라
+     사무적 → 담당자의 사담 → 대놓고 편애 순으로 옮겨간다. */
+  const CAT_BRIEFING_REGISTERED_TAILS = Object.freeze({
+    early: [
+      "빠뜨리지 않게 일정표 위에 적어뒀다냥.",
+      "접수 순서대로 정리해뒀다냥.",
+      "잊을 일 없게 집사가 들고 있겠다냥."
+    ],
+    mid: [
+      "주인님 일정표는 찾기 편하게 맨 위에 뒀다냥.",
+      "펼쳐두고 자주 보겠다냥. 그게 편하다냥.",
+      "오늘 서류는 이걸 기준으로 돌리겠다냥."
+    ],
+    late: [
+      "제 서류보다 먼저 펴둔 건 업무 순서 때문이라냥.",
+      "다른 건보다 앞에 뒀다냥. 규정에 없는 건 아니라냥.",
+      "이 건은 제가 직접 챙기겠다냥. 담당이니까 그렇다냥."
+    ]
+  });
+
+  const CAT_BRIEFING_QUESTION_LINES = Object.freeze({
+    early: [
+      "{title} 일정은 끝났냥? 처리 여부만 알려주면 된다냥.",
+      "{title} 건은 어떻게 됐냥? 상태만 적어두면 된다냥.",
+      "{title}, 처리됐냥? 아직이어도 문제없다냥."
+    ],
+    mid: [
+      "{title}은 어땠냥? 아직이면 그대로 두겠다냥.",
+      "{title} 다녀왔냥? 집사가 서류만 정리해두겠다냥.",
+      "{title} 건 물어봐도 되냥? 확인만 하려는 거라냥."
+    ],
+    late: [
+      "{title} 끝났냥? 주인님 서류라 먼저 확인하는 것뿐이다냥.",
+      "{title}, 궁금해서 물어보는 거라냥. 업무상 그렇다냥.",
+      "{title} 어떻게 됐냥. …집사가 계속 신경 쓰고 있었다냥."
+    ]
+  });
+
+  const CAT_BRIEFING_COMPLETED_LINES = Object.freeze({
+    early: [
+      "{title} 처리 완료 확인했다냥. 오늘 큰 서류 하나 치웠다냥.",
+      "{title}, 완료 처리했다냥. 기록에 남겨두겠다냥.",
+      "{title} 끝난 거 확인했다냥. 도장 찍어두겠다냥."
+    ],
+    mid: [
+      "{title} 끝냈냥. 고생한 내용은 집사가 따로 받아두겠다냥.",
+      "{title} 완료다냥. 오늘 이만큼 한 건 적어둘 만하다냥.",
+      "{title}, 처리됐다냥. 잘 다녀온 것 같아 다행이라냥."
+    ],
+    late: [
+      "{title} 처리 완료다냥. 주인님 건이라 도장을 조금 반듯하게 찍었다냥.",
+      "{title} 끝냈다냥. …잘했다는 말은 서류에 못 적으니 여기서 하겠다냥.",
+      "{title} 완료 확인했다냥. 오늘 이 서류가 제일 반가웠다냥."
+    ]
+  });
+
+  // 시간을 안 정한 일정의 첫 문장. 시간이 있는 쪽은 「오후 2시에 병원 있다냥」
+  // 한 문장이라, 이쪽도 한 문장으로 맞춰야 뒤에 꼬리가 붙어도 슬립이 길어지지
+  // 않는다. 꼬리의 「~뒀다냥」과 어미가 겹치지 않게 골랐다.
+  const CAT_BRIEFING_UNTIMED_OPENERS = Object.freeze([
+    "「{title}」, 시간은 미정이라냥.",
+    "시간 미정으로 「{title}」 받았다냥.",
+    "「{title}」 시간 없이 접수했다냥."
+  ]);
+
+  // 같은 줄이 연달아 나가지 않게 마지막으로 쓴 줄을 갈래별로 기억한다.
+  const catBriefingLastLine = new Map();
+
+  function catBriefingTier(stage = catBriefingStage()) {
+    if (stage <= 1) return "early";
+    if (stage <= 3) return "mid";
+    return "late";
+  }
+
+  function pickBriefingLine(pool, slot) {
+    const lines = pool[catBriefingTier()] || [];
+    if (!lines.length) return "";
+    const previous = catBriefingLastLine.get(slot);
+    const fresh = lines.filter(line => line !== previous);
+    const picked = randomItem(fresh.length ? fresh : lines);
+    catBriefingLastLine.set(slot, picked);
+    return picked;
+  }
+
   function catBriefingRegisteredLine(items) {
     const first = items[0];
     // briefingTimeSpeech는 시간이 없으면 완결 문장을 돌려준다. 그걸 「~에」로
     // 이으면 「시간은 아직 안 정해졌다냥에 병원 있다냥」이 나간다 — 시간 유무로 갈라 쓴다.
+    // 시간 없는 쪽에 「적어뒀다냥」을 쓰면 뒤에 붙는 꼬리와 어미가 겹치므로 피한다.
     const detail = items.length === 1
       ? first.time
         ? `${briefingTimeSpeech(first)}에 ${first.title} 있다냥.`
-        : `${first.title}, 시간 없이 적어뒀다냥.`
+        : fillContentTemplate(randomItem(CAT_BRIEFING_UNTIMED_OPENERS), { title: first.title })
       : `오늘 일정 ${items.length}건 확인했다냥.`;
-    const stage = catBriefingStage();
-    if (stage <= 1) return `${detail} 빠뜨리지 않게 일정표 위에 적어뒀다냥.`;
-    if (stage <= 3) return `${detail} 주인님 일정표는 찾기 편하게 맨 위에 뒀다냥.`;
-    return `${detail} 제 서류보다 먼저 펴둔 건 업무 순서 때문이라냥.`;
+    return `${detail} ${pickBriefingLine(CAT_BRIEFING_REGISTERED_TAILS, "registered")}`;
   }
 
   function catBriefingQuestionLine(item) {
-    const stage = catBriefingStage();
-    if (stage <= 1) return `${item.title} 일정은 끝났냥? 처리 여부만 알려주면 된다냥.`;
-    if (stage <= 3) return `${item.title}은 어땠냥? 아직이면 그대로 두겠다냥.`;
-    return `${item.title} 끝났냥? 주인님 서류라 먼저 확인하는 것뿐이다냥.`;
+    return fillContentTemplate(pickBriefingLine(CAT_BRIEFING_QUESTION_LINES, "question"), { title: item.title });
   }
 
   function catBriefingCompletedLine(item) {
-    const stage = catBriefingStage();
-    if (stage <= 1) return `${item.title} 처리 완료 확인했다냥. 오늘 큰 서류 하나 치웠다냥.`;
-    if (stage <= 3) return `${item.title} 끝냈냥. 고생한 내용은 집사가 따로 받아두겠다냥.`;
-    return `${item.title} 처리 완료다냥. 주인님 건이라 도장을 조금 반듯하게 찍었다냥.`;
+    return fillContentTemplate(pickBriefingLine(CAT_BRIEFING_COMPLETED_LINES, "completed"), { title: item.title });
   }
 
   function showBriefingSpeech(line, pose = "working") {
     if (state.character !== "cat") return;
     showCatHomeSpeech(line, 3600, pose);
   }
+
+  /* ── 저녁 마무리 한마디 ──
+     하루를 닫는 자리라 세 줄로 돌려쓰면 금방 티가 난다. 상황별로 세 갈래씩 둔다.
+     처리 0건에 재촉하는 말을 넣지 않는 건 규칙이다 — 못 한 날을 세지 않는다. */
+  const CAT_EVENING_LINES = Object.freeze({
+    none: [
+      "오늘 일정표는 여기까지 펴두겠다냥. 남은 건 내일 다시 보면 된다냥.",
+      "오늘 서류는 조용했다냥. 조용한 날도 하루는 하루다냥.",
+      "일정표는 그대로 두겠다냥. 밀린 게 아니라 내일 것이 된 거라냥."
+    ],
+    some: [
+      "오늘 일정 {count}건 처리 확인했다냥. 남은 건 오늘 두거나 내일로 넘겨도 된다냥.",
+      "{count}건 도장 찍었다냥. 나머지는 집사가 들고 있겠다냥.",
+      "오늘 처리분 {count}건 정리했다냥. 남은 자리는 비워두겠다냥."
+    ],
+    all: [
+      "오늘 일정 {count}건 처리 확인했다냥. 오늘 서류는 이 정도면 충분하다냥.",
+      "일정표 전부 비웠다냥. 이런 날은 흔하지 않다냥.",
+      "오늘 건 다 끝냈다냥. …집사가 좀 자랑스럽다냥."
+    ]
+  });
+
+  // 저녁에 마지막 남은 일정을 끝내면 그 자리가 곧 하루의 마무리다. 평범한 완료
+  // 확인만 내보내면 하루가 닫히는 걸 아무도 말해주지 않는다.
+  const CAT_LAST_ITEM_LINES = Object.freeze([
+    "{title} 처리 완료다냥. 이걸로 오늘 일정표는 다 비웠다냥.",
+    "{title} 끝났다냥. 오늘 남은 서류는 이제 없다냥.",
+    "{title} 확인했다냥. 오늘 접수분은 여기서 마감이다냥."
+  ]);
 
   function briefingSuggestionTitle(sourceText) {
     return storedText(sourceText)
@@ -6657,13 +6770,9 @@
     const completed = items.filter(item => item.completed);
     const remaining = items.filter(item => !item.completed);
     saveState();
-    if (completed.length) {
-      showBriefingSpeech(remaining.length
-        ? `오늘 일정 ${completed.length}건 처리 확인했다냥. 남은 건 오늘 두거나 내일로 넘겨도 된다냥.`
-        : `오늘 일정 ${completed.length}건 처리 확인했다냥. 오늘 서류는 이 정도면 충분하다냥.`, "happy");
-    } else {
-      showBriefingSpeech("오늘 일정표는 여기까지 펴두겠다냥. 남은 건 내일 다시 보면 된다냥.", "base");
-    }
+    const tone = !completed.length ? "none" : remaining.length ? "some" : "all";
+    const line = randomItem(CAT_EVENING_LINES[tone]).replaceAll("{count}", String(completed.length));
+    showBriefingSpeech(line, tone === "none" ? "base" : "happy");
   }
 
   function briefingStatusLabel(item) {
@@ -6712,6 +6821,10 @@
             ${!item.completed && !item.closedAt ? `<button type="button" data-briefing-action="edit" data-briefing-id="${briefingEscape(item.id)}">수정</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">접어두기</button>` : ""}
             ${!item.completed && !item.closedAt && new Date().getHours() >= 18 ? `<button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로 넘기기</button>` : ""}
           </div>
+          <!-- 완료 반응은 슬립에 잠깐 떴다 사라진다. 서류에도 한 줄 남겨야 나중에
+               일정표를 다시 볼 때 집사가 뭐라고 했는지가 남는다. 스타일과 fixture는
+               이미 있었는데 그리는 쪽만 빠져 있었다. -->
+          ${item.reactionLine ? `<p class="briefing-item-reaction"><b>${briefingEscape(state.butlerName || CHARACTER_PROFILES.cat.defaultName)}</b>${briefingEscape(item.reactionLine)}</p>` : ""}
           ${item.promptPending ? `<div class="briefing-followup"><span>집사가 처리 여부를 기다리는 중</span><button type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}">끝났어</button><button type="button" data-briefing-action="later" data-briefing-id="${briefingEscape(item.id)}">아직이야</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">오늘은 접어둬</button></div>` : ""}
         </article>`).join("");
     }
@@ -6775,7 +6888,13 @@
     item.completed = true;
     item.completedAt = new Date().toISOString();
     item.promptPending = false;
-    item.reactionLine = catBriefingCompletedLine(item);
+    // 저녁에 마지막 남은 건을 끝냈다면 이 확인이 곧 하루의 마감이다. 평범한 완료
+    // 멘트로 지나가면 일정표를 다 비운 날이 여느 날과 똑같이 끝난다.
+    const closesTheDay = new Date().getHours() >= 18
+      && !activeBriefingItems().some(entry => entry.id !== item.id && !entry.completed);
+    item.reactionLine = closesTheDay
+      ? fillContentTemplate(randomItem(CAT_LAST_ITEM_LINES), { title: item.title })
+      : catBriefingCompletedLine(item);
     saveState();
     renderDailyBriefing();
     const row = document.querySelector(`[data-briefing-id="${CSS.escape(item.id)}"]`)?.closest(".daily-briefing-item");
