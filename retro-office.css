@@ -4768,10 +4768,23 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
   z-index: 6;
   left: 60.5%;
   top: 55.5%;
+  display: grid;
   width: 8.4%;
-  height: auto;
+  aspect-ratio: .78;
+  place-content: center;
+  gap: 3px;
+  border: 3px solid #755038;
+  border-radius: 3px;
+  background: #31584a;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.13), 1px 2px 2px rgba(45,35,22,.18);
+  color: #fff4d7;
+  text-align: center;
   pointer-events: none;
 }
+.cat-room-briefing-board small { font: 800 6px/1 var(--disp); }
+.cat-room-briefing-board b { font: 900 20px/.9 var(--disp); }
+.cat-room-briefing-board span { font-size: 18px; line-height: 1; }
+.cat-room-briefing-board.is-done { background: #3b654f; }
 .cat-room-briefing-board[hidden] { display: none; }
 html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightness(.66) saturate(.72); }
 .owner-file-backup { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 13px; padding: 12px; border: 1px dashed var(--doc-line); background: rgba(255, 255, 255, .3); }
@@ -5253,7 +5266,7 @@ body:has(#daily-briefing:not([hidden])) #toast {
 
 #view-home .briefing-completed-item {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-columns: 24px minmax(0, 1fr);
   gap: 7px;
   align-items: center;
   min-height: 44px;
@@ -5302,6 +5315,10 @@ body:has(#daily-briefing:not([hidden])) #toast {
 }
 
 #view-home .daily-briefing:not(.is-expanded) .briefing-completed-group {
+  display: block;
+}
+
+#view-home .daily-briefing:not(.is-expanded) .briefing-completed-list {
   display: none;
 }
 
@@ -5359,6 +5376,22 @@ body:has(#daily-briefing:not([hidden])) #toast {
   border-color: var(--stamp-red);
   background: var(--stamp-red);
   color: var(--ivory);
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero {
+  padding-top: 30px;
+}
+
+#view-home .report-button {
+  outline: none;
+}
+
+#view-home .briefing-editor-actions:has(#briefing-editor-delete:not([hidden])) {
+  grid-template-columns: .8fr .8fr 1.2fr;
+}
+
+#view-home #briefing-editor-delete {
+  color: var(--stamp-red);
 }
 
 /* 고양이에게 직접 건네면 한 번만 뜨는 작은 수령 하트. */
