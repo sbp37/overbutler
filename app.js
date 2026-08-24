@@ -1427,6 +1427,17 @@
   const OfficeSound = (() => {
     let ctx = null;
     let noise = null;
+    const samplePaths = Object.freeze({
+      ui: "design/sound-assets/final-v2/ui-warm-move.mp3",
+      catMrrp: "design/sound-assets/final-v2/cat-mrrp.mp3",
+      catNyang: "design/sound-assets/final-v2/cat-nyang.mp3",
+      catNose: "design/sound-assets/final-v2/cat-nose.mp3",
+      stampTiny: "design/sound-assets/final-v2/stamp-tiny-complete.mp3",
+      gift: "design/sound-assets/final-v2/gift-warm.mp3",
+      unlock: "design/sound-assets/final-v2/relationship-unlock.mp3"
+    });
+    const sampleLevels = Object.freeze({ ui: 0.58, catMrrp: 0.68, catNyang: 0.68, catNose: 0.68, stampTiny: 0.66, gift: 0.72, unlock: 0.72 });
+    const samples = new Map();
     // 오디오 컨텍스트는 사용자가 직접 누른 순간에만 만들 수 있다(자동재생 정책).
     function ensure() {
       const Ctor = window.AudioContext || window.webkitAudioContext;
@@ -1445,6 +1456,22 @@
       source.buffer = noise;
       source.loop = true;
       return source;
+    }
+    function warmSamples() {
+      Object.entries(samplePaths).forEach(([name, path]) => {
+        if (samples.has(name)) return;
+        const audio = new Audio(path);
+        audio.preload = "auto";
+        audio.load();
+        samples.set(name, audio);
+      });
+    }
+    function playSample(name) {
+      warmSamples();
+      const source = samples.get(name)?.cloneNode();
+      if (!source) return;
+      source.volume = sampleLevels[name] || 0.65;
+      source.play().catch(() => {});
     }
     function burst(context, { filter, frequency, q, peak, attack, release }) {
       const source = noiseSource(context);
@@ -1513,10 +1540,13 @@
       }
     };
     return {
+      warm() { warmSamples(); },
       // 토글을 켠 그 클릭이 곧 사용자 제스처다 — 여기서 컨텍스트를 연다.
-      prime() { ensure(); },
+      prime() { ensure(); warmSamples(); },
       cue(name) {
-        if (!state.soundOn || !play[name]) return;
+        if (!state.soundOn) return;
+        if (samplePaths[name]) { playSample(name); return; }
+        if (!play[name]) return;
         const context = ensure();
         if (!context) return;
         try { play[name](context); } catch { /* 오디오가 막힌 환경은 조용히 넘어간다 */ }
@@ -1534,7 +1564,7 @@
     if (paper) restartAnimation(paper, "paper-jolt");
     // 탁 소리와 진동은 같은 순간에 온다 — 도장이 종이에 닿는 그 지점이다.
     haptic(options.vibrate ?? 25);
-    OfficeSound.cue("stamp");
+    OfficeSound.cue("stampTiny");
   }
   function today() { return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/\. /g, ".").replace(/\.$/, ""); }
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
@@ -3555,6 +3585,12 @@
     catHomeTapRun = now - catHomeLastTapAt < 3000 ? catHomeTapRun + 1 : 1;
     catHomeLastTapAt = now;
     showCatHomeSpeech(templateOwner(catHomeLine()), 2800, catHomeTapRun >= 4 ? "annoyed" : "");
+    const purrGreeting = stageIndexFor(state.obsession) >= 3 && Math.random() < 0.12;
+    OfficeSound.cue(purrGreeting
+      ? "purr"
+      : catHomeTapRun >= 4
+        ? "catNose"
+        : randomItem(["catMrrp", "catNyang", "catNose"]));
     stat.interactions += 1;
     stat.lastInteractionAt = new Date().toISOString();
     saveState();
@@ -5868,6 +5904,7 @@
     setPoseImage($("#gift-butler-image"), state.character, "gift");
     // 흔적은 사는 순간 만들어진다 — 홈에 돌아오면 책상 위에 놓여 있다.
     if (state.character === "cat") renderCatRoomGifts();
+    OfficeSound.cue(stageIndexFor(state.obsession) > stageIndexFor(previousObsession) ? "unlock" : "gift");
     const footnote = $("#gift-overlay .reaction-footnote");
     if (footnote) {
       footnote.textContent = interaction.type === "rare"
@@ -5962,6 +5999,13 @@
   });
 
   function bindEvents() {
+    OfficeSound.warm();
+    document.addEventListener("click", event => {
+      const control = event.target.closest("button, [role='button'], [data-view]");
+      if (!control || control.matches(":disabled") || control.closest("#cat-home-character, .cat-room-lamp-hotspot, .plate-choice-overlay")) return;
+      if (control.matches("#report-button, #diary-open-note, #room-card-button, [data-briefing-action='complete']")) return;
+      OfficeSound.cue("ui");
+    });
     $("#accept-butler").addEventListener("click", enterApp);
     $("#reroll-butler").addEventListener("click", () => {
       if (state.rerolled) { showToast("재추첨권을 이미 소진했습니다."); return; }
@@ -6048,8 +6092,6 @@
       // 방을 밀고 손을 뗀 직후의 클릭은 말 걸기가 아니다.
       if (catHomeDragged) { catHomeDragged = false; return; }
       interactWithCatHome();
-      // 골골은 자주 나면 안 된다. 충분히 가까워진 뒤에, 그것도 가끔만 새어나온다.
-      if (stageIndexFor(state.obsession) >= 3 && Math.random() < 0.12) window.setTimeout(() => OfficeSound.cue("purr"), 320);
     });
     const soundToggle = $("#sound-toggle");
     soundToggle.checked = Boolean(state.soundOn);
@@ -6674,6 +6716,7 @@
     renderDailyBriefing();
     const row = document.querySelector(`[data-briefing-id="${CSS.escape(item.id)}"]`)?.closest(".daily-briefing-item");
     row?.classList.add("just-stamped");
+    OfficeSound.cue("stampTiny");
     showBriefingSpeech(item.reactionLine, "happy");
   }
 
