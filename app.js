@@ -1438,6 +1438,8 @@
     });
     const sampleLevels = Object.freeze({ ui: 0.58, catMrrp: 0.68, catNyang: 0.68, catNose: 0.68, stampTiny: 0.66, gift: 0.72, unlock: 0.72 });
     const samples = new Map();
+    const sampleFetches = new Map();
+    const decodedSamples = new Map();
     // 오디오 컨텍스트는 사용자가 직접 누른 순간에만 만들 수 있다(자동재생 정책).
     function ensure() {
       const Ctor = window.AudioContext || window.webkitAudioContext;
@@ -1459,17 +1461,48 @@
     }
     function warmSamples() {
       Object.entries(samplePaths).forEach(([name, path]) => {
-        if (samples.has(name)) return;
-        const audio = new Audio(path);
-        audio.preload = "auto";
-        audio.load();
-        samples.set(name, audio);
+        if (!samples.has(name)) {
+          const audio = new Audio(path);
+          audio.preload = "auto";
+          audio.load();
+          samples.set(name, audio);
+        }
+        if (!sampleFetches.has(name)) {
+          sampleFetches.set(name, fetch(path)
+            .then(response => response.ok ? response.arrayBuffer() : null)
+            .catch(() => null));
+        }
+      });
+    }
+    function decodeSamples(context) {
+      sampleFetches.forEach((pending, name) => {
+        if (decodedSamples.has(name)) return;
+        pending.then(encoded => {
+          if (!encoded || decodedSamples.has(name)) return;
+          context.decodeAudioData(encoded.slice(0))
+            .then(decoded => decodedSamples.set(name, decoded))
+            .catch(() => {});
+        });
       });
     }
     function playSample(name) {
       warmSamples();
-      const source = samples.get(name)?.cloneNode();
+      const context = ensure();
+      const decoded = decodedSamples.get(name);
+      if (context && decoded) {
+        const source = context.createBufferSource();
+        const gain = context.createGain();
+        source.buffer = decoded;
+        gain.gain.value = sampleLevels[name] || 0.65;
+        source.connect(gain).connect(context.destination);
+        source.start();
+        return;
+      }
+      if (context) decodeSamples(context);
+      const source = samples.get(name);
       if (!source) return;
+      source.pause();
+      source.currentTime = 0;
       source.volume = sampleLevels[name] || 0.65;
       source.play().catch(() => {});
     }
@@ -1542,7 +1575,11 @@
     return {
       warm() { warmSamples(); },
       // 토글을 켠 그 클릭이 곧 사용자 제스처다 — 여기서 컨텍스트를 연다.
-      prime() { ensure(); warmSamples(); },
+      prime() {
+        const context = ensure();
+        warmSamples();
+        if (context) decodeSamples(context);
+      },
       cue(name) {
         if (!state.soundOn) return;
         if (samplePaths[name]) { playSample(name); return; }
@@ -3330,7 +3367,7 @@
 
   // 쓴 슬립은 위로 빠지고 새 슬립이 아래에서 올라온다. 첫 발행과 감소 모드에서는
   // 바꿀 종이가 없거나 움직이면 안 되므로 바로 얹는다.
-  function swapReceptionSlip(message) {
+  function swapReceptionSlip(message, playPaperSound = true) {
     const paper = $("#cat-home-speech-paper");
     const text = $("#cat-home-speech-text");
     if (!paper || !text) return;
@@ -3342,7 +3379,7 @@
     // 통째로 사라진다. 반대쪽을 반드시 먼저 떼고 건다.
     paper.classList.remove("slip-in");
     restartAnimation(paper, "slip-out");
-    OfficeSound.cue("paper");
+    if (playPaperSound) OfficeSound.cue("paper");
     if (clip) restartAnimation(clip, "slip-wobble");
     catHomeSlipTimer = window.setTimeout(() => {
       text.textContent = message;
@@ -3523,7 +3560,7 @@
     return chosen;
   }
 
-  function showCatHomeSpeech(message, holdFor = 2800, face = "") {
+  function showCatHomeSpeech(message, holdFor = 2800, face = "", playPaperSound = true) {
     const speech = $("#cat-home-speech");
     const character = $("#cat-home-character");
     const image = $("#cat-home-character-image");
@@ -3531,7 +3568,7 @@
     if ($("#home-butler-room")?.hidden) return;
     window.clearTimeout(catHomeSpeechTimer);
     // 말풍선이 아니라 접수 슬립이다 — 클립은 그대로 두고 종이만 갈아끼운다.
-    swapReceptionSlip(message);
+    swapReceptionSlip(message, playPaperSound);
     speech.classList.add("is-visible");
     character.classList.remove("is-reacting");
     void character.offsetWidth;
@@ -3584,7 +3621,9 @@
     const now = Date.now();
     catHomeTapRun = now - catHomeLastTapAt < 3000 ? catHomeTapRun + 1 : 1;
     catHomeLastTapAt = now;
-    showCatHomeSpeech(templateOwner(catHomeLine()), 2800, catHomeTapRun >= 4 ? "annoyed" : "");
+    // 직접 고양이를 누른 순간에는 고양이 소리 하나만 낸다. 슬립 교체용 종이음까지
+    // 겹치면 짧고 날카로운 두 번째 타격음처럼 들린다.
+    showCatHomeSpeech(templateOwner(catHomeLine()), 2800, catHomeTapRun >= 4 ? "annoyed" : "", false);
     const purrGreeting = stageIndexFor(state.obsession) >= 3 && Math.random() < 0.12;
     OfficeSound.cue(purrGreeting
       ? "purr"
@@ -6000,11 +6039,18 @@
 
   function bindEvents() {
     OfficeSound.warm();
-    document.addEventListener("click", event => {
-      const control = event.target.closest("button, [role='button'], [data-view]");
+    const cueGeneralControl = target => {
+      const control = target.closest?.("button, [role='button'], [data-view]");
       if (!control || control.matches(":disabled") || control.closest("#cat-home-character, .cat-room-lamp-hotspot, .plate-choice-overlay")) return;
       if (control.matches("#report-button, #diary-open-note, #room-card-button, [data-briefing-action='complete']")) return;
       OfficeSound.cue("ui");
+    };
+    // click은 손을 뗀 뒤 발생해 소리가 늦게 따라온다. 손가락이 닿은 순간 재생하고,
+    // 키보드 사용자는 Enter/Space를 누른 순간 같은 피드백을 받는다.
+    document.addEventListener("pointerdown", event => cueGeneralControl(event.target), { passive: true });
+    document.addEventListener("keydown", event => {
+      if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
+      cueGeneralControl(event.target);
     });
     $("#accept-butler").addEventListener("click", enterApp);
     $("#reroll-butler").addEventListener("click", () => {
