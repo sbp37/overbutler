@@ -1428,16 +1428,24 @@
   const OfficeSound = (() => {
     let ctx = null;
     let noise = null;
+    /* final-v3 = 주인님이 직접 골라준 세트다(2026-08-24).
+       버튼·완료도장·선물 셋만 새로 갈았고, 고양이 세 소리와 해금은 실제 녹음이
+       더 좋아서 v2 그대로 옮겼다. v2 폴더는 손대지 않았으니 되돌리려면
+       이 경로 일곱 줄을 final-v2로 되돌리고 아래 레벨만 원복하면 된다. */
     const samplePaths = Object.freeze({
-      ui: "design/sound-assets/final-v2/ui-warm-move.mp3",
-      catMrrp: "design/sound-assets/final-v2/cat-mrrp.mp3",
-      catNyang: "design/sound-assets/final-v2/cat-nyang.mp3",
-      catNose: "design/sound-assets/final-v2/cat-nose.mp3",
-      stampTiny: "design/sound-assets/final-v2/stamp-tiny-complete.mp3",
-      gift: "design/sound-assets/final-v2/gift-warm.mp3",
-      unlock: "design/sound-assets/final-v2/relationship-unlock.mp3"
+      ui: "design/sound-assets/final-v3/ui-wood-tick.mp3",
+      catMrrp: "design/sound-assets/final-v3/cat-mrrp.mp3",
+      catNyang: "design/sound-assets/final-v3/cat-nyang.mp3",
+      catNose: "design/sound-assets/final-v3/cat-nose.mp3",
+      stampTiny: "design/sound-assets/final-v3/stamp-tiny-bounce.mp3",
+      gift: "design/sound-assets/final-v3/gift-pop.mp3",
+      unlock: "design/sound-assets/final-v3/relationship-unlock.mp3"
     });
-    const sampleLevels = Object.freeze({ ui: 0.58, catMrrp: 0.68, catNyang: 0.68, catNose: 0.68, stampTiny: 0.66, gift: 0.72, unlock: 0.72 });
+    /* 새로 합성한 셋이 v2보다 피크가 4~7dB 높다. 그대로 두면 갈아끼운 소리만
+       튀어서, 피크 차이의 7할을 여기서 되돌린다(전부 맞추지 않는 건 새 소리가
+       0.13~0.21초로 훨씬 짧아 체감이 이미 작기 때문이다).
+       원복값 — ui 0.58, stampTiny 0.66, gift 0.72. */
+    const sampleLevels = Object.freeze({ ui: 0.43, catMrrp: 0.68, catNyang: 0.68, catNose: 0.68, stampTiny: 0.38, gift: 0.54, unlock: 0.72 });
     const samples = new Map();
     const sampleFetches = new Map();
     const decodedSamples = new Map();
