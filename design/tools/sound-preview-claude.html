@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>과잉집사 · 사운드 후보 비교 (Claude 라운드)</title>
+<style>
+  :root { --ink:#332a20; --soft:#7a6c5c; --line:#d8c9b2; --paper:#faf7f0; --bg:#efe8da; --accent:#93132e; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.5 "Apple SD Gothic Neo", sans-serif; padding: 20px 14px 60px; }
+  main { max-width: 560px; margin: 0 auto; }
+  h1 { font-size: 19px; margin-bottom: 4px; }
+  .note { color: var(--soft); font-size: 12.5px; margin-bottom: 18px; }
+  section { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 14px; margin-bottom: 14px; }
+  h2 { font-size: 14px; margin-bottom: 3px; }
+  .desc { color: var(--soft); font-size: 12px; margin-bottom: 10px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  button { flex: 1 1 30%; min-height: 52px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+  button b { display: block; font-size: 13px; }
+  button small { color: var(--soft); font-size: 11px; }
+  button.current { border-color: #b8935c; background: #fbf2da; }
+  button.playing { border-color: var(--accent); }
+  .pick { margin-top: 10px; font-size: 12px; color: var(--soft); }
+  .pick label { margin-right: 12px; white-space: nowrap; }
+  #summary { position: sticky; bottom: 0; background: var(--ink); color: #f0e2c8; border-radius: 6px; padding: 12px 14px; font-size: 13px; line-height: 1.7; }
+  #summary b { color: #ffd9a0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>사운드 후보 비교 — Claude 합성 라운드</h1>
+  <p class="note">
+    [현재]는 지금 앱에 연결된 final-v2 파일, [후보]는 새로 합성한 것입니다.
+    콘셉트: 게임 효과음이 아니라 <b>나무 책상·종이·서랍이 실제로 내는 소리</b>.
+    마음에 드는 걸 체크하고 맨 아래 요약을 그대로 보내주세요.
+    (고양이 터치음 3종은 실제 녹음이라 합성으로 이기기 어려워 이번 라운드에서 제외)
+  </p>
+
+  <section data-slot="ui">
+    <h2>① 일반 버튼 · 화면 이동</h2>
+    <p class="desc">제일 자주 들리는 소리. 짧고 낮을수록 안 질립니다.</p>
+    <div class="row">
+      <button class="current" data-src="../sound-assets/final-v2/ui-warm-move.mp3"><b>현재</b><small>ui-warm-move</small></button>
+      <button data-src="../sound-assets/claude-candidates/ui-wood-tick.mp3"><b>후보 A · 나무 톡</b><small>책상을 손끝으로 톡</small></button>
+      <button data-src="../sound-assets/claude-candidates/ui-felt-tap.mp3"><b>후보 B · 펠트 탭</b><small>도장 패드를 무르게 톡</small></button>
+    </div>
+    <div class="pick"><label><input type="radio" name="ui" value="현재" checked>현재 유지</label><label><input type="radio" name="ui" value="A 나무 톡">후보 A</label><label><input type="radio" name="ui" value="B 펠트 탭">후보 B</label></div>
+  </section>
+
+  <section data-slot="complete">
+    <h2>② 일정 처리 완료 (작은 도장)</h2>
+    <p class="desc">브리핑 완료 체크. "탁, 처리됐다"의 낮은 무게.</p>
+    <div class="row">
+      <button class="current" data-src="../sound-assets/final-v2/stamp-tiny-complete.mp3"><b>현재</b><small>stamp-tiny-complete</small></button>
+      <button data-src="../sound-assets/claude-candidates/complete-stamp-warm.mp3"><b>후보 A · 따뜻한 도장</b><small>내려앉은 뒤 종이가 자리 잡음</small></button>
+      <button data-src="../sound-assets/claude-candidates/complete-stamp-bounce.mp3"><b>후보 B · 도장+반동</b><small>찍고 살짝 튕기는 손맛</small></button>
+    </div>
+    <div class="pick"><label><input type="radio" name="complete" value="현재" checked>현재 유지</label><label><input type="radio" name="complete" value="A 따뜻한 도장">후보 A</label><label><input type="radio" name="complete" value="B 도장+반동">후보 B</label></div>
+  </section>
+
+  <section data-slot="gift">
+    <h2>③ 선물 전달</h2>
+    <p class="desc">건네주는 순간. 반짝임 없이 따뜻하게.</p>
+    <div class="row">
+      <button class="current" data-src="../sound-assets/final-v2/gift-warm.mp3"><b>현재</b><small>gift-warm</small></button>
+      <button data-src="../sound-assets/claude-candidates/gift-warm-pop.mp3"><b>후보 A · 팝</b><small>위로 미끄러지는 톤 하나</small></button>
+      <button data-src="../sound-assets/claude-candidates/gift-paper-wrap.mp3"><b>후보 B · 포장지</b><small>종이 두 번 스치고 마무리 톤</small></button>
+    </div>
+    <div class="pick"><label><input type="radio" name="gift" value="현재" checked>현재 유지</label><label><input type="radio" name="gift" value="A 팝">후보 A</label><label><input type="radio" name="gift" value="B 포장지">후보 B</label></div>
+  </section>
+
+  <section data-slot="unlock">
+    <h2>④ 관계 단계 해금</h2>
+    <p class="desc">가장 드문 소리라 가장 특별해도 됩니다.</p>
+    <div class="row">
+      <button class="current" data-src="../sound-assets/final-v2/relationship-unlock.mp3"><b>현재</b><small>relationship-unlock</small></button>
+      <button data-src="../sound-assets/claude-candidates/unlock-drawer.mp3"><b>후보 A · 서랍 열림</b><small>잠겨 있던 서랍이 덜컥, 스르륵 — 관공서 어휘</small></button>
+      <button data-src="../sound-assets/claude-candidates/unlock-muted-bell.mp3"><b>후보 B · 눌러 죽인 종</b><small>반짝임 없는 낮은 종 하나</small></button>
+    </div>
+    <div class="pick"><label><input type="radio" name="unlock" value="현재" checked>현재 유지</label><label><input type="radio" name="unlock" value="A 서랍 열림">후보 A</label><label><input type="radio" name="unlock" value="B 눌러 죽인 종">후보 B</label></div>
+  </section>
+
+  <div id="summary">선택 요약: 전부 현재 유지</div>
+</main>
+<script>
+  let playingBtn = null;
+  document.querySelectorAll('button[data-src]').forEach(btn => {
+    const audio = new Audio(btn.dataset.src);
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('button.playing').forEach(b => b.classList.remove('playing'));
+      audio.currentTime = 0;
+      audio.play();
+      btn.classList.add('playing');
+      audio.onended = () => btn.classList.remove('playing');
+    });
+  });
+  const update = () => {
+    const picks = ['ui','complete','gift','unlock'].map(name => {
+      const v = document.querySelector(`input[name="${name}"]:checked`).value;
+      const label = { ui:'버튼', complete:'완료 도장', gift:'선물', unlock:'해금' }[name];
+      return v === '현재' ? null : `${label} → <b>${v}</b>`;
+    }).filter(Boolean);
+    document.getElementById('summary').innerHTML = picks.length
+      ? '선택 요약: ' + picks.join(' · ') + ' <br>(이대로 보내주시면 앱에 연결합니다)'
+      : '선택 요약: 전부 현재 유지';
+  };
+  document.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', update));
+</script>
+</body>
+</html>
