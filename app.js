@@ -974,8 +974,8 @@
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
     records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
     briefings: [], journalEntries: [], briefingIntroDates: [], briefingEveningDates: [],
-    catBriefingBoardPosition: { x: 62.5, y: 60.5 },
-    catBriefingBoardPositionVersion: 2,
+    catBriefingBoardPosition: { x: 59, y: 60.5 },
+    catBriefingBoardPositionVersion: 3,
     ownedButlers: [...INITIAL_OWNED_BUTLERS], pendingApplicants: [], deferredApplicants: [], seenApplicants: [], firstDeedNoticed: false, deskPlate: "",
     applicationHistory: [], handoverHistory: [], newlyHiredButlers: [], firstShiftSeen: {},
     butlerStats: {}, fameHistory: [], fameCategories: [], giftHistory: [],
@@ -1235,12 +1235,12 @@
     merged.diary = migrateDiary(raw.diary, merged);
     merged.briefings = migrateBriefings(raw.briefings);
     const storedBoardPosition = objectValue(raw.catBriefingBoardPosition);
-    const useCurrentBoardDefault = nonNegativeInteger(raw.catBriefingBoardPositionVersion) < 2;
+    const useCurrentBoardDefault = nonNegativeInteger(raw.catBriefingBoardPositionVersion) < 3;
     merged.catBriefingBoardPosition = {
-      x: useCurrentBoardDefault ? 62.5 : finiteNumber(storedBoardPosition.x, 62.5, 2, 90),
+      x: useCurrentBoardDefault ? 59 : finiteNumber(storedBoardPosition.x, 59, 2, 90),
       y: useCurrentBoardDefault ? 60.5 : finiteNumber(storedBoardPosition.y, 60.5, 8, 82)
     };
-    merged.catBriefingBoardPositionVersion = 2;
+    merged.catBriefingBoardPositionVersion = 3;
     merged.journalEntries = Array.isArray(raw.journalEntries) ? raw.journalEntries.map((entry, index) => {
       const item = objectValue(entry);
       return {
@@ -6340,7 +6340,7 @@
   /* TODAY'S BRIEFING
      사용자가 직접 맡긴 오늘 일만 집사가 기억한다. 일정 관리가 아니라
      다시 돌아왔을 때 결과를 물어보는 관계 루프다. */
-  const BRIEFING_DAILY_LIMIT = 5;
+  const BRIEFING_DAILY_LIMIT = 8;
   let briefingImportEnvelope = null;
   let activeBriefingStoryId = null;
   let pendingBriefingSuggestion = null;
@@ -6688,7 +6688,7 @@
 
   function openBriefingEditor(item = null) {
     if (!item?.id && briefingItems().length >= BRIEFING_DAILY_LIMIT) {
-      showBriefingSpeech("오늘 일정표는 다섯 칸까지다냥. 더 적으면 집사가 먼저 헷갈린다냥.", "annoyed");
+      showBriefingSpeech("오늘 일정표는 여덟 칸까지다냥. 더 적으면 집사가 먼저 헷갈린다냥.", "annoyed");
       return;
     }
     const overlay = $("#briefing-editor-overlay");
@@ -6951,7 +6951,7 @@
   function carryBriefingItem(item) {
     const tomorrow = briefingTomorrowKey();
     if (briefingItems(tomorrow).length >= BRIEFING_DAILY_LIMIT) {
-      showBriefingSpeech("내일 일정표도 다섯 칸이 찼다냥. 이 서류는 오늘 자리에 두겠다냥.");
+      showBriefingSpeech("내일 일정표도 여덟 칸이 찼다냥. 이 서류는 오늘 자리에 두겠다냥.");
       return;
     }
     item.date = tomorrow;
@@ -6969,7 +6969,7 @@
     const available = Math.max(0, BRIEFING_DAILY_LIMIT - briefingItems(tomorrow).length);
     const moving = remaining.slice(0, available);
     if (!moving.length) {
-      showBriefingSpeech("내일 일정표는 이미 다섯 칸이 찼다냥. 남은 서류는 오늘 자리에 두겠다냥.");
+      showBriefingSpeech("내일 일정표는 이미 여덟 칸이 찼다냥. 남은 서류는 오늘 자리에 두겠다냥.");
       return;
     }
     moving.forEach(item => {
@@ -7017,7 +7017,7 @@
   function briefingBoardPosition() {
     const position = objectValue(state.catBriefingBoardPosition);
     return {
-      x: finiteNumber(position.x, 62.5, 2, 90),
+      x: finiteNumber(position.x, 59, 2, 90),
       y: finiteNumber(position.y, 60.5, 8, 82)
     };
   }

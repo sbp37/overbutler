@@ -4767,7 +4767,7 @@ html[data-cat-room-light="night-off"] [data-desk-pose] {
 .cat-room-briefing-board {
   position: absolute;
   z-index: 6;
-  left: var(--board-x, 62.5%);
+  left: var(--board-x, 59%);
   top: var(--board-y, 60.5%);
   display: grid;
   width: 10.2%;
