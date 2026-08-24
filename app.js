@@ -1176,7 +1176,8 @@
       date: /^\d{4}-\d{2}-\d{2}$/.test(storedText(entry.date)) ? storedText(entry.date) : today(),
       title: storedText(entry.title).trim().slice(0, 40),
       time: /^\d{2}:\d{2}$/.test(storedText(entry.time)) ? storedText(entry.time) : null,
-      completed: Boolean(entry.completed),
+      // completedAt만 있고 completed가 빠진 데이터(수동 백업 편집 등)도 완료로 살린다
+      completed: Boolean(entry.completed || entry.completedAt),
       completedAt: storedText(entry.completedAt) || null,
       carriedFromPreviousDay: Boolean(entry.carriedFromPreviousDay),
       askAfter: entry.askAfter !== false,
