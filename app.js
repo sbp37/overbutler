@@ -3034,6 +3034,12 @@
 
   function openRecordDetail(record) {
     if (!record) return;
+    const sourceBriefing = record.sourceBriefingId
+      ? state.briefings.find(item => String(item.id) === String(record.sourceBriefingId))
+      : null;
+    const briefingOrigin = document.getElementById("record-detail-briefing-origin");
+    briefingOrigin.hidden = !sourceBriefing;
+    briefingOrigin.textContent = sourceBriefing ? `오늘의 브리핑에서 이어짐 · ${sourceBriefing.title}` : "";
     const butler = record.butler || snapshotButler(record);
     const isOfficial = state.certificates.some(item => item.id === record.id);
     const legacyCertificate = !isOfficial && isLegacyCertificate(record);
@@ -3338,7 +3344,7 @@
   function warmDeskFaces() {
     if (deskFacesWarmed) return;
     deskFacesWarmed = true;
-    ["annoyed", "happy", "surprised", "working", "gift"].forEach(name => {
+    ["blink", "annoyed", "happy", "surprised", "working", "gift"].forEach(name => {
       const preload = new Image();
       preload.src = `${DESK_FACE_PATH}${DESK_FACES[name]}.webp`;
     });
@@ -3374,7 +3380,7 @@
     scheduleCatHomeBlink();
   }
 
-  // 방이 배경화면이 되는 건 아무도 안 움직여서다. 6~12초에 한 번, 아무 조작이
+  // 방이 배경화면이 되는 건 아무도 안 움직여서다. 3~8초에 한 번, 아무 조작이
   // 없어도 저절로 깜빡인다. 보이지 않는 동안에는 돌리지 않는다 — 안 보이는
   // 이미지를 계속 갈아끼우는 건 배터리만 쓴다.
   function deskIdleVisible() {
@@ -3390,9 +3396,11 @@
     catHomeBlinkTimer = window.setTimeout(() => {
       if (!deskIdleVisible()) return; // 화면을 떠났다 — 돌아올 때 다시 건다
       if (catHomeDrag) { scheduleCatHomeBlink(); return; } // 방을 미는 중엔 한 박자 쉰다
-      if (Math.random() < 0.22) showDeskFace("working", 2600);
+      const idleRoll = Math.random();
+      if (idleRoll < 0.30) showDeskFace("working", 2300);
+      else if (idleRoll < 0.38) showDeskFace("happy", 1500);
       else blinkOnce();
-    }, 6000 + Math.floor(Math.random() * 6000));
+    }, 3400 + Math.floor(Math.random() * 4200));
   }
 
   function configureCatHome() {
@@ -4415,6 +4423,12 @@
   }
 
   function openPraiseResult(record) {
+    const sourceBriefing = record.sourceBriefingId
+      ? state.briefings.find(item => String(item.id) === String(record.sourceBriefingId))
+      : null;
+    const briefingOrigin = document.getElementById("result-briefing-origin");
+    briefingOrigin.hidden = !sourceBriefing;
+    briefingOrigin.textContent = sourceBriefing ? `오늘의 브리핑에서 이어진 이야기 · ${sourceBriefing.title}` : "";
     const butler = record.butler || snapshotButler(record);
     const mode = record.verdictType === "rare" || record.rare ? "rare" : record.pose === "power" || record.verdictType === "power" ? "power" : "praise";
     const power = mode !== "praise";

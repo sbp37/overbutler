@@ -1037,6 +1037,16 @@
   background: #f9f2e8;
 }
 .record-detail-context section > span { color: var(--tab-records); letter-spacing: .08em; }
+.record-detail-briefing-origin {
+  display: inline-block;
+  margin: 7px 0 1px;
+  padding: 3px 7px;
+  border: 1px solid rgba(147, 19, 46, .24);
+  color: var(--burgundy);
+  font: 800 11px/1.35 var(--sans);
+  letter-spacing: .01em;
+}
+.record-detail-briefing-origin[hidden] { display: none; }
 .record-detail-title-copy > small {
   border-radius: 2px;
   border-color: var(--doc-line);
@@ -2485,6 +2495,17 @@
   padding: 11px 15px 11px 32px;
   border-bottom: 1.5px solid var(--ink);
 }
+.result-briefing-origin {
+  width: max-content;
+  max-width: calc(100% - 30px);
+  margin: 10px 15px 0;
+  padding: 4px 7px;
+  border-left: 2px solid var(--burgundy);
+  background: rgba(147, 19, 46, .06);
+  color: var(--burgundy);
+  font: 800 11px/1.4 var(--sans);
+}
+.result-briefing-origin[hidden] { display: none; }
 .praise-result-document #result-form-label {
   position: static;
   padding: 0;
