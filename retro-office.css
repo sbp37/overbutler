@@ -4598,7 +4598,7 @@
 #cat-home-world .cat-home-character[data-desk-pose="working"]{
   left:39.31%;
   top:auto;
-  bottom:28%;
+  bottom:25.5%;
   width:21.15%;
 }
 #cat-home-world .cat-home-character[data-desk-pose="surprised"]{
@@ -4827,14 +4827,25 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
 /* CAT briefing: keep compact controls clear of the count stamp. */
 #view-home .daily-briefing-toggle {
   top: 4px;
-  right: 70px;
+  right: 8px;
   padding: 2px 5px;
 }
 
 #view-home .daily-briefing .daily-briefing-add:not([hidden]) {
-  top: 4px;
-  right: 8px;
-  padding: 2px 6px;
+  position: relative;
+  top: auto;
+  right: auto;
+  display: block;
+  width: calc(100% - 22px);
+  min-height: 38px;
+  margin: 11px 0 1px 22px;
+  padding: 8px 12px;
+  border: 1px solid var(--stamp-red);
+  background: var(--stamp-red);
+  color: var(--ivory);
+  font-size: 12px;
+  letter-spacing: .02em;
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .16);
 }
 
 /* Let the butler's reply sit across the desk edge instead of below the room. */

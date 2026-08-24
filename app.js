@@ -6554,7 +6554,6 @@
             ${!item.completed && !item.closedAt && new Date().getHours() >= 18 ? `<button type="button" data-briefing-action="carry" data-briefing-id="${briefingEscape(item.id)}">내일로 넘기기</button>` : ""}
           </div>
           ${item.promptPending ? `<div class="briefing-followup"><span>집사가 처리 여부를 기다리는 중</span><button type="button" data-briefing-action="complete" data-briefing-id="${briefingEscape(item.id)}">끝났어</button><button type="button" data-briefing-action="later" data-briefing-id="${briefingEscape(item.id)}">아직이야</button><button type="button" data-briefing-action="close" data-briefing-id="${briefingEscape(item.id)}">오늘은 접어둬</button></div>` : ""}
-          ${item.reactionLine ? `<p class="briefing-item-reaction"><b>치즈냥</b> ${briefingEscape(item.reactionLine)}</p>` : ""}
         </article>`).join("");
     }
     syncBriefingRoomTrace(items.filter(item => !item.closedAt).length);
