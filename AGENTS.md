@@ -28,6 +28,7 @@ Repository is the Overbutler web app.
 문법:  node --check app.js
 테스트: node tests/chat-engine.test.js
         node tests/message-interpreter.test.js
+회귀:  브라우저로 tests/cat-regression.html 열기 (7 fixtures · 107 checks)
 ```
 
 ### 실수 상위 5개 — 문서를 안 읽더라도 이건 알아야 한다
@@ -70,8 +71,14 @@ Repository is the Overbutler web app.
 ### 끝내기 전에
 
 ```
-node --check app.js  →  두 테스트 스위트  →  360/390/430 세 폭 확인
+node --check app.js  →  두 테스트 스위트  →  tests/cat-regression.html
+→  360/390/430 세 폭 확인
 ```
+
+**회귀 검사표를 빠뜨리지 마라.** 한 번 이렇게 샜다 — fixture 하나가 하네스
+목록에 없어서 아무도 안 돌렸고, 그 사이 그 검사가 잡고 있던 결손(완료 반응이
+서류에 안 남는 문제)이 그대로 배포선에 남아 있었다. 검사는 돌려야 검사다.
+fixture를 새로 만들면 `tests/cat-regression.html`의 `CASES`에도 반드시 올린다.
 
 "괜찮아 보인다"로 넘긴 것은 전부 뒤에서 터졌다. 레이아웃·겹침·이벤트는
 눈으로 보지 말고 **숫자로 잰다**(`docs/HANDOVER.md` §7에 실제 사례 4개).
