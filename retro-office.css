@@ -4475,11 +4475,12 @@
    fixed navigation on an 800px-tall phone. */
 #view-home { padding-top: 12px; }
 #view-home .home-office-header { min-height: 68px; margin-bottom: 6px; }
-#view-home .home-brand-image {
+.office-brand-image {
   display: block;
-  width: clamp(136px, 39vw, 154px);
+  width: clamp(112px, 32vw, 124px);
   height: auto;
 }
+.certificate-screen-header .office-brand-image { width: clamp(96px, 28vw, 108px); margin-inline: auto; }
 #view-home .home-logo-lockup small { margin-top: 3px; }
 #view-home #cat-home-room {
   height: clamp(260px, 34vh, 300px);
