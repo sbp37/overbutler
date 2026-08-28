@@ -15,7 +15,7 @@
     card.classList.toggle("cat-manager-condensed", catActive);
 
     card.querySelectorAll(".manager-section-label").forEach((label) => {
-      const detailLabel = /기본 정보|근 무 현 황|근무 현황/.test(label.textContent || "");
+      const detailLabel = /기본 정보|기 본 정 보|근 무 현 황|근무 현황/.test(label.textContent || "");
       label.classList.toggle("cat-manager-detail-label", catActive && detailLabel);
     });
 

@@ -91,6 +91,11 @@
         assert(Boolean(teaser), "today diary is visible as a sealed teaser");
         assert(teaser.textContent.includes("첫 발령"), "today diary carries the CAT career stage from that entry");
         assert(teaser.textContent.includes("내일 보여준다냥"), "today teaser explains next-day reveal in CAT voice");
+        doc.querySelector('[data-view="manager"]').click();
+        await until(() => [...doc.querySelectorAll(".manager-section-label")].some(label => label.textContent.includes("기 본 정 보") && label.classList.contains("cat-manager-detail-label")));
+        const basicInfoLabel = [...doc.querySelectorAll(".manager-section-label")].find(label => label.textContent.includes("기 본 정 보"));
+        assert.equal(doc.defaultView.getComputedStyle(basicInfoLabel).display, "none", "collapsed CAT card does not leave an empty basic-info heading");
+        assert(!doc.querySelector("#give-gift-button").classList.contains("is-first-story-gate"), "first record unlocks the direct gift entry");
 
         const previousFrame = appFrame;
         const nextFrame = document.createElement("iframe");
