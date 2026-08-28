@@ -23,7 +23,7 @@
 
         assert(!doc.querySelector("#assignment-screen").hidden, "empty storage opens CAT assignment");
         assert(doc.querySelector("#assignment-screen").textContent.includes("고양이 집사"), "first assigned character is CAT");
-        assert(doc.querySelector(".character-line").textContent.includes("첫 발령 준비"), "CAT introduction leads with rookie responsibility");
+        assert(doc.querySelector(".character-line").textContent.includes("처음 맡은 사람") && doc.querySelector(".character-line").textContent.includes("잘하고 싶어서"), "CAT introduction leads with first-owner rookie enthusiasm");
         assert(!doc.querySelector(".character-line").textContent.includes("특별대우 아니다"), "CAT introduction does not lead with defensive tsundere copy");
         const assignmentCopy = doc.querySelector(".assignment-copy");
         const assignmentCopyStyle = doc.defaultView.getComputedStyle(assignmentCopy);
@@ -45,8 +45,8 @@
         await until(() => !doc.querySelector("#praise-result-overlay").hidden);
         assert(Boolean(doc.querySelector("#result-title").textContent.trim()), "first submission reaches the result sheet");
         assert(doc.querySelector("#result-deed").textContent.includes("씻"), "result sheet reflects the submitted story");
-        assert(doc.querySelector("#result-report").textContent.includes("집사가 맡은 첫 업무") && doc.querySelector("#result-report").textContent.includes("책임지고"), "first CAT result shows rookie responsibility");
-        assert(doc.querySelector("#result-footnote").textContent.includes("신입 집사 첫 업무 완료"), "first CAT result marks the butler's first assignment");
+        assert(doc.querySelector("#result-report").textContent.includes("맡긴 첫 이야기") && doc.querySelector("#result-report").textContent.includes("잘하고 싶어서"), "first CAT result shows first-owner rookie enthusiasm");
+        assert(doc.querySelector("#result-footnote").textContent.includes("첫 주인님 기록 완료"), "first CAT result marks the shared first record");
         stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
         assert.equal(stored.records.length, 1, "first submission creates one record");
         assert.equal(stored.records[0].sourceText, "씻었어", "record preserves exact sourceText");

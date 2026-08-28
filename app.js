@@ -1836,9 +1836,9 @@
      처음 만난 사람에게 재방문 인사를 하면 무심함이 아니라 무성의로 읽힌다.
      첫 대업을 접수하기 전까지는 첫 만남 전용 인사를 쓴다. CAT-FIRST — 고양이만. */
   const CAT_FIRST_MEETING = [
-    "{owner}이구냥. 첫 담당이라 준비를 많이 했다냥. 잘 부탁한다냥.",
-    "첫 발령이라 도장 방향도 세 번 확인했다냥. 제대로 맡고 싶다냥.",
-    "{owner} 자리부터 만들어뒀다냥. 집사가 맡은 첫 주인님 자리다냥."
+    "{owner}이구냥. 집사가 처음 맡은 주인님이라 준비를 많이 했다냥. 잘 부탁한다냥.",
+    "첫 발령이라 도장 방향도 세 번 확인했다냥. 잘하고 싶다냥.",
+    "{owner} 자리부터 만들어뒀다냥. 첫 주인님 자리라 조금 더 반듯하게 해뒀다냥."
   ];
   function firstMeetingGreeting() {
     if (state.character !== "cat" || state.records.length > 0) return "";
@@ -4291,7 +4291,7 @@
     const firstCatRecord = !quiet && butler.character === "cat" && !latestButlerMemory("cat");
     const generatedReport = getPraise(deed, nextObsession, butler.character, evaluation.verdictType);
     const report = firstCatRecord
-      ? fillContentTemplate("{deed}… 집사가 맡은 첫 업무라 첫 결재 도장까지 책임지고 반듯하게 찍겠다냥.", { deed })
+      ? fillContentTemplate("{deed}… 주인님이 집사한테 맡긴 첫 이야기라, 잘하고 싶어서 도장 방향도 세 번 확인했다냥.", { deed })
       : generatedReport;
     const reactionLines = normalizeReactionLines(quiet ? options.reply : report, report);
     const record = {
@@ -4685,7 +4685,7 @@
     const firstCatResult = firstRecord && normalizeCharacter(record.character) === "cat";
     $("#result-footnote").textContent = firstDeedNotice
       ? firstCatResult
-        ? "신입 집사 첫 업무 완료 · 기록은 파일에 보관 · 오늘 일기는 내일 개봉"
+        ? "첫 주인님 기록 완료 · 기록은 파일에 보관 · 오늘 일기는 내일 개봉"
         : "오늘 기록은 파일에 보관됩니다 · 집사가 쓴 오늘 일기는 내일 개봉"
       : firstRecord
       ? `첫 도장 · +${pointsEarned}P · 공식 인증까지 ${status.remaining}건`
