@@ -474,6 +474,30 @@
   box-shadow: 0 1px 0 rgba(45, 35, 22, .12);
 }
 
+/* 첫 장은 통계보다 방금 맡긴 기록이 먼저 보여야 한다. 파일 기능은 그대로 두고
+   아직 의미 없는 집계와 주간 보고만 접어 첫 보상까지의 거리를 줄인다. */
+#view-archive.is-first-record-file .owner-file-doc { padding-top: 18px; padding-bottom: 12px; }
+#view-archive.is-first-record-file .owner-file-head { margin-bottom: 8px; }
+#view-archive.is-first-record-file .owner-file-head img { flex-basis: 52px; width: 52px; }
+#view-archive.is-first-record-file .owner-file-toc > div { padding-top: 6px; padding-bottom: 6px; }
+#view-archive.is-first-record-file .owner-file-top-row,
+#view-archive.is-first-record-file .owner-file-official-row,
+#view-archive.is-first-record-file .archive-report-link { display: none; }
+#view-archive.is-first-record-file .owner-file-remark { margin-top: 10px; padding-top: 8px; padding-bottom: 8px; }
+#view-archive.is-first-record-file .owner-file-remark > p { font-size: 17px; line-height: 1.4; }
+#view-archive.is-first-record-file .owner-file-record-jump { margin-top: 10px; padding-top: 9px; padding-bottom: 9px; }
+#view-archive.is-first-record-file .owner-file-backup-toggle {
+  min-height: 0;
+  margin: 7px 0 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 11px;
+  text-align: right;
+}
+#view-archive.is-first-record-file .owner-file-backup-toggle::after { margin-left: 5px; }
+
 /* ═══════════ 주인님 파일 본문 ═══════════
    기록 카드 · 여백 메모 · 인증서 도장이 한 스트림 안에 날짜순으로 공존한다. */
 

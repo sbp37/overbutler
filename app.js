@@ -2242,6 +2242,8 @@
   function renderOwnerFileCover() {
     const cover = ownerFileCover();
     const isCat = normalizeCharacter(state.character) === "cat";
+    const firstCatRecord = isCat && cover.thickness === 1;
+    $("#view-archive")?.classList.toggle("is-first-record-file", firstCatRecord);
     $("#owner-file-thickness").textContent = cover.thickness;
     $("#owner-file-days").textContent = cover.daysTogether;
     // 기록 한 건으로 "최다 대업 청소 · 1건"이라고 적으면 집계가 아니라 농담이 된다.
@@ -2250,10 +2252,17 @@
       ? `${cover.topCategory.label} · ${cover.topCategory.count}건`
       : cover.thickness ? "3건부터 집계" : "아직 없음";
     $("#owner-file-official").textContent = cover.officialCount;
-    $("#owner-file-remark").textContent = cover.remark;
+    $("#owner-file-remark").textContent = firstCatRecord
+      ? "주인님이 맡긴 첫 장이다냥. 잘하고 싶어서 제일 좋은 표지를 골랐다냥."
+      : cover.remark;
     $("#archive-butler-role").textContent = isCat
-      ? "첫 담당 집사와 함께 쓴 기록 · 언제든 열람 가능"
+      ? firstCatRecord
+        ? "첫 담당 집사와 함께 쓴 첫 기록 · 언제든 열람 가능"
+        : "첫 담당 집사와 함께 쓴 기록 · 언제든 열람 가능"
       : `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
+    $("#view-archive .owner-file-record-jump").textContent = firstCatRecord
+      ? "첫 기록 바로 보기 ↓"
+      : "기록 목록 보기 ↓";
 
     // 표지에는 누가 언제 연 파일인지가 적힌다. 개설일은 가장 오래된 기록의 날짜다.
     const opened = [...state.records].map(record => record.date).filter(Boolean).sort()[0] || today();
@@ -2840,7 +2849,7 @@
 
   const OWNER_FILE_REMARKS = Object.freeze({
     cat: {
-      t1: ["표준 규격 파일이다냥. 내용은… 담당이니까 아는 거다냥.", "아직 얇은 파일이다냥. 그래도 표지는 제일 좋은 걸 골라뒀다냥."],
+      t1: ["주인님 파일은 집사가 반듯하게 맡아두겠다냥. 처음이라 더 잘하고 싶다냥.", "아직 얇은 파일이다냥. 그래도 표지는 제일 좋은 걸 골라뒀다냥."],
       t2: ["표지에 이름을 다시 적었다냥. 먼젓번 글씨가 마음에 안 들었다냥.", "이 파일, 다른 것보다 손이 자주 간다냥. 배치 문제일 거다냥."],
       t3: ["이 파일은 집사 책상에서 안 치운다냥. 인사기록과에는 전담 관리 우수라고 적혔다냥.", "표지가 닳아서 한 번 갈았다냥. 왜 닳았는지는 묻지 마라냥."]
     }
