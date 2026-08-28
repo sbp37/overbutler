@@ -504,9 +504,9 @@
   }
 
   const CAT_QUOTE_REFLECT = snippet => [
-    `‘${snippet}’… 그 줄은 굵은 펜으로 적어뒀다냥.`,
-    `‘${snippet}’라고 적어뒀다냥. 오늘 장부에서 제일 눈에 띈 줄이다냥.`,
-    `‘${snippet}’… 그 줄에서 잠깐 멈췄다냥. 조금 더 들어도 되냥?`
+    `‘${snippet}’… 그 말이 마음에 남았구냥. 그다음엔 어땠냥?`,
+    `‘${snippet}’라고 했구냥. 집사가 제대로 이해한 게 맞냥?`,
+    `‘${snippet}’… 그 말에서 잠깐 멈췄다냥. 더 말하고 싶으면 듣겠다냥.`
   ];
 
   function catStoryFallback(text) {
