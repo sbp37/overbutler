@@ -55,6 +55,10 @@ for (const message of ["별로 안 피곤해", "화난 건 아니야", "슬프�
   assert.equal(result.sentiment, "neutral", message);
 }
 
+const shortSad = analyzeUserMessage("슬퍼");
+assert.equal(shortSad.mood, "sad");
+assert.ok(shortSad.intents.includes("sad"));
+
 for (const quickInput of ["침대에서 일어남", "물 한 잔 마심", "미뤘던 답장 보냄", "씻음"]) {
   assert.equal(analyzeUserMessage(quickInput).achievementCandidate, true, quickInput);
 }

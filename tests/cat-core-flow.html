@@ -23,7 +23,7 @@
 
         assert(!doc.querySelector("#assignment-screen").hidden, "empty storage opens CAT assignment");
         assert(doc.querySelector("#assignment-screen").textContent.includes("고양이 집사"), "first assigned character is CAT");
-        assert(doc.querySelector(".character-line").textContent.includes("처음 맡은 사람") && doc.querySelector(".character-line").textContent.includes("잘하고 싶어서"), "CAT introduction leads with first-owner rookie enthusiasm");
+        assert(doc.querySelector(".character-line").textContent.includes("주인님이 처음") && doc.querySelector(".character-line").textContent.includes("잘하고 싶어서"), "CAT introduction leads with first-owner rookie enthusiasm");
         assert(!doc.querySelector(".character-line").textContent.includes("특별대우 아니다"), "CAT introduction does not lead with defensive tsundere copy");
         const assignmentCopy = doc.querySelector(".assignment-copy");
         const assignmentCopyStyle = doc.defaultView.getComputedStyle(assignmentCopy);
@@ -37,6 +37,13 @@
         let stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
         assert.equal(stored.username, "테스트주인님", "onboarding owner name is persisted");
         assert.equal(stored.character, "cat", "onboarding persists CAT assignment");
+        await until(() => {
+          const copy = doc.querySelector("#cat-home-speech-paper").textContent;
+          return copy.includes("잘하고 싶") || copy.includes("첫 발령");
+        });
+        const firstMeetingCopy = doc.querySelector("#cat-home-speech-paper").textContent;
+        assert(firstMeetingCopy.includes("잘하고 싶") || firstMeetingCopy.includes("첫 발령"), "first CAT home greeting keeps rookie enthusiasm or responsibility");
+        assert((firstMeetingCopy.match(/테스트주인님/g) || []).length <= 1, "first CAT home greeting does not repeat the owner name");
 
         const storyInput = doc.querySelector("#achievement-input");
         storyInput.value = "씻었어";
