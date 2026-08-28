@@ -456,6 +456,23 @@
   font: 700 19px/1.5 var(--hand);
   word-break: keep-all;
 }
+#view-archive .owner-file-record-jump {
+  display: block;
+  margin: 13px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  color: var(--stamp-red);
+  font: 800 11px/1 var(--disp);
+  letter-spacing: .06em;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 2px 0 rgba(45, 35, 22, .12);
+}
+#view-archive .owner-file-record-jump:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(45, 35, 22, .12);
+}
 
 /* ═══════════ 주인님 파일 본문 ═══════════
    기록 카드 · 여백 메모 · 인증서 도장이 한 스트림 안에 날짜순으로 공존한다. */
@@ -535,7 +552,7 @@
   display: block;
   margin-bottom: 6px;
   color: var(--kraft-deep);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .12em;
 }
@@ -4407,6 +4424,14 @@
 .cat-room-gift.room-rare.has-art > img { max-width: 52px; }
 .cat-room-gift.room-trace.has-art > img { max-width: 34px; }
 .cat-room-gift.room-storage.has-art > img { max-width: 30px; }
+.cat-room-gift.room-desk-toy {
+  z-index: 6;
+  rotate: -2deg;
+  cursor: grab;
+  touch-action: none;
+}
+.cat-room-gift.room-desk-toy:active { cursor: grabbing; }
+.cat-room-gift.room-desk-toy.has-art > img { max-width: 56px; }
 /* 흔적은 그림이 곧 종이 태그라 CSS 태그 장식을 걷어낸다. 명패만 예외로
    남는다(문구가 들어가야 해서 여전히 CSS로 그린다). */
 .cat-room-gift.room-trace.has-art {
@@ -4933,12 +4958,6 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
   position: relative;
   z-index: 8;
   margin-top: -24px;
-}
-
-/* Registration feedback stays visible above the mobile keyboard. */
-body:has(#daily-briefing:not([hidden])) #toast {
-  top: calc(env(safe-area-inset-top, 0px) + 12px);
-  bottom: auto;
 }
 
 /* Separate plans from lived moments without adding another card or tab. */

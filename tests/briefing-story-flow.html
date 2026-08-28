@@ -33,22 +33,21 @@
 
         doc.querySelector('[data-briefing-action="complete"]').click();
         await wait(900);
-        assert(doc.querySelector(".briefing-item-reaction").textContent.includes("병원"), "completion leaves the cat reaction on the briefing sheet");
+        assert(!doc.querySelector(".briefing-item-reaction"), "completion does not duplicate the cat reaction on the briefing sheet");
         assert(doc.querySelector("#cat-home-speech").textContent.includes("병원"), "completion reaction is immediately spoken by the cat");
 
-        doc.querySelector('[data-briefing-action="story"]').click();
-        await wait(40);
+        assert(!doc.querySelector('[data-briefing-action="story"]'), "completed schedules do not add an unclear story shortcut");
         const input = doc.querySelector("#achievement-input");
-        assert.equal(input.value, "", "briefing follow-up keeps the owner's input empty");
-        assert(!doc.querySelector("#briefing-story-context").hidden, "briefing context is visible above the story input");
+        const context = doc.querySelector("#briefing-story-context");
+        assert(!context || context.hidden, "the story form stays independent from the completed schedule");
         input.value = "병원은 생각보다 힘들었어";
         input.dispatchEvent(new Event("input", { bubbles: true }));
         doc.querySelector("#report-button").click();
         await wait(100);
         const stored = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
-        const story = stored.journalEntries.find(entry => entry.sourceBriefingId === "briefing-hospital");
-        assert.equal(story.sourceText, "병원은 생각보다 힘들었어", "actual owner text is stored with its briefing id");
-        assert(stored.diary.some(entry => entry.sourceBriefingId === "briefing-hospital"), "the story feeds the next diary group");
+        const story = stored.journalEntries.find(entry => entry.sourceText === "병원은 생각보다 힘들었어");
+        assert.equal(story.sourceText, "병원은 생각보다 힘들었어", "actual owner text is stored from the story form");
+        assert(stored.diary.some(entry => entry.sourceText === "병원은 생각보다 힘들었어"), "the story feeds the next diary group");
 
         doc.querySelector('[data-view="archive"]').click();
         await wait(50);

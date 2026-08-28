@@ -1182,7 +1182,7 @@
       completed: Boolean(entry.completed || entry.completedAt),
       completedAt: storedText(entry.completedAt) || null,
       carriedFromPreviousDay: Boolean(entry.carriedFromPreviousDay),
-      askAfter: entry.askAfter !== false,
+      askAfter: Boolean(entry.askAfter),
       askedAt: storedText(entry.askedAt) || null,
       promptPending: Boolean(entry.promptPending),
       closedAt: storedText(entry.closedAt) || null,
@@ -2954,7 +2954,7 @@
       const teaser = diaryTeaser(butler.character, pageEntries);
       return `<section class="diary-teaser file-margin-note sealed">
         <span class="of-staple" aria-hidden="true"></span>
-        <span>✎ ${escapeHtml(butler.name)}의 오늘 일기${stageLabel}</span>
+        <span>✎ ${escapeHtml(butler.name)}의 집사 일기 · 오늘 작성 중${stageLabel}</span>
         <strong>${escapeHtml(teaser.count)}</strong>
         <blockquote>${escapeHtml(teaser.quote)}</blockquote>
         <small>${escapeHtml(teaser.release)}</small>
@@ -3211,6 +3211,10 @@
   const ROOM_GIFT_HEIGHT = 34;
   const ROOM_TRACE_HEIGHT = 28;
   const ROOM_STORAGE_HEIGHT = 24;
+  const ROOM_DESK_TOY_HEIGHT = 42;
+  const CAT_DESK_TOY_INDEXES = Object.freeze([4, 5]); // 방울 공 · 쥐 인형
+  const CAT_DESK_TOY_BOUNDS = Object.freeze({ minLeft: 63, maxLeft: 79, minBottom: 13, maxBottom: 21 });
+  const CAT_DESK_TOY_DEFAULT = Object.freeze({ left: 73, bottom: 16 });
   /* 배치는 두 벌이다. 희귀 선물이 낮고 넓은 것(창가 방석)이냐, 세로로 긴
      가구(캣타워)냐에 따라 방을 통째로 다르게 정리한다.
 
@@ -3277,22 +3281,44 @@
 
   function catRoomGiftItems() {
     if (state.character !== "cat") return { display: [], rare: null, stored: 0, total: 0 };
+    const history = giftHistoryFor("cat");
     const counts = new Map();
-    giftHistoryFor("cat").forEach(item => {
+    history.forEach(item => {
       counts.set(item.name, { emoji: item.emoji, count: (counts.get(item.name)?.count || 0) + 1 });
     });
     const owned = giftCatalogFor("cat")
       .map((gift, index) => ({ ...gift, index, tier: roomItemTier(index), count: counts.get(gift.name)?.count || 0 }))
       .filter(gift => gift.count > 0);
-    // 희귀는 책상이 아니라 특별 자리에 한 점만 선다. 여러 개면 제일 비싼 것.
-    const rares = owned.filter(gift => gift.tier === "rare");
-    const rare = rares.length ? rares[rares.length - 1] : null;
-    const normals = owned.filter(gift => gift.tier === "normal");
-    // 책상에는 최근에 받은 순으로 상한까지만. 나머지는 보관함으로 접힌다.
-    const display = normals.slice(-catRoomLayout(rare).limit).reverse();
-    const shown = new Set([...display.map(g => g.name), ...(rare ? [rare.name] : [])]);
+    const toys = owned.filter(gift => CAT_DESK_TOY_INDEXES.includes(gift.index));
+    const toyHistory = history.filter(item => toys.some(gift => gift.name === item.name));
+    let display = [];
+    if (toys.length) {
+      const previous = state.catDeskToy && typeof state.catDeskToy === "object" ? state.catDeskToy : {};
+      const historyChanged = Number(previous.historyCount) !== toyHistory.length;
+      const stillOwned = toys.some(gift => gift.name === previous.name);
+      let selectedName = previous.name;
+      if (!stillOwned || historyChanged) selectedName = toyHistory[toyHistory.length - 1]?.name || toys[0].name;
+      else if (previous.date !== today()) {
+        const daySeed = today().split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        selectedName = toys[daySeed % toys.length].name;
+      }
+      const nextToy = {
+        name: selectedName,
+        date: today(),
+        historyCount: toyHistory.length,
+        left: clamp(Number(previous.left) || CAT_DESK_TOY_DEFAULT.left, CAT_DESK_TOY_BOUNDS.minLeft, CAT_DESK_TOY_BOUNDS.maxLeft),
+        bottom: clamp(Number(previous.bottom) || CAT_DESK_TOY_DEFAULT.bottom, CAT_DESK_TOY_BOUNDS.minBottom, CAT_DESK_TOY_BOUNDS.maxBottom)
+      };
+      if (JSON.stringify(previous) !== JSON.stringify(nextToy)) {
+        state.catDeskToy = nextToy;
+        saveState();
+      }
+      const selected = toys.find(gift => gift.name === selectedName) || toys[0];
+      display = [{ ...selected, deskToy: true, slot: { left: nextToy.left, bottom: nextToy.bottom, height: ROOM_DESK_TOY_HEIGHT } }];
+    }
+    const shown = new Set(display.map(gift => gift.name));
     const stored = owned.filter(gift => !shown.has(gift.name)).reduce((sum, gift) => sum + gift.count, 0);
-    return { display, rare, stored, total: owned.reduce((sum, gift) => sum + gift.count, 0) };
+    return { display, rare: null, stored, total: owned.reduce((sum, gift) => sum + gift.count, 0) };
   }
 
   // 방에 세워진 관계 흔적. 단계마다 하나씩 늘고, 최근 두 개만 보인다.
@@ -3326,8 +3352,9 @@
 
     const giftMarkup = (item, slot, index, extra = "") =>
       `<button class="cat-room-gift${extra}${item.art ? " has-art" : ""}${isFresh(item.name) ? " just-placed" : ""}" type="button"
-        style="left:${slot.left + drift(index)}%;bottom:${slot.bottom}%"
+        style="left:${slot.left + (item.deskToy ? 0 : drift(index))}%;bottom:${slot.bottom}%"
         data-room-gift="${escapeHtml(item.name)}"
+        ${item.deskToy ? 'data-desk-toy="true"' : ""}
         aria-label="${escapeHtml(item.name)}${item.count > 1 ? ` ${item.count}개` : ""}"
         >${artOrEmoji(item.art, item.emoji, item.name, slot.height || ROOM_GIFT_HEIGHT)}${item.count > 1 ? `<i>×${item.count}</i>` : ""}</button>`;
 
@@ -3343,16 +3370,17 @@
     const layout = catRoomLayout(rare);
 
     layer.innerHTML = [
-      ...display.map((item, index) => giftMarkup(item, layout.gifts[index], index)),
+      ...display.map((item, index) => giftMarkup(item, item.slot || layout.gifts[index], index, item.deskToy ? " room-desk-toy" : "")),
       rare ? giftMarkup(rare, layout.rare, 4, " room-rare") : "",
       // 흔적은 최근 두 개만 세우고, 자리는 좌·우 하나씩 뒷줄로 고정한다.
       ...traces.map((trace, index) => traceMarkup(
         { ...trace, slot: layout.traces[index] || layout.traces[0] }, index)),
       // 넘치는 물건은 버려지지 않는다. 보관함 한 칸으로 접힐 뿐이다.
-      stored > 0
-        ? `<button class="cat-room-gift room-storage has-art" type="button" style="left:${layout.storage.left}%;bottom:${layout.storage.bottom}%" data-room-storage="${stored}" aria-label="비품 보관함 ${stored}점">${artOrEmoji(`${GIFT_ART_PATH}${CAT_ROOM_STORAGE_ART}.webp`, "🗃", "보관함", ROOM_STORAGE_HEIGHT)}<i>${stored}</i></button>`
-        : ""
+      // 나머지 선물은 이력에서 보존한다. 완성된 방에 보관함까지 얹어 다시
+      // 잡동사니로 만들지 않고, 고양이가 꺼내둔 장난감 한 점만 방에 남긴다.
+      ""
     ].join("");
+    void stored;
     void total;
   }
 
@@ -3545,7 +3573,7 @@
   /* 접수대 탭 — 이 앱에서 제일 자주 읽히는 줄이라 짧아야 한다(1문장 + 꼬리).
      단계가 올라도 말투는 그대로고, 담당이 하나뿐이라는 사실이 조금씩 더 샌다. */
   const CAT_HOME_LINES = [
-    ["불렀냥? 첫 담당 집사 바로 여기 있다냥.", "별일 없어도 된다냥. 불러보는 것도 접수한다냥.", "집사 여기 있다냥. 주인님 목소리는 잘 듣겠다냥.", "첫 발령 자리라 아직 배울 게 많다냥. 호출은 바로 받겠다냥."],
+    ["냥? 여기 있다냥.", "별일 없어도 된다냥. 불러보는 것도 접수한다냥.", "집사 여기 있다냥. 주인님 목소리는 잘 듣겠다냥.", "첫 발령 자리라 아직 배울 게 많다냥. 호출은 바로 받겠다냥."],
     // 「올 시간은 알고 있었다냥」이 여기 있었다. 집사가 접속 시간대를 안다는
     // 뜻이라 감시 경계를 넘는다 — 집사는 주인님이 적어준 것만 안다.
     ["또 눌렀냥. 이제 호출 방식은 익숙하다냥.", "주인님 자리 정리해뒀다냥.", "하던 일은 잠깐 멈췄다냥. 무슨 일이냥?", "결재판 비워뒀다냥. 오늘 이야기 들어오면 바로 쓰겠다냥."],
@@ -3678,10 +3706,13 @@
   function startCatHomeDrag(event) {
     if (state.character !== "cat" || event.button > 0) return;
     catHomeDragged = false;
+    const roomItem = event.target.closest(ROOM_ITEM_SELECTOR);
     catHomeDrag = {
       pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
       startOffsetX: catHomeOffsetX, startOffsetY: catHomeOffsetY, moved: false,
-      roomItem: event.target.closest(ROOM_ITEM_SELECTOR),
+      roomItem,
+      toyStartLeft: Number.parseFloat(roomItem?.style.left) || CAT_DESK_TOY_DEFAULT.left,
+      toyStartBottom: Number.parseFloat(roomItem?.style.bottom) || CAT_DESK_TOY_DEFAULT.bottom,
       onCharacter: Boolean(event.target.closest("#cat-home-character"))
     };
     $("#cat-home-room").classList.add("is-dragging");
@@ -3693,12 +3724,22 @@
     if (!catHomeDrag || event.pointerId !== catHomeDrag.pointerId) return;
     const dx = event.clientX - catHomeDrag.startX;
     const dy = event.clientY - catHomeDrag.startY;
+    const deskToy = catHomeDrag.roomItem?.dataset.deskToy === "true";
     if (!catHomeDrag.moved) {
-      if (Math.abs(dx) < 5 || Math.abs(dx) <= Math.abs(dy)) return;
+      if (deskToy ? Math.hypot(dx, dy) < 5 : (Math.abs(dx) < 5 || Math.abs(dx) <= Math.abs(dy))) return;
       catHomeDrag.moved = true;
       dismissCatHomeHint();
     }
     event.preventDefault();
+    if (deskToy) {
+      const world = $("#cat-home-world");
+      if (!world) return;
+      const left = clamp(catHomeDrag.toyStartLeft + (dx / world.clientWidth) * 100, CAT_DESK_TOY_BOUNDS.minLeft, CAT_DESK_TOY_BOUNDS.maxLeft);
+      const bottom = clamp(catHomeDrag.toyStartBottom - (dy / world.clientHeight) * 100, CAT_DESK_TOY_BOUNDS.minBottom, CAT_DESK_TOY_BOUNDS.maxBottom);
+      catHomeDrag.roomItem.style.left = `${left}%`;
+      catHomeDrag.roomItem.style.bottom = `${bottom}%`;
+      return;
+    }
     setCatHomeOffset(catHomeDrag.startOffsetX + dx, false);
   }
 
@@ -3709,6 +3750,15 @@
     catHomeDrag = null;
     $("#cat-home-room").classList.remove("is-dragging");
     setCatHomeOffset(catHomeOffsetX, true, catHomeOffsetY);
+    if (moved && roomItem?.dataset.deskToy === "true") {
+      state.catDeskToy = {
+        ...(state.catDeskToy || {}),
+        left: clamp(Number.parseFloat(roomItem.style.left), CAT_DESK_TOY_BOUNDS.minLeft, CAT_DESK_TOY_BOUNDS.maxLeft),
+        bottom: clamp(Number.parseFloat(roomItem.style.bottom), CAT_DESK_TOY_BOUNDS.minBottom, CAT_DESK_TOY_BOUNDS.maxBottom)
+      };
+      saveState();
+      return;
+    }
     // 방을 잡아 끌 수 있게 하려고 포인터를 월드에 캡처하는 탓에 집사 버튼의 click이
     // 오지 않는다. 밀지 않고 뗀 경우는 여기서 직접 말을 건다.
     if (moved) return;
@@ -5225,14 +5275,14 @@
 
     // 물건 — 화면과 같은 슬롯, 같은 순서. 흐트러짐(drift)은 빼고 정돈된 방을 찍는다.
     const placed = [
-      ...display.map((item, index) => ({ art: item.art, slot: layout.gifts[index], height: ROOM_GIFT_HEIGHT })),
+      ...display.map((item, index) => ({ art: item.art, slot: item.slot || layout.gifts[index], height: item.slot?.height || ROOM_GIFT_HEIGHT })),
       ...(rare ? [{ art: rare.art, slot: layout.rare, height: layout.rare.height }] : []),
       ...traces.map((trace, index) => ({
         art: trace.art ? `${GIFT_ART_PATH}${trace.art}.webp` : "",
         plate: trace.key === "plate" ? deskPlateText() : "",
         slot: layout.traces[index] || layout.traces[0], height: ROOM_TRACE_HEIGHT
       })),
-      ...(stored > 0 ? [{ art: `${GIFT_ART_PATH}${CAT_ROOM_STORAGE_ART}.webp`, slot: layout.storage, height: ROOM_STORAGE_HEIGHT }] : [])
+      // 방 카드도 실제 방과 동일하게 장난감 한 점만 찍는다.
     ].filter(entry => entry.slot);
 
     for (const entry of placed) {
@@ -6433,14 +6483,14 @@
 
   const CAT_BRIEFING_COMPLETED_LINES = Object.freeze({
     early: [
-      "{title} 처리 완료 확인했다냥. 오늘 큰 서류 하나 치웠다냥.",
-      "{title}, 완료 처리했다냥. 기록에 남겨두겠다냥.",
-      "{title} 끝난 거 확인했다냥. 도장 찍어두겠다냥."
+      "{title} 끝냈냥. 오늘 할 일 하나 해냈다냥.",
+      "{title} 다 했냥. 집사가 도장 찍어두겠다냥.",
+      "{title} 끝난 거 확인했다냥. 오늘 서류 하나 가벼워졌다냥."
     ],
     mid: [
       "{title} 끝냈냥. 고생한 내용은 집사가 따로 받아두겠다냥.",
-      "{title} 완료다냥. 오늘 이만큼 한 건 적어둘 만하다냥.",
-      "{title}, 처리됐다냥. 잘 다녀온 것 같아 다행이라냥."
+      "{title} 다 했냥. 오늘 이만큼 한 건 적어둘 만하다냥.",
+      "{title} 끝났냥. 잘 다녀온 것 같아 다행이라냥."
     ],
     late: [
       "{title} 처리 완료다냥. 주인님 건이라 도장을 조금 반듯하게 찍었다냥.",
@@ -6639,7 +6689,7 @@
             <input id="briefing-time-input" name="time" type="time" disabled>
             <small>시간을 정하지 않아도 집사가 일정표에 보관합니다.</small>
           </fieldset>
-          <label class="briefing-ask-option"><input id="briefing-ask-input" name="askAfter" type="checkbox" checked><i aria-hidden="true"></i><span><b>끝나고 물어봐줘</b><small>시간이 지난 뒤 다시 들어오면 집사가 확인합니다.</small></span></label>
+          <label class="briefing-ask-option"><input id="briefing-ask-input" name="askAfter" type="checkbox"><i aria-hidden="true"></i><span><b>끝나고 물어봐줘</b><small>원할 때만 체크. 시간을 정한 경우 그 뒤에 한 번 묻습니다.</small></span></label>
           <div class="briefing-editor-actions"><button type="button" id="briefing-editor-delete" hidden>일정 삭제</button><button type="button" data-briefing-close>취소</button><button type="submit">일정표에 적기</button></div>
         </form>
       </div>
@@ -6701,7 +6751,7 @@
     $("#briefing-time-mode input[value='timed']").checked = Boolean(item?.time);
     $("#briefing-time-input").value = item?.time || "";
     syncBriefingTimeMode(false);
-    $("#briefing-ask-input").checked = item ? item.askAfter !== false : true;
+    $("#briefing-ask-input").checked = item ? Boolean(item.askAfter) : false;
     window.setTimeout(() => $("#briefing-title-input").focus(), 40);
   }
 
@@ -6880,7 +6930,7 @@
     }
     const suggestionAction = event.target.closest("[data-briefing-suggestion]")?.dataset.briefingSuggestion;
     if (suggestionAction && pendingBriefingSuggestion) {
-      if (suggestionAction === "assign") openBriefingEditor({ title: pendingBriefingSuggestion.title, time: null, askAfter: true });
+      if (suggestionAction === "assign") openBriefingEditor({ title: pendingBriefingSuggestion.title, time: null, askAfter: false });
       if (suggestionAction === "journal") {
         const pending = pendingBriefingSuggestion;
         pendingBriefingSuggestion = null;
