@@ -2030,6 +2030,16 @@
 #view-manager .manager-obsession .relationship-summary { order: 0; margin-top: 10px; }
 #view-manager .manager-obsession .obsession-heading { order: 0; margin-top: 0; padding-top: 0; border-top: 0; }
 #manager-details .relationship-summary > strong { display: block; margin-top: 4px; }
+#manager-details #relationship-stage-trace {
+  display: block;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--doc-line-soft);
+  color: var(--tab-manager);
+  font: 700 10px/1.35 var(--disp);
+  letter-spacing: .04em;
+}
+#manager-details #relationship-stage-trace[hidden] { display: none; }
 
 /* 명부는 타일이 아니라 서류 한 장씩 쌓인 목록이다. */
 #manager-details .manager-roster { display: block; }

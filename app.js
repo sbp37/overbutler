@@ -2322,6 +2322,7 @@
 
   function renderRelationshipStatus() {
     const stage = relationshipStageDisplayFor(state.obsession);
+    const stageIndex = stageIndexFor(state.obsession);
     const remaining = pointsToNextStage(state.obsession);
     $("#home-relationship-stage").textContent = stage.name;
     $("#home-relationship-next").textContent = remaining ? "다음 칸 결재 대기" : "최고 관계 도달";
@@ -2330,6 +2331,16 @@
     // 관계 칸의 주인공은 숫자가 아니라 집사의 말이다. 캐릭터 대사가 있으면 그걸 쓰고,
     // 없는 캐릭터에서만 시스템 설명문으로 떨어진다.
     $("#relationship-stage-summary").textContent = relationshipStageLine() || stage.summary;
+    // CAT의 관계 단계는 호칭만 바뀌는 숫자표가 아니다. 이미 방에 생기는
+    // 파일·명패·도장·서류함·인장을 현재 단계의 결과로 한 줄 연결한다.
+    // 첫 발령에는 아직 방 흔적이 없으므로 억지 보상을 만들지 않는다.
+    const traceNote = $("#relationship-stage-trace");
+    const trace = normalizeCharacter(state.character) === "cat" ? CAT_ROOM_TRACES[stageIndex] : null;
+    const traceLabel = trace?.key === "plate" && !state.deskPlate
+      ? "전담 명패 선택 대기"
+      : trace?.label || "";
+    traceNote.hidden = !traceLabel;
+    traceNote.textContent = traceLabel ? `방에 남은 흔적 · ${traceLabel}` : "";
     // 100점 눈금은 화면에 내보내지 않는다. 남은 거리는 주인님이 실제로 하는 일
     // — 대업 몇 건 — 으로 환산해서 적는다. 대업마다 값이 달라서 어림수임을 밝힌다.
     const deedsLeft = Math.ceil(remaining / BALANCE.deedRelationship.praise);

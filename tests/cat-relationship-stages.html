@@ -40,12 +40,12 @@
         await until(() => doc.querySelector("#praise-result-overlay").hidden);
 
         const stages = [
-          { obsession: 0, title: "첫 발령", badge: "신입 준비" },
-          { obsession: 18, title: "첫 결재 통과", badge: "결재 통과" },
-          { obsession: 40, title: "칭찬받는 신입", badge: "기록1과 칭찬" },
-          { obsession: 60, title: "전담 업무 인정", badge: "근무평 인정" },
-          { obsession: 80, title: "모범 전담석", badge: "모범 사례" },
-          { obsession: 100, title: "전담 집사 인정", badge: "전담 인정" }
+          { obsession: 0, title: "첫 발령", badge: "신입 준비", trace: "" },
+          { obsession: 18, title: "첫 결재 통과", badge: "결재 통과", trace: "방에 남은 흔적 · 주인님 파일" },
+          { obsession: 40, title: "칭찬받는 신입", badge: "기록1과 칭찬", trace: "방에 남은 흔적 · 전담 명패 선택 대기" },
+          { obsession: 60, title: "전담 업무 인정", badge: "근무평 인정", trace: "방에 남은 흔적 · 전용 도장" },
+          { obsession: 80, title: "모범 전담석", badge: "모범 사례", trace: "방에 남은 흔적 · 전용 서류함" },
+          { obsession: 100, title: "전담 집사 인정", badge: "전담 인정", trace: "방에 남은 흔적 · 전담 인장" }
         ];
 
         const renderStage = async (stage, baseState) => {
@@ -79,7 +79,10 @@
           return {
             title: doc.querySelector("#relationship-stage-title").textContent.trim(),
             badge: doc.querySelector("#relationship-stage-badge").textContent.trim(),
-            summary: doc.querySelector("#relationship-stage-summary").textContent.trim()
+            summary: doc.querySelector("#relationship-stage-summary").textContent.trim(),
+            trace: doc.querySelector("#relationship-stage-trace").hidden
+              ? ""
+              : doc.querySelector("#relationship-stage-trace").textContent.trim()
           };
         };
 
@@ -87,6 +90,7 @@
           const rendered = await renderStage(stage, recordedState);
           assert.equal(rendered.title, stage.title, `${stage.obsession} CAT stage shows career title`);
           assert.equal(rendered.badge, stage.badge, `${stage.obsession} CAT stage shows career badge`);
+          assert.equal(rendered.trace, stage.trace, `${stage.obsession} CAT stage connects its visible room trace`);
           assert(!/(감사실|적발|징계|감시)/.test(rendered.summary), `${stage.obsession} CAT stage avoids punitive or surveillance framing`, rendered.summary);
         }
 
