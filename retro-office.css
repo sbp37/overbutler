@@ -5539,3 +5539,172 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
 @media (prefers-reduced-motion: reduce) {
   #view-home .home-hero h1::after { transition: none; }
 }
+
+/* CAT core loop: the room rewards first, briefing stays a compact side task,
+   and FORM 01 remains the unmistakable primary action. */
+#view-home .daily-briefing[hidden] { display: none !important; }
+
+#daily-briefing:not([hidden]) ~ .home-hero {
+  padding-top: 12px;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 10px;
+  padding-bottom: 9px;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) > header,
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) > .briefing-suggestion,
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) > .briefing-evening-summary {
+  grid-column: 1 / -1;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-list {
+  display: none;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-toggle {
+  grid-column: 1;
+  justify-self: start;
+  min-height: 30px;
+  margin: 0 0 0 35px;
+  padding: 6px 2px 3px;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-add {
+  display: block;
+  grid-column: 2;
+  justify-self: end;
+  width: auto;
+  min-height: 31px;
+  margin: 0;
+  padding: 6px 11px;
+  border: 1px solid #c8b89f;
+  border-radius: 5px;
+  background: #f7efe2;
+  color: #756756;
+  box-shadow: inset 0 -2px 0 #dfd1bc, 1px 1px 0 rgba(45,35,22,.08);
+  font: 800 9px/1 var(--disp);
+}
+
+#view-home .daily-briefing.is-empty .daily-briefing-empty {
+  padding-block: 7px;
+}
+
+#view-home .briefing-ask-option.is-disabled {
+  opacity: .48;
+}
+
+#view-home .home-hero h1[role="button"] {
+  scroll-margin-top: 12px;
+  outline: none;
+}
+
+#view-home .home-hero h1[role="button"]::after {
+  content: "적기 ↓";
+  margin-left: 9px;
+  padding: 5px 7px 4px;
+  border: 1px solid rgba(157,47,58,.35);
+  border-radius: 4px;
+  background: rgba(255,250,240,.72);
+  font: 800 9px/1 var(--disp);
+  vertical-align: .3em;
+}
+
+#view-home .home-hero h1[role="button"]:focus-visible {
+  outline: 2px solid rgba(157,47,58,.5);
+  outline-offset: 5px;
+}
+
+#view-home .entry-form {
+  scroll-margin-top: 10px;
+}
+
+/* CAT manager progressive disclosure. Other characters never receive the
+   compact class, so their existing manager layout is untouched. */
+.manager-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 42px;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--doc-line);
+  border-radius: 5px;
+  background: #f7efe2;
+  color: var(--ink-soft);
+  box-shadow: inset 0 -2px 0 #dfd1bc, 1px 1px 0 rgba(45,35,22,.08);
+  font: 800 11px/1 var(--disp);
+}
+
+.manager-more-toggle[hidden] { display: none; }
+.manager-more-toggle span { color: var(--stamp-red); }
+
+.cat-manager-compact .manager-stats,
+.cat-manager-compact .stages-card {
+  display: none;
+}
+
+/* First five minutes: assignment should introduce the cat and start the
+   relationship, not ask a new user to study an HR table. The same facts are
+   available later in the butler file. */
+.assignment-document .personnel-facts {
+  display: none;
+}
+
+.assignment-document .assignment-copy {
+  margin-top: 8px;
+  margin-bottom: 10px;
+  line-height: 1.48;
+}
+
+.assignment-document .primary-button {
+  margin-top: 12px;
+  min-height: 54px;
+  box-shadow: inset 0 -3px 0 rgba(45,35,22,.24), 2px 3px 0 rgba(45,35,22,.12);
+}
+
+.assignment-document .secondary-button,
+.assignment-document #assignment-restore {
+  min-height: 36px;
+  margin-top: 7px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-faint);
+  box-shadow: none;
+  font-size: 10px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* A newly handed toy should read as the owner's gift, not as unexplained
+   background decoration. The note appears once and leaves no permanent UI. */
+.cat-room-gift.room-desk-toy.just-placed::after {
+  content: "주인님 선물";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  width: max-content;
+  padding: 4px 6px 3px;
+  border: 1px solid rgba(157,47,58,.38);
+  border-radius: 3px;
+  background: rgba(255,250,240,.94);
+  color: var(--stamp-red);
+  font: 800 8px/1 var(--disp);
+  pointer-events: none;
+  transform: translate(-50%, 5px);
+  animation: cat-gift-origin-note 1.55s ease-out both;
+}
+
+@keyframes cat-gift-origin-note {
+  0% { opacity: 0; transform: translate(-50%, 7px); }
+  18%, 72% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-room-gift.room-desk-toy.just-placed::after { animation-duration: .01ms; }
+}

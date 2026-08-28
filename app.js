@@ -3152,7 +3152,7 @@
       : OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
     $("#record-detail-verdict").textContent = isOfficial ? "공식 인정 발급" : legacyCertificate ? "이전 버전 기념 증서 보존" : record.stampEligible === false ? "칭찬 기록 보존" : "대업 기록 보존";
     $("#record-detail-note-copy").textContent = isFirstCatRecord
-      ? "첫 담당 집사와 주인님이 함께 시작한 첫 업무 기록입니다."
+      ? "주인님과 집사가 함께 시작한 첫 업무 기록입니다."
       : isCat
         ? "주인님과 함께 쌓은 당시 기록과 집사의 반응을 그대로 보존합니다."
         : "이 기록은 작성 당시 담당 집사의 정보와 말투로 보존됩니다.";
@@ -4071,6 +4071,23 @@
     $$("#analysis-steps li b").forEach((label, index) => { label.textContent = labels[index]; });
   }
 
+  // CAT의 대업명이 입력과 무관한 "답변/응답" 계열로 튀면 멋진 오답보다
+  // 평범한 정답을 택한다. 다른 집사에는 아직 적용하지 않는다(CAT-FIRST).
+  function safeCatAchievementDeed(interpreted, story) {
+    const candidate = storedText(interpreted?.achievementTitle).trim();
+    if (normalizeCharacter(state.character) !== "cat" || !candidate) return candidate || story;
+    const source = normalizeDeed(story);
+    const normalizedCandidate = normalizeDeed(candidate);
+    const unsupportedMetaTitle = ["답변", "응답", "대답", "회신", "채팅", "메시지"]
+      .some(word => normalizedCandidate.includes(word) && !source.includes(word));
+    if (!unsupportedMetaTitle) return candidate;
+    const activity = (Array.isArray(interpreted?.activities) ? interpreted.activities : [])
+      .map(item => typeof item === "string" ? item : item?.label || item?.title || item?.text || item?.name || "")
+      .map(item => storedText(item).trim())
+      .find(Boolean);
+    return activity || story;
+  }
+
   function submitAchievement() {
     if (achievementSubmissionActive) return;
     const input = $("#achievement-input");
@@ -4121,7 +4138,7 @@
       if (briefingStoryId) clearBriefingStoryContext();
       return;
     }
-    const deed = interpreted.achievementTitle || story;
+    const deed = safeCatAchievementDeed(interpreted, story);
     pendingMessageAnalysis = { ...interpreted, sourceText: story, sourceBriefingId: activeBriefingStoryId };
     // 위로/일상 기록은 심사 연출 없이 조용히 접수하고 작은 카드로만 알린다.
     if (!loudModes.includes(mode)) {
@@ -4321,7 +4338,8 @@
       state.fameHistory.push({ at: new Date().toISOString(), deed, category, character: butler.character, amount: 1 });
     }
     const officialCount = officialRecords().length;
-    if (!duplicate && isCertificateMilestone(officialCount)) state.certificates.push(record);
+    const earnedOfficial = !duplicate && isCertificateMilestone(officialCount);
+    if (earnedOfficial) state.certificates.push(record);
     checkApplicantUnlocks();
     rememberButlerPose(pose);
     if (!saveState()) {
@@ -4337,7 +4355,7 @@
       character: butler.character,
       category: evaluation.category,
       verdict: evaluation.verdictType,
-      official: !duplicate && isCertificateMilestone(officialCount)
+      official: earnedOfficial
     });
     $("#achievement-input").value = "";
     $("#char-count").textContent = "0";
@@ -4347,6 +4365,14 @@
     $("#report-button").removeAttribute("aria-busy");
     if (!quiet) $("#briefing-message").textContent = record.report;
     render({ animateStamp: !duplicate });
+    // comfort-first 같은 조용한 접수도 공식 인정 시점은 놓치지 않는다.
+    // 집사 응답을 먼저 보여준 뒤 증서를 열어 "몰래 발급된 인증서"를 없앤다.
+    if (quiet && earnedOfficial && butler.character === "cat") {
+      window.setTimeout(() => {
+        certificateOpenedFromFile = false;
+        openCertificate(record);
+      }, 900);
+    }
     if (quiet) {
       $("#analysis-overlay").hidden = true;
       document.body.style.overflow = "";
@@ -6731,6 +6757,73 @@
       if (event.target === event.currentTarget || event.target.closest("[data-backup-close]")) closeBackupDialog();
     });
     $("#owner-backup-form").addEventListener("submit", submitBackupDialog);
+
+    // 파일 카드 전체와 그 안의 인증 도장이 같은 탭을 받으면 상세와 증서가
+    // 연달아 열린다. CAT 도장은 캡처 단계에서 이벤트를 가져가 증서만 연다.
+    const archiveList = $("#archive-record-list");
+    const openCatCertificateFromStamp = event => {
+      const stamp = event.target.closest?.(".record-cert-stamp[data-cert-id], .record-legacy-cert[data-cert-id]");
+      if (!stamp) return false;
+      const record = findRecordById(stamp.dataset.certId);
+      const character = normalizeCharacter(record?.character || record?.butler?.character);
+      if (!record || character !== "cat" || (!isOfficialCertificate(record) && !isCatLegacyCertificate(record))) return false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      certificateOpenedFromFile = true;
+      trackEvent("certificate_open", { character: "cat", source: "file_stamp", official: isOfficialCertificate(record) });
+      openCertificate(record);
+      return true;
+    };
+    archiveList?.addEventListener("click", openCatCertificateFromStamp, true);
+    archiveList?.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      openCatCertificateFromStamp(event);
+    }, true);
+
+    // 첫 화면의 큰 질문이 곧 오늘 이야기 진입 버튼이다. 별도 카드나 탭을
+    // 늘리지 않고, 누르면 FORM 01로 이동해 바로 입력할 수 있게 한다.
+    const storyHeading = $("#view-home .home-hero h1");
+    if (storyHeading) {
+      storyHeading.setAttribute("role", "button");
+      storyHeading.setAttribute("tabindex", "0");
+      storyHeading.setAttribute("aria-controls", "achievement-input");
+      storyHeading.setAttribute("aria-label", "오늘 이야기 입력하기");
+      const focusStoryInput = () => {
+        entryForm.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+        $("#achievement-input")?.focus({ preventScroll: true });
+      };
+      storyHeading.addEventListener("click", focusStoryInput);
+      storyHeading.addEventListener("keydown", event => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        focusStoryInput();
+      });
+    }
+
+    // CAT 집사 탭 첫 화면은 "누구와 어떤 관계인가"까지만 먼저 읽힌다.
+    // 숫자 통계와 전체 단계표는 삭제하지 않고 한 번의 명시적 펼치기 뒤로 보낸다.
+    const managerFile = $(".manager-file");
+    const managerView = managerFile?.closest("[id^='view-']");
+    const managerProfile = managerFile?.querySelector(".manager-profile");
+    if (managerFile && managerView && managerProfile && !managerFile.querySelector(".manager-more-toggle")) {
+      managerProfile.insertAdjacentHTML("afterend", `<button class="manager-more-toggle" type="button" aria-expanded="false">근무 기록 보기 <span aria-hidden="true">↓</span></button>`);
+      const managerToggle = managerFile.querySelector(".manager-more-toggle");
+      const syncManagerDisclosure = () => {
+        const isCat = normalizeCharacter(state.character) === "cat";
+        const expanded = managerView.dataset.catDetailsExpanded === "true";
+        managerToggle.hidden = !isCat;
+        managerToggle.setAttribute("aria-expanded", String(isCat && expanded));
+        managerToggle.firstChild.textContent = expanded ? "근무 기록 접기 " : "근무 기록 보기 ";
+        managerToggle.querySelector("span").textContent = expanded ? "↑" : "↓";
+        managerView.classList.toggle("cat-manager-compact", isCat && !expanded);
+      };
+      managerToggle.addEventListener("click", () => {
+        managerView.dataset.catDetailsExpanded = String(managerView.dataset.catDetailsExpanded !== "true");
+        syncManagerDisclosure();
+      });
+      new MutationObserver(syncManagerDisclosure).observe(managerProfile, { subtree: true, childList: true, attributes: true });
+      syncManagerDisclosure();
+    }
   }
 
   function openBriefingEditor(item = null) {
@@ -6750,18 +6843,24 @@
     $("#briefing-time-mode input[value='unset']").checked = !item?.time;
     $("#briefing-time-mode input[value='timed']").checked = Boolean(item?.time);
     $("#briefing-time-input").value = item?.time || "";
-    syncBriefingTimeMode(false);
     $("#briefing-ask-input").checked = item ? Boolean(item.askAfter) : false;
+    syncBriefingTimeMode(false);
     window.setTimeout(() => $("#briefing-title-input").focus(), 40);
   }
 
   function syncBriefingTimeMode(shouldFocus = false) {
     const timeInput = $("#briefing-time-input");
+    const askInput = $("#briefing-ask-input");
     const timed = $("#briefing-editor-form").elements.timeMode.value === "timed";
     timeInput.disabled = !timed;
     timeInput.required = timed;
+    askInput.disabled = !timed;
     $(".briefing-time-field").classList.toggle("is-timed", timed);
-    if (!timed) timeInput.value = "";
+    $(".briefing-ask-option").classList.toggle("is-disabled", !timed);
+    if (!timed) {
+      timeInput.value = "";
+      askInput.checked = false;
+    }
     if (timed && shouldFocus) window.setTimeout(() => timeInput.focus(), 0);
   }
 
@@ -6777,7 +6876,7 @@
     saveState();
     closeBriefingEditor();
     renderDailyBriefing();
-    showToast(existing ? "일정표를 고쳤습니다." : "오늘의 브리핑에 적었습니다.");
+    showToast("일정표에서 뺐습니다.");
     showBriefingSpeech("일정표에서 지워뒀다냥. 다시 적어도 된다냥.");
   }
 
@@ -6812,12 +6911,10 @@
     saveState();
     closeBriefingEditor();
     renderDailyBriefing();
-    if (!existing) {
-      const section = $("#daily-briefing");
-      section.classList.add("is-expanded");
-      $("#daily-briefing-toggle").setAttribute("aria-expanded", "true");
-      $("#daily-briefing-toggle").textContent = "일정표 접기";
-    }
+    const section = $("#daily-briefing");
+    section.classList.remove("is-expanded");
+    $("#daily-briefing-toggle").setAttribute("aria-expanded", "false");
+    $("#daily-briefing-toggle").textContent = "목록 보기";
     showBriefingSpeech(existing ? "일정표 고쳐뒀다냥. 이제 이 내용으로 챙기겠다냥." : catBriefingRegisteredLine(activeBriefingItems()), "working");
   }
 
@@ -6877,20 +6974,26 @@
     const activeItems = items.filter(item => !item.closedAt);
     const completedItems = activeItems.filter(item => item.completed);
     const remainingItems = activeItems.filter(item => !item.completed).sort((a, b) => Number(Boolean(b.promptPending)) - Number(Boolean(a.promptPending)) || String(a.time || "99:99").localeCompare(String(b.time || "99:99")));
+    section.classList.toggle("is-empty", !items.length);
+    if (!items.length) {
+      section.classList.remove("is-expanded");
+      $("#daily-briefing-toggle").setAttribute("aria-expanded", "false");
+      $("#daily-briefing-toggle").textContent = "목록 보기";
+    }
     $("#daily-briefing-count").textContent = remainingItems.length
       ? `할 일 ${remainingItems.length}개`
       : completedItems.length ? "오늘 끝!" : "일정 없음";
     const addButton = $("#daily-briefing-add");
     addButton.hidden = items.length >= BRIEFING_DAILY_LIMIT;
     addButton.textContent = items.length ? "+ 일정 적기" : "+ 첫 일정 적기";
-    $("#daily-briefing-toggle").hidden = remainingItems.length <= 1 && !completedItems.length;
+    $("#daily-briefing-toggle").hidden = !items.length;
     const list = $("#daily-briefing-list");
     const eveningSummary = $("#briefing-evening-summary");
     eveningSummary.hidden = true;
     eveningSummary.innerHTML = "";
     const suggestion = $("#briefing-suggestion");
     suggestion.hidden = !pendingBriefingSuggestion;
-    suggestion.innerHTML = pendingBriefingSuggestion ? `<p><b>이건 앞으로 할 일이냥.</b><span>오늘의 브리핑에 맡겨둘까냥?</span></p><div><button type="button" data-briefing-suggestion="assign">브리핑에 맡기기</button><button type="button" data-briefing-suggestion="journal">그냥 이야기로 남기기</button></div>` : "";
+    suggestion.innerHTML = pendingBriefingSuggestion ? `<p><b>앞으로 할 일로 들었다냥.</b><span>일정으로 적을지, 오늘 이야기로 둘지 골라달라냥.</span></p><div><button type="button" data-briefing-suggestion="assign">일정으로 적기</button><button type="button" data-briefing-suggestion="journal">오늘 이야기로 보관</button></div>` : "";
     section.classList.toggle("needs-action", Boolean(pendingBriefingSuggestion));
     if (!items.length) {
       list.innerHTML = `<p class="daily-briefing-empty"><b>오늘 집사가 챙겨둘 일정이 있냥?</b><span>시간은 정하지 않아도 된다냥.</span></p>`;
@@ -6935,7 +7038,7 @@
         const pending = pendingBriefingSuggestion;
         pendingBriefingSuggestion = null;
         saveJournalEntry(pending.sourceText, pending.interpretation);
-        showBriefingSpeech("앞으로 할 일로 올리진 않고, 오늘 들려준 이야기로 보관했다냥.");
+        showBriefingSpeech("일정표에는 올리지 않고, 오늘 들려준 이야기로 보관했다냥.");
       }
       return;
     }
