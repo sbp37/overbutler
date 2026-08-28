@@ -44,6 +44,7 @@
         const firstMeetingCopy = doc.querySelector("#cat-home-speech-paper").textContent;
         assert(firstMeetingCopy.includes("잘하고 싶") || firstMeetingCopy.includes("첫 발령"), "first CAT home greeting keeps rookie enthusiasm or responsibility");
         assert((firstMeetingCopy.match(/테스트주인님/g) || []).length <= 1, "first CAT home greeting does not repeat the owner name");
+        assert.equal(doc.querySelector("#room-pan-hint"), null, "CAT room keeps drag and edge arrows without covering the butler with a floating hint");
 
         const storyInput = doc.querySelector("#achievement-input");
         storyInput.value = "씻었어";
