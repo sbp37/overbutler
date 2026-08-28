@@ -5708,3 +5708,30 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
 @media (prefers-reduced-motion: reduce) {
   .cat-room-gift.room-desk-toy.just-placed::after { animation-duration: .01ms; }
 }
+
+/* HOME P0 mobile fit: keep each briefing row on one paperwork line at 360px,
+   but do not shrink its two actions into unreadable 9px controls. */
+@media (max-width: 370px) {
+  #view-home .daily-briefing-item {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    column-gap: 6px;
+    padding-right: 1px;
+    padding-left: 4px;
+  }
+
+  #view-home .briefing-status-stamp {
+    min-width: 36px;
+    min-height: 36px;
+    margin-left: 1px;
+  }
+
+  #view-home .briefing-item-actions {
+    gap: 4px;
+  }
+
+  #view-home .briefing-item-actions button {
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+}
