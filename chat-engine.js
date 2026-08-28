@@ -524,6 +524,9 @@
   }
 
   const CAT_EMOTION_CONTEXT = new Set(["sad", "hard_day", "no_motivation", "angry", "worry", "tired"]);
+  const CAT_CARE_CONTEXT = new Set(["physical_discomfort", "sleep_trouble", "fear", "loneliness", "hunger"]);
+  const CAT_CARE_FOLLOWUP = /^(?:(?:응+|웅+|그래+|아니+|아냐+)|(?:아직|아직도|계속|여전히|많이|조금)|(?:더|아직|계속|너무|좀)\s*아파|안\s*나아|(?:좀\s*)?나아졌어|(?:이제\s*)?괜찮아(?:졌어)?|안\s*아파|못\s*먹었어|아직\s*못\s*잤어|먹었어|잠들었어|잘\s*잤어)[.!~ㅋㅎ\s]*$/i;
+  const CAT_CARE_RESOLVED = /^(?:(?:이제\s*)?(?:좀\s*)?(?:나아졌어|괜찮아졌어|괜찮아)|안\s*아파|먹었어|잠들었어|잘\s*잤어)[.!~\s]*$/i;
   const CAT_THREAD_CLOSE = /(?:말(?:하기|하고)?\s*싫|그만\s*(?:말|얘기)|얘기\s*(?:안|그만)|말\s*안\s*할|넘어가자|더\s*묻지\s*마)/;
   const CAT_THREAD_CLOSE_LINES = [
     "알겠다냥. 더 묻지 않겠다냥. 옆에만 있겠다냥.",
@@ -577,6 +580,56 @@
       `${lead} 그 ${feeling}이랑 이어진 이야기라면 천천히 더 말해도 된다냥.`,
       `${lead} 그 일이 마음에 남았구냥. 말하고 싶은 만큼만 들려줘도 된다냥.`,
       `${lead} 무엇부터 말해도 괜찮다냥. 집사가 끊지 않고 듣겠다냥.`
+    ];
+  }
+
+  function catCareFollowup(text, thread) {
+    const value = String(text || "").trim();
+    if (!thread || !CAT_CARE_CONTEXT.has(thread.intent) || !CAT_CARE_FOLLOWUP.test(value)) return null;
+    const resolved = CAT_CARE_RESOLVED.test(value);
+    if (resolved && thread.intent === "physical_discomfort") return [
+      "조금 나아졌구냥. 다행이다냥. 그래도 오늘은 무리하지 마라냥.",
+      "이제 덜 아프구냥. 집사가 안심은 조금만 하겠다냥. 천천히 쉬어라냥."
+    ];
+    if (resolved && thread.intent === "sleep_trouble") return [
+      "조금이라도 잤구냥. 다행이다냥. 오늘은 천천히 움직여라냥.",
+      "잠들 수 있었구냥. 이제는 편히 쉬라는 말만 하겠다냥."
+    ];
+    if (resolved && thread.intent === "fear") return [
+      "조금 괜찮아졌구냥. 다행이다냥. 다시 무서워지면 불러도 된다냥.",
+      "겁이 조금 가셨구냥. 집사는 아직 여기 있다냥."
+    ];
+    if (resolved && thread.intent === "loneliness") return [
+      "조금 덜 외롭구냥. 다행이다냥. 더 얘기하고 싶으면 집사는 여기 있다냥.",
+      "마음이 조금 풀렸구냥. 그걸로 지금은 충분하다냥."
+    ];
+    if (resolved) return [
+      "먹었구냥. 잘 챙겼다냥. 이제 속 편하게 천천히 있어라냥.",
+      "한입이라도 챙겼구냥. 집사가 그 소식부터 안심하고 적겠다냥."
+    ];
+    if (/^(?:응+|웅+|그래+|아니+|아냐+)[.!~ㅋㅎ\s]*$/i.test(value)) return [
+      "알겠다냥. 말 더 붙이지 않고 곁에 있겠다냥. 지금은 조금 어때?",
+      "응. 집사는 여기 있다냥. 다음 말은 천천히 해도 된다냥."
+    ];
+    if (thread.intent === "physical_discomfort") return [
+      "아직 아프구냥. 참지 말고, 심해지거나 계속되면 꼭 진료받아라냥.",
+      "계속 불편하구냥. 집사가 가볍게 넘기지 않겠다냥. 지금은 무리하지 마라냥."
+    ];
+    if (thread.intent === "sleep_trouble") return [
+      "아직 잠이 안 오는구냥. 억지로 재우진 않겠다냥. 말 없이 같이 있어도 된다냥.",
+      "계속 깨어 있구냥. 화면은 잠깐 내려놓고 몸부터 편하게 해보자냥."
+    ];
+    if (thread.intent === "fear") return [
+      "아직 무섭구냥. 괜찮은 척 안 해도 된다냥. 집사가 계속 여기 있겠다냥.",
+      "겁이 아직 남았구냥. 말하고 싶은 만큼만 들려줘도 된다냥."
+    ];
+    if (thread.intent === "loneliness") return [
+      "아직 외롭구냥. 그 말 여러 번 해도 된다냥. 집사가 듣고 있겠다냥.",
+      "외로운 마음이 아직 남았구냥. 오늘은 서류보다 그 얘기를 먼저 듣겠다냥."
+    ];
+    return [
+      "아직 못 먹었구냥. 부담 없는 것부터 한입 챙길 수 있냥?",
+      "허기가 그대로구냥. 거창하지 않아도 되니까 가까운 것부터 챙기자냥."
     ];
   }
 
@@ -640,6 +693,16 @@
       "배고프구냥. 지금 먹을 수 있는 게 있냥? 거창하지 않아도 한입 챙기자냥.",
       "허기졌구냥. 가까운 것부터 조금 먹자냥. 집사가 서류보다 그걸 먼저 보겠다냥."
     ];
+  }
+
+  function catCareIntent(text) {
+    const value = String(text || "");
+    if (CAT_PHYSICAL_DISCOMFORT.test(value)) return "physical_discomfort";
+    if (/잠(?:이)?\s*안\s*(?:와|와요|오|온)|못\s*(?:자|잤)|불면/.test(value)) return "sleep_trouble";
+    if (/무서(?:워|웠)|겁(?:이)?\s*나/.test(value)) return "fear";
+    if (/외로(?:워|웠|운)/.test(value)) return "loneliness";
+    if (/배(?:가)?\s*고(?:파|프)|허기/.test(value)) return "hunger";
+    return "";
   }
 
   function catConversationLines(text, result) {
@@ -894,8 +957,7 @@
     if (memory.character && memory.character !== key) memory = normalizeMemory({}, key);
     const rawResult = classify(message);
     const text = rawResult.text || message;
-    const physicalDiscomfort = key === "cat" && !catThirdPartySubject(text) && CAT_PHYSICAL_DISCOMFORT.test(String(text || ""));
-    const everydayCare = key === "cat" && !catThirdPartySubject(text) && CAT_EVERYDAY_CARE.test(String(text || ""));
+    const directCareIntent = key === "cat" && !catThirdPartySubject(text) ? catCareIntent(text) : "";
     const conversationLines = key === "cat" ? catConversationLines(text, rawResult) : null;
     const result = conversationLines ? {
       ...rawResult,
@@ -925,6 +987,9 @@
       topic: currentClues.topic || activeThread.topic
     } : null;
     const threadCloseRequested = key === "cat" && Boolean(activeThread) && CAT_THREAD_CLOSE.test(String(text || ""));
+    const careFollowupLines = key === "cat" && threadForReply && !directCareIntent && !threadCloseRequested
+      ? catCareFollowup(text, threadForReply) : null;
+    const careResolved = Boolean(careFollowupLines && CAT_CARE_RESOLVED.test(String(text || "").trim()));
     const hasHardDayContext = memory.previousIntent === "hard_day" || memory.recentTopics.includes("힘든 하루");
     // 문장 전체를 읽었다는 신호(toneShift/futurePlans/여러 완료 행동)가 있으면, 그 문장
     // 전용으로 고른 대사를 쓰고 RESPONSE_POOLS/relationshipLinesFor의 일반 변주는
@@ -935,14 +1000,14 @@
     const futurePlanOverride = key === "cat" && !threadCloseRequested && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
     const multiActivityOverride = key === "cat" && !threadCloseRequested && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
     const emotionFollowupLines = key === "cat" && result.intent === "fallback" && !result.achievementCandidate
-      && threadForReply && !threadCloseRequested
+      && threadForReply && !CAT_CARE_CONTEXT.has(threadForReply.intent) && !threadCloseRequested
       ? catEmotionFollowup(threadForReply) : null;
     const emotionContinuationLines = key === "cat" && threadForReply && !threadCloseRequested
       && CAT_EMOTION_CONTEXT.has(result.intent) && result.intent !== threadForReply.intent
       ? catEmotionContinuation(threadForReply) : null;
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
       && result.intent === "fallback" && !result.achievementCandidate
-      ? (conversationLines || emotionFollowupLines || catStoryFallback(text)) : null;
+      ? (careFollowupLines || conversationLines || emotionFollowupLines || catStoryFallback(text)) : null;
     // 힘든 하루 뒤의 귀가는 앞 대화를 이어받는 브릿지가 본문이다. 이것도 일반 변주로
     // 덮이면 안 된다 — home_arrival 풀이 있는 캐릭터에서 브릿지가 통째로 사라진다.
     const bridgeOverride = result.intent === "home_arrival" && hasHardDayContext;
@@ -967,7 +1032,7 @@
       ? (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal) : null;
     const extra = threadCloseRequested
       ? CAT_THREAD_CLOSE_LINES
-      : skippedCareLines || (bypassPools ? [] : emotionContinuationLines || storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
+      : careFollowupLines || skippedCareLines || (bypassPools ? [] : emotionContinuationLines || storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${tail}`])
@@ -975,18 +1040,27 @@
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
     // 걱정 응답은 이미 성취를 문장 안에서 다뤘다 — 여기서 또 붙이면 두 번 말한다.
     if (!skippedCareType && result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
-    const closesThread = threadCloseRequested || physicalDiscomfort || everydayCare
+    const careThreadAbandoned = Boolean(activeThread && CAT_CARE_CONTEXT.has(activeThread.intent)
+      && !directCareIntent && !careFollowupLines && result.intent === "fallback" && !result.achievementCandidate);
+    const closesThread = threadCloseRequested || careResolved || careThreadAbandoned
       || ["goodbye", "sleep", "greeting", "happy", "love", "thanks"].includes(result.intent)
       || (result.achievementCandidate && result.responseMode !== "comfort");
     let nextThread = closesThread ? null : activeThread;
-    if (!closesThread && CAT_EMOTION_CONTEXT.has(result.intent)) {
+    if (!closesThread && directCareIntent) {
+      nextThread = {
+        intent: directCareIntent,
+        person: "",
+        topic: directCareIntent === "physical_discomfort" ? "몸" : "",
+        remaining: 3
+      };
+    } else if (!closesThread && CAT_EMOTION_CONTEXT.has(result.intent)) {
       nextThread = {
         intent: result.intent,
         person: currentClues.person || activeThread?.person || "",
         topic: currentClues.topic || activeThread?.topic || "",
         remaining: 3
       };
-    } else if (!closesThread && activeThread && (emotionFollowupLines || emotionContinuationLines)) {
+    } else if (!closesThread && activeThread && (careFollowupLines || emotionFollowupLines || emotionContinuationLines)) {
       const remaining = Math.max(0, activeThread.remaining - 1);
       nextThread = remaining ? { ...threadForReply, remaining } : null;
     }
