@@ -5735,3 +5735,8 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
     font-size: 10px;
   }
 }
+
+/* Keep the CAT reception-slip clip clear of the first text line. */
+#cat-home-speech-paper {
+  padding-left: 40px !important;
+}
