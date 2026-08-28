@@ -85,3 +85,84 @@
     margin-top: 8px;
   }
 }
+
+/* An empty schedule is an invitation, not a full document yet. */
+#view-home #daily-briefing.is-empty {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 3px 10px;
+  min-height: 0 !important;
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+#view-home #daily-briefing.is-empty > header {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+#view-home #daily-briefing.is-empty > header > :last-child:not(div) {
+  display: none !important;
+}
+
+#view-home #daily-briefing.is-empty #daily-briefing-title {
+  margin: 1px 0 0 !important;
+  font-size: 20px !important;
+  line-height: 1.1 !important;
+}
+
+#view-home #daily-briefing.is-empty .daily-briefing-toggle,
+#view-home #daily-briefing.is-empty .briefing-evening-summary,
+#view-home #daily-briefing.is-empty .briefing-suggestion {
+  display: none !important;
+}
+
+#view-home #daily-briefing.is-empty .daily-briefing-list {
+  display: block !important;
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+#view-home #daily-briefing.is-empty .daily-briefing-empty {
+  margin: 3px 0 0 !important;
+  padding: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+
+#view-home #daily-briefing.is-empty .daily-briefing-empty span {
+  display: none !important;
+}
+
+#view-home #daily-briefing.is-empty .daily-briefing-add {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: auto !important;
+  min-width: 108px;
+  min-height: 46px;
+  margin: 0 !important;
+  padding: 9px 12px !important;
+  font-size: 13px !important;
+  white-space: nowrap;
+}
+
+@media (max-width: 370px) {
+  #view-home #daily-briefing.is-empty {
+    column-gap: 7px;
+  }
+
+  #view-home #daily-briefing.is-empty .daily-briefing-add {
+    min-width: 98px;
+    padding-inline: 9px !important;
+  }
+}
