@@ -3642,9 +3642,32 @@
     return state.character === "cat" && !$("#home-butler-room")?.hidden;
   }
 
+  let catReplyDelayTimer = 0;
+  let catReplyThinkingTimer = 0;
+
   function deliverCatReply(message, face = "") {
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
-    showCatHomeSpeech(message, 5200, face);
+    window.clearTimeout(catReplyDelayTimer);
+    window.clearInterval(catReplyThinkingTimer);
+    window.clearInterval(typingTimer);
+    if (prefersReducedMotion()) {
+      showCatHomeSpeech(message, 5200, face);
+      return;
+    }
+    const text = $("#cat-home-speech-text");
+    showCatHomeSpeech("·", 5200, face);
+    let dots = 1;
+    catReplyThinkingTimer = window.setInterval(() => {
+      dots = dots % 3 + 1;
+      if (text) text.textContent = "·".repeat(dots);
+    }, 170);
+    const reply = String(message || "");
+    const thinkingDelay = Math.min(700, 430 + reply.length * 3);
+    const typingSpeed = Math.max(8, Math.min(15, Math.floor(900 / Math.max(1, reply.length))));
+    catReplyDelayTimer = window.setTimeout(() => {
+      window.clearInterval(catReplyThinkingTimer);
+      typeMessage(text, reply, typingSpeed);
+    }, thinkingDelay);
   }
 
   // 같은 대업 재접수에 성대한 결과서를 또 내밀면 축하가 관성이 된다.
