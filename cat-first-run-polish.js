@@ -122,11 +122,11 @@
     }
 
     const firstResultClose = event.target.closest("#result-close");
-    if (firstResultClose && firstResultClose.textContent.includes("첫 기록")) {
+    if (firstResultClose?.dataset.firstCatRecord === "true") {
       window.setTimeout(() => {
         const speech = document.getElementById("cat-home-speech-text");
         if (speech) {
-          speech.textContent = "첫 기록 같이 만들었다냥… 첫 발령부터 제대로 맡긴 것 같아서 조금 뿌듯하다냥.";
+          speech.textContent = "주인님 파일 첫 장에 넣어뒀다냥. 첫 발령부터 제대로 맡긴 것 같아서 조금 뿌듯하다냥.";
         }
       }, 450);
     }

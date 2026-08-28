@@ -4670,7 +4670,7 @@
     $("#result-certificate-button").innerHTML = "공식 인정 증서 보기 <span>→</span>";
     $("#result-close").textContent = official
       ? "증서는 나중에 보고 홈으로"
-      : firstRecord ? "첫 기록 저장하고 홈으로" : "기록 보관하고 홈으로";
+      : "집사에게 돌아가기";
     const status = certificationStatus();
     // 하단 각주도 한 호흡으로 줄인다. 이 화면에서 읽을 건 칭호와 도장뿐이다.
     /* 첫 대업을 마친 사람은 "이야기함 → 집사가 호들갑 → 기록됨"까지만 안다.
@@ -4683,9 +4683,10 @@
       saveState();
     }
     const firstCatResult = firstRecord && normalizeCharacter(record.character) === "cat";
+    $("#result-close").dataset.firstCatRecord = firstCatResult ? "true" : "false";
     $("#result-footnote").textContent = firstDeedNotice
       ? firstCatResult
-        ? "첫 주인님 기록 완료 · 기록은 파일에 보관 · 오늘 일기는 내일 개봉"
+        ? "주인님 파일 첫 장 보관 완료 · 오늘 일기는 내일 개봉"
         : "오늘 기록은 파일에 보관됩니다 · 집사가 쓴 오늘 일기는 내일 개봉"
       : firstRecord
       ? `첫 도장 · +${pointsEarned}P · 공식 인증까지 ${status.remaining}건`
