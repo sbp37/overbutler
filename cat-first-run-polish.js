@@ -110,6 +110,16 @@
   });
 
   document.addEventListener("click", (event) => {
+    const firstResultClose = event.target.closest("#result-close");
+    if (firstResultClose && firstResultClose.textContent.includes("첫 기록")) {
+      window.setTimeout(() => {
+        const speech = document.getElementById("cat-home-speech-text");
+        if (speech) {
+          speech.textContent = "첫 기록 같이 만들었다냥… 첫 발령부터 제대로 맡긴 것 같아서 조금 뿌듯하다냥.";
+        }
+      }, 450);
+    }
+
     const giftGate = event.target.closest("#give-gift-button.is-first-story-gate");
     if (!giftGate) return;
 
