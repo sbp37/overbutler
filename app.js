@@ -672,7 +672,7 @@
       touchLines: [
         ["냥? 집사 여기 있다냥. 바로 대답하는 연습 중이다냥.", "용건 없어도 된다냥. 주인님이 불러보는 것도 집사 일이다냥.", "부르면 오는 건 제대로 익혀두겠다냥.", "호출 접수다냥. 잘 들리는 자리로 책상을 옮겨뒀다냥."],
         ["{owner} 호출이냥. 이제 목소리도 익숙하다냥.", "냥? 하던 일은 잠깐 덮어뒀다냥.", "손이 먼저 서류를 덮었다냥. 호출이 익숙해진 모양이다냥.", "호출 접수다냥. 무슨 일이냥?"],
-        ["{owner}이 불렀냥! 집사 여기 있다냥. 칭찬 필요한 거냥?", "귀가 먼저 돌아갔다냥. 집사는 나중에 돌아봤다냥.", "한 번 더 누르면 골골송 나올 수도 있다냥… 업무 반응이다냥.", "부르자마자 서류를 덮었다냥. 우연히 손이 빨랐다냥."],
+        ["냥? 집사 여기 있다냥. 칭찬 필요한 거냥?", "귀가 먼저 돌아갔다냥. 집사는 나중에 돌아봤다냥.", "한 번 더 누르면 골골송 나올 수도 있다냥… 업무 반응이다냥.", "부르자마자 서류를 덮었다냥. 우연히 손이 빨랐다냥."],
         ["{owner} 호출은 먼저 확인한다냥. 자주 맡은 서류라 그런 거다냥.", "호출 접수 칸을 따로 만들었다냥. 업무 효율 때문이다냥.", "필요한 거 있으면 말하라냥. 이미 꺼내놨을 수도 있다냥.", "펜을 놓고 왔다냥. …급한 건 아니었다냥."],
         ["{owner} 호출은 우선 결재 대상이다냥. 인사기록과에서 신입답지 않게 빠르다고 했다냥.", "전용 응답 도장까지 만들었다냥. 아무한테나 찍는 건 아니다냥.", "주인님 서류는 접수 즉시 결재한다냥. 원래 그 일만 맡았다냥.", "왔냥. 의자를 이쪽으로 돌려놨다냥. 아까부터다냥."],
         ["전담 호출 확인이다냥. 비워둔 접수함부터 열었다냥.", "{owner} 전용 접수함을 열었다냥. 공식 비품이라 문제없다냥.", "몇 번이든 불러도 된다냥. 이 파일은 집사 담당이다냥.", "호출 대기는 업무 시간에 포함된다냥. 집사가 그렇게 정했다냥."]
@@ -2255,10 +2255,11 @@
     $("#owner-file-remark").textContent = firstCatRecord
       ? "주인님이 맡긴 첫 장이다냥. 잘하고 싶어서 제일 좋은 표지를 골랐다냥."
       : cover.remark;
+    const archiveCatName = ensureButlerStat("cat").customName || CHARACTER_PROFILES.cat.defaultName;
     $("#archive-butler-role").textContent = isCat
       ? firstCatRecord
-        ? "첫 담당 집사와 함께 쓴 첫 기록 · 언제든 열람 가능"
-        : "첫 담당 집사와 함께 쓴 기록 · 언제든 열람 가능"
+        ? `${archiveCatName}${agreeParticle(archiveCatName, "과")} 함께 쓴 첫 기록 · 언제든 열람 가능`
+        : `${archiveCatName}${agreeParticle(archiveCatName, "과")} 함께 쓴 기록 · 언제든 열람 가능`
       : `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
     $("#view-archive .owner-file-record-jump").textContent = firstCatRecord
       ? "첫 기록 바로 보기 ↓"
@@ -2267,7 +2268,7 @@
     // 표지에는 누가 언제 연 파일인지가 적힌다. 개설일은 가장 오래된 기록의 날짜다.
     const opened = [...state.records].map(record => record.date).filter(Boolean).sort()[0] || today();
     const alias = ensureButlerStat(state.character).customName || CHARACTER_PROFILES[state.character].defaultName;
-    $("#archive-butler-name").textContent = `${isCat ? "첫 담당" : "담당"} ${alias} · ${opened.replace(/-/g, ". ")} 개설`;
+    $("#archive-butler-name").textContent = `${isCat ? alias : `담당 ${alias}`} · ${opened.replace(/-/g, ". ")} 개설`;
     const openedStamp = $("#owner-file-opened-stamp");
     if (openedStamp) openedStamp.textContent = opened.slice(5).replace("-", ". ");
   }
@@ -4012,8 +4013,8 @@
         : "이번 주 서류는 비어 있다냥. 빈 주도 그대로 보관하는 게 집사 일이다냥.";
       $("#weekly-comment-copy").textContent = weekRecords.length
         ? `${weekRecords.length}건 모두 주인님이 들려준 내용대로 정리했다냥. ${relationshipStageLine("cat")} 앞으로도 집사가 잘 맡겠다냥.`
-        : "주인님이 쉬는 주라면 이 장은 그대로 비워둔다냥. 기록이 없어도 첫 담당 자리는 그대로다냥.";
-      $("#weekly-comment-signature").textContent = `— 첫 담당 ${alias} 씀 —`;
+        : "주인님이 쉬는 주라면 이 장은 그대로 비워둔다냥. 기록이 없어도 집사 자리는 그대로다냥.";
+      $("#weekly-comment-signature").textContent = `— ${alias} 씀 —`;
       $("#report-memo").innerHTML = "주인님 기록과<br>집사 성장 기록<br>함께 보관 중";
       $("#weekly-next-button").innerHTML = "집사방으로 돌아가기 <span>→</span>";
     } else {

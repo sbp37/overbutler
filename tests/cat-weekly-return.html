@@ -69,7 +69,7 @@
         await until(() => doc.querySelector("#view-report").classList.contains("active"));
         assert(doc.querySelector("#report-butler-intro").textContent.includes("1건 맡았다냥"), "CAT weekly intro uses CAT voice and submitted count");
         assert(doc.querySelector("#weekly-comment-copy").textContent.includes("기록1과") && doc.querySelector("#weekly-comment-copy").textContent.includes("잘 맡은 덕"), "CAT weekly comment connects current career recognition");
-        assert(doc.querySelector("#weekly-comment-signature").textContent.includes("첫 담당 치즈냥"), "CAT weekly report uses the assigned CAT name");
+        assert.equal(doc.querySelector("#weekly-comment-signature").textContent.trim(), "— 치즈냥 씀 —", "CAT weekly report signs with the CAT name without a stiff first-manager title");
         assert(doc.querySelector("#report-memo").textContent.includes("집사 성장 기록"), "CAT weekly memo frames records as shared growth");
         assert(!doc.querySelector("#weekly-next-button").textContent.includes("다음 대업"), "CAT weekly CTA does not pressure another achievement");
 

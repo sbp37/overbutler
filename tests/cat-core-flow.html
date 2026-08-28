@@ -71,7 +71,8 @@
         doc.querySelector('[data-view="archive"]').click();
         await until(() => doc.querySelector(".office-record-card"));
         assert(doc.querySelector("#view-archive").classList.contains("is-first-record-file"), "one-record CAT file uses the compact first-reward layout");
-        assert(doc.querySelector("#archive-butler-role").textContent.includes("첫 담당 집사") && doc.querySelector("#archive-butler-role").textContent.includes("함께 쓴 첫 기록"), "owner file cover carries the first-assignment continuity");
+        assert(doc.querySelector("#archive-butler-role").textContent.includes("치즈냥과") && doc.querySelector("#archive-butler-role").textContent.includes("함께 쓴 첫 기록"), "owner file cover carries the shared first-record continuity without a stiff first-manager title");
+        assert(!doc.querySelector("#archive-butler-role").textContent.includes("첫 담당"), "owner file avoids the rejected first-manager label");
         assert(doc.querySelector("#owner-file-remark").textContent.includes("맡긴 첫 장") && doc.querySelector("#owner-file-remark").textContent.includes("잘하고 싶어서"), "first owner file remark keeps rookie care instead of defensive distance");
         assert(doc.querySelector(".owner-file-record-jump").textContent.includes("첫 기록 바로 보기"), "first owner file points directly to the new reward");
         const recordId = stored.records[0].id;
