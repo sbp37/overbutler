@@ -1420,6 +1420,7 @@
   // 진동은 화면 움직임은 아니지만 같은 "자극 줄이기" 요청으로 본다.
   function haptic(duration) {
     if (prefersReducedMotion()) return;
+    if (navigator.userActivation && !navigator.userActivation.isActive) return;
     try { navigator.vibrate?.(duration); } catch { /* 지원 안 하는 기기는 조용히 넘어간다 */ }
   }
   // 같은 요소에 다시 붙이려면 클래스를 떼고 리플로우를 한 번 강제해야 애니가 되감긴다.
@@ -1474,6 +1475,7 @@
       return source;
     }
     function warmSamples() {
+      if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
       Object.entries(samplePaths).forEach(([name, path]) => {
         if (!samples.has(name)) {
           const audio = new Audio(path);
