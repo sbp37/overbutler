@@ -110,6 +110,17 @@
   });
 
   document.addEventListener("click", (event) => {
+    const recordJump = event.target.closest(".owner-file-record-jump");
+    if (recordJump) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      document.getElementById("archive-records")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+      return;
+    }
+
     const firstResultClose = event.target.closest("#result-close");
     if (firstResultClose && firstResultClose.textContent.includes("첫 기록")) {
       window.setTimeout(() => {
