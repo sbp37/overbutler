@@ -2298,7 +2298,9 @@
     $("#diary-open-title").textContent = normalizeCharacter(state.character) === "cat"
       ? `${alias}의 ${date === yesterday ? "어제 일기" : "일기"}가 도착했습니다`
       : date === yesterday ? "어제 일기가 개봉됐습니다" : "봉인됐던 일기가 개봉됐습니다";
-    $("#diary-open-sub").textContent = `${withParticle(alias, "이", "가")} ${date === yesterday ? "어제" : date.slice(5)} 적어둔 소견 · 열람 →`;
+    $("#diary-open-sub").textContent = normalizeCharacter(state.character) === "cat"
+      ? `${withParticle(alias, "이", "가")} ${date === yesterday ? "어제" : date.slice(5)} 적어둔 일기 · 열어보기 →`
+      : `${withParticle(alias, "이", "가")} ${date === yesterday ? "어제" : date.slice(5)} 적어둔 소견 · 열람 →`;
   }
 
   function openPendingDiary() {
@@ -2798,7 +2800,7 @@
       kicker: "집사 일기 작성 중",
       count: count => `오늘 집사가 ${count}개의 이야기를 적어두는 중이다냥.`,
       quote: { tired: "오늘은 좀 고생한 날이었던 것 같다냥.", sad: "오늘 마음은 집사가 조용히 접어두는 중이다냥.", low: "오늘은 쉬어간 것도 기록해두는 중이다냥.", neutral: "오늘 기록은 집사가 잘 정리하는 중이다냥." },
-      release: "전체 일기는 다음 날짜에 보여준다냥 🌙"
+      release: "전체 일기는 내일 보여준다냥 🌙"
     },
     ai: {
       kicker: "[DAY LOG 작성 중]",

@@ -87,6 +87,11 @@
         const doc = frame.contentDocument;
         const migrated = win.OVERBUTLER_APP.migrateState(seed);
         assert.equal(migrated.diary.length, entries.length, "all diary entries survive migration");
+        if (character === "cat") {
+          const openNote = doc.querySelector("#diary-open-note");
+          assert(!openNote.hidden && doc.querySelector("#diary-open-title").textContent.includes("어제 일기"), "CAT home announces the newly available diary");
+          assert(doc.querySelector("#diary-open-sub").textContent.includes("적어둔 일기") && doc.querySelector("#diary-open-sub").textContent.includes("열어보기"), "CAT diary notice uses clear reading language");
+        }
         doc.querySelector('[data-view="archive"]').click();
         await wait(50);
         const mixedNote = [...doc.querySelectorAll(".file-margin-note")]

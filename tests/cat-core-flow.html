@@ -90,7 +90,7 @@
         const teaser = doc.querySelector(".diary-teaser.file-margin-note.sealed");
         assert(Boolean(teaser), "today diary is visible as a sealed teaser");
         assert(teaser.textContent.includes("첫 발령"), "today diary carries the CAT career stage from that entry");
-        assert(teaser.textContent.includes("다음 날짜"), "today teaser explains next-date reveal");
+        assert(teaser.textContent.includes("내일 보여준다냥"), "today teaser explains next-day reveal in CAT voice");
 
         const previousFrame = appFrame;
         const nextFrame = document.createElement("iframe");
