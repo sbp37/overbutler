@@ -593,6 +593,7 @@
   const CAT_SELF_REPORT_QUESTION = /(?:했는데|했고|했어도|하고\s*왔|끝냈|마쳤)[^?？]{0,18}(?:잘했|어때|괜찮|맞지|대단)/;
   const CAT_INTROSPECTIVE_QUESTION = /왜\s*(?:이렇게|자꾸|계속)?\s*(?:우울|슬프|속상|화나|짜증|불안|걱정)|(?:어떡|어떻게)\s*해야/;
   const CAT_BUTLER_ADDRESS = /(?:너|넌|니가|치즈냥|집사|냥이)/;
+  const CAT_PHYSICAL_DISCOMFORT = /(?:(?:배|복부|속|머리|허리|목|어깨|치아|몸)(?:가|이|은|는)?\s*(?:너무\s*)?(?:아프|쓰리|불편)|두통|메스꺼|토할\s*것\s*같|몸살|열(?:이|이\s*)?나|생리통)|^(?:아파|아프다|아파요)[.!~\s]*$/;
 
   function catThirdPartySubject(text) {
     const value = String(text || "");
@@ -602,6 +603,23 @@
     return companion ? "" : match[1].replace(/\s+/g, " ");
   }
 
+  function catPhysicalDiscomfortLines(text) {
+    const value = String(text || "");
+    if (!CAT_PHYSICAL_DISCOMFORT.test(value)) return null;
+    if (/배|복부|속|메스꺼|토할|생리통/.test(value)) return [
+      "배가 아프구냥. 지금은 설명보다 몸부터 챙기자냥. 편하게 쉴 수 있는 데 있냥?",
+      "속이 불편하구냥. 대업 얘기는 덮어두겠다냥. 심해지거나 계속되면 꼭 진료받아라냥."
+    ];
+    if (/머리|두통/.test(value)) return [
+      "머리가 아프구냥. 지금은 화면도 서류도 잠깐 내려놓자냥. 쉴 수 있냥?",
+      "두통이 있구냥. 집사가 말 길게 안 하겠다냥. 심해지거나 계속되면 꼭 진료받아라냥."
+    ];
+    return [
+      "아픈 데가 있구냥. 지금은 대업보다 몸부터 챙기겠다냥. 어디가 불편한지 말해줄 수 있냥?",
+      "몸이 불편하구냥. 설명은 천천히 해도 된다냥. 심해지거나 계속되면 꼭 도움 받아라냥."
+    ];
+  }
+
   function catConversationLines(text, result) {
     const value = String(text || "").trim();
     const thirdParty = catThirdPartySubject(value);
@@ -609,6 +627,8 @@
       `${thirdParty}에게 있었던 일이구냥. 그 소식을 들은 주인님 마음은 어땠냥?`,
       `${thirdParty} 얘기구냥. 주인님에게 남은 마음이 있으면 그쪽부터 듣겠다냥.`
     ];
+    const physicalDiscomfortLines = catPhysicalDiscomfortLines(value);
+    if (physicalDiscomfortLines) return physicalDiscomfortLines;
     if (/내\s*말\s*(?:듣|보고)|듣고\s*있/.test(value)) return [
       "듣고 있다냥. 방금 적어준 말도 놓치지 않았다냥.",
       "여기 있다냥. 이어서 말해도 되고 잠깐 쉬어도 된다냥."
@@ -850,6 +870,7 @@
     if (memory.character && memory.character !== key) memory = normalizeMemory({}, key);
     const rawResult = classify(message);
     const text = rawResult.text || message;
+    const physicalDiscomfort = key === "cat" && !catThirdPartySubject(text) && CAT_PHYSICAL_DISCOMFORT.test(String(text || ""));
     const conversationLines = key === "cat" ? catConversationLines(text, rawResult) : null;
     const result = conversationLines ? {
       ...rawResult,
@@ -929,7 +950,7 @@
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
     // 걱정 응답은 이미 성취를 문장 안에서 다뤘다 — 여기서 또 붙이면 두 번 말한다.
     if (!skippedCareType && result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
-    const closesThread = threadCloseRequested
+    const closesThread = threadCloseRequested || physicalDiscomfort
       || ["goodbye", "sleep", "greeting", "happy", "love", "thanks"].includes(result.intent)
       || (result.achievementCandidate && result.responseMode !== "comfort");
     let nextThread = closesThread ? null : activeThread;
