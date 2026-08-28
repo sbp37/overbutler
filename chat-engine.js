@@ -589,6 +589,81 @@
     ];
   }
 
+  const CAT_THIRD_PARTY_SUBJECT = /(친구|엄마|아빠|부모님|동생|언니|누나|형|오빠|팀장|상사|동료|남친|여친|애인|걔|그\s*사람)(?:이|가|은|는)/;
+  const CAT_SELF_REPORT_QUESTION = /(?:했는데|했고|했어도|하고\s*왔|끝냈|마쳤)[^?？]{0,18}(?:잘했|어때|괜찮|맞지|대단)/;
+  const CAT_INTROSPECTIVE_QUESTION = /왜\s*(?:이렇게|자꾸|계속)?\s*(?:우울|슬프|속상|화나|짜증|불안|걱정)|(?:어떡|어떻게)\s*해야/;
+  const CAT_BUTLER_ADDRESS = /(?:너|넌|니가|치즈냥|집사|냥이)/;
+
+  function catThirdPartySubject(text) {
+    const value = String(text || "");
+    const match = CAT_THIRD_PARTY_SUBJECT.exec(value);
+    if (!match) return "";
+    const companion = new RegExp(`${match[1]}(?:이?랑|하고|와|과)`).test(value) || /(?:나|저)(?:랑|와|하고)/.test(value);
+    return companion ? "" : match[1].replace(/\s+/g, " ");
+  }
+
+  function catConversationLines(text, result) {
+    const value = String(text || "").trim();
+    const thirdParty = catThirdPartySubject(value);
+    if (thirdParty) return [
+      `${thirdParty}에게 있었던 일이구냥. 그 소식을 들은 주인님 마음은 어땠냥?`,
+      `${thirdParty} 얘기구냥. 주인님에게 남은 마음이 있으면 그쪽부터 듣겠다냥.`
+    ];
+    if (/내\s*말\s*(?:듣|보고)|듣고\s*있/.test(value)) return [
+      "듣고 있다냥. 방금 적어준 말도 놓치지 않았다냥.",
+      "여기 있다냥. 이어서 말해도 되고 잠깐 쉬어도 된다냥."
+    ];
+    if (/말동무|(?:그냥\s*)?(?:얘기|대화)(?:하고|나누고)\s*싶/.test(value)) return [
+      "좋다냥. 오늘은 대업 말고 그냥 얘기하자냥. 집사가 듣고 있겠다냥.",
+      "그럼 서류는 잠깐 덮겠다냥. 하고 싶은 말부터 들려달라냥."
+    ];
+    if (/안아\s*줘|안아\s*줄/.test(value)) return [
+      "이리 와라냥. 말 안 해도 되니까 잠깐 붙어 있어라냥.",
+      "잠깐은 집사 조끼 빌려주겠다냥. 여기 있어라냥."
+    ];
+    if (/(?:나|내가|나는|난|저|제가|저는|전).*(?:어떻게\s*생각|어때|이상해)/.test(value)) return [
+      "주인님은 집사가 처음 맡은 한 사람이다냥. 잘 알고 싶어서 계속 듣는 중이다냥.",
+      "집사가 함부로 단정할 사람은 아니다냥. 들려준 만큼 천천히 알아가고 있다냥."
+    ];
+    if (/^(?:응+|웅+|그래+|맞아+|ㅇㅇ+|어+)[.!~ㅋㅎ\s]*$/i.test(value)) return [
+      "응. 듣고 있다냥. 이어서 말해도 된다냥.",
+      "응. 집사 안 갔다냥. 다음 말도 천천히 해라냥."
+    ];
+    if (/^(?:아니+|아냐+|그건\s*아니야)[.!~ㅋㅎ\s]*$/i.test(value)) return [
+      "아니구냥. 집사가 잘못 짚었다냥. 다시 말해줘도 되고 그냥 넘어가도 된다냥.",
+      "알겠다냥. 그건 지우고 다시 듣겠다냥."
+    ];
+    if (/^[ㅋㅎ]{2,}[.!~ㅋㅎ\s]*$/.test(value)) return [
+      "웃었냥? 집사도 입꼬리만 조금 올리겠다냥.",
+      "ㅋㅋ 확인했다냥. 분위기 조금 풀린 거 맞냥?"
+    ];
+    if (/^(?:그냥|별건\s*아니야)[.!~\s]*$/.test(value)) return [
+      "그냥인 날도 있다냥. 설명 붙이지 않아도 된다냥.",
+      "별건 아니어도 말해줘도 된다냥. 집사는 그런 줄도 읽는다냥."
+    ];
+    if (/^(?:잘\s*)?모르겠(?:어|다)?[.!~\s]*$/.test(value)) return [
+      "모르겠는 채로 있어도 된다냥. 집사가 결론 재촉 안 하겠다냥.",
+      "지금 바로 알아내지 않아도 된다냥. 천천히 같이 보자냥."
+    ];
+    if (["what_doing", "love", "thanks", "miss", "greeting", "goodbye", "sleep", "happy", "bored", "hungry"].includes(result.intent)) return null;
+    const isQuestion = result.intents?.includes("question") || /[?？]\s*$/.test(value);
+    if (!isQuestion || CAT_SELF_REPORT_QUESTION.test(value)) return null;
+    const emotionalQuestion = CAT_EMOTION_CONTEXT.has(result.intent) && CAT_INTROSPECTIVE_QUESTION.test(value) && !CAT_BUTLER_ADDRESS.test(value);
+    if (emotionalQuestion) return null;
+    if (/왜/.test(value)) return [
+      "왜 그런지 같이 짚어보자냥. 바로 결론 내리지 말고, 있었던 일부터 하나만 들려줘도 된다냥.",
+      "그 이유가 궁금한 거구냥. 집사가 아는 척하지 않고 같이 생각해보겠다냥."
+    ];
+    if (/어떡|어떻게/.test(value)) return [
+      "어떻게 해야 할지 같이 정리해보자냥. 지금 제일 걸리는 것부터 하나만 말해달라냥.",
+      "한 번에 답 내지 말자냥. 지금 가장 신경 쓰이는 것부터 같이 보자냥."
+    ];
+    return [
+      "집사한테 묻는 거냥? 아는 척해서 틀리느니, 주인님이 적어준 것부터 같이 생각해보겠다냥.",
+      "그건 바로 단정하면 안 될 것 같다냥. 조금만 더 들려주면 같이 정리해보겠다냥."
+    ];
+  }
+
   // 완료 행동 없이 계획만 있는 문장. 대업으로 올리지 않는다는 걸 직접 말해준다.
   const CAT_FUTURE_PLAN_ONLY = snippet => `‘${snippet}’ 소리 접수했다냥. 아직 안 한 건 대업으로 안 올린다냥. 하고 나서 다시 알려달라냥.`;
   // 완료 행동이 여러 개 잡힌 경우(ACTION_LIST). 하나만 조용히 뽑아가지 않고
@@ -773,8 +848,26 @@
     const key = LINES[requested] ? requested : "cat";
     let memory = normalizeMemory(memoryValue, key);
     if (memory.character && memory.character !== key) memory = normalizeMemory({}, key);
-    const result = classify(message);
-    const text = result.text || message;
+    const rawResult = classify(message);
+    const text = rawResult.text || message;
+    const conversationLines = key === "cat" ? catConversationLines(text, rawResult) : null;
+    const result = conversationLines ? {
+      ...rawResult,
+      intents: rawResult.intents?.includes("question") ? ["question"] : ["freeform"],
+      intent: "fallback",
+      activities: [],
+      activityTypes: [],
+      futurePlans: [],
+      negatedActivities: [],
+      skippedCare: [],
+      mood: null,
+      sentiment: "neutral",
+      priority: "conversation-first",
+      achievementCandidate: false,
+      achievementTitle: "",
+      responseMode: "conversation",
+      topic: "자유 대화"
+    } : rawResult;
     const currentClues = key === "cat" ? catThreadClues(text) : { person: "", topic: "" };
     const legacyThread = key === "cat" && CAT_EMOTION_CONTEXT.has(memory.previousIntent)
       ? { intent: memory.previousIntent, person: "", topic: "", remaining: 1 }
@@ -803,7 +896,7 @@
       ? catEmotionContinuation(threadForReply) : null;
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
       && result.intent === "fallback" && !result.achievementCandidate
-      ? (emotionFollowupLines || catStoryFallback(text)) : null;
+      ? (conversationLines || emotionFollowupLines || catStoryFallback(text)) : null;
     // 힘든 하루 뒤의 귀가는 앞 대화를 이어받는 브릿지가 본문이다. 이것도 일반 변주로
     // 덮이면 안 된다 — home_arrival 풀이 있는 캐릭터에서 브릿지가 통째로 사라진다.
     const bridgeOverride = result.intent === "home_arrival" && hasHardDayContext;
