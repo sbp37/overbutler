@@ -506,7 +506,7 @@
   const CAT_QUOTE_REFLECT = snippet => [
     `‘${snippet}’… 그 줄은 굵은 펜으로 적어뒀다냥.`,
     `‘${snippet}’라고 적어뒀다냥. 오늘 장부에서 제일 눈에 띈 줄이다냥.`,
-    `‘${snippet}’… 이 대목은 두 번 읽었다냥. 접수는 끝났다냥.`
+    `‘${snippet}’… 그 줄에서 잠깐 멈췄다냥. 조금 더 들어도 되냥?`
   ];
 
   function catStoryFallback(text) {
@@ -593,7 +593,7 @@
   const CAT_SELF_REPORT_QUESTION = /(?:했는데|했고|했어도|하고\s*왔|끝냈|마쳤)[^?？]{0,18}(?:잘했|어때|괜찮|맞지|대단)/;
   const CAT_INTROSPECTIVE_QUESTION = /왜\s*(?:이렇게|자꾸|계속)?\s*(?:우울|슬프|속상|화나|짜증|불안|걱정)|(?:어떡|어떻게)\s*해야/;
   const CAT_BUTLER_ADDRESS = /(?:너|넌|니가|치즈냥|집사|냥이)/;
-  const CAT_PHYSICAL_DISCOMFORT = /(?:(?:배|복부|속|머리|허리|목|어깨|치아|몸)(?:가|이|은|는)?\s*(?:너무\s*)?(?:아프|쓰리|불편)|두통|메스꺼|토할\s*것\s*같|몸살|열(?:이|이\s*)?나|생리통)|^(?:아파|아프다|아파요)[.!~\s]*$/;
+  const CAT_PHYSICAL_DISCOMFORT = /(?:(?:배|복부|속|머리|허리|목|어깨|치아|몸)(?:가|이|은|는)?\s*(?:너무\s*)?(?:아프|아파|아픈|아팠|쓰리|쓰려|불편)|두통|메스꺼|토할\s*것\s*같|몸살|열(?:이|이\s*)?나|생리통)|^(?:아파|아프다|아파요)[.!~\s]*$/;
 
   function catThirdPartySubject(text) {
     const value = String(text || "");
