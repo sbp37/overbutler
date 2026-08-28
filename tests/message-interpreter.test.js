@@ -59,6 +59,12 @@ const shortSad = analyzeUserMessage("슬퍼");
 assert.equal(shortSad.mood, "sad");
 assert.ok(shortSad.intents.includes("sad"));
 
+const selfCriticalNoAction = analyzeUserMessage("오늘 아무것도 못했어");
+assert.equal(selfCriticalNoAction.mood, "low");
+assert.ok(selfCriticalNoAction.intents.includes("no_motivation"));
+assert.ok(!selfCriticalNoAction.intents.includes("quiet_day"));
+assert.ok(analyzeUserMessage("오늘 아무것도 안 했어").intents.includes("quiet_day"));
+
 for (const quickInput of ["침대에서 일어남", "물 한 잔 마심", "미뤘던 답장 보냄", "씻음"]) {
   assert.equal(analyzeUserMessage(quickInput).achievementCandidate, true, quickInput);
 }

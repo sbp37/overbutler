@@ -49,8 +49,18 @@ assert.match(wedding.reply, /결혼식까지 다녀왔구냥/);
 assert.deepEqual(wedding.memory.recentActivities, ["결혼식 다녀옴"]);
 
 const sadness = chat.respond("cat", "슬퍼", {}, 0);
-assert.match(sadness.reply, /(슬프구냥|속상하구냥|우울하구냥)/);
+assert.match(sadness.reply, /^슬프구냥/);
 assert.doesNotMatch(sadness.reply, /별거 아닌/);
+
+const painBeforeSadness = chat.respond("cat", "배 아파", {}, 0);
+const sadnessAfterPain = chat.respond("cat", "우울해", painBeforeSadness.memory, 0);
+assert.match(sadnessAfterPain.reply, /^우울하구냥/);
+assert.doesNotMatch(sadnessAfterPain.reply, /몸이 불편했던 이야기/);
+
+const noAction = chat.respond("cat", "오늘 아무것도 못했어", {}, 0);
+assert.equal(noAction.intent, "no_motivation");
+assert.match(noAction.reply, /^아무것도 못 한 날도 있다냥/);
+assert.doesNotMatch(noAction.reply, /특이사항 없음|엄연한 보고/);
 
 const characters = ["ai", "cat", "dog", "alien", "ninja", "witch", "zombie", "girlidol", "elf", "fairy"];
 const hardDayReplies = characters.map(character => chat.respond(character, "오늘 너무 힘들었어", {}, 0).reply);

@@ -633,13 +633,27 @@
     ];
   }
 
-  function catEmotionContinuation(thread) {
-    const lead = thread.person || thread.topic ? catThreadLead(thread) : "아까 말한 마음이 아직 남아 있구냥.";
-    return [
-      `${lead} 지금 더 말하고 싶은 쪽부터 들어주겠다냥.`,
-      `${lead} 한꺼번에 정리하지 않아도 된다냥. 이어지는 대로 말해도 된다냥.`,
-      `${lead} 집사가 앞 이야기랑 같이 듣고 있다냥.`
+  function catExplicitEmotionLines(text, intent) {
+    const value = String(text || "");
+    if (intent === "sad") {
+      if (/슬프|슬퍼|서럽|눈물/.test(value)) return [
+        "슬프구냥. 괜찮은 척 안 해도 된다냥. 집사가 여기서 듣고 있겠다냥.",
+        "슬프구냥… 이유를 바로 설명하지 않아도 된다냥. 그냥 같이 있자냥."
+      ];
+      if (/우울|울적|공허|허무/.test(value)) return [
+        "우울하구냥… 혼자 정리하려고 애쓰지 않아도 된다냥. 집사가 같이 있겠다냥.",
+        "우울하구냥. 말하고 싶은 만큼만 들려줘도 된다냥. 조용히 있어도 괜찮다냥."
+      ];
+      if (/속상|마음\s*아프/.test(value)) return [
+        "속상하구냥. 이유를 지금 말하기 싫으면 그냥 옆에 있겠다냥.",
+        "속상하구냥… 바로 괜찮아지려고 하지 않아도 된다냥. 집사가 듣겠다냥."
+      ];
+    }
+    if (intent === "no_motivation" && /아무것도\s*못\s*했/.test(value)) return [
+      "아무것도 못 한 날도 있다냥. 오늘은 그냥 쉬어도 된다냥.",
+      "오늘 못 한 건 설명하지 않아도 된다냥. 지금은 쉬어도 된다냥."
     ];
+    return null;
   }
 
   const CAT_THIRD_PARTY_SUBJECT = /(친구|엄마|아빠|부모님|동생|언니|누나|형|오빠|팀장|상사|동료|남친|여친|애인|걔|그\s*사람)(?:이|가|은|는)/;
@@ -1010,9 +1024,9 @@
     const emotionFollowupLines = key === "cat" && result.intent === "fallback" && !result.achievementCandidate
       && threadForReply && !CAT_CARE_CONTEXT.has(threadForReply.intent) && !threadCloseRequested
       ? catEmotionFollowup(threadForReply) : null;
-    const emotionContinuationLines = key === "cat" && threadForReply && !threadCloseRequested
-      && CAT_EMOTION_CONTEXT.has(result.intent) && result.intent !== threadForReply.intent
-      ? catEmotionContinuation(threadForReply) : null;
+    // 지금 직접 적은 감정은 이전 대화의 맥락보다 우선한다. 명시적인 "우울해"를
+    // 직전의 "배 아파" 후속 문장으로 바꾸면 집사가 현재 말을 못 들은 셈이 된다.
+    const explicitEmotionLines = key === "cat" ? catExplicitEmotionLines(text, result.intent) : null;
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
       && result.intent === "fallback" && !result.achievementCandidate
       ? (careFollowupLines || conversationLines || emotionFollowupLines || catStoryFallback(text)) : null;
@@ -1040,10 +1054,10 @@
       ? (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal) : null;
     const extra = threadCloseRequested
       ? CAT_THREAD_CLOSE_LINES
-      : careFollowupLines || skippedCareLines || (bypassPools ? [] : emotionContinuationLines || storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
+      : explicitEmotionLines || careFollowupLines || skippedCareLines || (bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
-      ? extra.flatMap(line => [line, `${line}\n${tail}`])
+      ? (explicitEmotionLines ? extra : extra.flatMap(line => [line, `${line}\n${tail}`]))
       : [base, `${base}\n${tail}`];
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
     // 걱정 응답은 이미 성취를 문장 안에서 다뤘다 — 여기서 또 붙이면 두 번 말한다.
@@ -1068,7 +1082,7 @@
         topic: currentClues.topic || activeThread?.topic || "",
         remaining: 3
       };
-    } else if (!closesThread && activeThread && (careFollowupLines || emotionFollowupLines || emotionContinuationLines)) {
+    } else if (!closesThread && activeThread && (careFollowupLines || emotionFollowupLines)) {
       const remaining = Math.max(0, activeThread.remaining - 1);
       nextThread = remaining ? { ...threadForReply, remaining } : null;
     }
