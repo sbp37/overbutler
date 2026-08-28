@@ -716,6 +716,10 @@
     if (physicalDiscomfortLines) return physicalDiscomfortLines;
     const everydayCareLines = catEverydayCareLines(value);
     if (everydayCareLines) return everydayCareLines;
+    if (result.negatedActivities?.length && !result.skippedCare?.length) return [
+      "못 한 일은 오늘 장부에 올리지 않는다냥. 그냥 두어도 된다냥.",
+      "안 한 건 안 한 대로 두겠다냥. 집사가 점수 매기지 않는다냥."
+    ];
     if (/내\s*말\s*(?:듣|보고)|듣고\s*있/.test(value)) return [
       "듣고 있다냥. 방금 적어준 말도 놓치지 않았다냥.",
       "여기 있다냥. 이어서 말해도 되고 잠깐 쉬어도 된다냥."
@@ -747,6 +751,10 @@
     if (/^(?:그냥|별건\s*아니야)[.!~\s]*$/.test(value)) return [
       "그냥인 날도 있다냥. 설명 붙이지 않아도 된다냥.",
       "별건 아니어도 말해줘도 된다냥. 집사는 그런 줄도 읽는다냥."
+    ];
+    if (/^(?:그냥\s*그래|그저\s*그래)[.!~\s]*$/.test(value)) return [
+      "그냥 그렇구냥. 이유를 바로 찾아내지 않아도 된다냥. 집사는 옆에 있겠다냥.",
+      "좋지도 나쁘지도 않은 마음일 수 있다냥. 더 설명하지 않아도 된다냥."
     ];
     if (/^(?:잘\s*)?모르겠(?:어|다)?[.!~\s]*$/.test(value)) return [
       "모르겠는 채로 있어도 된다냥. 집사가 결론 재촉 안 하겠다냥.",

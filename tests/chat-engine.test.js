@@ -56,4 +56,23 @@ const normalized = chat.normalizeMemory({ turnCount: "4", recentTopics: ["a", "b
 assert.equal(normalized.turnCount, 4);
 assert.deepEqual(normalized.recentTopics, ["a", "b"]);
 
+for (const thirdPartyInput of ["친구가 아파", "엄마가 우울해", "친구가 운동했어"]) {
+  const response = chat.respond("cat", thirdPartyInput, {}, 0);
+  assert.equal(response.achievementCandidate, false, thirdPartyInput);
+  assert.match(response.reply, /에게 있었던 일이구냥|얘기구냥/, thirdPartyInput);
+}
+
+let careMemory = {};
+const pain = chat.respond("cat", "배아파", careMemory, 0);
+assert.match(pain.reply, /배가 아프구냥/);
+assert.equal(pain.memory.activeThread.intent, "physical_discomfort");
+const painContinues = chat.respond("cat", "아직도", pain.memory, 0);
+assert.match(painContinues.reply, /아직 아프구냥/);
+const painResolved = chat.respond("cat", "좀 나아졌어", painContinues.memory, 0);
+assert.match(painResolved.reply, /조금 나아졌구냥/);
+assert.equal(painResolved.memory.activeThread, null);
+
+assert.match(chat.respond("cat", "그냥 그래", {}, 0).reply, /그냥 그렇구냥/);
+assert.match(chat.respond("cat", "오늘 운동 못 했어", {}, 0).reply, /못 한 일|안 한 건/);
+
 console.log("chat-engine: all scenarios passed");

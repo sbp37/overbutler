@@ -243,6 +243,17 @@
     return activities[0] || "오늘의 작은 일을 끝까지 해냄";
   }
 
+  const THIRD_PARTY_SUBJECT = /(?:친구|엄마|아빠|어머니|아버지|부모님|동생|언니|오빠|누나|형|남친|여친|애인|남편|아내|아이|아들|딸|동료|팀장|상사)(?:가|이)\s*/;
+  const THIRD_PARTY_COMPANION = /(?:친구|엄마|아빠|어머니|아버지|부모님|동생|언니|오빠|누나|형|남친|여친|애인|남편|아내|아이|아들|딸|동료|팀장|상사)(?:이?랑|하고|와|과)\s*/;
+  const FIRST_PERSON_SUBJECT = /(?:^|[\s,])(?:나|난|나는|내가|나도|저|전|저는|제가|저도)(?:[\s,]|$)/;
+
+  function thirdPartyOnlyClause(value) {
+    const clause = String(value || "");
+    return THIRD_PARTY_SUBJECT.test(clause)
+      && !THIRD_PARTY_COMPANION.test(clause)
+      && !FIRST_PERSON_SUBJECT.test(clause);
+  }
+
   function analyzeUserMessage(value) {
     const text = safeText(value);
     const intents = [];
@@ -268,6 +279,9 @@
     for (const [type, label, pattern] of ACTIVITY_RULES) {
       for (const found of activeMatches(text, pattern, true, true)) {
         const clause = clauseFor(clauses, found.index);
+        // 제3자가 한 행동은 사용자의 대업이 아니다. "친구랑 운동했어"처럼 사용자가
+        // 함께 했다고 적은 경우만 통과시킨다.
+        if (thirdPartyOnlyClause(clause.text)) continue;
         // 하드 가드 — 이 행동이 속한 절이 부정이면 어떤 경로로도 대업이 될 수 없다.
         if (found.negated || isNegatedClause(clause.text)) {
           if (!negatedActivities.some(item => item.label === label)) {

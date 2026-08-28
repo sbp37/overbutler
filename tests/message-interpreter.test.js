@@ -63,6 +63,14 @@ for (const negatedActivity of ["오늘 운동은 안 했어", "결혼식 안 갔
   assert.equal(analyzeUserMessage(negatedActivity).achievementCandidate, false, negatedActivity);
 }
 
+for (const thirdPartyActivity of ["친구가 운동했어", "엄마가 밥 먹었어", "동료가 회의를 끝냈어"]) {
+  assert.equal(analyzeUserMessage(thirdPartyActivity).achievementCandidate, false, thirdPartyActivity);
+}
+assert.equal(analyzeUserMessage("친구랑 운동했어").achievementCandidate, true);
+for (const quietInput of ["아무것도 안 했어", "그냥 그래", "모르겠어"]) {
+  assert.equal(analyzeUserMessage(quietInput).achievementCandidate, false, quietInput);
+}
+
 // 완료 행동 + 같은 행동의 미래 계획이 한 문장에 같이 있는 경우. 완료 절과 미래 절이
 // 뒤섞여 하나로 뭉개지면 안 된다 — 완료는 completedActions(activities)에,
 // 계획은 futurePlans에 각각 남아야 한다.
