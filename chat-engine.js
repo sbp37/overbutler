@@ -523,28 +523,69 @@
     return CAT_STORY_FALLBACK.plain;
   }
 
-  const CAT_EMOTION_CONTEXT = new Set(["sad", "hard_day", "no_motivation", "angry", "worry"]);
+  const CAT_EMOTION_CONTEXT = new Set(["sad", "hard_day", "no_motivation", "angry", "worry", "tired"]);
+  const CAT_THREAD_CLOSE = /(?:말(?:하기|하고)?\s*싫|그만\s*(?:말|얘기)|얘기\s*(?:안|그만)|말\s*안\s*할|넘어가자|더\s*묻지\s*마)/;
+  const CAT_THREAD_CLOSE_LINES = [
+    "알겠다냥. 더 묻지 않겠다냥. 옆에만 있겠다냥.",
+    "그 얘기는 여기서 덮어두겠다냥. 다시 꺼낼 때까지 안 묻겠다냥.",
+    "응. 여기까지만 듣겠다냥. 말 없이 있어도 된다냥."
+  ];
+  const CAT_THREAD_PEOPLE = [
+    [/팀장|상사/, "팀장"],
+    [/동료|직장\s*사람/, "동료"],
+    [/친구/, "친구"],
+    [/가족|엄마|아빠|부모/, "가족"],
+    [/애인|남친|여친|연인/, "연인"]
+  ];
+  const CAT_THREAD_TOPICS = [
+    [/회사|직장|업무/, "회사"],
+    [/학교|수업|과제/, "학교"],
+    [/병원|건강|몸|아프/, "몸"],
+    [/집|가족/, "집"]
+  ];
 
-  function catEmotionFollowup(text, previousIntent) {
+  function catThreadClues(text) {
     const value = String(text || "");
-    const lead = /회사|직장/.test(value)
-      ? "회사에서 일이 있었구냥."
-      : /친구/.test(value)
-        ? "친구랑 일이 있었구냥."
-        : /가족|집/.test(value)
-          ? "집에서 일이 있었구냥."
-          : "그런 일이 있었구냥.";
+    return {
+      person: CAT_THREAD_PEOPLE.find(([pattern]) => pattern.test(value))?.[1] || "",
+      topic: CAT_THREAD_TOPICS.find(([pattern]) => pattern.test(value))?.[1] || ""
+    };
+  }
+
+  function catThreadLead(thread) {
+    if (thread.person) return `${thread.person}이랑 있었던 일이구냥.`;
+    if (thread.topic === "회사") return "회사에서 일이 있었구냥.";
+    if (thread.topic === "학교") return "학교에서 일이 있었구냥.";
+    if (thread.topic === "몸") return "몸이 불편했던 이야기구냥.";
+    if (thread.topic === "집") return "집에서 일이 있었구냥.";
+    return "그런 일이 있었구냥.";
+  }
+
+  function catEmotionFollowup(thread) {
+    const lead = catThreadLead(thread);
+    const previousIntent = thread.intent;
     const feeling = previousIntent === "angry"
       ? "화난 마음"
       : previousIntent === "worry"
         ? "걱정"
         : previousIntent === "no_motivation"
           ? "기운 없던 마음"
+          : previousIntent === "tired"
+            ? "지친 마음"
           : "무거운 마음";
     return [
       `${lead} 그 ${feeling}이랑 이어진 이야기라면 천천히 더 말해도 된다냥.`,
       `${lead} 그 일이 마음에 남았구냥. 말하고 싶은 만큼만 들려줘도 된다냥.`,
       `${lead} 무엇부터 말해도 괜찮다냥. 집사가 끊지 않고 듣겠다냥.`
+    ];
+  }
+
+  function catEmotionContinuation(thread) {
+    const lead = thread.person || thread.topic ? catThreadLead(thread) : "아까 말한 마음이 아직 남아 있구냥.";
+    return [
+      `${lead} 지금 더 말하고 싶은 쪽부터 들어주겠다냥.`,
+      `${lead} 한꺼번에 정리하지 않아도 된다냥. 이어지는 대로 말해도 된다냥.`,
+      `${lead} 집사가 앞 이야기랑 같이 듣고 있다냥.`
     ];
   }
 
@@ -646,6 +687,31 @@
     return Array.isArray(value) ? value.map(item => safeText(item, maxLength)).filter(Boolean).slice(-maxItems) : [];
   }
 
+  function normalizeConversationThread(value) {
+    const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    const intent = safeText(source.intent, 30);
+    const remaining = Math.max(0, Math.min(3, Math.floor(Number(source.remaining) || 0)));
+    if (!intent || !remaining) return null;
+    return {
+      intent,
+      person: safeText(source.person, 20),
+      topic: safeText(source.topic, 20),
+      remaining
+    };
+  }
+
+  function normalizeRecentTurns(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map(item => {
+      const source = item && typeof item === "object" && !Array.isArray(item) ? item : {};
+      return {
+        user: safeText(source.user, 120),
+        reply: safeText(source.reply, 320),
+        intent: safeText(source.intent, 30)
+      };
+    }).filter(item => item.user || item.reply).slice(-5);
+  }
+
   function normalizeMemory(value, character = "") {
     const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
     return {
@@ -657,7 +723,9 @@
       turnCount: Math.max(0, Math.floor(Number(source.turnCount) || 0)),
       previousUserMessage: safeText(source.previousUserMessage, 120),
       previousIntent: safeText(source.previousIntent, 30),
-      recentReplies: safeList(source.recentReplies, 8, 320)
+      recentReplies: safeList(source.recentReplies, 8, 320),
+      activeThread: normalizeConversationThread(source.activeThread),
+      recentTurns: normalizeRecentTurns(source.recentTurns)
     };
   }
 
@@ -706,21 +774,36 @@
     let memory = normalizeMemory(memoryValue, key);
     if (memory.character && memory.character !== key) memory = normalizeMemory({}, key);
     const result = classify(message);
+    const text = result.text || message;
+    const currentClues = key === "cat" ? catThreadClues(text) : { person: "", topic: "" };
+    const legacyThread = key === "cat" && CAT_EMOTION_CONTEXT.has(memory.previousIntent)
+      ? { intent: memory.previousIntent, person: "", topic: "", remaining: 1 }
+      : null;
+    const activeThread = memory.activeThread || legacyThread;
+    const threadForReply = activeThread ? {
+      ...activeThread,
+      person: currentClues.person || activeThread.person,
+      topic: currentClues.topic || activeThread.topic
+    } : null;
+    const threadCloseRequested = key === "cat" && Boolean(activeThread) && CAT_THREAD_CLOSE.test(String(text || ""));
     const hasHardDayContext = memory.previousIntent === "hard_day" || memory.recentTopics.includes("힘든 하루");
     // 문장 전체를 읽었다는 신호(toneShift/futurePlans/여러 완료 행동)가 있으면, 그 문장
     // 전용으로 고른 대사를 쓰고 RESPONSE_POOLS/relationshipLinesFor의 일반 변주는
     // 건너뛴다 — 그 풀들은 "힘든 하루"류 단일 감정 대사라 이 신호를 못 담는다.
     // 돌봄을 거른 보고는 어떤 일반 변주보다 먼저다 — 이 문장에는 걱정으로만 답한다.
     const skippedCareType = result.intent === "skipped_care" ? (result.skippedCare?.[0]?.type || "meal") : "";
-    const toneShiftOverride = key === "cat" && !skippedCareType && result.toneShift;
-    const futurePlanOverride = key === "cat" && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
-    const multiActivityOverride = key === "cat" && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
+    const toneShiftOverride = key === "cat" && !threadCloseRequested && !skippedCareType && result.toneShift;
+    const futurePlanOverride = key === "cat" && !threadCloseRequested && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
+    const multiActivityOverride = key === "cat" && !threadCloseRequested && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
     const emotionFollowupLines = key === "cat" && result.intent === "fallback" && !result.achievementCandidate
-      && CAT_EMOTION_CONTEXT.has(memory.previousIntent)
-      ? catEmotionFollowup(result.text || message, memory.previousIntent) : null;
+      && threadForReply && !threadCloseRequested
+      ? catEmotionFollowup(threadForReply) : null;
+    const emotionContinuationLines = key === "cat" && threadForReply && !threadCloseRequested
+      && CAT_EMOTION_CONTEXT.has(result.intent) && result.intent !== threadForReply.intent
+      ? catEmotionContinuation(threadForReply) : null;
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
       && result.intent === "fallback" && !result.achievementCandidate
-      ? (emotionFollowupLines || catStoryFallback(result.text || message)) : null;
+      ? (emotionFollowupLines || catStoryFallback(text)) : null;
     // 힘든 하루 뒤의 귀가는 앞 대화를 이어받는 브릿지가 본문이다. 이것도 일반 변주로
     // 덮이면 안 된다 — home_arrival 풀이 있는 캐릭터에서 브릿지가 통째로 사라진다.
     const bridgeOverride = result.intent === "home_arrival" && hasHardDayContext;
@@ -732,17 +815,20 @@
         : (key === "cat" ? "" : NEUTRAL_SKIPPED_CARE[skippedCareType] || NEUTRAL_SKIPPED_CARE.meal);
       if (key === "cat" && !base) base = (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal)[0];
     }
-    if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
+    if (threadCloseRequested) base = CAT_THREAD_CLOSE_LINES[0];
+    else if (result.intent === "goodbye") base = GOODBYE_RESPONSE[key] || GOODBYE_RESPONSE.cat;
     else if (toneShiftOverride) base = result.futurePlans?.length ? CAT_TONE_SHIFT.withPlan(result.mood, result.futurePlans[0].snippet) : CAT_TONE_SHIFT.general(result.mood);
     else if (futurePlanOverride) base = CAT_FUTURE_PLAN_ONLY(result.futurePlans[0].snippet);
     else if (multiActivityOverride) base = CAT_MULTI_ACTIVITY(result.activities, result.achievementTitle);
     else if (result.achievementCandidate && result.responseMode !== "comfort") base = (ACTIVITY_RESPONSE[key] || ACTIVITY_RESPONSE.cat)(result.achievementTitle);
-    const bypassPools = Boolean(skippedCareType) || toneShiftOverride || futurePlanOverride || multiActivityOverride || bridgeOverride;
+    const bypassPools = threadCloseRequested || Boolean(skippedCareType) || toneShiftOverride || futurePlanOverride || multiActivityOverride || bridgeOverride;
     const endings = ENDINGS[key] || ENDINGS.cat;
     // 고양이는 걱정 문장도 변주를 갖는다. 성취가 같이 잡힌 경우는 한 문장으로 고정한다.
     const skippedCareLines = skippedCareType && key === "cat" && !(result.achievementCandidate && result.achievementTitle)
       ? (CAT_SKIPPED_CARE[skippedCareType] || CAT_SKIPPED_CARE.meal) : null;
-    const extra = skippedCareLines || (bypassPools ? [] : storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
+    const extra = threadCloseRequested
+      ? CAT_THREAD_CLOSE_LINES
+      : skippedCareLines || (bypassPools ? [] : emotionContinuationLines || storyFallbackLines || [...(RESPONSE_POOLS[key]?.[result.intent] || []), ...relationshipLinesFor(key, result.intent, obsession)]);
     const tail = endings[Math.floor(randomValue * endings.length) % endings.length];
     const variants = extra.length
       ? extra.flatMap(line => [line, `${line}\n${tail}`])
@@ -750,6 +836,21 @@
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
     // 걱정 응답은 이미 성취를 문장 안에서 다뤘다 — 여기서 또 붙이면 두 번 말한다.
     if (!skippedCareType && result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
+    const closesThread = threadCloseRequested
+      || ["goodbye", "sleep", "greeting", "happy", "love", "thanks"].includes(result.intent)
+      || (result.achievementCandidate && result.responseMode !== "comfort");
+    let nextThread = closesThread ? null : activeThread;
+    if (!closesThread && CAT_EMOTION_CONTEXT.has(result.intent)) {
+      nextThread = {
+        intent: result.intent,
+        person: currentClues.person || activeThread?.person || "",
+        topic: currentClues.topic || activeThread?.topic || "",
+        remaining: 3
+      };
+    } else if (!closesThread && activeThread && (emotionFollowupLines || emotionContinuationLines)) {
+      const remaining = Math.max(0, activeThread.remaining - 1);
+      nextThread = remaining ? { ...threadForReply, remaining } : null;
+    }
     const nextMemory = {
       character: key,
       lastMood: result.mood || memory.lastMood,
@@ -759,7 +860,15 @@
       turnCount: memory.turnCount + 1,
       previousUserMessage: safeText(message),
       previousIntent: result.intent,
-      recentReplies: [...memory.recentReplies, reply].slice(-8)
+      recentReplies: [...memory.recentReplies, reply].slice(-8),
+      ...(key === "cat" ? {
+        activeThread: nextThread,
+        recentTurns: [...memory.recentTurns, {
+          user: safeText(message),
+          reply: safeText(reply, 320),
+          intent: result.intent
+        }].slice(-5)
+      } : {})
     };
     return { ...result, reply, memory: nextMemory };
   }
