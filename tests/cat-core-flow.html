@@ -105,6 +105,26 @@
         doc.querySelector('[data-view="archive"]').click();
         await until(() => doc.querySelector(`[data-record-id="${CSS.escape(String(recordId))}"]`));
         assert(Boolean(doc.querySelector(".diary-teaser.file-margin-note.sealed")), "reload preserves today's sealed diary teaser");
+
+        stored.giftHistory = [
+          { id: "gift-tuna", character: "cat", emoji: "🐟", name: "참치 캔", cost: 80, date: "2026.08.28", at: "2026-08-28T08:00:00.000Z" },
+          { id: "gift-ball", character: "cat", emoji: "🧶", name: "방울 공", cost: 55, date: "2026.08.28", at: "2026-08-28T09:00:00.000Z" },
+          { id: "gift-tower", character: "cat", emoji: "🏠", name: "캣타워", cost: 300, date: "2026.08.28", at: "2026-08-28T10:00:00.000Z" }
+        ];
+        localStorage.setItem("butlermaker_v1", JSON.stringify(stored));
+        await new Promise(resolve => {
+          appFrame.addEventListener("load", resolve, { once: true });
+          appFrame.contentWindow.location.reload();
+        });
+        doc = appFrame.contentDocument;
+        await wait(250);
+        const roomGifts = [...doc.querySelectorAll("#cat-room-gifts [data-room-gift]")];
+        assert.equal(roomGifts.length, 1, "CAT room shows only one desk toy even when several gifts are owned");
+        assert.equal(roomGifts[0].dataset.roomGift, "방울 공", "CAT room chooses the owned desk-toy gift");
+        assert.equal(roomGifts[0].dataset.deskToy, "true", "CAT room marks the displayed gift as a movable desk toy");
+        assert(!roomGifts.some(node => node.dataset.roomGift === "참치 캔" || node.dataset.roomGift === "캣타워"), "food gifts and the deferred cat tower stay out of the room scene");
+        stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
+        assert.equal(stored.giftHistory.length, 3, "hiding gifts from the room does not remove gift history");
       }
     });
   } else {
