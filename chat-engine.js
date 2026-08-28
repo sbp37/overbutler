@@ -523,6 +523,31 @@
     return CAT_STORY_FALLBACK.plain;
   }
 
+  const CAT_EMOTION_CONTEXT = new Set(["sad", "hard_day", "no_motivation", "angry", "worry"]);
+
+  function catEmotionFollowup(text, previousIntent) {
+    const value = String(text || "");
+    const lead = /회사|직장/.test(value)
+      ? "회사에서 일이 있었구냥."
+      : /친구/.test(value)
+        ? "친구랑 일이 있었구냥."
+        : /가족|집/.test(value)
+          ? "집에서 일이 있었구냥."
+          : "그런 일이 있었구냥.";
+    const feeling = previousIntent === "angry"
+      ? "화난 마음"
+      : previousIntent === "worry"
+        ? "걱정"
+        : previousIntent === "no_motivation"
+          ? "기운 없던 마음"
+          : "무거운 마음";
+    return [
+      `${lead} 그 ${feeling}이랑 이어진 이야기라면 천천히 더 말해도 된다냥.`,
+      `${lead} 그 일이 마음에 남았구냥. 말하고 싶은 만큼만 들려줘도 된다냥.`,
+      `${lead} 무엇부터 말해도 괜찮다냥. 집사가 끊지 않고 듣겠다냥.`
+    ];
+  }
+
   // 완료 행동 없이 계획만 있는 문장. 대업으로 올리지 않는다는 걸 직접 말해준다.
   const CAT_FUTURE_PLAN_ONLY = snippet => `‘${snippet}’ 소리 접수했다냥. 아직 안 한 건 대업으로 안 올린다냥. 하고 나서 다시 알려달라냥.`;
   // 완료 행동이 여러 개 잡힌 경우(ACTION_LIST). 하나만 조용히 뽑아가지 않고
@@ -690,9 +715,12 @@
     const toneShiftOverride = key === "cat" && !skippedCareType && result.toneShift;
     const futurePlanOverride = key === "cat" && !toneShiftOverride && result.intent === "fallback" && result.futurePlans?.length;
     const multiActivityOverride = key === "cat" && result.achievementCandidate && result.responseMode !== "comfort" && (result.activities?.length || 0) > 1;
+    const emotionFollowupLines = key === "cat" && result.intent === "fallback" && !result.achievementCandidate
+      && CAT_EMOTION_CONTEXT.has(memory.previousIntent)
+      ? catEmotionFollowup(result.text || message, memory.previousIntent) : null;
     const storyFallbackLines = key === "cat" && !toneShiftOverride && !futurePlanOverride && !multiActivityOverride
       && result.intent === "fallback" && !result.achievementCandidate
-      ? catStoryFallback(result.text || message) : null;
+      ? (emotionFollowupLines || catStoryFallback(result.text || message)) : null;
     // 힘든 하루 뒤의 귀가는 앞 대화를 이어받는 브릿지가 본문이다. 이것도 일반 변주로
     // 덮이면 안 된다 — home_arrival 풀이 있는 캐릭터에서 브릿지가 통째로 사라진다.
     const bridgeOverride = result.intent === "home_arrival" && hasHardDayContext;
