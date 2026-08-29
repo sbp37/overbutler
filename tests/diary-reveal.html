@@ -95,7 +95,9 @@
           await wait(450);
           assert(doc.querySelector("#view-archive").classList.contains("active"), "diary notice opens the owner file");
           const openedGroup = doc.querySelector(`.file-date-group[data-file-date="${yesterday}"]`);
-          assert(Boolean(openedGroup) && openedGroup.textContent.includes("신규 기록과 함께 있어도 공개되는 기존 일기 본문"), "diary notice renders and targets the newly opened date even outside the recent-file limit");
+          const openedDiary = openedGroup?.querySelector(".file-margin-note:not(.sealed)");
+          assert(Boolean(openedDiary) && openedDiary.textContent.includes(`${butlerName}의 일기`), "diary notice renders the newly opened date even outside the recent-file limit");
+          assert(openedDiary.classList.contains("diary-open-target"), "diary notice highlights the actual opened diary sheet instead of only the date group");
         } else {
           doc.querySelector('[data-view="archive"]').click();
           await wait(50);

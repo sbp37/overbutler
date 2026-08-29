@@ -2320,7 +2320,11 @@
     showView("archive");
     window.setTimeout(() => {
       const group = document.querySelector(`.file-date-group[data-file-date="${CSS.escape(date)}"]`);
-      group?.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      const diary = group?.querySelector(".file-margin-note:not(.sealed)") || group?.querySelector(".file-margin-note");
+      if (!diary) return;
+      diary.classList.add("diary-open-target");
+      diary.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      window.setTimeout(() => diary.classList.remove("diary-open-target"), 1800);
     }, 380);
   }
 

@@ -531,6 +531,7 @@
    그날 기록에 종속돼 보이게 하고, 살짝 기울여 붙인 종이처럼 둔다. */
 #view-archive .file-margin-note {
   position: relative;
+  scroll-margin-block: 92px;
   margin: 0 0 4px 44px;
   padding: 11px 13px 10px;
   border: 1px solid #e6d6b4;
@@ -538,6 +539,10 @@
   background: var(--memo);
   box-shadow: 2px 2.5px 0 rgba(45, 35, 22, .08);
   transform: rotate(-.5deg);
+}
+#view-archive .file-margin-note.diary-open-target {
+  border-color: rgba(157, 47, 58, .45);
+  box-shadow: 0 0 0 3px rgba(157, 47, 58, .08), 2px 2.5px 0 rgba(45, 35, 22, .08);
 }
 /* 위쪽에 붙인 테이프 조각 */
 #view-archive .file-margin-note:before {
@@ -4914,7 +4919,7 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
 .owner-story-bundle summary {
   display: flex;
   align-items: center;
-  min-height: 42px;
+  min-height: 44px;
   padding: 8px 11px;
   color: var(--ink-soft);
   cursor: pointer;
@@ -4933,7 +4938,8 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
   #view-home .daily-briefing { margin-right: 12px; margin-left: 12px; padding-left: 15px; }
   #view-home .daily-briefing-toggle { right: 57px; }
   .briefing-item-reaction { grid-column: 1 / -1; }
-  .owner-story-bundle { margin-left: 34px; }
+  .owner-story-bundle { margin-right: 0; margin-left: 24px; }
+  .owner-story-bundle summary { padding-inline: 10px; }
 }
 @media (max-width: 430px) {
   .briefing-editor-overlay { place-items: start center; padding: max(8px, env(safe-area-inset-top)) 8px 8px; }
