@@ -56,6 +56,9 @@
         assert.equal(win.OVERBUTLER_APP.displayGrade(migrated.records[0]), "사무국 정식 대업", "CAT normal grade uses office display wording");
         assert.equal(win.OVERBUTLER_APP.displayGrade(migrated.records[1]), "과몰입 특별 대업", "CAT power grade uses office display wording");
         assert.equal(migrated.certificates.length, 0, "legacy keepsakes stay out of official certificates");
+        doc.querySelector('[data-view="manager"]').click();
+        await wait(30);
+        assert.equal(doc.querySelectorAll("#manager-roster .sealed-doc").length, 0, "future butlers outside the active unlock queue stay hidden");
         doc.querySelector('[data-view="archive"]').click();
         await wait(50);
         assert.equal(doc.querySelector("#records-official-count").textContent, "0", "official summary matches migrated certificates");

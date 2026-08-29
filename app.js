@@ -109,7 +109,7 @@
     },
     cat: {
       name: "고양이 집사", defaultName: "치즈냥", emoji: "🐱", voice: "cat", desc: "첫 주인님을 맡아 꼼꼼히 배우는 신입 집사", personality: "반듯한 신입 성장형", specialty: "작은 이야기도 정성껏 대업으로 접수",
-      briefings: ["왔냥? 주인님 자리 준비해뒀다냥. 오늘도 잘 맡아보겠다냥.", "오늘 들어온 건 아직 없다냥. 작은 이야기 하나부터 잘 듣겠다냥.", "주인님 왔냥. 쉬면서 말할 수 있게 자리부터 정리해뒀다냥."],
+      briefings: ["왔냥? 주인님 파일은 꺼내뒀다냥. 오늘 이야기도 잘 맡겠다냥.", "오늘 들어온 건 아직 없다냥. 작은 이야기 하나부터 잘 듣겠다냥.", "주인님 왔냥. 쉬면서 말할 수 있게 자리부터 정리해뒀다냥."],
       // 웃음은 볼륨이 아니라 "사무국이 이런 걸 굳이 공식 대업으로 올린다"는 부조리와
       // 첫 주인님을 잘 맡고 싶어 하는 신입의 진지함에서 나온다. 단계가 오를수록
       // 주인님과 함께 일하며 인정받는 성장도 자연스럽게 드러난다.
@@ -2262,8 +2262,8 @@
         : `${archiveCatName}${agreeParticle(archiveCatName, "과")} 함께 쓴 기록 · 언제든 열람 가능`
       : `${CHARACTER_PROFILES[state.character].name} 작성 · 언제든 열람 가능`;
     $("#view-archive .owner-file-record-jump").textContent = firstCatRecord
-      ? "첫 기록 바로 보기 ↓"
-      : "기록 목록 보기 ↓";
+      ? "첫 기록으로 이동 ↓"
+      : "기록 목록으로 이동 ↓";
 
     // 표지에는 누가 언제 연 파일인지가 적힌다. 개설일은 가장 오래된 기록의 날짜다.
     const opened = [...state.records].map(record => record.date).filter(Boolean).sort()[0] || today();
@@ -3862,7 +3862,9 @@
     // 진열 순서: 무료 해금 큐(AI)가 먼저, 그 뒤로 요건이 정의된 예정 인력.
     // 유료 채용 예정 인력에게 "N 남음"을 쓰면 무료 해금 약속이 되므로,
     // 진행 조건은 무료 큐에만 적고 나머지는 "추후 공고"로 둔다.
-    const preview = [...new Set([...APPLICANT_ORDER, ...Object.keys(APPLICANT_REQUIREMENTS)])]
+    // 아직 제작 차례가 오지 않은 집사까지 한 화면에 늘어놓으면 CAT의 관계 기록보다
+    // 미완성 캐릭터 카탈로그가 먼저 보인다. 실제 무료 해금 순서의 지원서만 예고한다.
+    const preview = APPLICANT_ORDER
       .filter(key => !state.ownedButlers.includes(key) && !state.pendingApplicants.includes(key));
     const rows = preview.map(key => {
       const freeQueue = APPLICANT_ORDER.includes(key);
@@ -3883,16 +3885,6 @@
         </span>
       </div>`;
     });
-    // 마지막 한 장은 조건도 발신인도 밝히지 않는다. 사무국에도 모르는 서류가 있다.
-    rows.push(`<div class="sealed-doc">
-      <span class="sealed-band">봉인</span>
-      <span class="sealed-envelope" aria-hidden="true"><i>封</i></span>
-      <span class="sealed-copy">
-        <b>인사 서류 · 미개봉</b>
-        <small>발신인 불명 · 봉투가 가끔 움직임</small>
-        <em>개봉 조건 · ???</em>
-      </span>
-    </div>`);
     return rows.join("");
   }
 
