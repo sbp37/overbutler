@@ -57,6 +57,29 @@ const sadnessAfterPain = chat.respond("cat", "우울해", painBeforeSadness.memo
 assert.match(sadnessAfterPain.reply, /^우울하구냥/);
 assert.doesNotMatch(sadnessAfterPain.reply, /몸이 불편했던 이야기/);
 
+let changingCareMemory = {};
+const changingCareReplies = [];
+for (const input of ["슬퍼", "배 아파", "우울해", "오늘 아무것도 못했어"]) {
+  const response = chat.respond("cat", input, changingCareMemory, 0);
+  changingCareReplies.push(response.reply);
+  changingCareMemory = response.memory;
+}
+assert.equal(new Set(changingCareReplies).size, 4);
+assert.match(changingCareReplies[0], /^슬프구냥/);
+assert.match(changingCareReplies[1], /배가 아프구냥|속이 불편하구냥|배가 불편하구냥/);
+assert.match(changingCareReplies[2], /^우울하구냥|^마음이 가라앉아|^우울한 마음/);
+assert.match(changingCareReplies[3], /^아무것도 못 한 날도 있다냥|^오늘 못 한 건/);
+changingCareReplies.forEach(reply => assert.doesNotMatch(reply, /이 대목은 두 번 읽었|접수는 끝났/));
+
+let repeatedSadMemory = {};
+const repeatedSadReplies = [];
+for (let index = 0; index < 3; index += 1) {
+  const response = chat.respond("cat", "슬퍼", repeatedSadMemory, index / 4);
+  repeatedSadReplies.push(response.reply);
+  repeatedSadMemory = response.memory;
+}
+assert.equal(new Set(repeatedSadReplies).size, 3);
+
 const noAction = chat.respond("cat", "오늘 아무것도 못했어", {}, 0);
 assert.equal(noAction.intent, "no_motivation");
 assert.match(noAction.reply, /^아무것도 못 한 날도 있다냥/);

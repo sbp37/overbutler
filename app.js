@@ -2336,9 +2336,7 @@
     // 첫 발령에는 아직 방 흔적이 없으므로 억지 보상을 만들지 않는다.
     const traceNote = $("#relationship-stage-trace");
     const trace = normalizeCharacter(state.character) === "cat" ? CAT_ROOM_TRACES[stageIndex] : null;
-    const traceLabel = trace?.key === "plate" && !state.deskPlate
-      ? "전담 명패 선택 대기"
-      : trace?.label || "";
+    const traceLabel = trace?.key === "plate" && !state.deskPlate ? "전담 명패 선택 대기" : trace?.label || "";
     traceNote.hidden = !traceLabel;
     traceNote.textContent = traceLabel ? `방에 남은 흔적 · ${traceLabel}` : "";
     // 100점 눈금은 화면에 내보내지 않는다. 남은 거리는 주인님이 실제로 하는 일
@@ -2406,6 +2404,13 @@
     message.textContent = upgraded
       ? relationshipStageLine(state.character, after) || templateOwner(currentStage.upgrade)
       : "";
+    const traceNote = $(`#${prefix}-relationship-trace`);
+    if (traceNote) {
+      const trace = isCat && upgraded ? CAT_ROOM_TRACES[nextIndex] : null;
+      const traceLabel = trace?.key === "plate" && !state.deskPlate ? "전담 명패 고르기" : trace?.label || "";
+      traceNote.hidden = !traceLabel;
+      traceNote.textContent = traceLabel ? `새 방 흔적 · ${traceLabel}` : "";
+    }
   }
 
   /* ── 해금 알림점 ──
@@ -6088,8 +6093,10 @@
     if (footnote) {
       footnote.textContent = interaction.type === "rare"
         ? "집사가 감사 편지를 써서 주인님 파일에 넣어뒀습니다."
-        : state.character === "cat"
-          ? "보낸 선물은 집사 책상 위에 올라갑니다. 사무국에서 확인해보세요."
+      : state.character === "cat"
+        ? CAT_DESK_TOY_INDEXES.includes(index)
+          ? "고양이가 꺼내둔 장난감은 집사 방에서 볼 수 있습니다."
+          : "보낸 선물은 집사의 선물 기록에 잘 보관됩니다."
           : "선물 내역과 집사별 과몰입도는 담당 기록에 보존됩니다.";
     }
     closeGiftDesk();
