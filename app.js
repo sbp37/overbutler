@@ -2939,10 +2939,16 @@
   }
 
   function ownerFileJournalMarkup(entry) {
-    return `<article class="owner-story-note">
-      <small>내가 들려준 이야기</small>
-      <blockquote>“${escapeHtml(entry.sourceText)}”</blockquote>
-    </article>`;
+    return `<li class="owner-story-note">“${escapeHtml(entry.sourceText)}”</li>`;
+  }
+
+  function ownerFileJournalBundleMarkup(entries) {
+    if (!entries?.length) return "";
+    const stories = entries.slice().reverse().map(ownerFileJournalMarkup).join("");
+    return `<details class="owner-story-bundle">
+      <summary><span>내가 들려준 이야기</span><b>${entries.length}건</b><small></small></summary>
+      <ul>${stories}</ul>
+    </details>`;
   }
 
   // 최근 14일 그룹만 먼저 그린다. 기록이 쌓여도 진입 시 한 번에 다 그리지 않는다.
@@ -3054,12 +3060,12 @@
       if (thisRank > keptRank) kept.record = record;
     });
     const cards = collapsed.map(entry => ownerFileRecordCard(entry.record, officialIds, entry.repeatCount)).join("");
-    const stories = (group.journalEntries || []).slice().reverse().map(ownerFileJournalMarkup).join("");
+    const stories = ownerFileJournalBundleMarkup(group.journalEntries || []);
     const letters = (group.giftLetters || []).map(giftLetterMarkup).join("");
     const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
     return `<section class="file-date-group" data-file-date="${escapeHtml(group.date)}" aria-label="${escapeHtml(group.date)} 기록">
       <div class="file-date-divider"><span>${escapeHtml(ownerFileDateLabel(group.date))}</span></div>
-      ${stories}${cards}${letters}${notes}
+      ${notes}${cards}${letters}${stories}
     </section>`;
   }
 

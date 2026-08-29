@@ -51,7 +51,13 @@
 
         doc.querySelector('[data-view="archive"]').click();
         await wait(50);
-        assert(doc.querySelector(".owner-story-note").textContent.includes("병원은 생각보다 힘들었어"), "owner file shows the non-achievement story");
+        const storyBundle = doc.querySelector(".owner-story-bundle");
+        assert(Boolean(storyBundle) && !storyBundle.open, "owner file keeps non-achievement stories collapsed by default");
+        assert(storyBundle.querySelector("summary").textContent.includes("내가 들려준 이야기") && storyBundle.querySelector("summary").textContent.includes("1건"), "collapsed story row shows its clear count");
+        storyBundle.open = true;
+        assert(storyBundle.querySelector(".owner-story-note").textContent.includes("병원은 생각보다 힘들었어"), "owner file preserves the exact story inside the fold");
+        const diaryNote = doc.querySelector(".file-date-group .file-margin-note");
+        assert(Boolean(diaryNote) && Boolean(diaryNote.compareDocumentPosition(storyBundle) & Node.DOCUMENT_POSITION_FOLLOWING), "butler diary appears before the folded owner stories");
       }
     });
   } else {
