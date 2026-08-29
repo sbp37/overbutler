@@ -91,9 +91,15 @@
           const openNote = doc.querySelector("#diary-open-note");
           assert(!openNote.hidden && doc.querySelector("#diary-open-title").textContent.includes("어제 일기"), "CAT home announces the newly available diary");
           assert(doc.querySelector("#diary-open-sub").textContent.includes("적어둔 일기") && doc.querySelector("#diary-open-sub").textContent.includes("열어보기"), "CAT diary notice uses clear reading language");
+          openNote.click();
+          await wait(450);
+          assert(doc.querySelector("#view-archive").classList.contains("active"), "diary notice opens the owner file");
+          const openedGroup = doc.querySelector(`.file-date-group[data-file-date="${yesterday}"]`);
+          assert(Boolean(openedGroup) && openedGroup.textContent.includes("신규 기록과 함께 있어도 공개되는 기존 일기 본문"), "diary notice renders and targets the newly opened date even outside the recent-file limit");
+        } else {
+          doc.querySelector('[data-view="archive"]').click();
+          await wait(50);
         }
-        doc.querySelector('[data-view="archive"]').click();
-        await wait(50);
         const mixedNote = [...doc.querySelectorAll(".file-margin-note")]
           .find(note => note.textContent.includes("신규 기록과 함께 있어도 공개되는 기존 일기 본문"));
         assert(Boolean(mixedNote), "mixed same-day group keeps the legacy reflection visible");

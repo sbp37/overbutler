@@ -79,6 +79,7 @@
         const recordId = stored.records[0].id;
         const recordCard = doc.querySelector(`[data-record-id="${CSS.escape(String(recordId))}"]`);
         assert(Boolean(recordCard), "owner file renders the new record card");
+        assert(!recordCard.textContent.includes("맡긴 첫 이야기"), "record list does not repeat the full butler reaction");
         recordCard.click();
         await until(() => !doc.querySelector("#record-detail-overlay").hidden);
         assert.equal(doc.querySelector("#record-detail-source").textContent, "씻었어", "record detail shows exact sourceText");

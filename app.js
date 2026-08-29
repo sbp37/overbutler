@@ -2313,6 +2313,10 @@
     state.diaryOpenedDates = [...new Set([...(state.diaryOpenedDates || []), ...past])].slice(-60);
     saveState();
     renderDiaryOpenNote();
+    // 개봉 통지가 가리키는 날짜가 최근 표시 범위 밖에 있으면 해당 그룹 자체가
+    // DOM에 없어 스크롤할 곳이 없었다. 통지를 눌렀을 때만 이전 기록을 펼쳐서
+    // 실제 공개된 일기까지 한 번에 이어준다.
+    ownerFileExpanded = true;
     showView("archive");
     window.setTimeout(() => {
       const group = document.querySelector(`.file-date-group[data-file-date="${CSS.escape(date)}"]`);
@@ -2935,12 +2939,9 @@
   }
 
   function ownerFileJournalMarkup(entry) {
-    const butlerName = storedText(entry.butlerName || entry.butler?.name, "담당 집사");
-    const reaction = Array.isArray(entry.reactionLines) ? entry.reactionLines.filter(Boolean).slice(0, 1)[0] : "";
     return `<article class="owner-story-note">
       <small>내가 들려준 이야기</small>
       <blockquote>“${escapeHtml(entry.sourceText)}”</blockquote>
-      ${reaction ? `<p><b>${escapeHtml(butlerName)}</b> ${escapeHtml(reaction)}</p>` : ""}
     </article>`;
   }
 
@@ -3008,7 +3009,7 @@
     const sourceText = storedText(record.sourceText).trim();
     const contextLine = sourceText && normalizeDeed(sourceText) !== normalizeDeed(record.deed)
       ? sourceText
-      : storedText(record.report || displayGrade(record), "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
+      : storedText(record.discoveredAchievement || displayGrade(record), "기록 상세에서 당시 이야기를 확인할 수 있습니다.");
     // 공식 인정 건은 도장 자체가 인증서 진입로다(진입로 2). 카드 상세와 겹치지 않게 버튼으로 둔다.
     const approvalAction = `<button class="record-cert-stamp" type="button" data-cert-id="${escapeHtml(String(record.id))}" aria-label="${escapeHtml(record.deed)} 공식 인증서 열기">공식<br>인정</button>`;
     // 칭호는 해시태그가 아니라 수여된 이름이다. 공문 서체로 적어야 그 무게가 산다.
