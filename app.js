@@ -169,12 +169,12 @@
          태도는 반드시 첫 종결부호(. ! ?) 앞에 들어가야 한다 — 뒤에 두면 화면에서
          잘린다. 사무 정보와 태도를 한 문장에 묶을 때는 마침표 대신 …를 쓴다. */
       praise: [
-        ["{deed}… 잘 들었다냥. 작은 이야기라도 집사가 반듯하게 올려두겠다냥.", "{deed} 접수다냥. 주인님 이야기는 집사가 제대로 맡겠다냥.", "{deed}… 사소해도 괜찮다냥. 오늘 장부의 중요한 한 줄이다냥.", "{deed} 해냈냥. 집사가 정성 들여 기록해두겠다냥."],
-        ["{deed}라니, 좀 대단하긴 하네냥… 아주 조금이다냥.", "{deed} 접수… 이제 주인님 글씨는 안 보고도 알겠다냥.", "오늘은 {deed}냥… 나쁘지 않다냥, {owner}. 도장은 벌써 찍어뒀다냥.", "{deed} 넣었다냥… 서식 어디에 적는지 이제 안 찾아본다냥."],
-        ["{deed} 접수했다냥… 방금 두 번 읽었다냥. 왜인지는 모른다냥.", "{deed} 또 올라왔다냥… 장부에 벌써 몇 번째다냥. 장부가 그렇다는 거다냥.", "{deed} 확인… 도장은 찍었는데 서류는 아직 못 덮겠다냥.", "{deed}… 도장을 두 번 찍었다냥. 한 번은 실수다냥. 두 번째는 모르겠다냥."],
-        ["{deed}… 접수 칸만 미리 펴 뒀다냥. 내용은 방금 알았다냥.", "{deed} 결재 올렸다냥… 접수되자마자 손이 먼저 갔다냥.", "{deed}… 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥.", "{deed}… 펜을 떨어뜨렸다냥. 주웠다냥. 아무 일 없었다냥."],
-        ["{deed} 먼저 처리했다냥… 접수되자마자 손이 갔다냥.", "{deed}… 오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥… 사무국엔 일반 건으로 올렸다냥. 실제로는 아니다냥.", "{deed}… 귀가 먼저 섰다냥. 몸이 그런 걸 집사가 어쩌겠냥."],
-        ["{deed}… 이건 전담 서류함에 들어간다냥. 그 함은 집사가 관리한다냥.", "{deed} 접수했다냥… 대기 발령 규정도 읽어뒀다냥. 기록은 그대로 남는다냥.", "{deed}… 다음 담당도 잘 보라고 표시해뒀다냥. 업무상이다냥.", "{deed} 도장 찍었다냥… 인계 목록 맨 위에 올려뒀다냥. 중요 표시도 해뒀다냥."],
+        ["{deed}… 잘 들었다냥. 작은 이야기라도 집사가 반듯하게 올려두겠다냥.", "{deed} 접수다냥. 주인님 이야기는 집사가 제대로 맡겠다냥.", "{deed}… 사소해도 괜찮다냥. 오늘 장부의 중요한 한 줄이다냥.", "{deed} 해냈냥. 집사가 정성 들여 기록해두겠다냥.", "{deed} 접수했다냥. 서식대로 처리하겠다냥.", "{deed}… 오늘 장부 첫 줄에 올렸다냥. 순서는 접수순이라냥.", "{deed} 확인했다냥. 이런 것도 기록으로 남는 게 규정이다냥.", "{deed}… 작은 건이라고 대충 적지는 않는다냥."],
+        ["{deed}라니, 좀 대단하긴 하네냥… 아주 조금이다냥.", "{deed} 접수… 이제 주인님 글씨는 안 보고도 알겠다냥.", "오늘은 {deed}냥… 나쁘지 않다냥, {owner}. 도장은 벌써 찍어뒀다냥.", "{deed} 넣었다냥… 서식 어디에 적는지 이제 안 찾아본다냥.", "{deed}… 이제 주인님 서류는 손에 익었다냥.", "{deed} 접수다냥. 어디에 넣을지 이제 안 헤맨다냥.", "{deed}… 오늘도 왔구냥. 서식은 미리 꺼내뒀다냥.", "{deed} 확인했다냥. 나쁘지 않은 하루라냥."],
+        ["{deed} 접수했다냥… 방금 두 번 읽었다냥. 왜인지는 모른다냥.", "{deed} 또 올라왔다냥… 장부에 벌써 몇 번째다냥. 장부가 그렇다는 거다냥.", "{deed} 확인… 도장은 찍었는데 서류는 아직 못 덮겠다냥.", "{deed}… 도장을 두 번 찍었다냥. 한 번은 실수다냥. 두 번째는 모르겠다냥.", "{deed}… 서류를 덮었다가 다시 폈다냥. 확인은 끝났는데도 그랬다냥.", "{deed} 접수… 이 건은 유독 손이 오래 갔다냥. 이유는 모르겠다냥.", "{deed}… 장부에 적고 한참 봤다냥. 그냥 봤다냥.", "{deed} 처리 완료다냥… 도장 위치를 세 번 재봤다냥."],
+        ["{deed}… 접수 칸만 미리 펴 뒀다냥. 내용은 방금 알았다냥.", "{deed} 결재 올렸다냥… 접수되자마자 손이 먼저 갔다냥.", "{deed}… 그냥 넘겨도 되는데 굳이 도장을 꺼냈다냥.", "{deed}… 펜을 떨어뜨렸다냥. 주웠다냥. 아무 일 없었다냥.", "{deed}… 접수 전에 이미 자리를 비워뒀다냥. 우연이라냥.", "{deed} 결재 올렸다냥… 오늘은 이 건을 기다린 것 같기도 하다냥.", "{deed}… 서류함에 넣기 전에 한 번 더 읽었다냥.", "{deed} 확인했다냥… 펜을 미리 들고 있었다냥. 업무 습관이라냥."],
+        ["{deed} 먼저 처리했다냥… 접수되자마자 손이 갔다냥.", "{deed}… 오늘 것도 따로 챙겨뒀다냥. {owner} 기록은 그냥 못 넘기겠다냥.", "{deed} 접수 완료다냥… 사무국엔 일반 건으로 올렸다냥. 실제로는 아니다냥.", "{deed}… 귀가 먼저 섰다냥. 몸이 그런 걸 집사가 어쩌겠냥.", "{deed}… 오늘 것부터 봤다냥. 순서는 집사가 정한다냥.", "{deed} 접수 완료다냥… 다른 서류는 뒤로 미뤘다냥.", "{deed}… 이 건은 집사 손에서 안 놓는다냥.", "{deed} 처리했다냥… {owner} 서류라 그런 건 아니라냥. 아마도 아니라냥."],
+        ["{deed}… 이건 전담 서류함에 들어간다냥. 그 함은 집사가 관리한다냥.", "{deed} 접수했다냥… 대기 발령 규정도 읽어뒀다냥. 기록은 그대로 남는다냥.", "{deed}… 다음 담당도 잘 보라고 표시해뒀다냥. 업무상이다냥.", "{deed} 도장 찍었다냥… 인계 목록 맨 위에 올려뒀다냥. 중요 표시도 해뒀다냥.", "{deed}… 전담 서류함 맨 앞이다냥. 그 함 열쇠는 집사가 갖고 있다냥.", "{deed} 접수했다냥… 이 자리를 계속 맡고 싶다는 건 규정에 없는 말이라냥.", "{deed}… 다음 담당이 와도 이 건 순서는 안 바꾸게 적어뒀다냥.", "{deed} 확인했다냥… 오래 맡은 서류일수록 함부로 못 넘긴다냥."],
       ],
       handover: "인계 서류 확인했다냥. 기록은 빠짐없이 받았다냥. 잘 부탁한다냥."
     },
@@ -1667,6 +1667,11 @@
     OfficeSound.cue("stampTiny");
   }
   function today() { return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).replace(/\. /g, ".").replace(/\.$/, ""); }
+  // 바로 전날. 여러 곳에서 같은 포맷을 다시 만들고 있었다.
+  function yesterdayKey() {
+    return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
+      .format(new Date(Date.now() - 86400000)).replace(/\. /g, ".").replace(/\.$/, "");
+  }
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
   // 해석기가 만든 기록명은 이미 "…완료" 같은 완결형인 경우가 많다.
   // 칭찬 템플릿의 어미와 겹치면 "발표 완료 완료!!"가 되므로 한쪽을 정리한다.
@@ -2809,6 +2814,60 @@
     return labels;
   }
 
+  /* ── 어제와 오늘을 잇는 한 줄 ──
+     일기가 그날 안에서만 쓰이면 "기록해주는 앱"에서 멈춘다. 어제 힘들다고 한
+     사람이 오늘 뭔가 해냈다는 걸 집사가 먼저 알아보면, 거기서부터 "지켜봐 주는
+     존재"가 된다. 이 앱이 파는 것이 그것이다.
+
+     경계가 하나 있다. **바로 전날에 기록이 있을 때만** 잇는다. 공백을 건너뛰어
+     "며칠 만이네"로 이으면 그건 기억이 아니라 출석 감시가 된다(AGENTS.md 넘지
+     않는 선). 어제가 비어 있으면 이 줄은 아예 나오지 않는다.
+
+     어제가 힘들었던 경우에만 낸다. 어제 좋았다가 오늘 좋은 건 이어봐야 할 말이
+     없고, 매일 이으면 그것대로 장치가 된다. */
+  const CAT_DIARY_BRIDGE = Object.freeze({
+    // 어제 힘들었고 → 오늘 뭔가 해냄
+    lifted: {
+      tired: ["어제 많이 힘들다고 했는데, 오늘은 {action}까지 했다냥", "어제 지쳐 있던 사람이 오늘 {action}을 해냈다냥"],
+      sad: ["어제 마음이 가라앉았다고 했는데, 오늘은 {action}까지 했다냥", "어제 힘들어하던 사람이 오늘 {action}을 해냈다냥"],
+      low: ["어제 아무것도 하기 싫다고 했는데, 오늘은 {action}을 했다냥", "어제 손도 안 움직인다던 사람이 오늘 {action}까지 했다냥"],
+      angry: ["어제 화가 많이 났다고 했는데, 오늘은 {action}까지 챙겼다냥", "어제 그 일이 있고도 오늘 {action}을 해냈다냥"],
+      worried: ["어제 걱정이 많다고 했는데, 오늘은 {action}까지 했다냥", "어제 마음이 복잡하다던 사람이 오늘 {action}을 해냈다냥"]
+    },
+    // 어제 힘들었고 → 오늘도 그런 날. 재촉하지 않는다.
+    stillHeavy: [
+      "어제도 힘들다고 했다냥. 오늘도 그렇다면 오늘은 아무것도 안 해도 된다냥",
+      "어제 마음이 무겁다던 게 오늘까지 온 것 같다냥. 집사는 그냥 옆에 있겠다냥",
+      "어제부터 힘든 게 이어지는 것 같다냥. 서두르지 않아도 된다냥"
+    ]
+  });
+
+  function catDiaryBridge(entries, ownerName) {
+    if (normalizeCharacter(entries.at(-1)?.butler?.character || entries.at(-1)?.character) !== "cat") return "";
+    const date = entries.at(-1)?.date;
+    // 오늘 쓰는 일기일 때만 잇는다. 지난 날짜를 다시 계산하는 경우까지 잇지 않는다.
+    if (!date || date !== today()) return "";
+    const butlerName = entries.at(-1)?.butler?.name || entries.at(-1)?.butlerName || "";
+    const previous = (state.diary || []).filter(entry =>
+      entry.date === yesterdayKey()
+      && normalizeCharacter(entry.butler?.character || entry.character) === "cat"
+      && (entry.butler?.name || entry.butlerName || "") === butlerName);
+    if (!previous.length) return "";
+    const previousMood = dominantDiaryMood(previous);
+    if (!CAT_DIARY_BRIDGE.lifted[previousMood]) return "";
+    const owner = ownerName || ownerDisplayName();
+    const seed = `${date}|bridge|${previousMood}`.split("").reduce((total, char) => total + char.charCodeAt(0), 0);
+    const todayMood = dominantDiaryMood(entries);
+    const labels = diaryActionLabels(entries);
+    if (!labels.length || CAT_DIARY_BRIDGE.lifted[todayMood]) {
+      const pool = CAT_DIARY_BRIDGE.stillHeavy;
+      return speak(pool[seed % pool.length], "cat");
+    }
+    const pool = CAT_DIARY_BRIDGE.lifted[previousMood];
+    const action = actionPhrase(labels[0]).noun;
+    return speak(fillContentTemplate(pool[seed % pool.length], { action, owner }), "cat");
+  }
+
   function diaryReflection(character, entries, ownerName = entries.at(-1)?.ownerName || ownerDisplayName()) {
     const key = normalizeCharacter(character);
     const voice = DIARY_VOICE[key] || DIARY_VOICE.ai;
@@ -2837,6 +2896,10 @@
     } else if (moodKey !== "neutral" || !phrases.length) {
       sentences.push(speak(voice.moodAlone[moodKey] || voice.moodAlone.neutral, key));
     }
+    // 어제를 잇는 줄은 오늘 이야기 뒤, 사무국 소식 앞이다. 하루를 다 적은 다음에
+    // 고개를 드는 순서라야 "생각났다"로 읽힌다.
+    const bridge = key === "cat" ? catDiaryBridge(entries, owner) : "";
+    if (bridge) sentences.push(bridge);
     // 사무국 소식은 마무리 인사 앞에 넣는다. 인사로 끝나야 일기가 닫힌다.
     const news = officeNewsFor(entries, entries.at(-1)?.butlerName, seed);
     if (news) sentences.push(news);
