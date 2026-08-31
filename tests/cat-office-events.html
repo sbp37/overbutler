@@ -1,0 +1,55 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CAT office events fixture</title>
+<body>
+<script src="fixture-assertions.js"></script>
+<script>
+  /* 사무국 행사 계약 — 창이 지나면 확인서가 남고, 결과는 갈리지 않으며,
+     사용자가 놓쳐도 벌이 없고, 기록이 없으면 있지도 않은 공을 적지 않는다.
+     시계를 감사 창(9월 말) 직후로 고정한 채 앱을 띄운다. */
+  const FIXED = "2026-10-02T10:00:00";
+  const records = [
+    { id: "e1", deed: "생활권 질서 회복 완료", sourceText: "방청소 했어", nickname: "생활력의 수호자", grade: "국가적 성취", date: "2026.09.28", number: 1, report: "접수다냥.", character: "cat", category: "home" },
+    { id: "e2", deed: "생활 문명 복구: 씻기 완료", sourceText: "씻었어", nickname: "청결 문명의 수호자", grade: "국가적 성취", date: "2026.10.01", number: 2, report: "접수다냥.", character: "cat", category: "hygiene" }
+  ];
+  const seed = {
+    onboarded: true, username: "테스트", character: "cat", butlerName: "치즈냥",
+    ownedButlers: ["cat"], records, diary: [], journalEntries: [], certificates: [], giftHistory: []
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (new URLSearchParams(location.search).has("assert")) {
+    runFixtureAssertions({
+      target: `../index.html?fixture-no-overlay-observer=1&fixture-now=${encodeURIComponent(FIXED)}`,
+      check: async (frame, assert, wait) => {
+        const win = frame.contentWindow;
+        await wait(150);
+        const doc = frame.contentDocument;
+
+        const stored = () => JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        const events = stored().officeEvents || [];
+        assert(events.length >= 1, "a passed audit window leaves a settlement record");
+        const audit = events.find(item => item.key === "audit");
+        assert(Boolean(audit), "the quarterly audit is the settled event");
+        assert.equal(audit.thickness, 2, "the certificate cites the file that carried the butler");
+
+        doc.querySelector('.bottom-nav [data-view="archive"]').click();
+        await wait(150);
+        const note = doc.querySelector(".office-event-note");
+        assert(Boolean(note), "the settlement stands in the file as an office notice");
+        assert(note.textContent.includes("통과"), "the audit result never fails the owner");
+        assert(!/스트릭|연속|며칠|빠짐|출석/.test(note.textContent), "the notice never counts attendance");
+
+        // 같은 회차가 두 번 쌓이지 않는다
+        win.location.reload();
+        await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
+        await wait(200);
+        const after = (JSON.parse(win.localStorage.getItem("butlermaker_v1")).officeEvents || [])
+          .filter(item => item.key === "audit" && item.period === audit.period);
+        assert.equal(after.length, 1, "revisiting does not stack the same occurrence");
+      }
+    });
+  } else {
+    location.replace("../index.html");
+  }
+</script>
+</body>
