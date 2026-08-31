@@ -2318,7 +2318,7 @@
     const topCounted = cover.topCategory && cover.thickness >= 3 && cover.topCategory.count >= 2;
     $("#owner-file-top").textContent = topCounted
       ? `${cover.topCategory.label} · ${cover.topCategory.count}건`
-      : cover.thickness ? "같은 분야 2건부터 집계" : "아직 없음";
+      : cover.thickness ? "같은 분야 2건부터" : "아직 없음";
     $("#owner-file-official").textContent = cover.officialCount;
     $("#owner-file-remark").textContent = firstCatRecord
       ? "주인님이 맡긴 첫 장이다냥. 잘하고 싶어서 제일 좋은 표지를 골랐다냥."
@@ -2367,8 +2367,10 @@
     $("#diary-open-title").textContent = normalizeCharacter(state.character) === "cat"
       ? `${alias}의 ${date === yesterday ? "어제 일기" : "일기"}가 도착했습니다`
       : date === yesterday ? "어제 일기가 개봉됐습니다" : "봉인됐던 일기가 개봉됐습니다";
+    // 제목이 이미 「치즈냥의 어제 일기」라고 말한다. 부제까지 이름을 반복하면
+    // 한 카드에서 같은 말이 두 번 — 부제는 동작만 말한다.
     $("#diary-open-sub").textContent = normalizeCharacter(state.character) === "cat"
-      ? `${withParticle(alias, "이", "가")} ${date === yesterday ? "어제" : date.slice(5)} 적어둔 일기 · 열어보기 →`
+      ? `${date === yesterday ? "어제" : date.slice(5) + "에"} 적어둔 일기 · 열어보기 →`
       : `${withParticle(alias, "이", "가")} ${date === yesterday ? "어제" : date.slice(5)} 적어둔 소견 · 열람 →`;
   }
 

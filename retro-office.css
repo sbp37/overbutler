@@ -636,14 +636,30 @@
 
 /* 필터 칩이 탭 자리를 물려받았다 — 표지 바로 아래 맨 위로 올린다.
    검색은 기존 order 원칙대로 하단에 그대로 둔다(설계: 검색 하단 유지). */
-#view-archive[data-archive-mode="records"] #archive-records > .record-filters {
+/* 칩이 검색 상자 안으로 합쳐지는 리팩터링 때 이 규칙의 대상(.record-filters)이
+   사라져서, 칩이 검색과 함께 목록 아래로 가라앉았다. 지금 칩의 실제 클래스로
+   되돌린다 — 설계는 그대로다: 칩은 표지 바로 아래, 검색은 하단. */
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter {
   order: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   margin: 0 0 12px;
   padding-top: 0;
   border-top: 0;
 }
-#view-archive[data-archive-mode="records"] #archive-records > .record-filters:before { content: none; }
-#view-archive[data-archive-mode="records"] #archive-records > .record-filters button {
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter > span {
+  flex: none;
+  color: var(--ink-faint);
+  font: 800 10px/1 var(--disp);
+  letter-spacing: .08em;
+}
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter .record-grade-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter button {
   min-height: 40px;
   padding: 0 13px;
   font-size: 12px;
@@ -5908,4 +5924,52 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
   left: 8px;
   width: 0;
   border-left: 2px dashed rgba(83, 69, 51, .4);
+}
+
+
+/* ═══════════ 시각 정돈 라운드 (2026-08-31) ═══════════ */
+
+/* 접수 버튼 부제가 자간 .18em로 부풀어 점선 틀에 눌려 있었다. 자간을 낮추고
+   위아래 숨통을 튼다 — 부제는 읽히면 되지, 눌리면 안 된다. */
+#view-home .report-button small {
+  margin-top: 4px;
+  font-size: 8.5px;
+  letter-spacing: .06em;
+}
+#view-home .report-button .report-ticket-inner { padding: 8px 0 7px; }
+
+/* 안내문이 가운데 정렬 + 아무데서나 줄바꿈이라 「정/상 지급」으로 갈라졌다.
+   단어 단위로만 자른다. */
+#view-home .form-note { word-break: keep-all; }
+
+/* 접힌 브리핑의 「목록 보기」가 밑줄 텍스트라 버튼으로 안 읽혔다.
+   옆의 「+ 일정 적기」와 같은 문법의 낮은 단추로 맞춘다. */
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-toggle {
+  min-height: 31px;
+  margin: 0;
+  padding: 6px 11px;
+  border: 1px solid #d3c4ab;
+  border-radius: 5px;
+  background: rgba(255, 250, 242, .6);
+  color: #756756;
+  font: 800 9px/1 var(--disp);
+  box-shadow: inset 0 -2px 0 rgba(223, 209, 188, .6);
+}
+
+/* 미완료 도장칸이 그냥 빈 점선 상자라 눌러서 완료한다는 게 안 보였다.
+   완료 도장이 앉을 자리라는 힌트를 흐린 원으로 미리 그려 둔다. */
+.daily-briefing-item:not(.is-complete) .briefing-status-stamp i {
+  position: relative;
+  border-radius: 50%;
+  border-style: dashed;
+}
+.daily-briefing-item:not(.is-complete) .briefing-status-stamp i:after {
+  content: "완료";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  font: 800 6px/1 var(--disp);
+  opacity: .55;
 }
