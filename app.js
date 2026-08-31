@@ -2551,7 +2551,7 @@
     haptic(18);
     OfficeSound.cue("stamp");
     // 고른 결과는 집사가 바로 알려준다 — 선택이 어디에 남았는지 보여야 한다.
-    if (catReceptionAvailable()) deliverCatReply(`명패 문구는 「${DESK_PLATES[key].text}」로 신청했다냥. 비품팀에 넘겼다냥.`, "happy");
+    if (catReceptionAvailable()) deliverCatReply(`명패 문구는 「${DESK_PLATES[key].text}」${withParticle(DESK_PLATES[key].text, "으로", "로").slice(DESK_PLATES[key].text.length)} 신청했다냥. 비품팀에 넘겼다냥.`, "happy");
   }
 
   function isFirstDeedPending() {
@@ -4607,7 +4607,11 @@
     /* 이 접수로 권이 닫혔으면 제본을 알린다. 결과서보다 조용한 사건이라 오버레이를
        또 띄우지 않고, 방으로 돌아온 순간의 한마디로 처리한다 — 접수 자체의 마무리
        한 줄보다 제본이 드물고 크므로 그 자리를 이어받는다. 안내는 권마다 한 번. */
-    if (state.character === "cat") {
+    /* 위로 경로로 들어온 접수에서는 안내를 미룬다 — 힘들다고 말한 사람에게 위로
+       대신 제본 공지가 나가면 안 된다. noticed를 안 올려두면 다음 접수 때 다시
+       걸리므로 안내는 사라지지 않고 늦어질 뿐이다. 제본은 원래 뒤늦게 알아차리는
+       인정이라 설계와도 맞는다. */
+    if (state.character === "cat" && messageAnalysis?.responseMode !== "comfort") {
       const boundVolumes = completedFileVolumes().length;
       if (boundVolumes > (Number(state.fileVolumesNoticed) || 0)) {
         state.fileVolumesNoticed = boundVolumes;
