@@ -660,6 +660,26 @@
      방에서도 보관함에서도 조용히 사라진다 — "하나도 안 버렸다냥"이
      거짓말이 된다. 그래서 값 등급이 같은 새 품목으로 이어 붙인다.
      저장된 데이터는 건드리지 않고 읽을 때만 바꾼다(롤백 가능). */
+  /* ── 계절 선물 ──
+     사무국 달력 위에 얹은 상품이다. 파는 것은 물건이 아니라 「그 철에만 접수되는
+     품목」이고, 산 뒤에는 영영 남는다(§6 — 소모품은 팔지 않는다).
+
+     조심할 것 두 가지.
+     1) 카탈로그에서 빼면 안 된다. giftHistory는 선물을 이름 문자열로 저장하므로
+        철이 지났다고 목록에서 지우면 이미 산 사람의 방과 보관함에서 그 선물이
+        조용히 사라진다. 그래서 **조회는 항상 되고, 진열만 철을 탄다.**
+     2) 놓쳐도 벌이 없다. 회차는 매년 돌아오므로 「이번에 못 사면 끝」이 아니다 —
+        선반 각주가 그 사실을 먼저 말한다. 재촉 문구는 쓰지 않는다.
+
+     그림은 아직 없다. 이모지 대체 표시로 두고, 나머지 아홉 칸처럼 그림이
+     나오면 art만 채우면 된다(design/gift-assets/GIFT-PROMPTS.md). */
+  const CAT_SEASONAL_GIFTS = Object.freeze([
+    { name: "감사철 검인 도장", emoji: "🧾", cost: 120, eventKey: "audit", art: "",
+      note: "분기 감사철에만 접수됩니다" },
+    { name: "연말 감사패", emoji: "🏵️", cost: 220, eventKey: "commendation", art: "",
+      note: "연말 표창철에만 접수됩니다" }
+  ]);
+
   const CAT_GIFT_RENAMES = Object.freeze({
     "우유": "우유 접시", "생선": "츄르", "큰 생선": "깃털 낚싯대",
     "리본": "방울 공", "꽃다발": "쥐 인형",
@@ -6296,11 +6316,18 @@
 
   function giftCatalogFor(character = state.character) {
     const key = normalizeCharacter(character);
-    return (GIFT_CATALOGS[key] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({
+    const base = (GIFT_CATALOGS[key] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({
       emoji, name, cost: GIFT_COSTS[index],
       art: key === "cat" ? `${GIFT_ART_PATH}${CAT_GIFT_ART[index]}.webp` : "",
       tall: key === "cat" && CAT_GIFT_TALL.includes(index)
     }));
+    // 계절 선물은 아홉 칸 뒤에 붙는다. 앞 인덱스가 그대로라 저장된 선물이 밀리지
+    // 않고, index >= 7이 희귀 취급이라 감사 편지도 자동으로 딸려온다.
+    if (key !== "cat") return base;
+    return [...base, ...CAT_SEASONAL_GIFTS.map(gift => ({
+      emoji: gift.emoji, name: gift.name, cost: gift.cost, art: gift.art,
+      tall: false, seasonal: gift.eventKey, seasonalNote: gift.note
+    }))];
   }
 
   /* 선물 이력을 새 품목 이름으로 맞춘 사본. 저장 배열 자체는 손대지 않는다.
@@ -6326,7 +6353,23 @@
     $("#gift-desk-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-desk-butler-line").textContent = templateOwner(CHARACTER_PROFILES[state.character].briefings[0]);
     setPoseImage($("#gift-desk-butler-image"), state.character, "base");
-    $("#gift-catalog").innerHTML = catalog.map((gift, index) => {
+    /* 진열은 철을 탄다 — 조회는 위에서 이미 항상 되게 해뒀다. 철이 아닌 계절
+       품목은 선반에서만 빠지고, 이미 산 사람의 방·보관함·이력에는 그대로 남는다.
+       data-gift-index는 원래 인덱스를 그대로 쓴다(선택·전달이 그 값을 본다). */
+    const active = activeOfficeEvent();
+    const activeSeason = active?.def.key || "";
+    const seasonNote = $("#gift-season-note");
+    if (seasonNote) {
+      const onOffer = CAT_SEASONAL_GIFTS.find(gift => gift.eventKey === activeSeason);
+      seasonNote.hidden = !(state.character === "cat" && onOffer);
+      seasonNote.textContent = onOffer
+        // 「」 뒤에는 조사를 두지 않는다 — 부호를 사이에 끼우면 받침 교정이 닿지 않는다.
+        ? `${active.def.label} 기간입니다 · 「${onOffer.name}」, 이 철에만 접수되고 다음 철에 다시 들어옵니다.`
+        : "";
+    }
+    $("#gift-catalog").innerHTML = catalog.map((gift, index) => ({ gift, index }))
+      .filter(({ gift }) => !gift.seasonal || gift.seasonal === activeSeason)
+      .map(({ gift, index }) => {
       const affordable = state.points >= gift.cost;
       const interaction = giftInteractionFor(state.character, gift, index);
       const preferenceLabel = interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
@@ -6337,6 +6380,7 @@
       return `<button class="gift-shelf-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
         ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}
         ${state.character === "cat" && CAT_DESK_TOY_INDEXES.includes(index) ? '<span class="gift-shelf-desk-note">책상에 놓임</span>' : ""}
+        ${gift.seasonal ? '<span class="gift-shelf-season-note">이번 철만</span>' : ""}
         <span class="gift-shelf-thumb${gift.art ? " has-art" : ""}">${gift.art
           ? `<img src="${gift.art}" alt="" loading="lazy" draggable="false">`
           : gift.emoji}</span>
