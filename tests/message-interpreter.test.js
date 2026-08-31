@@ -102,4 +102,27 @@ assert.equal(hygieneMix.achievementCandidate, true);
 assert.equal(hygieneMix.futurePlans.length, 1);
 assert.equal(hygieneMix.futurePlans[0].label, "씻기 완료");
 
+/* ── 이해 폭 ──
+   여기 있는 문장들은 전부 한때 freeform으로 떨어져서 "인용 되묻기"로
+   흘러가던 것들이다. 분류가 되는 것 자체가 계약이다. */
+for (const [message, intent] of [
+  ["엄마랑 싸웠어", "conflict"],
+  ["동생이랑 다퉜어", "conflict"],
+  ["면접 붙었어", "goodnews"],
+  ["승진했어", "goodnews"],
+  ["동생이랑 화해했어", "goodnews"],
+  ["정신없이 바빴어", "swamped"],
+  ["눈코 뜰 새 없었어", "swamped"],
+  ["너무 힘들어서 울었어", "sad"]
+]) assert.ok(analyzeUserMessage(message).intents.includes(intent), `${message} → ${intent}`);
+
+// "왔어"는 문장 맨 앞에 홀로 설 때만 인사다.
+assert.ok(analyzeUserMessage("왔어").intents.includes("greeting"));
+assert.ok(analyzeUserMessage("나 왔어").intents.includes("greeting"));
+assert.ok(!analyzeUserMessage("머리 자르고 왔어").intents.includes("greeting"), "보고를 인사로 읽지 않는다");
+
+// "까먹었어"는 먹은 게 아니다 — 대업으로 세면 안 된다.
+assert.deepEqual(analyzeUserMessage("약 먹는 거 까먹었어").activities, []);
+assert.deepEqual(analyzeUserMessage("밥 먹었어").activities, ["식사 챙김"]);
+
 console.log("message-interpreter: all scenarios passed");
