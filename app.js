@@ -60,16 +60,62 @@
     // 보장까지 겹쳐서 실측 발생률이 48~59%였다. 절반이 파워면 그게 기본값이지 이벤트가 아니다.
     powerChanceByStage: Object.freeze([6, 8, 10, 12, 14, 14])
   });
+  /* 칭호는 결과서에 한 번 뜨고 마는 게 아니라 파일 목록에서 원문 바로 아래
+     계속 따라다닌다. 분야만 보고 뽑으면 「발표했는데」에 「답장을 보낸 전설」이,
+     「친구랑 카페」에 「연락을 성사시킨 자」가 붙는다 — 한 번은 웃기지만 목록에서
+     반복되면 기계가 뽑았다는 게 보인다.
+     저장되는 category 값은 그대로 두고(기존 기록 호환), 칭호를 고를 때만 한 겹
+     더 나눈다. 세부 갈래에 안 걸리면 그 분야의 공용 풀로 떨어진다. */
   const CATEGORY_NICKNAMES = {
     hygiene: ["씻기의 지배자", "청결 문명의 수호자", "거품을 다스린 자"],
     hydration: ["수분 균형의 수호자", "한 잔을 완수한 자", "메마름을 이긴 자"],
     food: ["생존 연료를 충전한 자", "한 끼의 영웅", "공복을 물리친 자"],
-    work: ["답장을 보낸 전설", "사회생활 생존자", "미루기를 이겨낸 자"],
+    work: ["할 일을 끝낸 자", "사회생활 생존자", "미루기를 이겨낸 자"],
     home: ["생활력의 수호자", "집안일을 끝낸 자", "먼지와 싸워 이긴 자"],
     movement: ["침대에서 탈출한 자", "중력을 이겨낸 자", "두 발로 일어선 전설"],
-    social: ["연락을 성사시킨 자", "관계를 지켜낸 자", "답변의 용사"],
+    social: ["관계를 지켜낸 자", "사람과 마주한 자", "약속을 지켜낸 자"],
     other: NICKNAMES
   };
+  // [세부 갈래, 그 갈래에 걸리는 말, 칭호] — 위에서부터 먼저 걸리는 것을 쓴다.
+  const NICKNAME_REFINEMENTS = Object.freeze([
+    ["work", ["발표", "면접", "브리핑", "피티", "pt"], ["떨림을 이겨낸 자", "무대를 끝낸 자", "목소리를 낸 자"]],
+    ["work", ["공부", "과제", "시험", "논문", "강의", "수업"], ["집중을 붙든 자", "책상 앞을 지킨 자", "미루기를 이겨낸 자"]],
+    ["work", ["메일", "답장", "보고서", "결재", "서류"], ["답장을 보낸 전설", "밀린 서류를 끝낸 자", "미루기를 이겨낸 자"]],
+    ["work", ["출근", "야근", "회사", "직장", "근무"], ["출근을 완수한 자", "사회생활 생존자", "하루치를 버틴 자"]],
+    ["social", ["전화", "연락", "답장", "문자", "카톡", "메시지"], ["연락을 성사시킨 자", "답변의 용사", "관계를 지켜낸 자"]],
+    ["social", ["친구", "만남", "모임", "약속", "카페", "결혼식", "만나"], ["사람과 마주한 자", "약속을 지켜낸 자", "관계를 지켜낸 자"]],
+    ["movement", ["산책", "걷", "걸었"], ["바깥 공기를 쐰 자", "두 발로 일어선 전설", "중력을 이겨낸 자"]],
+    ["movement", ["운동", "헬스", "러닝", "달리", "스트레칭", "체력"], ["몸을 일으켜 세운 자", "중력을 이겨낸 자", "두 발로 일어선 전설"]],
+    ["food", ["요리", "만들어 먹", "해 먹"], ["불 앞에 선 자", "한 끼의 영웅", "생존 연료를 충전한 자"]],
+    ["home", ["설거지", "주방"], ["개수대를 비운 자", "집안일을 끝낸 자", "생활력의 수호자"]],
+    ["home", ["빨래", "의류", "세탁"], ["빨랫감을 이겨낸 자", "집안일을 끝낸 자", "생활력의 수호자"]]
+  ]);
+  function nicknamePoolFor(category, deed, sourceText = "") {
+    const value = normalizeDeed(`${deed} ${sourceText}`);
+    const refined = NICKNAME_REFINEMENTS.find(([key, words]) => key === category && words.some(word => value.includes(word)));
+    return refined ? refined[2] : (CATEGORY_NICKNAMES[category] || NICKNAMES);
+  }
+  /* 결과서를 닫고 접수대로 돌아왔을 때의 마무리 한마디. 결과서에서 이미 크게
+     떠들었으니 여기서는 짧게, 서류를 어디에 뒀는지만 말한다. 파워·희귀도
+     결과서 쪽이 흥분을 맡고 이 줄은 담담하게 둔다 — 두 번 폭주하면 희소성이 죽는다.
+     「」 닫는 부호 뒤에는 조사를 두지 않는다. fillContentTemplate의 조사 교정은
+     자리표시자에 바로 붙은 글자만 보므로, 부호를 사이에 끼우면 「…완료」은이 나간다. */
+  const CAT_RESULT_CLOSING_LINES = Object.freeze({
+    praise: [
+      "「{deed}」 결재 끝냈다냥. 파일에 넣어뒀다냥.",
+      "「{deed}」 접수 완료다냥. 서류는 집사가 챙겼다냥.",
+      "방금 건 처리했다냥. 「{deed}」, 파일 맨 위에 뒀다냥."
+    ],
+    power: [
+      "「{deed}」… 결재란에 힘이 좀 들어갔다냥. 서류는 잘 넣어뒀다냥.",
+      "「{deed}」 건은 도장을 두 번 확인했다냥. 규정대로다냥."
+    ],
+    rare: [
+      "「{deed}」, 희귀 건으로 따로 보관했다냥. 이런 건 자주 안 온다냥.",
+      "「{deed}」… 집사도 처음 보는 판정이라 조심히 넣어뒀다냥."
+    ]
+  });
+
   const ANALYSIS_CHARACTER_COPY = {
     ai: ["대업 가치 분석 중", "행동 데이터를 과장 가능한 역사적 수치로 변환 중임."],
     cat: ["대업 근거 찾는 중", "주인님 이야기를 제대로 올리려고 칭찬할 근거를 꼼꼼히 찾고 있다냥."],
@@ -4104,7 +4150,7 @@
     const power = rare || ((seed >>> 8) % 100) < powerThreshold;
     const praiseGrades = ["인류사적 대업", "국가적 성취", "집사 가문 경사"];
     const grade = rare ? "설명 불가한 위업" : power ? "우주 최초 기록" : praiseGrades[(seed >>> 3) % praiseGrades.length];
-    const nicknamePool = CATEGORY_NICKNAMES[category] || NICKNAMES;
+    const nicknamePool = nicknamePoolFor(category, deed, sourceText);
     const nickname = rare ? "통계청이 포기한 자" : freshNickname(nicknamePool, seed);
     return { seed, category, score: rare ? 100 : score, scoreLabel: rare ? "측정 불가" : `${score}점`, grade, nickname, rare, power, verdictType: rare ? "rare" : power ? "power" : "praise" };
   }
@@ -4661,6 +4707,14 @@
     // 판정을 확인하고 방으로 돌아오면 집사 얼굴이 그 판정을 말한다.
     // 파워·희귀는 흠칫, 보통 칭찬은 티 안 내는 미소.
     if (state.character === "cat") catHomePendingFace = power ? "surprised" : "happy";
+    /* 결과서를 닫고 돌아온 접수대에 직전 이야기의 대사가 그대로 남아 있었다.
+       방금 접수한 건과 상관없는 말이라, 집사가 딴소리를 하는 것처럼 보인다.
+       이 건에 대한 짧은 마무리를 예약해 두면 방으로 돌아오는 순간 갈린다. */
+    if (state.character === "cat" && !catHomePendingReaction) {
+      catHomePendingReaction = fillContentTemplate(randomItem(
+        rare ? CAT_RESULT_CLOSING_LINES.rare : power ? CAT_RESULT_CLOSING_LINES.power : CAT_RESULT_CLOSING_LINES.praise
+      ), { deed: record.deed });
+    }
     const overlay = $("#praise-result-overlay");
     overlay.dataset.mode = mode;
     overlay.dataset.firstRecord = String(firstRecord);
