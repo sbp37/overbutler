@@ -2292,11 +2292,14 @@
     $("#view-archive")?.classList.toggle("is-first-record-file", firstCatRecord);
     $("#owner-file-thickness").textContent = cover.thickness;
     $("#owner-file-days").textContent = cover.daysTogether;
-    // 기록 한 건으로 "최다 대업 청소 · 1건"이라고 적으면 집계가 아니라 농담이 된다.
-    // 3건부터 세고, 그전에는 언제부터 세는지를 밝혀둔다.
-    $("#owner-file-top").textContent = cover.topCategory && cover.thickness >= 3
+    /* 기록 한 건으로 "최다 대업 청소 · 1건"이라고 적으면 집계가 아니라 농담이 된다.
+       3건부터 세되, 1위 자체가 1건이면 전 분야가 동점이라 여전히 집계가 아니다
+       (실측: 9건짜리 파일에 「최다 대업 씻기 · 1건」이 떴다). 같은 분야가 두 번
+       나온 뒤에야 최다라고 부른다. */
+    const topCounted = cover.topCategory && cover.thickness >= 3 && cover.topCategory.count >= 2;
+    $("#owner-file-top").textContent = topCounted
       ? `${cover.topCategory.label} · ${cover.topCategory.count}건`
-      : cover.thickness ? "3건부터 집계" : "아직 없음";
+      : cover.thickness ? "같은 분야 2건부터 집계" : "아직 없음";
     $("#owner-file-official").textContent = cover.officialCount;
     $("#owner-file-remark").textContent = firstCatRecord
       ? "주인님이 맡긴 첫 장이다냥. 잘하고 싶어서 제일 좋은 표지를 골랐다냥."
@@ -3113,9 +3116,19 @@
     const stories = ownerFileJournalBundleMarkup(group.journalEntries || []);
     const letters = (group.giftLetters || []).map(giftLetterMarkup).join("");
     const notes = diaryPagesForDate(group.diaryEntries).map(ownerFileMarginNote).join("");
-    return `<section class="file-date-group" data-file-date="${escapeHtml(group.date)}" aria-label="${escapeHtml(group.date)} 기록">
-      <div class="file-date-divider"><span>${escapeHtml(ownerFileDateLabel(group.date))}</span></div>
-      ${notes}${cards}${letters}${stories}
+    /* 지난 날짜의 서류는 접어 둔다. 기록 30건이면 파일이 세로 5,700px(약 7화면)까지
+       늘어나서, 오래 쓸수록 자기 파일을 스크롤로 통과해야 한다.
+       접는 건 서류와 편지뿐이고 집사 일기(notes)는 그대로 편다 — 그게 이 화면에
+       사람을 다시 오게 하는 물건이라 접으면 안 된다. 오늘 것도 접지 않는다.
+       서류가 한 장뿐인 날은 접어봐야 줄지 않으니 그냥 둔다. */
+    const body = `${cards}${letters}${stories}`;
+    const foldable = group.date !== today() && collapsed.length > 1;
+    const dateLabel = escapeHtml(ownerFileDateLabel(group.date));
+    return `<section class="file-date-group${foldable ? " is-foldable" : ""}" data-file-date="${escapeHtml(group.date)}" aria-label="${escapeHtml(group.date)} 기록">
+      <div class="file-date-divider"><span>${dateLabel}</span></div>
+      ${notes}${foldable
+        ? `<details class="file-date-fold"><summary><span>이날 서류 펼치기</span><b>${collapsed.length}건</b></summary><div>${body}</div></details>`
+        : body}
     </section>`;
   }
 
@@ -3299,7 +3312,11 @@
   const ROOM_TRACE_HEIGHT = 28;
   const ROOM_STORAGE_HEIGHT = 24;
   const ROOM_DESK_TOY_HEIGHT = 42;
-  const CAT_DESK_TOY_INDEXES = Object.freeze([4, 5]); // 방울 공 · 쥐 인형
+  /* 책상에 꺼내둘 수 있는 장난감. 한 번에 한 점만 보이는 규칙은 그대로고,
+     후보에 깃털 낚싯대를 더했다 — 방울 공(55P)이 제일 싼 후보라 첫 주 사용자는
+     선물을 줘도 방이 그대로였다. 선물과 방이 이어진다는 걸 알기 전에 흥미가
+     끝난다. 낚싯대는 30P이고 온보딩 발령서에서 집사가 들고 있던 물건이다. */
+  const CAT_DESK_TOY_INDEXES = Object.freeze([3, 4, 5]); // 깃털 낚싯대 · 방울 공 · 쥐 인형
   const CAT_DESK_TOY_BOUNDS = Object.freeze({ minLeft: 63, maxLeft: 79, minBottom: 13, maxBottom: 21 });
   const CAT_DESK_TOY_DEFAULT = Object.freeze({ left: 73, bottom: 16 });
   /* 배치는 두 벌이다. 희귀 선물이 낮고 넓은 것(창가 방석)이냐, 세로로 긴
@@ -5962,6 +5979,7 @@
       // "건네준다"가 "옮긴다"가 된다. 가로 선반이라 어느 칸이든 위로 한 번이면 닿는다.
       return `<button class="gift-shelf-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
         ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}
+        ${state.character === "cat" && CAT_DESK_TOY_INDEXES.includes(index) ? '<span class="gift-shelf-desk-note">책상에 놓임</span>' : ""}
         <span class="gift-shelf-thumb${gift.art ? " has-art" : ""}">${gift.art
           ? `<img src="${gift.art}" alt="" loading="lazy" draggable="false">`
           : gift.emoji}</span>
