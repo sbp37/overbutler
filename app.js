@@ -6372,7 +6372,12 @@
       .map(({ gift, index }) => {
       const affordable = state.points >= gift.cost;
       const interaction = giftInteractionFor(state.character, gift, index);
-      const preferenceLabel = interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
+      /* 계절 품목은 등급 배지 대신 철 배지 하나만 단다. 74px 칸에 배지를 둘 달면
+         그 칸만 세로로 삐져나오고(실측 96→114px), 「희귀」와 「이번 철만」이 서로
+         다른 축의 말이라 나란히 두면 어느 쪽이 요점인지 흐려진다. 감사 편지가
+         딸려온다는 사실은 인수증과 아래 각주가 이미 말한다. */
+      const preferenceLabel = gift.seasonal ? "✦ 이번 철만"
+        : interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
       // 잠긴 품목에는 이유가 붙어야 한다. "잠김"은 벽이지만 "12P 더"는 다음에 할 일이다.
       const shortfall = affordable ? 0 : gift.cost - state.points;
       // 선반 한 칸. 세로 목록이면 아래 품목을 화면 위까지 끌어올려야 해서
@@ -6380,7 +6385,7 @@
       return `<button class="gift-shelf-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
         ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}
         ${state.character === "cat" && CAT_DESK_TOY_INDEXES.includes(index) ? '<span class="gift-shelf-desk-note">책상에 놓임</span>' : ""}
-        ${gift.seasonal ? '<span class="gift-shelf-season-note">이번 철만</span>' : ""}
+
         <span class="gift-shelf-thumb${gift.art ? " has-art" : ""}">${gift.art
           ? `<img src="${gift.art}" alt="" loading="lazy" draggable="false">`
           : gift.emoji}</span>
