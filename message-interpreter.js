@@ -7,7 +7,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "quiet_day", "no_motivation", "work", "work_done", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
+  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "quiet_day", "no_motivation", "setback", "work", "work_done", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
   const MOOD_TYPES = ["tired", "sad", "angry", "worried", "low", "hungry", "bored", "happy", "affection"];
 
   const EMOTIONS = [
@@ -15,6 +15,12 @@
     ["sad", "sad", "negative", /우울|속상|슬프|슬퍼|서럽|눈물|마음\s*아프|허무|공허|울적/i],
     ["angry", "angry", "negative", /짜증|빡쳐|빡침|개빡|화나|화났|열받|기분\s*나빠|분하/i],
     ["worried", "worried", "negative", /걱정|고민|불안|초조|어떡하|어떻게\s*해야|막막/i],
+    /* 한 일의 결과가 나빴다는 보고. 이게 없으면 "발표했는데 완전 망했어"가
+       완료 동사만 보고 대업 축하로 넘어간다 — 가장 아픈 날 도장을 찍는 셈이라
+       WORLD §5가 말하는 최악의 오해다. 행동은 그대로 기록되고, 위로가 먼저
+       나가고, 심사 결과서(FORM 05)는 뜨지 않는다.
+       "망설", "실수요"처럼 다른 뜻으로 시작하는 말은 걸리지 않게 어미까지 묶었다. */
+    ["setback", "sad", "negative", /(?:^|[^희소갈열])망(?:했|함|침|쳤|한)|말아먹|죽\s*쒔|폭망|실수(?:했|함|를\s*했|투성)|실패(?:했|함|한|야|다)|엉망|버벅|더듬거|삐끗|꼬였|틀렸|잘\s*안\s*(?:됐|됨|돼)|안\s*풀렸|불합격|탈락|(?:시험|면접|공채|서류|자소서|오디션|대회|경쟁)[^.!?]{0,12}떨어졌/i],
     ["no_motivation", "low", "negative", /아무것도\s*(?:하기|하고)\s*싫|의욕\s*(?:이|은|가)?\s*(?:없|안\s*나|제로|하나도\s*없)|아무것도\s*못\s*(?:하겠|했)|무기력|손\s*하나\s*까딱|다\s*귀찮|몸이\s*안\s*움직/i],
     ["bored", "bored", "neutral", /심심|무료|재미\s*없/i],
     ["hungry", "hungry", "neutral", /배\s*고파|배고파|허기|굶었|꼬르륵|(?:밥|끼니)\s*못\s*먹/i],

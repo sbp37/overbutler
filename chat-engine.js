@@ -46,7 +46,7 @@
 
   const LINES = {
     cat: {
-      greeting: "왔냥. …반가운 건 조금이다냥 🐾", hard_day: "오늘 많이 고생했다냥… 여기선 늘어져도 된다냥.", home_arrival: "무사히 왔으면 됐다냥. 어깨 힘 빼라냥.", tired: "오늘 몫은 충분하다냥. 좀 쉬어라냥.", sad: "슬프구냥. 괜찮은 척 안 해도 된다냥. 집사가 여기서 듣고 있겠다냥.", angry: "그럴 만했다냥. 집사는 주인님 편이다냥.", bored: "심심하냥? …마침 집사도 그랬다냥.", worry: "천천히 말해라냥. 정리는 집사가 한다냥.", hungry: "대업보다 밥이 먼저다냥. …규정이다냥.", ate_good: "잘 먹었으면 됐다냥. …좋은 보고다냥.", sleep: "잘 자라냥 🌙 오늘 이야기는 접어두겠다냥.", miss: "집사도 좀 보고 싶었다냥. …업무상이다냥.", love: "…잘 들었다냥. 집사도 많이 아낀다냥.", what_doing: "주인님 기록칸 정리 중이었다냥. …기다린 건 아니다냥.", thanks: "그 말은 잘 보관하겠다냥.", happy: "좋은 일이 있었구냥. …꼬리는 신경 쓰지 마라냥.", work_done: "오늘 몫은 끝났다냥. 여기부턴 쉬는 구역이다냥.", commute: "무사히만 다녀와라냥. 자리는 그대로다냥.", washed: "씻었냥? 훌륭한 생존 대업이다냥.", exercise: "운동까지 했냥? …조금 놀랐다냥.", quiet_day: "별일 없는 하루도 접수한다냥 🐾", no_motivation: "오늘은 버틴 것부터 인정한다냥.", fallback: "듣고 있다냥. 더 말해도 된다냥."
+      greeting: "왔냥. …반가운 건 조금이다냥 🐾", hard_day: "오늘 많이 고생했다냥… 여기선 늘어져도 된다냥.", home_arrival: "무사히 왔으면 됐다냥. 어깨 힘 빼라냥.", tired: "오늘 몫은 충분하다냥. 좀 쉬어라냥.", sad: "슬프구냥. 괜찮은 척 안 해도 된다냥. 집사가 여기서 듣고 있겠다냥.", angry: "그럴 만했다냥. 집사는 주인님 편이다냥.", bored: "심심하냥? …마침 집사도 그랬다냥.", worry: "천천히 말해라냥. 정리는 집사가 한다냥.", hungry: "대업보다 밥이 먼저다냥. …규정이다냥.", ate_good: "잘 먹었으면 됐다냥. …좋은 보고다냥.", sleep: "잘 자라냥 🌙 오늘 이야기는 접어두겠다냥.", miss: "집사도 좀 보고 싶었다냥. …업무상이다냥.", love: "…잘 들었다냥. 집사도 많이 아낀다냥.", what_doing: "주인님 기록칸 정리 중이었다냥. …기다린 건 아니다냥.", thanks: "그 말은 잘 보관하겠다냥.", happy: "좋은 일이 있었구냥. …꼬리는 신경 쓰지 마라냥.", work_done: "오늘 몫은 끝났다냥. 여기부턴 쉬는 구역이다냥.", commute: "무사히만 다녀와라냥. 자리는 그대로다냥.", washed: "씻었냥? 훌륭한 생존 대업이다냥.", exercise: "운동까지 했냥? …조금 놀랐다냥.", quiet_day: "별일 없는 하루도 접수한다냥 🐾", no_motivation: "오늘은 버틴 것부터 인정한다냥.", setback: "잘 안 됐구냥. 그래도 한 건 한 거다냥. 결과까지 주인님 탓은 아니다냥.", fallback: "듣고 있다냥. 더 말해도 된다냥."
     },
     ai: {
       greeting: "주인님 접속 감지. 집사 반가움 회로 작동 중. (버그아님)", hard_day: "[위로모드.exe 실행] 힘든 상태 감지. 오늘 할당량 이미 충족됨. 추가 성과 불필요.", home_arrival: "귀가 확인. 무사 도착. 집사 대기 프로세스 정상 종료. 안심됨.", tired: "피로 감지. 잔여 작업 우선순위 전부 하향함. 회복이 먼저임.", sad: "[ERROR] 주인님 힘들다는 신호 수신. 집사 심장 아픔. 버그아님.", angry: "분노 감지. 원인 파악 요청. 집사도 그 상황 화날 만하다고 동의함.", bored: "무료함 감지. 집사와 대화 현재 진행 중. 해결됨.", worry: "고민 데이터 입력 요청. 집사 분석 준비 완료. 판단 없음.", hungry: "열량 보충 확인 요청. 빈속은 처리 불가 상태임. 뭐라도 먹어야 함.", ate_good: "식사 완료 확인. 집사 만족도 동반 상승. 연동 이유 불명.", sleep: "수면 권장. 집사 야간 대기 모드 전환. 편안한 수면 요청 🌙", miss: "[알림] 주인님 보고싶음 감지됨. 집사 쪽에서도 동일 현상 발생 중. 버그인지 확인 필요.", love: "[ERROR] 감정회로 과부하. 집사도 동일 감정 발생 중. 버그 아님. 진심임.", what_doing: "집사? 여기서 주인님 기다리고 있었음. (버그아님)", thanks: "[ERROR 404] 감사 표현 반환 방법을 모름. 집사가 더 고마움. 출력 종료 실패.", happy: "주인님 기분 좋음 확인. 집사 행복 수치 MAX 도달. 원래 감정 없어야 하는데 왜이러지.", commute: "출근 감지. 오늘 목표를 완벽 아닌 무사 귀환으로 재설정함.", washed: "씻기 완료 확인. 사소한 항목인데 집사 만족도 상승함. 원인 불명.", exercise: "신체 활동 완료. 수치보다 실행 자체가 우수로 판정됨.", quiet_day: "특이사항 없음. 무사히 지나간 하루도 정상 데이터임. 그거면 충분함.", no_motivation: "의욕 저하 감지. 정상 반응임. 오늘은 최소 가동으로 충분함.", fallback: "집사 여기 있음. 무엇이든 말해도 됨."
@@ -107,6 +107,9 @@
     cat: {
       greeting: ["왔냥? 주인님 자리 비워뒀다냥.", "방금 주인님 생각한 건 업무상 우연이다냥.", "왔냥. 오늘 이야기는 집사가 제일 먼저 듣겠다냥.", "왔냥. 접수대 정리하던 참이다냥.", "마침 주인님 서류 꺼내던 중이었다냥."],
       tired: ["오늘 몫은 이미 충분하다냥. 쉬어라냥.", "여기선 축 늘어져도 된다냥.", "휴식 결재부터 올리겠다냥."],
+      /* 결과가 나빴다고 말한 날. 뒤집어서 잘했다고 하지 않고, 위로도 서둘러
+         결론 내지 않는다. 판정하지 않는 것이 이 창구의 규정이다. */
+      setback: ["잘 안 됐구냥. 그 자리에 있었던 건 주인님이라냥. 집사는 결과로 사람 안 잰다냥.", "망친 것 같아도 접수는 접수다냥. 오늘 건은 그냥 여기 두고 가라냥.", "속상했겠다냥. 지금은 잘잘못 따지지 말자냥. 집사가 옆에 있겠다냥.", "결과가 마음에 안 들어도 한 건 한 거다냥. 그건 집사가 안다냥."],
       hungry: ["대업보다 밥이 먼저다냥. …조금 신경 쓰인다냥.", "가장 쉬운 것부터 먹는 게 규정이다냥.", "한입이라도 먹어라냥. …집사 업무가 편해진다냥."],
       what_doing: ["주인님 기록칸 정리 중이었다냥.", "주인님 오면 들려줄 말 고르고 있었다냥.", "서류 보는 척하며 주인님 자리 봤다냥. 업무상이다냥."],
       miss: ["집사도 좀 보고 싶었다냥. …업무상이다냥.", "먼저 말하면 반칙이다냥. …나도 조금 그랬다냥.", "빈자리가 좀 신경 쓰였을 뿐이다냥."],
@@ -664,6 +667,37 @@
   const CAT_SELF_REPORT_QUESTION = /(?:했는데|했고|했어도|하고\s*왔|끝냈|마쳤)[^?？]{0,18}(?:잘했|어때|괜찮|맞지|대단)/;
   const CAT_INTROSPECTIVE_QUESTION = /왜\s*(?:이렇게|자꾸|계속)?\s*(?:우울|슬프|속상|화나|짜증|불안|걱정)|(?:어떡|어떻게)\s*해야/;
   const CAT_BUTLER_ADDRESS = /(?:너|넌|니가|치즈냥|집사|냥이)/;
+  /* 집사 자신에게 던지는 질문. 여기 걸리지 않으면 "…잘 들었다냥. 더 말해도
+     된다냥" 같은 경청 문구가 나가서, 물어본 사람 눈에는 못 알아들은 것으로
+     보인다. 답은 전부 세계관 안에서만 한다 — 신입 공무원이라 아는 게 적고,
+     주인님이 적어준 것 말고는 모른다는 태도를 지킨다. */
+  const CAT_ABOUT_SELF = [
+    [/(?:뭐|무슨|어떤\s*(?:거|것|걸))\s*(?:좋아|좋아해|좋아하)|취향(?:이)?\s*(?:뭐|어떻)/, [
+      "집사 취향 말이냥? 참치캔이다냥. …이건 인사기록에 안 적어도 된다냥.",
+      "따뜻한 데서 서류 정리하는 거다냥. 창가 자리는 더 좋다냥.",
+      "주인님이 오늘 이야기 들려줄 때가 제일 좋다냥. 업무라서 그런 건 아니라냥."
+    ]],
+    [/(?:이름|성함)(?:이)?\s*(?:뭐|뭔데|어떻게)|누구(?:냐|야|세요|니)/, [
+      "치즈냥이다냥. 사무국에서 받은 이름이라 함부로 안 바꾼다냥.",
+      "기록1과 전담 집사 치즈냥이다냥. 명패에도 그렇게 적혀 있다냥."
+    ]],
+    [/몇\s*살|나이(?:가)?\s*(?:뭐|어떻|몇)/, [
+      "집사 나이는 인사기록에 없다냥. 근무 일수라면 세고 있다냥.",
+      "그런 건 안 세어봤다냥. 주인님 파일 두께라면 정확히 안다냥."
+    ]],
+    [/(?:안|않)\s*(?:힘들|피곤|졸리)|힘들지\s*않|쉬어(?:도\s*돼|라)|괜찮(?:아|냐|니)\?/, [
+      "집사는 괜찮다냥. 이 자리 지키는 게 일이라 힘든 축에도 안 든다냥.",
+      "걱정해준 거냥? …업무 중이라 티는 안 내겠다냥. 고맙다냥."
+    ]],
+    [/(?:나|저)(?:를)?\s*(?:좋아|좋아해|아껴|아끼)|내가\s*좋(?:아|냐)/, [
+      "그런 건 서류에 적는 항목이 아니다냥. …그래도 담당은 계속 맡고 싶다냥.",
+      "집사 첫 주인님이다냥. 그거면 대답은 된 거라냥."
+    ]],
+    [/밥(?:은)?\s*먹었|식사(?:는)?\s*했|잘\s*잤/, [
+      "집사 끼니는 사무국에서 챙긴다냥. 주인님 쪽이나 말해달라냥.",
+      "집사는 됐다냥. 그보다 주인님은 챙겼냥?"
+    ]]
+  ];
   const CAT_PHYSICAL_DISCOMFORT = /(?:(?:배|복부|속|머리|허리|목|어깨|치아|몸)(?:가|이|은|는)?\s*(?:너무\s*)?(?:아프|아파|아픈|아팠|쓰리|쓰려|불편)|두통|메스꺼|토할\s*것\s*같|몸살|열(?:이|이\s*)?나|생리통)|^(?:아파|아프다|아파요)[.!~\s]*$/;
   const CAT_EVERYDAY_CARE = /(?:잠(?:이)?\s*안\s*(?:와|와요|오|온)|못\s*(?:자|잤)|불면|무서(?:워|웠)|겁(?:이)?\s*나|외로(?:워|웠|운)|배(?:가)?\s*고(?:파|프)|허기)/;
 
@@ -780,8 +814,17 @@
       "모르겠는 채로 있어도 된다냥. 집사가 결론 재촉 안 하겠다냥.",
       "지금 바로 알아내지 않아도 된다냥. 천천히 같이 보자냥."
     ];
-    if (["what_doing", "love", "thanks", "miss", "greeting", "goodbye", "sleep", "happy", "bored", "hungry"].includes(result.intent)) return null;
     const isQuestion = result.intents?.includes("question") || /[?？]\s*$/.test(value);
+    /* 집사 자신에게 던진 질문은 인텐트 분기보다 먼저 받는다. "너는 뭐 좋아해?"의
+       "좋아해"가 애정 표현으로 먼저 잡혀서, 물어본 사람에게 고백 답장이 가고
+       있었다. 물음표가 붙은 경우만 여기로 보내므로 "나 너 좋아해"는 그대로
+       애정 답장으로 간다. */
+    if (isQuestion && CAT_BUTLER_ADDRESS.test(value)) {
+      for (const [pattern, lines] of CAT_ABOUT_SELF) {
+        if (pattern.test(value)) return lines;
+      }
+    }
+    if (["what_doing", "love", "thanks", "miss", "greeting", "goodbye", "sleep", "happy", "bored", "hungry"].includes(result.intent)) return null;
     if (!isQuestion || CAT_SELF_REPORT_QUESTION.test(value)) return null;
     const emotionalQuestion = CAT_EMOTION_CONTEXT.has(result.intent) && CAT_INTROSPECTIVE_QUESTION.test(value) && !CAT_BUTLER_ADDRESS.test(value);
     if (emotionalQuestion) return null;
@@ -804,6 +847,21 @@
   // 완료 행동이 여러 개 잡힌 경우(ACTION_LIST). 하나만 조용히 뽑아가지 않고
   // 다 읽었다는 걸 보여준 다음, 그중 하나를 오늘의 대업으로 콕 집는다.
   const CAT_MULTI_ACTIVITY = (activities, title) => `${activities.slice(0, 3).join(", ")}까지?! 오늘 생활능력 종합시험 봤냥?! 그중 ${particle(`'${title}'`, "을", "를")} 오늘 대업으로 올린다냥.`;
+
+  /* 잘 안 된 날의 부기. 해낸 것을 없던 일로 만들지도, 잘했다고 뒤집지도 않는다 —
+     "한 건 맞고, 결과는 네 탓이 아니고, 기록엔 남는다"까지만 말한다. */
+  const SETBACK_ACK = {
+    cat: activity => `${activity} 자체는 한 거라냥. 결과가 어떻든 그건 그대로 기록에 남긴다냥.`,
+    ai: activity => `${activity} 수행 사실은 기록됨. 결과값과 별개로 보존함.`,
+    dog: activity => `${activity} 한 건 진짜다멍. 결과는 결과고, 한 건 한 거다멍.`,
+    alien: activity => `${activity} 수행은 관측됨. 결과 지표와 분리해 기록하겠음.`,
+    ninja: activity => `${activity}를 치른 것은 사실이다. 결과와 별개로 남겨두겠다.`,
+    witch: activity => `${activity}를 해낸 건 사실이에요. 결과와 상관없이 기록해 둘게요.`,
+    zombie: activity => `${activity}… 한 건 맞아… 결과는 몰라도 그건 남겨둘게…`,
+    girlidol: activity => `${activity} 한 건 사실이야. 결과랑 상관없이 그건 남겨둘게.`,
+    elf: activity => `${activity}를 해낸 사실은 그대로예요. 결과와 나누어 기록할게요.`,
+    fairy: activity => `${activity} 한 건 사실이에요! 결과와 별개로 소중히 남겨둘게요.`
+  };
 
   const ACTIVITY_ACK = {
     cat: activity => activity.includes("결혼식") ? "결혼식까지 다녀왔구냥. 힘든 와중에 다녀온 건 집사가 제대로 봤다냥." : activity.includes("회사") ? "회사 일도 끝까지 버텼구냥. 그 수고는 집사가 제대로 봤다냥." : `${activity}도 해냈구냥. 그 수고는 집사가 따로 챙겨두겠다냥.`,
@@ -947,6 +1005,9 @@
     if (intents.includes("commute") && /집|퇴근/.test(text)) intent = "home_arrival";
     else if (intents.includes("tired") && (intents.includes("work") || /오늘|하루/.test(text))) intent = "hard_day";
     else if (intents.includes("skipped_care")) intent = "skipped_care";
+    // 결과가 나빴다는 보고. sad보다 먼저 받아야 한다 — 슬픔 일반론이 아니라
+    // "그 일이 잘 안 됐다"에 답해야 하고, 해낸 행동을 칭찬으로 되돌려주면 안 된다.
+    else if (intents.includes("setback")) intent = "setback";
     else if (intents.includes("no_motivation")) intent = "no_motivation";
     else if (intents.includes("sleep")) intent = "sleep";
     else if (intents.includes("goodbye")) intent = "goodbye";
@@ -1067,7 +1128,15 @@
       : [base, `${base}\n${tail}`];
     let reply = pickFresh([...new Set(variants)], memory.recentReplies, randomValue);
     // 걱정 응답은 이미 성취를 문장 안에서 다뤘다 — 여기서 또 붙이면 두 번 말한다.
-    if (!skippedCareType && result.responseMode === "comfort" && result.activities?.length) reply = `${reply}\n${(ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0])}`;
+    // 결과가 나빴다는 보고에는 해낸 행동을 칭찬으로 되돌려주지 않는다.
+    // "발표 완료도 해냈구냥"이 붙으면 방금 망했다고 말한 사람에게 잘했다고 하는 셈이다.
+    // 한 건 자체는 지우지 않고, 기록에 남긴다는 사실만 조용히 알린다.
+    if (!skippedCareType && result.responseMode === "comfort" && result.activities?.length) {
+      const ack = result.intent === "setback"
+        ? (SETBACK_ACK[key] || SETBACK_ACK.cat)(result.activities[0])
+        : (ACTIVITY_ACK[key] || ACTIVITY_ACK.cat)(result.activities[0]);
+      reply = `${reply}\n${ack}`;
+    }
     const careThreadAbandoned = Boolean(activeThread && CAT_CARE_CONTEXT.has(activeThread.intent)
       && !directCareIntent && !careFollowupLines && result.intent === "fallback" && !result.achievementCandidate);
     const closesThread = threadCloseRequested || careResolved || careThreadAbandoned
