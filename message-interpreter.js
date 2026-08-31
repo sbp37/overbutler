@@ -75,6 +75,20 @@
   // 문장은 할 예정일 수도 있다). 빠른 입력 칩("씻음", "물 한 잔 마심")은
   // 받침 ㅁ 명사형이라 아래 endsWithNominalizer가 따로 받는다.
   const COMPLETION_MARK = /함|완료|끝냈|끝났|마쳤|마무리|해냄|다녀옴/;
+  /* "산책하고 왔어"의 완료 증거는 뒤 절에 있다. 절 나누기가 "-고"에서 자르는
+     바람에 「산책하」와 「왔어」로 갈라져, 행동이 있는 절에는 시제가 없고
+     시제가 있는 절에는 행동이 없어 대업으로 안 올라갔다.
+     뒤 절이 아래 꼬리로 시작할 때만 그 완료를 앞 절에 빌려준다. 허용 목록으로
+     둔 건 "청소하고 싶었어"도 과거형이라, 막는 쪽으로 짜면 하고 싶었던 일이
+     해낸 일로 둔갑하기 때문이다 — 안 한 일을 했다고 하는 게 제일 나쁘다. */
+  const CARRIED_COMPLETION_TAIL = /^\s*(?:갔다\s*왔|돌아왔|들어왔|나왔|왔|잤|쉬었|먹었|씻었|끝냈|끝났|마쳤)/;
+  // 앞 절이 의도·목적이면 뒤 절의 완료를 빌려주지 않는다. "운동하려고" + "했는데"는
+  // 하려던 것이지 한 것이 아니다(실측: 「운동하려고 했는데 못 갔어」가 대업이 됐다).
+  const CARRY_BLOCKING_INTENT = /려고|려던|러\s*$|고\s*싶|을\s*까|ㄹ\s*까/;
+  /* 하려다 그만둔 것. 과거형 어미만 보면 「나가려다 말았어」의 "말았"이 완료로
+     읽혀서 안 나간 산책이 대업으로 올라간다. 안 한 일을 했다고 인정하면 관계
+     자체가 무너지므로(WORLD §5), 이 표시가 있는 절은 완료로 세지 않는다. */
+  const ABANDONED_MARK = /(?:다|려다|다가)\s*말았|(?:다|려다|다가)\s*맘|그만뒀|그만둠|포기(?:했|함)|하다\s*말/;
   // 확신이 없는 서술. 이게 있으면 칭호를 뽑지 않는다.
   const UNCERTAIN_MARK = /것\s*같|인가|려나|할까|모르겠|아마|긴가민가|같기도|한\s*듯/;
 
@@ -82,6 +96,12 @@
      받침 ㅆ(종성 20번)이라, 어미 목록을 나열하면 반드시 빠지는 게 생긴다
      — 실제로 "결혼식 갔는데"가 '았|었'만 보던 목록에서 새어나갔다.
      "있/없"은 진행·상태라 완료 근거로 치지 않는다. */
+  // 지금 절 바로 다음 절의 본문. 없으면 빈 문자열.
+  function nextClauseTextAfter(clauses, clause) {
+    const index = clauses.indexOf(clause);
+    return index >= 0 && clauses[index + 1] ? String(clauses[index + 1].text || "") : "";
+  }
+
   function hasPastTense(clause) {
     const value = String(clause || "");
     for (const char of value) {
@@ -305,7 +325,11 @@
         if (!activities.includes(label)) {
           activities.push(label);
           activityTypes.push(type);
-          if (COMPLETION_MARK.test(clause.text) || hasPastTense(clause.text) || endsWithNominalizer(clause.text)) completedClauses.add(label);
+          const carried = /고\s*$/.test(clause.text.trim())
+            && !CARRY_BLOCKING_INTENT.test(clause.text)
+            && CARRIED_COMPLETION_TAIL.test(nextClauseTextAfter(clauses, clause));
+          const completed = COMPLETION_MARK.test(clause.text) || hasPastTense(clause.text) || endsWithNominalizer(clause.text) || carried;
+          if (completed && !ABANDONED_MARK.test(clause.text)) completedClauses.add(label);
         }
       }
     }
