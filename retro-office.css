@@ -4968,11 +4968,6 @@ html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightn
     margin-left: 52px;
   }
 
-  #daily-briefing:has(#daily-briefing-list > .daily-briefing-item:only-child)
-  #daily-briefing-toggle[aria-expanded="false"] {
-    display: none;
-  }
-
   #daily-briefing:has(#daily-briefing-toggle[aria-expanded="false"])
   .daily-briefing-list {
     margin-top: 2px;
@@ -5811,3 +5806,17 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
 #cat-home-speech-paper {
   padding-left: 40px !important;
 }
+
+/* ═══════════ 출시 심사 수리 (2026-08-31) ═══════════ */
+
+/* 일정이 딱 하나일 때 홈에서 그 일정을 볼 수도 완료할 수도 없었다.
+   접힌 브리핑은 목록을 통째로 숨기는데, 항목이 하나면 「목록 보기」 버튼까지
+   같이 숨는 옛 규칙이 남아 있었다. 옛 레이아웃에서는 한 건짜리 목록이 늘
+   펼쳐져 있어 손잡이가 군더더기였고, 그때는 맞는 규칙이었다. 목록을 접게
+   바꾸면서 그 전제가 사라졌는데 규칙만 남아 막다른 길이 됐다.
+
+   목록을 도로 펴는 대신 손잡이를 살렸다 — 한 건을 펴 두면 접수 입력칸이
+   접히는 선 아래로 내려가는데(360px에서 694→772px), 브리핑은 곁일이고
+   FORM 01이 주역이라는 이 화면의 원칙과 어긋난다. 위쪽 미디어 블록의
+   :only-child 숨김 규칙을 걷어내는 것으로 끝냈다 — 아이디 셋짜리 규칙이라
+   덮어쓰기보다 지우는 편이 정직하다. */
