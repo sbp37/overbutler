@@ -7,12 +7,13 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "quiet_day", "no_motivation", "setback", "work", "work_done", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
+  const INTENT_TYPES = ["greeting", "goodbye", "sleep", "tired", "sad", "angry", "bored", "worried", "hungry", "happy", "thankful", "affection", "missing", "question", "activity", "achievement", "rest", "quiet_day", "no_motivation", "setback", "conflict", "swamped", "goodnews", "work", "work_done", "commute", "meal", "exercise", "hygiene", "social", "freeform"];
   const MOOD_TYPES = ["tired", "sad", "angry", "worried", "low", "hungry", "bored", "happy", "affection"];
 
   const EMOTIONS = [
     ["tired", "tired", "negative", /힘들|지쳤|지쳐|죽겠다|죽겠네|기\s*빨|기빨|녹초|피곤|고단|진이\s*빠|방전|개힘/i],
-    ["sad", "sad", "negative", /우울|속상|슬프|슬퍼|서럽|눈물|마음\s*아프|허무|공허|울적/i],
+    // 울었다는 말은 피로가 아니라 슬픔이다. tired보다 먼저 받아야 "쉬어라냥"으로 안 흘러간다.
+    ["sad", "sad", "negative", /우울|속상|슬프|슬퍼|서럽|눈물|울었|울어버|펑펑|마음\s*아프|허무|공허|울적/i],
     ["angry", "angry", "negative", /짜증|빡쳐|빡침|개빡|화나|화났|열받|기분\s*나빠|분하/i],
     ["worried", "worried", "negative", /걱정|고민|불안|초조|어떡하|어떻게\s*해야|막막/i],
     /* 한 일의 결과가 나빴다는 보고. 이게 없으면 "발표했는데 완전 망했어"가
@@ -20,6 +21,13 @@
        WORLD §5가 말하는 최악의 오해다. 행동은 그대로 기록되고, 위로가 먼저
        나가고, 심사 결과서(FORM 05)는 뜨지 않는다.
        "망설", "실수요"처럼 다른 뜻으로 시작하는 말은 걸리지 않게 어미까지 묶었다. */
+    /* 사람과 부딪힌 날. 이게 없으면 "엄마랑 싸웠어"가 아무 감정도 없는 문장으로
+       읽혀 인용 되묻기로 떨어진다 — 하루 중 제일 말하고 싶었을 문장인데도. */
+    ["conflict", "sad", "negative", /싸웠|싸움|다퉜|다툼|틀어졌|혼났|깨졌|헤어졌|절교|손절|안\s*좋게\s*끝|말다툼|언쟁/i],
+    /* 몰아친 하루. 「바빴다」는 피로 어휘에 없었다. */
+    ["swamped", "tired", "negative", /정신(?:이)?\s*없|눈코\s*뜰\s*새|치였|바빴|바쁘게|쉴\s*틈(?:이)?\s*없|하루\s*종일\s*뛰|숨\s*돌릴\s*틈/i],
+    /* 잘된 소식. bigWin이 「합격」만 알아서 "면접 붙었어"가 그냥 넘어갔다. */
+    ["goodnews", "happy", "positive", /붙었|합격(?:했|이|했어)|통과했|뽑혔|당첨|승진했|취직했|계약(?:했|됐)|성사됐|화해했|잘\s*풀렸|해결됐|나았어|완치/i],
     ["setback", "sad", "negative", /(?:^|[^희소갈열])망(?:했|함|침|쳤|한)|말아먹|죽\s*쒔|폭망|실수(?:했|함|를\s*했|투성)|실패(?:했|함|한|야|다)|엉망|버벅|더듬거|삐끗|꼬였|틀렸|잘\s*안\s*(?:됐|됨|돼)|안\s*풀렸|불합격|탈락|(?:시험|면접|공채|서류|자소서|오디션|대회|경쟁)[^.!?]{0,12}떨어졌/i],
     ["no_motivation", "low", "negative", /아무것도\s*(?:하기|하고)\s*싫|의욕\s*(?:이|은|가)?\s*(?:없|안\s*나|제로|하나도\s*없)|아무것도\s*못\s*(?:하겠|했)|무기력|손\s*하나\s*까딱|다\s*귀찮|몸이\s*안\s*움직/i],
     ["bored", "bored", "neutral", /심심|무료|재미\s*없/i],
@@ -31,7 +39,9 @@
   ];
 
   const CONVERSATION = [
-    ["greeting", /안녕|하이|ㅎㅇ|hello|왔어|왔어요|반가워/i],
+    // "왔어"는 문장 맨 앞에 홀로 설 때만 인사다. 아무 데서나 잡으면
+    // "머리 자르고 왔어" 같은 보고가 전부 인사로 떨어진다.
+    ["greeting", /안녕|하이|ㅎㅇ|hello|반가워|^\s*(?:나\s*|이제\s*)?왔(?:어요?|다)/i],
     ["goodbye", /갈게|이만\s*갈|나중에\s*봐|바이|안녕히/i],
     ["sleep", /잘게|자러\s*갈|잘\s*자|굿\s*나잇|굿나잇|잠들/i],
     ["question", /\?|뭐\s*해|뭐하|왜\s|어떻게\s|무엇|알아\?/i]
@@ -177,7 +187,9 @@
     // [^.!?]*는 lazy(*?)로 쓴다 — greedy면 "밥 먹었고 저녁엔 치킨 먹을 거야"처럼 같은
     // 규칙이 두 번 나오는 문장에서 첫 매치가 뒤쪽 "먹"까지 통째로 삼켜서, 완료 절과
     // 미래 절이 하나의 매치로 뭉개진다(완료 행동 자체가 사라지는 원인이었다).
-    ["meal", "식사 챙김", /(?:밥|치킨|아침|점심|저녁|간식|음식)[^.!?]*?(?:먹|먹었|먹음)|먹었|먹고/i],
+    // "까먹었어"·"빼먹었어"는 먹은 게 아니다. 앞 글자를 한 칸 보고 걸러낸다
+    // (lookbehind는 구형 iOS Safari에서 통째로 죽는다).
+    ["meal", "식사 챙김", /(?:밥|치킨|아침|점심|저녁|간식|음식)[^.!?]*?(?:먹|먹었|먹음)|(?:^|[^까빼])(?:먹었|먹고)/i],
     ["rest", "충분히 쉬기", /누워\s*있|쉬었|휴식|낮잠|뒹굴/i],
     ["activity", "설거지 완료", /설거지/i],
     ["activity", "빨래 완료", /빨래/i],
@@ -402,7 +414,7 @@
     // 반응 강도. 감정이 부정적이면 행동이 있어도 위로가 먼저다.
     // 다만 감정 표현 없이 완료 행동만 보고한 경우는, 그게 아무리 하찮아도
     // 과잉집사의 본체인 대업 판정(FORM 05)으로 보낸다. 씻기·물 마시기·설거지가 핵심 재료다.
-    const bigWin = /합격|수상|우승|승진|성공|1등|최우수|드디어/i.test(text) || (mood === "happy" && /칭찬/i.test(text));
+    const bigWin = /합격|수상|우승|승진|성공|1등|최우수|드디어|붙었|뽑혔|당첨|취직/i.test(text) || (mood === "happy" && /칭찬/i.test(text));
     const responseMode = negative ? "comfort"
       : !achievementCandidate ? "conversation"
       : bigWin ? "special-achievement"
