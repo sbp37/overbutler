@@ -116,6 +116,15 @@
     ]
   });
 
+  /* 권이 닫힌 날의 한마디. 신입이 처음 받았던 빈 파일이 제본돼 서고에 오르는
+     순간이다 — 성장 서사의 물증이라 축하보다 뿌듯함을 눌러 담는다. 다음 권을
+     "맡는다"고 말해 관계가 권을 넘어 이어진다는 걸 못 박는다. */
+  const CAT_VOLUME_BINDING_LINES = Object.freeze([
+    "주인님 파일 {volume}이 다 찼다냥. 제본해서 서고에 올렸다냥. {next}도 집사가 맡는다냥.",
+    "{volume} 제본 끝냈다냥… 처음 받았을 땐 빈 파일이었다냥. {next}은 새로 폈다냥.",
+    "{volume}을 서고에 올리고 왔다냥. 이 두께는 전부 주인님이 들려준 거라냥. {next}도 잘 부탁한다냥."
+  ]);
+
   const ANALYSIS_CHARACTER_COPY = {
     ai: ["대업 가치 분석 중", "행동 데이터를 과장 가능한 역사적 수치로 변환 중임."],
     cat: ["대업 근거 찾는 중", "주인님 이야기를 제대로 올리려고 칭찬할 근거를 꼼꼼히 찾고 있다냥."],
@@ -1018,7 +1027,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false,
+    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false, fileVolumesNoticed: 0,
     briefings: [], journalEntries: [], briefingIntroDates: [], briefingEveningDates: [],
     catBriefingBoardPosition: { x: 59, y: 60.5 },
     catBriefingBoardPositionVersion: 3,
@@ -1319,6 +1328,9 @@
     // 아직 집사 탭에서 확인하지 않은 지원서. 하단 탭의 봉인점이 이걸 본다.
     merged.seenApplicants = Array.isArray(raw.seenApplicants) ? raw.seenApplicants.filter(key => typeof key === "string") : [];
     merged.firstDeedNoticed = Boolean(raw.firstDeedNoticed);
+    // 제본 안내가 나간 마지막 권 번호. 기록보다 클 수 없다 — 백업 편집 등으로
+    // 기록이 줄었으면 같이 줄여, 이미 한 안내가 다시 나가는 쪽보다 안전하게 둔다.
+    merged.fileVolumesNoticed = Math.max(0, Math.min(Number(raw.fileVolumesNoticed) || 0, Math.floor((Array.isArray(raw.records) ? raw.records.length : 0) / 50)));
     // 3단계 승급 때 주인님이 고른 명패 문구. 고르기 전에는 빈 문자열이다.
     merged.deskPlate = DESK_PLATES[raw.deskPlate] ? raw.deskPlate : "";
     merged.applicationHistory = Array.isArray(raw.applicationHistory) ? raw.applicationHistory.filter(item => objectValue(item) === item) : [];
@@ -2296,6 +2308,8 @@
     const firstCatRecord = isCat && cover.thickness === 1;
     $("#view-archive")?.classList.toggle("is-first-record-file", firstCatRecord);
     $("#owner-file-thickness").textContent = cover.thickness;
+    // 겉장 탭 「주인님 파일 제N권」. CSS가 attr()로 읽는다 — 값이 없으면 제1권.
+    $("#view-archive .owner-file-folder")?.setAttribute("data-volume-label", `주인님 파일 제${currentFileVolumeNumber()}권`);
     $("#owner-file-days").textContent = cover.daysTogether;
     /* 기록 한 건으로 "최다 대업 청소 · 1건"이라고 적으면 집계가 아니라 농담이 된다.
        3건부터 세되, 1위 자체가 1건이면 전 분야가 동점이라 여전히 집계가 아니다
@@ -3010,6 +3024,51 @@
     return pool[seed % pool.length];
   }
 
+  /* ── 파일 권(卷) ──
+     기록이 쌓여도 아무 일도 일어나지 않으면 축적은 숫자로만 남는다. 관공서 파일은
+     차면 제본되고 다음 권이 시작된다 — 그 순간이 이 앱에서 유일하게 "쌓인 것
+     자체"가 사건이 되는 자리다. 겉장 탭의 「제1권」은 처음부터 이 예고였다.
+
+     경계는 유효 대업 50건을 채운 「날」이다. 날짜 단위로 닫는 이유는 하루가 두 권에
+     걸쳐 갈라지면 목록에서 그날이 찢어져 보이기 때문이다. 권은 전부 기록에서
+     그때그때 계산한다 — 따로 저장하면 기록과 어긋날 길만 생긴다.
+
+     채워야 할 목표로 보여주지 않는다. 남은 건수 카운트다운은 두지 않는다 —
+     제본은 재촉이 아니라 뒤늦게 알아차리는 인정이어야 한다. */
+  const FILE_VOLUME_SIZE = 50;
+
+  // 완결된 권 목록(오래된 순). 각 권은 { number, fromDate, toDate, count }.
+  function completedFileVolumes() {
+    const records = Array.isArray(state.records) ? state.records : [];
+    if (records.length < FILE_VOLUME_SIZE) return [];
+    // 날짜별 건수를 오래된 날부터 누적한다. 기록 push 순서가 아니라 날짜 정렬 기준 —
+    // 목록 화면과 같은 축을 써야 경계가 화면과 일치한다.
+    const perDate = new Map();
+    records.forEach(record => {
+      const date = record.date || "날짜 미상";
+      perDate.set(date, (perDate.get(date) || 0) + 1);
+    });
+    const dates = [...perDate.keys()].sort();
+    const volumes = [];
+    let count = 0;
+    let fromDate = dates[0];
+    dates.forEach(date => {
+      count += perDate.get(date);
+      if (count >= FILE_VOLUME_SIZE) {
+        volumes.push({ number: volumes.length + 1, fromDate, toDate: date, count });
+        count = 0;
+        fromDate = "";
+      } else if (!fromDate) {
+        fromDate = date;
+      }
+    });
+    return volumes;
+  }
+
+  function currentFileVolumeNumber() {
+    return completedFileVolumes().length + 1;
+  }
+
   function ownerFileCover() {
     const records = Array.isArray(state.records) ? state.records : [];
     const journalEntries = Array.isArray(state.journalEntries) ? state.journalEntries : [];
@@ -3195,6 +3254,19 @@
     </section>`;
   }
 
+  // 제본 확인서 — 한 권이 닫힌 자리에 서는 작은 문서. 축하가 아니라 사무 절차의
+  // 어조를 지킨다. 금박은 인증서·축하 전용이라 여기 쓰지 않는다.
+  function fileVolumeBindingMarkup(volume) {
+    const range = `${escapeHtml(volume.fromDate)} ~ ${escapeHtml(volume.toDate)}`;
+    return `<section class="file-volume-binding" aria-label="주인님 파일 제${volume.number}권 제본 완료">
+      <span class="file-volume-binding-stitch" aria-hidden="true"></span>
+      <small>제 본 확 인 서</small>
+      <b>주인님 파일 제${volume.number}권 · 완결</b>
+      <p>대업 ${volume.count}건 · ${range}</p>
+      <span class="file-volume-binding-note">이 권의 기록은 전부 보존됩니다 · 제${volume.number + 1}권 계속</span>
+    </section>`;
+  }
+
   function renderArchiveRecords() {
     const officialIds = new Set(state.certificates.map(record => record.id));
     // 등급은 기록마다 다른 문구가 아니라 세 갈래다 — 평소 / 희귀 판정 / 공식 인정.
@@ -3240,7 +3312,16 @@
     }
     const shown = ownerFileExpanded ? groups : groups.slice(0, OWNER_FILE_RECENT_GROUPS);
     const hidden = groups.length - shown.length;
-    list.innerHTML = shown.map(group => ownerFileGroupMarkup(group, officialIds)).join("")
+    /* 권 경계 — 완결된 권의 마지막 날짜 그룹 「위」에 제본 확인서를 끼운다.
+       목록은 최신이 위라, 위에서 내려오다 확인서를 만나면 "여기서부터 아래가
+       제N권"으로 읽힌다. 아래에 끼우면 같은 권의 더 이른 날들이 확인서 밖으로
+       밀려난다. 필터·검색 중에는 끼우지 않는다 — 찾는 기록만 보여주는 게 그
+       화면의 일이다. */
+    const bindings = narrowed ? new Map() : new Map(completedFileVolumes().map(volume => [volume.toDate, volume]));
+    list.innerHTML = shown.map(group => {
+      const volume = bindings.get(group.date);
+      return (volume ? fileVolumeBindingMarkup(volume) : "") + ownerFileGroupMarkup(group, officialIds);
+    }).join("")
       + (hidden > 0 ? `<button class="file-expand-button" type="button" data-owner-file-expand>이전 기록 펼치기 <span>${hidden}일</span></button>` : "");
     inkNewOfficialStamps(list);
   }
@@ -4523,6 +4604,17 @@
     const earnedOfficial = !duplicate && isCertificateMilestone(officialCount);
     if (earnedOfficial) state.certificates.push(record);
     checkApplicantUnlocks();
+    /* 이 접수로 권이 닫혔으면 제본을 알린다. 결과서보다 조용한 사건이라 오버레이를
+       또 띄우지 않고, 방으로 돌아온 순간의 한마디로 처리한다 — 접수 자체의 마무리
+       한 줄보다 제본이 드물고 크므로 그 자리를 이어받는다. 안내는 권마다 한 번. */
+    if (state.character === "cat") {
+      const boundVolumes = completedFileVolumes().length;
+      if (boundVolumes > (Number(state.fileVolumesNoticed) || 0)) {
+        state.fileVolumesNoticed = boundVolumes;
+        catHomePendingReaction = fillContentTemplate(randomItem(CAT_VOLUME_BINDING_LINES), { volume: `제${boundVolumes}권`, next: `제${boundVolumes + 1}권` });
+        catHomePendingFace = "happy";
+      }
+    }
     rememberButlerPose(pose);
     if (!saveState()) {
       achievementSubmissionActive = false;

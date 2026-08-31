@@ -296,7 +296,9 @@
 }
 /* 권 라벨 — 겉장에서 튀어나온 탭. 파일이 1권으로 끝나지 않는다는 예고이기도 하다. */
 #view-archive .owner-file-folder:before {
-  content: "주인님 파일 제1권";
+  /* 권 번호는 JS가 data-volume-label에 넣는다. 기본값은 마크업 속성에 있다 —
+     attr() 폴백 문법은 아직 브라우저 지원이 얕다. */
+  content: attr(data-volume-label);
   position: absolute;
   top: -21px;
   left: 14px;
@@ -5857,3 +5859,53 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
 .file-date-fold > summary span::after { content: " ▾"; color: var(--ink-faint); }
 .file-date-fold[open] > summary span::after { content: " ▴"; }
 .file-date-fold[open] > summary { border-style: solid; }
+
+/* ═══════════ 파일 권(卷) — 제본 확인서 (2026-08-31) ═══════════ */
+
+/* 한 권이 닫힌 자리에 서는 문서. 날짜 그룹 사이에 끼므로 카드보다 낮고 어두워야
+   "여기서 한 권이 끝났다"로 읽힌다. 금박 없음 — 축하가 아니라 절차다. */
+.file-volume-binding {
+  position: relative;
+  margin: 16px 2px 18px;
+  padding: 13px 14px 11px 22px;
+  border: 1px solid rgba(83, 69, 51, .45);
+  border-left: 4px solid var(--ink);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(83, 69, 51, .07) 26px 27px),
+    #efe6d4;
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .16);
+}
+.file-volume-binding small {
+  display: block;
+  color: var(--stamp-red);
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .3em;
+}
+.file-volume-binding b {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink);
+  font: 800 15px/1.25 var(--disp);
+}
+.file-volume-binding p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font: 600 11px/1.4 var(--body);
+}
+.file-volume-binding-note {
+  display: block;
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(83, 69, 51, .3);
+  color: var(--ink-faint);
+  font: 600 10px/1.3 var(--body);
+}
+/* 제본 실 — 왼쪽 변에 꿰맨 자국. 장식은 이 한 줄로 끝낸다. */
+.file-volume-binding-stitch {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: 0;
+  border-left: 2px dashed rgba(83, 69, 51, .4);
+}

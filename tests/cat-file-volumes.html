@@ -1,0 +1,69 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CAT file volumes fixture</title>
+<body>
+<script src="fixture-assertions.js"></script>
+<script>
+  // 파일 권(卷) 계약 — 50건을 채운 날에 권이 닫히고, 겉장 탭·제본 확인서·안내가
+  // 함께 움직인다. 기록은 어느 권에 있든 전부 열람 가능해야 한다.
+  const pad = value => String(value).padStart(2, "0");
+  const records = [];
+  let n = 0;
+  // 49건: 8/01~8/10 에 하루 5건씩 (마지막 날 4건)
+  for (let d = 1; d <= 10 && n < 49; d += 1) {
+    for (let k = 0; k < 5 && n < 49; k += 1, n += 1) {
+      records.push({ id: "vol" + n, deed: "대업 " + n, sourceText: "이야기 " + n, nickname: "칭호" + n, grade: "국가적 성취", date: `2026.08.${pad(d)}`, number: n + 1, report: "소견이다냥.", character: "cat", category: "home" });
+    }
+  }
+  const seed = {
+    onboarded: true, username: "테스트", character: "cat", butlerName: "치즈냥",
+    ownedButlers: ["cat"], records, fileVolumesNoticed: 0,
+    diary: [], journalEntries: [], certificates: [], giftHistory: []
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (new URLSearchParams(location.search).has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?fixture-no-overlay-observer=1",
+      check: async (frame, assert, wait) => {
+        const doc = frame.contentDocument;
+        const win = frame.contentWindow;
+        await wait(120);
+
+        // 49건 — 아직 제1권이고 확인서가 없다
+        doc.querySelector('.bottom-nav [data-view="archive"]').click();
+        await wait(120);
+        assert.equal(doc.querySelector(".owner-file-folder").getAttribute("data-volume-label"), "주인님 파일 제1권", "49 records stay in volume 1");
+        assert.equal(doc.querySelectorAll(".file-volume-binding").length, 0, "no binding certificate before the volume closes");
+
+        // 50번째 기록이 접수되면 권이 닫힌다 — 상태를 직접 올리고 다시 그린다
+        const stored = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        stored.records.push({ id: "vol49", deed: "대업 49", sourceText: "이야기 49", nickname: "칭호49", grade: "국가적 성취", date: "2026.08.11", number: 50, report: "소견이다냥.", character: "cat", category: "home" });
+        win.localStorage.setItem("butlermaker_v1", JSON.stringify(stored));
+        win.location.reload();
+        await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
+        const doc2 = frame.contentDocument;
+        await wait(150);
+        doc2.querySelector('.bottom-nav [data-view="archive"]').click();
+        await wait(150);
+        assert.equal(doc2.querySelector(".owner-file-folder").getAttribute("data-volume-label"), "주인님 파일 제2권", "the 50th record opens volume 2 on the cover tab");
+        // 과거 그룹까지 전부 펼쳐 확인서를 찾는다 (최근 14일 제한 밖일 수 있다)
+        doc2.querySelector("[data-owner-file-expand]")?.click();
+        await wait(120);
+        const binding = doc2.querySelector(".file-volume-binding");
+        assert(Boolean(binding), "a binding certificate stands at the volume boundary");
+        assert(binding.textContent.includes("제1권") && binding.textContent.includes("50건"), "the certificate names volume 1 and its 50 records");
+        assert(binding.textContent.includes("보존"), "the certificate promises the records stay readable");
+        // 확인서 위 — 최신 방향 — 에는 닫힌 권보다 새로운 그룹만 있어야 한다
+        const names = Array.from(doc2.querySelectorAll("#archive-record-list > *")).map(el => el.className.split(" ")[0]);
+        const bindingIndex = names.indexOf("file-volume-binding");
+        assert(bindingIndex >= 0 && names.slice(bindingIndex + 1).every(name => name !== "file-volume-binding"), "exactly one certificate for one closed volume");
+        // 옛 권의 기록도 그대로 열람된다
+        const oldGroup = doc2.querySelector('.file-date-group[data-file-date="2026.08.01"]');
+        assert(Boolean(oldGroup), "volume 1 days remain in the file");
+      }
+    });
+  } else {
+    location.replace("../index.html");
+  }
+</script>
+</body>
