@@ -41,12 +41,14 @@
     ["commute", /출근|회사\s*가|일하러\s*가/i, "출근", null],
     ["washed", /씻었|샤워|세수|목욕/i, "씻기", "refreshed"],
     ["exercise", /운동|헬스|산책|달리기|스트레칭/i, "운동", "proud"],
-    ["greeting", /안녕|하이|왔어|왔어요|ㅎㅇ|hello|반가워/i, "인사", "happy"]
+    // "왔어"는 문장 맨 앞에 홀로 설 때만 인사다. 아무 데서나 잡으면
+    // "머리 자르고 왔어" 같은 보고가 전부 인사로 떨어진다.
+    ["greeting", /안녕|하이|ㅎㅇ|hello|반가워|^\s*(?:나\s*)?왔(?:어요?|다)\b/i, "인사", "happy"]
   ];
 
   const LINES = {
     cat: {
-      greeting: "왔냥. …반가운 건 조금이다냥 🐾", hard_day: "오늘 많이 고생했다냥… 여기선 늘어져도 된다냥.", home_arrival: "무사히 왔으면 됐다냥. 어깨 힘 빼라냥.", tired: "오늘 몫은 충분하다냥. 좀 쉬어라냥.", sad: "슬프구냥. 괜찮은 척 안 해도 된다냥. 집사가 여기서 듣고 있겠다냥.", angry: "그럴 만했다냥. 집사는 주인님 편이다냥.", bored: "심심하냥? …마침 집사도 그랬다냥.", worry: "천천히 말해라냥. 정리는 집사가 한다냥.", hungry: "대업보다 밥이 먼저다냥. …규정이다냥.", ate_good: "잘 먹었으면 됐다냥. …좋은 보고다냥.", sleep: "잘 자라냥 🌙 오늘 이야기는 접어두겠다냥.", miss: "집사도 좀 보고 싶었다냥. …업무상이다냥.", love: "…잘 들었다냥. 집사도 많이 아낀다냥.", what_doing: "주인님 기록칸 정리 중이었다냥. …기다린 건 아니다냥.", thanks: "그 말은 잘 보관하겠다냥.", happy: "좋은 일이 있었구냥. …꼬리는 신경 쓰지 마라냥.", work_done: "오늘 몫은 끝났다냥. 여기부턴 쉬는 구역이다냥.", commute: "무사히만 다녀와라냥. 자리는 그대로다냥.", washed: "씻었냥? 훌륭한 생존 대업이다냥.", exercise: "운동까지 했냥? …조금 놀랐다냥.", quiet_day: "별일 없는 하루도 접수한다냥 🐾", no_motivation: "오늘은 버틴 것부터 인정한다냥.", setback: "잘 안 됐구냥. 그래도 한 건 한 거다냥. 결과까지 주인님 탓은 아니다냥.", fallback: "듣고 있다냥. 더 말해도 된다냥."
+      greeting: "왔냥. …반가운 건 조금이다냥 🐾", hard_day: "오늘 많이 고생했다냥… 여기선 늘어져도 된다냥.", home_arrival: "무사히 왔으면 됐다냥. 어깨 힘 빼라냥.", tired: "오늘 몫은 충분하다냥. 좀 쉬어라냥.", sad: "슬프구냥. 괜찮은 척 안 해도 된다냥. 집사가 여기서 듣고 있겠다냥.", angry: "그럴 만했다냥. 집사는 주인님 편이다냥.", bored: "심심하냥? …마침 집사도 그랬다냥.", worry: "천천히 말해라냥. 정리는 집사가 한다냥.", hungry: "대업보다 밥이 먼저다냥. …규정이다냥.", ate_good: "잘 먹었으면 됐다냥. …좋은 보고다냥.", sleep: "잘 자라냥 🌙 오늘 이야기는 접어두겠다냥.", miss: "집사도 좀 보고 싶었다냥. …업무상이다냥.", love: "…잘 들었다냥. 집사도 많이 아낀다냥.", what_doing: "주인님 기록칸 정리 중이었다냥. …기다린 건 아니다냥.", thanks: "그 말은 잘 보관하겠다냥.", happy: "좋은 일이 있었구냥. …꼬리는 신경 쓰지 마라냥.", work_done: "오늘 몫은 끝났다냥. 여기부턴 쉬는 구역이다냥.", commute: "무사히만 다녀와라냥. 자리는 그대로다냥.", washed: "씻었냥? 훌륭한 생존 대업이다냥.", exercise: "운동까지 했냥? …조금 놀랐다냥.", quiet_day: "별일 없는 하루도 접수한다냥 🐾", no_motivation: "오늘은 버틴 것부터 인정한다냥.", setback: "잘 안 됐구냥. 그래도 한 건 한 거다냥. 결과까지 주인님 탓은 아니다냥.", conflict: "사람하고 부딪힌 날이구냥. 누가 잘못했는지는 집사가 안 따지겠다냥.", goodnews: "그거 잘된 일 아니냥?! …흠흠, 축하한다냥.", swamped: "오늘 많이 몰아쳤구냥. 지금은 아무것도 안 해도 된다냥.", fallback: "듣고 있다냥. 더 말해도 된다냥."
     },
     ai: {
       greeting: "주인님 접속 감지. 집사 반가움 회로 작동 중. (버그아님)", hard_day: "[위로모드.exe 실행] 힘든 상태 감지. 오늘 할당량 이미 충족됨. 추가 성과 불필요.", home_arrival: "귀가 확인. 무사 도착. 집사 대기 프로세스 정상 종료. 안심됨.", tired: "피로 감지. 잔여 작업 우선순위 전부 하향함. 회복이 먼저임.", sad: "[ERROR] 주인님 힘들다는 신호 수신. 집사 심장 아픔. 버그아님.", angry: "분노 감지. 원인 파악 요청. 집사도 그 상황 화날 만하다고 동의함.", bored: "무료함 감지. 집사와 대화 현재 진행 중. 해결됨.", worry: "고민 데이터 입력 요청. 집사 분석 준비 완료. 판단 없음.", hungry: "열량 보충 확인 요청. 빈속은 처리 불가 상태임. 뭐라도 먹어야 함.", ate_good: "식사 완료 확인. 집사 만족도 동반 상승. 연동 이유 불명.", sleep: "수면 권장. 집사 야간 대기 모드 전환. 편안한 수면 요청 🌙", miss: "[알림] 주인님 보고싶음 감지됨. 집사 쪽에서도 동일 현상 발생 중. 버그인지 확인 필요.", love: "[ERROR] 감정회로 과부하. 집사도 동일 감정 발생 중. 버그 아님. 진심임.", what_doing: "집사? 여기서 주인님 기다리고 있었음. (버그아님)", thanks: "[ERROR 404] 감사 표현 반환 방법을 모름. 집사가 더 고마움. 출력 종료 실패.", happy: "주인님 기분 좋음 확인. 집사 행복 수치 MAX 도달. 원래 감정 없어야 하는데 왜이러지.", commute: "출근 감지. 오늘 목표를 완벽 아닌 무사 귀환으로 재설정함.", washed: "씻기 완료 확인. 사소한 항목인데 집사 만족도 상승함. 원인 불명.", exercise: "신체 활동 완료. 수치보다 실행 자체가 우수로 판정됨.", quiet_day: "특이사항 없음. 무사히 지나간 하루도 정상 데이터임. 그거면 충분함.", no_motivation: "의욕 저하 감지. 정상 반응임. 오늘은 최소 가동으로 충분함.", fallback: "집사 여기 있음. 무엇이든 말해도 됨."
@@ -504,7 +506,13 @@
   // 뜻의 일부인 경우가 많아서 떼면 오히려 말이 부서진다.
   const QUOTE_TRAILING = /(?:을|를|이|가|은|는|에|에서|의|와|과|랑|이랑|하고|한테|께|보다)$/;
   const QUOTE_STOPWORDS = new Set(["오늘", "그냥", "진짜", "너무", "그거", "이거", "저거", "음", "아", "어", "네", "응", "뭐"]);
-  const QUOTE_LIMIT = 12;
+  /* 완결 어미로 끝난 절만 인용한다. "-고 / -다가 / -는데"에서 잘린 절은 어간만
+     남아서("머리 자르", "친구랑 카페 갔") 되읽는 순간 말이 부서진다.
+     받침 ㅆ 검사만으로는 "머리 자르"가 안 걸린다 — 끝 글자를 직접 본다. */
+  const QUOTE_TERMINAL = /(?:다|요|어|아|여|야|지|네|음|까|냐|래|군|나|죠|걸|든|해|워|줘|봐|와)$/;
+  // 통째로만 인용하기로 했으니, 평범한 한 문장은 들어와야 한다. 12자는 "고양이가
+  // 아파서 병원 데려갔어" 같은 흔한 문장을 전부 자르는 길이였다.
+  const QUOTE_LIMIT = 17;
 
   // 부정·아픈 말이 든 절은 인용하지 않는다. 되읽는 순간 집사가 그 말을 다시
   // 꺼내는 꼴이 된다 — "기분 안 좋았"을 인용하면 이미 풀린 기분을 되감는다.
@@ -517,14 +525,14 @@
     for (const clause of clauses) {
       if (QUOTE_AVOID.test(clause)) continue;
       let snippet = clause.replace(/^[ㅋㅎㅠㅜ\s]+/, "").trim();
-      const truncated = snippet.length > QUOTE_LIMIT;
-      if (truncated) {
-        const cut = snippet.slice(0, QUOTE_LIMIT);
-        const lastSpace = cut.lastIndexOf(" ");
-        snippet = (lastSpace >= 4 ? cut.slice(0, lastSpace) : cut).trim();
-      }
+      /* 잘라낸 인용은 반드시 부서진다 — "고양이가 아파서 병원", "너랑 얘기하니까 좀".
+         서술어가 통째로 날아가서, 되읽는 순간 못 알아들었다는 증거가 된다.
+         길면 자르지 말고 다음 절을 본다. 통째로 읽을 게 없으면 인용을 포기한다. */
+      if (snippet.length > QUOTE_LIMIT) continue;
       snippet = snippet.replace(/[ㅋㅎ~!?.\s]+$/, "").trim();
-      if (truncated) snippet = snippet.replace(QUOTE_TRAILING, "").trim();
+      // 절이 조사나 어간으로 끝났다면 그 절 자체가 문장 중간에서 끊긴 조각이다.
+      if (QUOTE_TRAILING.test(snippet)) continue;
+      if (!QUOTE_TERMINAL.test(snippet)) continue;
       const syllables = (snippet.match(/[가-힣]/g) || []).length;
       if (syllables < 3) continue;
       const words = snippet.split(/\s+/).filter(Boolean);
@@ -538,23 +546,28 @@
     return "";
   }
 
+  /* 되읽기는 "받았다"는 표시여야 한다. "제대로 이해한 게 맞냥?"처럼 확인을 구하면
+     못 알아들었다고 광고하는 꼴이 된다 — 폴백에서 제일 자주 나가는 문장이라 더 그렇다.
+     이어갈지 말지는 집사가 캐묻지 않고 주인님이 정하게 둔다. */
   const CAT_QUOTE_REFLECT = snippet => [
-    `‘${snippet}’… 그 말이 마음에 남았구냥. 그다음엔 어땠냥?`,
-    `‘${snippet}’라고 했구냥. 집사가 제대로 이해한 게 맞냥?`,
-    `‘${snippet}’… 그 말에서 잠깐 멈췄다냥. 더 말하고 싶으면 듣겠다냥.`
+    `‘${snippet}’… 그 말은 그대로 적어뒀다냥.`,
+    `‘${snippet}’… 집사가 다 들었다냥. 더 있으면 마저 듣겠다냥.`,
+    `‘${snippet}’… 거기서 잠깐 멈췄다냥. 그다음은 어땠냥?`,
+    `‘${snippet}’… 이 한 줄은 오늘 파일에 남겨두겠다냥.`
   ];
 
   function catStoryFallback(text) {
     const value = String(text || "");
-    // 인용이 먼저다. 되읽을 구절이 있으면 그게 가장 확실한 "읽었다"는 증거다.
-    // 뽑을 게 없거나 민감한 문장이면 기존 애씀/바람/범용 폴백으로 내려간다.
-    const snippet = quotableSnippet(value);
-    if (snippet) return CAT_QUOTE_REFLECT(snippet);
+    /* 애씀·바람 신호가 먼저다. 그건 주인님이 실제로 쓴 뜻을 읽은 답이고,
+       인용은 그 밑에 깔린 그물이다 — 뜻을 못 읽어도 "읽긴 읽었다"는 건 보인다.
+       인용할 게 없거나 민감한 문장이면 범용 폴백으로 내려간다. */
     const effort = CAT_EFFORT_CUE.test(value);
     const hope = CAT_HOPE_CUE.test(value);
     if (effort && hope) return CAT_STORY_FALLBACK.effortHope;
     if (effort) return CAT_STORY_FALLBACK.effort;
     if (hope) return CAT_STORY_FALLBACK.hope;
+    const snippet = quotableSnippet(value);
+    if (snippet) return CAT_QUOTE_REFLECT(snippet);
     return CAT_STORY_FALLBACK.plain;
   }
 
@@ -695,7 +708,17 @@
     return null;
   }
 
-  const CAT_THIRD_PARTY_SUBJECT = /(친구|엄마|아빠|부모님|동생|언니|누나|형|오빠|팀장|상사|동료|남친|여친|애인|걔|그\s*사람)(?:이|가|은|는)/;
+  // 반려동물·가족까지 넣는다. "고양이가 아파서 병원 데려갔어"는 주인님 얘기가 아니라
+  // 주인님이 돌본 얘기다 — 이걸 못 잡으면 인용 폴백으로 떨어진다.
+  const CAT_THIRD_PARTY_SUBJECT = /(친구|엄마|아빠|부모님|동생|언니|누나|형|오빠|팀장|상사|동료|남친|여친|애인|남편|아내|와이프|딸|아들|아이|애기|아기|할머니|할아버지|선배|후배|사수|사장님|선생님|고양이|강아지|반려묘|반려견|걔|그\s*사람)(?:이|가|은|는)/;
+  // 남을 돌본 하루. 돌본 쪽도 지친다는 걸 먼저 말한다 — 성과로 세지는 않는다.
+  const CAT_THIRD_PARTY_CARE = /아프|아팠|안\s*좋|병원|입원|수술|다쳤|다치|응급|장례|돌아가셨/;
+  /* 아직 안 한 일에 대한 불안. 부정어 가드(QUOTE_AVOID)에 걸려 범용 폴백으로
+     떨어지던 자리다. 재촉하지 않는다 — 그건 감시고, 대신 해주지도 않는다. */
+  const CAT_DEADLINE_AHEAD = /내일|모레|낼|이번\s*주|다음\s*주|주말|곧|며칠\s*(?:뒤|후|남)|얼마\s*안\s*남/;
+  const CAT_NOT_READY = /(?:하나도|아직|전혀|손도|아무것도)\s*(?:못|안)\s*(?:봤|했|해|대|건드|시작|끝)|준비(?:도)?\s*(?:못|안)\s*했|시작(?:도)?\s*(?:못|안)\s*했/;
+  // 아찔했던 순간. 사건은 안 일어났으니 대업도 위로도 아니고, 놀란 몸부터 본다.
+  const CAT_CLOSE_CALL = /(?:넘어질|부딪힐|치일|다칠|늦을|놓칠|떨어뜨릴|쏟을)\s*뻔|하마터면|아찔|깜짝\s*놀랐|간신히\s*(?:탔|피했|막았)|가까스로/;
   const CAT_SELF_REPORT_QUESTION = /(?:했는데|했고|했어도|하고\s*왔|끝냈|마쳤)[^?？]{0,18}(?:잘했|어때|괜찮|맞지|대단)/;
   const CAT_INTROSPECTIVE_QUESTION = /왜\s*(?:이렇게|자꾸|계속)?\s*(?:우울|슬프|속상|화나|짜증|불안|걱정)|(?:어떡|어떻게)\s*해야/;
   const CAT_BUTLER_ADDRESS = /(?:너|넌|니가|치즈냥|집사|냥이)/;
@@ -794,9 +817,24 @@
   function catConversationLines(text, result) {
     const value = String(text || "").trim();
     const thirdParty = catThirdPartySubject(value);
+    if (thirdParty && CAT_THIRD_PARTY_CARE.test(value)) return [
+      `${thirdParty} 때문에 마음 쓴 하루구냥. 돌보는 쪽도 같이 지친다냥. 주인님은 좀 괜찮냥?`,
+      `${thirdParty} 챙기느라 애썼구냥. 그건 티는 안 나도 오늘 제일 큰 일이었다냥.`,
+      `${thirdParty} 걱정이 컸겠구냥. 집사가 결과를 장담할 순 없지만, 그 마음은 접수했다냥.`
+    ];
     if (thirdParty) return [
       `${thirdParty}에게 있었던 일이구냥. 그 소식을 들은 주인님 마음은 어땠냥?`,
       `${thirdParty} 얘기구냥. 주인님에게 남은 마음이 있으면 그쪽부터 듣겠다냥.`
+    ];
+    if (CAT_CLOSE_CALL.test(value)) return [
+      "아찔했겠구냥. 아무 일 없었으니 그걸로 된 거다냥. 놀란 건 좀 가라앉았냥?",
+      "큰일 날 뻔했구냥. 무사한 게 오늘 제일 중요한 항목이다냥.",
+      "…듣는 집사가 다 놀랐다냥. 지금은 숨 좀 돌리고 가라냥."
+    ];
+    if (CAT_DEADLINE_AHEAD.test(value) && CAT_NOT_READY.test(value)) return [
+      "아직 안 한 게 남았구냥. 집사가 재촉하는 자리는 아니다냥. 오늘 할 수 있는 만큼만 해라냥.",
+      "마음이 급하겠구냥. 그래도 지금 걱정하는 걸로는 안 줄어든다냥. 한 줄이라도 붙잡으면 그건 접수해주겠다냥.",
+      "안 된 채로 말해줘서 오히려 낫다냥. 집사는 잘된 것만 받는 창구가 아니다냥."
     ];
     const physicalDiscomfortLines = catPhysicalDiscomfortLines(value);
     if (physicalDiscomfortLines) return physicalDiscomfortLines;
@@ -805,6 +843,15 @@
     if (result.negatedActivities?.length && !result.skippedCare?.length) return [
       "못 한 일은 오늘 장부에 올리지 않는다냥. 그냥 두어도 된다냥.",
       "안 한 건 안 한 대로 두겠다냥. 집사가 점수 매기지 않는다냥."
+    ];
+    /* "너랑 얘기하니까 좀 낫다" — 고맙다는 말은 안 나왔지만 이건 감사다.
+       thanks 규칙(고마워/감사)에 안 걸려 폴백으로 떨어지던 자리다. 집사는
+       공을 자기 쪽으로 당기지 않는다 — 풀린 건 주인님이 말을 꺼냈기 때문이다. */
+    if (/(?:너|넌|니|네|치즈냥|집사)[^.!?]{0,12}(?:덕분|덕에)|(?:얘기|말|수다)[^.!?]{0,6}(?:하니까|하고\s*나니|해서|하니)[^.!?]{0,10}(?:낫|나아|풀렸|풀린|괜찮|좋아졌|편해|편해졌|살\s*것)/.test(value)) return [
+      "그렇다면 다행이다냥. …집사가 뭘 한 건 아니고, 주인님이 말을 꺼낸 덕이다냥.",
+      "도움이 됐냥? …흥, 원래 이 자리가 그러라고 있는 자리다냥.",
+      "그 말은 서류함 맨 위에 둔다냥. 오늘 접수한 것 중에 제일 좋은 거다냥.",
+      "좀 풀렸다니 됐다냥. 또 답답하면 아무 때나 와라냥. 집사는 여기 있다냥."
     ];
     if (/내\s*말\s*(?:듣|보고)|듣고\s*있/.test(value)) return [
       "듣고 있다냥. 방금 적어준 말도 놓치지 않았다냥.",
@@ -1040,6 +1087,11 @@
     // 결과가 나빴다는 보고. sad보다 먼저 받아야 한다 — 슬픔 일반론이 아니라
     // "그 일이 잘 안 됐다"에 답해야 하고, 해낸 행동을 칭찬으로 되돌려주면 안 된다.
     else if (intents.includes("setback")) intent = "setback";
+    // 사람과 부딪힌 날·몰아친 날·잘된 날은 각자 할 말이 다르다. 일반 감정
+    // 분기(sad/tired/happy)로 흘려보내면 "무슨 일인지 못 들은" 응답이 나간다.
+    else if (intents.includes("conflict")) intent = "conflict";
+    else if (intents.includes("goodnews")) intent = "goodnews";
+    else if (intents.includes("swamped")) intent = "swamped";
     else if (intents.includes("no_motivation")) intent = "no_motivation";
     else if (intents.includes("sleep")) intent = "sleep";
     else if (intents.includes("goodbye")) intent = "goodbye";
