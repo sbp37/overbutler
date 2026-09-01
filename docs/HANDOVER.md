@@ -231,6 +231,33 @@ NODE_PATH=/opt/node22/lib/node_modules
 - 폰트는 아직 외부 CDN이다. 로컬 폰트 번들은 B파트(StorageAdapter) 범위 밖이며,
   다음 네이티브 최소 세트에서 오프라인 첫 실행과 함께 처리한다.
 
+**부팅 리스너를 새로 달 때 (2026-09-02 리뷰에서 실제로 걸린 함정)**
+
+`await Storage.init()`은 네이티브에서 Preferences 브리지 왕복이라 수 ms가 든다.
+그 사이에 **`DOMContentLoaded`가 이미 지나간다.** 그래서 앱 스크립트가 평가될 때는
+이벤트가 끝난 뒤고, `addEventListener("DOMContentLoaded", …)`만 걸어둔 코드는
+네이티브에서 **영영 실행되지 않는다.**
+
+- 웹 classic 부팅에서는 정상 동작하므로 **회귀 9/9로는 절대 안 잡힌다.**
+- `app.js`의 첫 방 그림 적용(`applyCatOfficeTime(true)`)이 이 경로로 죽어 있었다.
+  MutationObserver가 뒤늦게 덮어써서 눈에 안 보였을 뿐이다.
+- 규칙: 부팅 시점 작업은 반드시 `document.readyState === "loading"`을 확인하고
+  아니면 즉시 실행한다(`cat-first-run-polish.js`가 원래 쓰던 방식).
+- 이 지연은 브라우저에서 `Storage.init()`에 `await wait(30)`을 넣은 어댑터로
+  `www/`를 띄우면 그대로 재현된다. 부팅 코드를 건드렸으면 이걸로 확인한다.
+
+**저장은 즉시 반환하고 쓰기는 큐에 남는다.** `saveState()`는 캐시만 갱신하고
+Preferences 쓰기는 뒤따라간다. `storage-bootstrap.js`가 `pagehide`·
+`visibilitychange`에서 밀린 쓰기를 밀어내므로, 여기에 손대면 「접수하고 바로
+앱 종료」에서 마지막 기록이 날아갈 수 있다.
+
+**손상된 native 값은 온전한 사본을 가리면 안 된다.** 마이그레이션 정리(remove)가
+실패하면 native에 잘린 값이 남을 수 있는데, 그걸 그대로 진실로 삼으면 멀쩡한
+localStorage 사본이 영영 안 읽힌다. 지우지 않았어도 주인님 눈에는 파일이 사라진
+것과 같다. `storage-adapter-core.js`는 native 값을 읽을 때 모양을 확인하고,
+깨져 있으면 온전한 사본으로 복구를 시도한다. 계약은
+`tests/storage-adapter.test.mjs` 5·6번이 지킨다.
+
 ---
 
 ## 8. 남은 일

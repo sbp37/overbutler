@@ -8066,7 +8066,14 @@
   if (roomObserverRoot?.nodeType === Node.ELEMENT_NODE) {
     try { roomObserver.observe(roomObserverRoot, { childList: true, subtree: true }); } catch { /* hidden fixture document */ }
   }
-  window.addEventListener("DOMContentLoaded", () => applyCatOfficeTime(true), { once: true });
+  /* 네이티브에서는 module bootstrap이 Storage.init()을 기다린 뒤 이 파일을 불러온다.
+     그 왕복 사이에 DOMContentLoaded가 이미 지나가 버려서, 이벤트만 걸어두면
+     첫 방 그림 적용이 통째로 건너뛰어진다. 웹 classic 부팅과 갈리는 지점이다. */
+  if (document.readyState === "loading") {
+    window.addEventListener("DOMContentLoaded", () => applyCatOfficeTime(true), { once: true });
+  } else {
+    applyCatOfficeTime(true);
+  }
   window.addEventListener("focus", () => applyCatOfficeTime());
   window.setInterval(() => applyCatOfficeTime(), 60 * 1000);
 })();

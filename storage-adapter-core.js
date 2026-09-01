@@ -24,8 +24,10 @@ function writeLocal(key, value) {
   storage.setItem(key, value);
 }
 
-function isValidStateRoundtrip(value, expected) {
-  if (typeof value !== "string" || value !== expected) return false;
+/* 저장값이 「주인님 파일」로 읽힐 만한 모양인지만 본다. 내용 검사는 앱의
+   normalizeState 몫이고, 여기서는 잘린 문자열·깨진 JSON을 걸러내는 게 목적이다. */
+function isPlausibleState(value) {
+  if (typeof value !== "string") return false;
   try {
     const parsed = JSON.parse(value);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return false;
@@ -41,6 +43,10 @@ function isValidStateRoundtrip(value, expected) {
   } catch {
     return false;
   }
+}
+
+function isValidStateRoundtrip(value, expected) {
+  return value === expected && isPlausibleState(value);
 }
 
 export function createWebStorageAdapter() {
@@ -100,8 +106,22 @@ export function createNativeStorageAdapter(Preferences) {
     try {
       const nativeState = await Preferences.get({ key: STORAGE_KEY });
       if (nativeState.value !== null) {
-        cachedState = nativeState.value;
-        mode = "native";
+        if (isPlausibleState(nativeState.value)) {
+          cachedState = nativeState.value;
+          mode = "native";
+          return;
+        }
+        /* 손상된 native 값. 정리(remove)가 실패한 채 끝난 마이그레이션이 대표적인
+           경로다. 이걸 그대로 진실로 삼으면 멀쩡한 localStorage 사본이 영영 가려져,
+           지우지 않았어도 주인님 눈에는 파일이 사라진 것과 같다.
+           온전한 사본이 있으면 그것으로 native를 덮어써서 복구를 시도한다. */
+        if (webState !== null && isPlausibleState(webState) && await migrateFromWeb(webState)) {
+          mode = "native";
+          return;
+        }
+        cachedState = webState !== null ? webState : nativeState.value;
+        cachedLegacyState = webLegacyState;
+        mode = webState !== null ? "web-fallback" : "native";
         return;
       }
 

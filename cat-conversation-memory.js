@@ -85,7 +85,9 @@
     if (state.chatMemory?.character && state.chatMemory.character !== "cat") return;
     delete state.chatMemory;
     Storage.saveState(JSON.stringify(state));
-    await Storage.flush();
+    // 플러시가 실패해도 화면은 넘어가야 한다 — 여기서 멈추면 버튼만 굳고
+    // 비웠는지 아닌지 알 수 없게 된다. 값은 이미 캐시에 반영돼 있다.
+    try { await Storage.flush(); } catch { /* 다음 저장에서 다시 시도된다 */ }
     clearArmed = false;
     clearTimeout(clearTimer);
     window.location.reload();
