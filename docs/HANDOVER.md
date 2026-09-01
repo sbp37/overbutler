@@ -215,6 +215,22 @@ NODE_PATH=/opt/node22/lib/node_modules
 (`"2026-08-20"`)로 시드하면 "오늘" 필터가 0건이 되어 엉뚱한 결과가 나온다.
 `Intl.DateTimeFormat('ko-KR', ...)`로 만든다.
 
+### Native Foundation 부팅은 웹과 네이티브가 다르다
+
+- 웹 `index.html`은 `storage-adapter.js`를 먼저 읽고 기존 classic script 순서로
+  동기 부팅한다. 회귀 fixture가 `load` 직후 `window.OVERBUTLER_TESTS`를 읽기 때문에
+  웹까지 module bootstrap으로 합치면 하네스가 앱 준비보다 먼저 달린다.
+- 네이티브 패키지만 `scripts/prepare-native-web.mjs`가 `www/index.html`을
+  `storage-bootstrap.js` module 부팅으로 치환한다. 여기서 `await Storage.init()` 후
+  앱 스크립트를 순서대로 읽는다.
+- 따라서 웹 9/9 회귀는 저장 계약을 지키지만 **네이티브 부팅 경로 자체를 실행하지는
+  않는다.** 실기기 QA에서는 첫 설치와 완전 종료 뒤 cold boot 때 빈 화면 없이 홈이
+  뜨는지까지 데이터 보존 확인의 선행 조건으로 본다.
+- `design/` 전체를 복사하지 않는다. staging 스크립트의 화이트리스트만 복사하며
+  2026-09-02 기준 `www/`는 9.0MB다. `dist/`·`output/`·`prototype/`·원본 PNG는 없다.
+- 폰트는 아직 외부 CDN이다. 로컬 폰트 번들은 B파트(StorageAdapter) 범위 밖이며,
+  다음 네이티브 최소 세트에서 오프라인 첫 실행과 함께 처리한다.
+
 ---
 
 ## 8. 남은 일

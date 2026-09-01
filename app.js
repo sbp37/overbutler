@@ -12,6 +12,7 @@
   }];
   const STORAGE_KEY = "butlermaker_v1";
   const PREVIOUS_STORAGE_KEY = "overbutler-v2-state";
+  const Storage = window.OverbutlerStorage;
   const CHAT_ENGINE = window.OVERBUTLER_CHAT_ENGINE;
   const POSES = ["base", "analysis", "praise", "power", "gift"];
   const RELATIONSHIP_STAGES = [
@@ -1091,7 +1092,7 @@
   let pendingAnalysisDeed = null;
   // 이번 세션에서 심사 연출을 몇 번 봤는지. 메모리에만 두고 저장하지 않는다 —
   // 새로고침하면 다시 처음 속도로 돌아가도 상관없는 값이고, 이거 하나 때문에
-  // localStorage 구조를 늘릴 이유가 없다.
+  // 저장 상태 구조를 늘릴 이유가 없다.
   let analysisRunsThisSession = 0;
   let pendingMessageAnalysis = null;
   let typingTimer = null;
@@ -1461,8 +1462,8 @@
     let original = null;
     let previous = null;
     try {
-      original = safeParse(localStorage.getItem(STORAGE_KEY));
-      previous = safeParse(localStorage.getItem(PREVIOUS_STORAGE_KEY));
+      original = safeParse(Storage.loadState());
+      previous = safeParse(Storage.loadLegacyState());
     } catch { /* private or restricted storage: continue in-memory */ }
     return normalizeState(original || previous || {});
   }
@@ -1484,7 +1485,7 @@
     state.totalGifts = Math.max(Number(state.totalGifts) || 0, Number(state.gifts) || 0);
     try {
       const serialized = JSON.stringify(state);
-      localStorage.setItem(STORAGE_KEY, serialized);
+      Storage.saveState(serialized);
       lastStableStateJson = serialized;
       return true;
     } catch {
@@ -7917,7 +7918,8 @@
       } else {
         const restored = await decryptBackup(briefingImportEnvelope, password);
         if (!window.confirm("현재 기기 파일을 이 보관본으로 교체할까요? 기존 파일은 먼저 따로 보관하는 편이 안전합니다.")) return;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
+        Storage.saveState(JSON.stringify(restored));
+        await Storage.flush();
         window.location.reload();
       }
     } catch {

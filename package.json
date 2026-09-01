@@ -1,0 +1,21 @@
+{
+  "name": "overbutler",
+  "version": "2.18.0",
+  "private": true,
+  "scripts": {
+    "native:prepare": "node scripts/prepare-native-web.mjs",
+    "native:sync": "pnpm native:prepare && cap sync",
+    "native:open:ios": "pnpm native:sync && cap open ios",
+    "native:open:android": "pnpm native:sync && cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.1",
+    "@capacitor/core": "8.5.1",
+    "@capacitor/ios": "8.5.1",
+    "@capacitor/preferences": "8.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.1",
+    "esbuild": "0.28.2"
+  }
+}

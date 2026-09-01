@@ -2,13 +2,14 @@
   "use strict";
 
   const STORAGE_KEY = "butlermaker_v1";
+  const Storage = window.OverbutlerStorage;
   const CARD_ID = "cat-conversation-memory";
   let clearArmed = false;
   let clearTimer = 0;
 
   function readState() {
     try {
-      const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      const value = JSON.parse(Storage.loadState() || "{}");
       return value && typeof value === "object" ? value : {};
     } catch (_) {
       return {};
@@ -69,7 +70,7 @@
     card.innerHTML = cardMarkup(turns);
   }
 
-  function clearConversationMemory(button) {
+  async function clearConversationMemory(button) {
     if (!clearArmed) {
       clearArmed = true;
       button.textContent = "한 번 더 누르면 비움";
@@ -83,7 +84,8 @@
     const state = readState();
     if (state.chatMemory?.character && state.chatMemory.character !== "cat") return;
     delete state.chatMemory;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    Storage.saveState(JSON.stringify(state));
+    await Storage.flush();
     clearArmed = false;
     clearTimeout(clearTimer);
     window.location.reload();

@@ -1,0 +1,8 @@
+{
+  "appId": "com.overbutler.app",
+  "appName": "과잉집사",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

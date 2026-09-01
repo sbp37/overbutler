@@ -131,3 +131,20 @@ native 저장소에 butlermaker_v1 있음? → 그것이 source of truth. 끝.
 3. 실기기(오너): 웹뷰 데이터가 있는 상태에서 앱 업데이트 시나리오 → 데이터 그대로
 4. 마이그레이션: localStorage에 기존 데이터가 있는 첫 실행 → native로 승계 확인
 5. `grep localStorage`가 StorageAdapter 모듈 밖에서 0건
+
+### B-6. 1차 구현 상태 (2026-09-02)
+
+- 작업 브랜치: `codex/native-foundation-1`
+- 웹은 기존 classic script 동기 부팅을 유지하고, 네이티브 staging에서만
+  `await Storage.init()` module bootstrap으로 바꾼다. 이유와 회귀 함정은
+  `docs/HANDOVER.md` 「Native Foundation 부팅은 웹과 네이티브가 다르다」에 기록했다.
+- `www/`는 런타임 자산 화이트리스트로 만들며 실측 9.0MB다. `design/` 원본 전체를
+  복사하지 않는다.
+- B-5 1번과 5번 통과: 9/9 fixtures · 158 checks, node 2종, 360/390/430 넘침 0,
+  런타임 StorageAdapter 밖 직접 접근 0건.
+- mock Preferences에서 native 우선·정상 승계·검증 실패 fallback·연속 쓰기 순서를
+  확인했다. 이것은 실기기 판정을 대신하지 않는다.
+- B-5 2~4번은 오너 실기기 확인으로 남는다. 각 시나리오에서 데이터뿐 아니라
+  cold boot 시 빈 화면 없이 앱이 준비되는지도 함께 확인한다.
+- 외부 CDN 폰트의 로컬 번들은 다음 네이티브 최소 세트 과제다. 이번 B파트에는
+  Preferences 외 플러그인·UI·수익화와 함께 넣지 않았다.
