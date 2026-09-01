@@ -1,0 +1,84 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CAT office events fixture</title>
+<body>
+<script src="fixture-assertions.js"></script>
+<script>
+  /* 사무국 행사 계약 — 창이 지나면 확인서가 남고, 결과는 갈리지 않으며,
+     사용자가 놓쳐도 벌이 없고, 기록이 없으면 있지도 않은 공을 적지 않는다.
+     시계를 감사 창(9월 말) 직후로 고정한 채 앱을 띄운다. */
+  const FIXED = "2026-10-02T10:00:00";
+  const records = [
+    { id: "e1", deed: "생활권 질서 회복 완료", sourceText: "방청소 했어", nickname: "생활력의 수호자", grade: "국가적 성취", date: "2026.09.28", number: 1, report: "접수다냥.", character: "cat", category: "home" },
+    { id: "e2", deed: "생활 문명 복구: 씻기 완료", sourceText: "씻었어", nickname: "청결 문명의 수호자", grade: "국가적 성취", date: "2026.10.01", number: 2, report: "접수다냥.", character: "cat", category: "hygiene" }
+  ];
+  const seed = {
+    onboarded: true, username: "테스트", character: "cat", butlerName: "치즈냥",
+    ownedButlers: ["cat"], records, diary: [], journalEntries: [], certificates: [], giftHistory: []
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (new URLSearchParams(location.search).has("assert")) {
+    runFixtureAssertions({
+      target: `../index.html?fixture-no-overlay-observer=1&fixture-now=${encodeURIComponent(FIXED)}`,
+      check: async (frame, assert, wait) => {
+        const win = frame.contentWindow;
+        await wait(150);
+        const doc = frame.contentDocument;
+
+        const stored = () => JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        const events = stored().officeEvents || [];
+        assert(events.length >= 1, "a passed audit window leaves a settlement record");
+        const audit = events.find(item => item.key === "audit");
+        assert(Boolean(audit), "the quarterly audit is the settled event");
+        // 10/01 기록은 9/30에 끝난 감사의 근거가 될 수 없다 — 종료 시점까지의 1건만.
+        assert.equal(audit.thickness, 1, "the certificate cites only records that existed before the audit closed");
+
+        doc.querySelector('.bottom-nav [data-view="archive"]').click();
+        await wait(150);
+        const note = doc.querySelector(".office-event-note");
+        assert(Boolean(note), "the settlement stands in the file as an office notice");
+        assert(note.textContent.includes("통과"), "the audit result never fails the owner");
+        assert(!/스트릭|연속|며칠|빠짐|출석/.test(note.textContent), "the notice never counts attendance");
+
+        // 같은 회차가 두 번 쌓이지 않는다
+        win.location.reload();
+        await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
+        await wait(200);
+        const after = (JSON.parse(win.localStorage.getItem("butlermaker_v1")).officeEvents || [])
+          .filter(item => item.key === "audit" && item.period === audit.period);
+        assert.equal(after.length, 1, "revisiting does not stack the same occurrence");
+
+        /* 계절 상품 — 진열만 철을 타고 조회는 항상 된다. 이 창(10/02)은 감사철이
+           지난 뒤라 선반에서 빠져 있어야 하고, 이미 산 사람의 이력에는 남아야 한다. */
+        const doc3 = frame.contentDocument;
+        doc3.querySelector('.bottom-nav [data-view="manager"]').click();
+        await wait(150);
+        const giftEntry = Array.from(doc3.querySelectorAll("button")).find(el => (el.textContent || "").includes("집사에게 선물 보내기"));
+        assert(Boolean(giftEntry), "the gift desk is reachable from the butler tab");
+        giftEntry.click();
+        await wait(200);
+        const shelf = Array.from(doc3.querySelectorAll(".gift-shelf-item b")).map(el => el.textContent);
+        assert(!shelf.some(name => /검인 도장|감사패/.test(name)), "seasonal items leave the shelf out of season");
+        assert(doc3.getElementById("gift-season-note").hidden, "the seasonal note is silent out of season");
+
+        // 철이 지나도 이미 받은 계절 선물은 이력에서 사라지지 않는다.
+        const withGift = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        withGift.giftHistory = [{ name: "감사철 검인 도장", emoji: "🧾", character: "cat", date: "2026.09.29", reactionType: "rare" }];
+        win.localStorage.setItem("butlermaker_v1", JSON.stringify(withGift));
+        win.location.reload();
+        await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
+        await wait(200);
+        const doc4 = frame.contentDocument;
+        doc4.querySelector('.bottom-nav [data-view="manager"]').click();
+        await wait(150);
+        Array.from(doc4.querySelectorAll("button")).find(el => (el.textContent || "").includes("집사에게 선물 보내기"))?.click();
+        await wait(200);
+        const history = Array.from(doc4.querySelectorAll("#gift-history-list b")).map(el => el.textContent);
+        assert(history.some(name => name.includes("검인 도장")), "an owned seasonal gift stays in the history after its season");
+      }
+    });
+  } else {
+    location.replace("../index.html");
+  }
+</script>
+</body>

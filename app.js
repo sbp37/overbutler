@@ -660,6 +660,26 @@
      방에서도 보관함에서도 조용히 사라진다 — "하나도 안 버렸다냥"이
      거짓말이 된다. 그래서 값 등급이 같은 새 품목으로 이어 붙인다.
      저장된 데이터는 건드리지 않고 읽을 때만 바꾼다(롤백 가능). */
+  /* ── 계절 선물 ──
+     사무국 달력 위에 얹은 상품이다. 파는 것은 물건이 아니라 「그 철에만 접수되는
+     품목」이고, 산 뒤에는 영영 남는다(§6 — 소모품은 팔지 않는다).
+
+     조심할 것 두 가지.
+     1) 카탈로그에서 빼면 안 된다. giftHistory는 선물을 이름 문자열로 저장하므로
+        철이 지났다고 목록에서 지우면 이미 산 사람의 방과 보관함에서 그 선물이
+        조용히 사라진다. 그래서 **조회는 항상 되고, 진열만 철을 탄다.**
+     2) 놓쳐도 벌이 없다. 회차는 매년 돌아오므로 「이번에 못 사면 끝」이 아니다 —
+        선반 각주가 그 사실을 먼저 말한다. 재촉 문구는 쓰지 않는다.
+
+     그림은 아직 없다. 이모지 대체 표시로 두고, 나머지 아홉 칸처럼 그림이
+     나오면 art만 채우면 된다(design/gift-assets/GIFT-PROMPTS.md). */
+  const CAT_SEASONAL_GIFTS = Object.freeze([
+    { name: "감사철 검인 도장", emoji: "🧾", cost: 120, eventKey: "audit", art: "",
+      note: "분기 감사철에만 접수됩니다" },
+    { name: "연말 감사패", emoji: "🏵️", cost: 220, eventKey: "commendation", art: "",
+      note: "연말 표창철에만 접수됩니다" }
+  ]);
+
   const CAT_GIFT_RENAMES = Object.freeze({
     "우유": "우유 접시", "생선": "츄르", "큰 생선": "깃털 낚싯대",
     "리본": "방울 공", "꽃다발": "쥐 인형",
@@ -1027,7 +1047,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false, fileVolumesNoticed: 0,
+    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false, fileVolumesNoticed: 0, officeEvents: [], officeEventSeen: "", officeEventAnnounced: "",
     briefings: [], journalEntries: [], briefingIntroDates: [], briefingEveningDates: [],
     catBriefingBoardPosition: { x: 59, y: 60.5 },
     catBriefingBoardPositionVersion: 3,
@@ -1331,6 +1351,14 @@
     // 제본 안내가 나간 마지막 권 번호. 기록보다 클 수 없다 — 백업 편집 등으로
     // 기록이 줄었으면 같이 줄여, 이미 한 안내가 다시 나가는 쪽보다 안전하게 둔다.
     merged.fileVolumesNoticed = Math.max(0, Math.min(Number(raw.fileVolumesNoticed) || 0, Math.floor((Array.isArray(raw.records) ? raw.records.length : 0) / 50)));
+    // 사무국 행사 확인서. 옛 저장본에는 없던 칸이라 빈 배열로 시작한다.
+    merged.officeEvents = (Array.isArray(raw.officeEvents) ? raw.officeEvents : [])
+      .filter(item => objectValue(item) === item && item.key && item.period)
+      .slice(-24);
+    // 오늘 이미 들은 진행 중 소식 표시. 하루짜리라 문자열 하나면 된다.
+    merged.officeEventSeen = storedText(raw.officeEventSeen);
+    // 결과를 이미 알린 회차 표시.
+    merged.officeEventAnnounced = storedText(raw.officeEventAnnounced);
     // 3단계 승급 때 주인님이 고른 명패 문구. 고르기 전에는 빈 문자열이다.
     merged.deskPlate = DESK_PLATES[raw.deskPlate] ? raw.deskPlate : "";
     merged.applicationHistory = Array.isArray(raw.applicationHistory) ? raw.applicationHistory.filter(item => objectValue(item) === item) : [];
@@ -1991,8 +2019,12 @@
     const returned = returnVisitLine();
     returnVisitContext.consumed = true;
     typeMessage($("#briefing-message"), returned ? `${greeting}\n${returned}` : greeting);
+    /* 사무국 행사가 열려 있거나 방금 끝났으면 그 소식이 인사 자리를 가져간다.
+       드물게 오는 소식이라 일반 인사보다 앞이고, 복귀 인사와 겹치면 이쪽만 낸다 —
+       한 슬립에 두 소식을 밀어 넣으면 둘 다 안 읽힌다. */
+    const eventLine = officeEventGreetingLine();
     // 홈 상단은 접수대 방 하나로 정리했다. 인사는 카드가 아니라 집사 말풍선으로 나간다.
-    window.setTimeout(() => showCatHomeSpeech(returned || greeting, 4200), 420);
+    window.setTimeout(() => showCatHomeSpeech(eventLine || returned || greeting, 4200), 420);
   }
 
   function cycleBriefing() {
@@ -2994,6 +3026,175 @@
      경계 원칙(owner-file-design §1): 유저가 제출한 내용에 대한 통계는 기억이라 쓰고,
      행동 패턴(접수 시간대·공백일·부재)에 대한 통계는 감시라 쓰지 않는다. */
 
+  /* ── 사무국 행사 ──
+     쌓이는 축(파일 권)과 별개로, 세계가 스스로 굴러간다는 축이 필요했다. 관공서에는
+     분기 감사와 연말 표창이 있고, 그건 주인님 일정이 아니라 사무국 일정이다.
+
+     핵심 뒤집기: **감사가 평가하는 대상은 주인님이 아니라 집사다.** 상급기관이
+     신입의 서류를 들여다보고, 주인님이 그동안 들려준 기록이 집사를 무사히
+     통과시킨다. 그래서 사용자에게 기한도 과제도 없다 — 이미 있는 파일이 알아서
+     일한다. 통과 여부는 갈리지 않는다(갈리면 그 순간 죄책감이 된다). 갈리는 건
+     집사가 얼마나 자랑하느냐뿐이다.
+
+     행사를 놓쳐도 벌이 없다. 창이 지난 뒤 처음 들어와도 집사가 "지난주에 있었다냥"
+     하고 결과를 알려준다 — 안 온 날을 세는 게 아니라 사무국 달력을 말하는 것이다. */
+  const OFFICE_EVENT_DEFS = Object.freeze([
+    {
+      key: "audit",
+      label: "분기 정기 감사",
+      // 3·6·9월 말 사흘. 12월은 표창이 자리를 가져간다.
+      months: [3, 6, 9],
+      windowDays: 3,
+      periodOf: (year, month) => `${year}-Q${Math.ceil(month / 3)}`
+    },
+    {
+      key: "commendation",
+      label: "연말 표창 심사",
+      months: [12],
+      windowDays: 6,
+      periodOf: year => `${year}-YEAR`
+    }
+  ]);
+  // 창이 지난 지 이만큼 넘은 행사는 소급하지 않는다. 앱을 몇 달 만에 열었을 때
+  // 묵은 확인서가 우수수 쌓이면 그건 기록이 아니라 밀린 알림이다.
+  const OFFICE_EVENT_BACKLOG_DAYS = 45;
+
+  function monthLastDay(year, month) { return new Date(year, month, 0).getDate(); }
+
+  /* 행사 판정에만 쓰는 시계. 회차 경계가 달력 위 고정 날짜라, fixture가 특정
+     시점을 재현하려면 시계를 잡아야 한다. Date 전역을 갈아끼우는 대신 이 한
+     함수만 갈라 둔다 — 파라미터가 없으면 평소와 완전히 같은 경로다. */
+  function officeNow() {
+    const fixed = new URLSearchParams(window.location.search).get("fixture-now");
+    if (!fixed) return new Date();
+    const parsed = new Date(fixed);
+    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  }
+
+  // 주어진 날짜가 속한(혹은 그 날짜 기준 가장 최근에 지난) 행사 회차를 찾는다.
+  function officeEventOccurrence(def, year) {
+    return def.months.map(month => {
+      const last = monthLastDay(year, month);
+      const start = new Date(year, month - 1, last - def.windowDays + 1);
+      const end = new Date(year, month - 1, last, 23, 59, 59, 999);
+      return { def, period: def.periodOf(year, month), start, end };
+    });
+  }
+
+  function officeEventsAround(now = officeNow()) {
+    const years = [now.getFullYear() - 1, now.getFullYear()];
+    return OFFICE_EVENT_DEFS.flatMap(def => years.flatMap(year => officeEventOccurrence(def, year)))
+      .sort((a, b) => a.start - b.start);
+  }
+
+  function recordedOfficeEvents() {
+    return Array.isArray(state.officeEvents) ? state.officeEvents : [];
+  }
+
+  // 지금 열려 있는 행사. 없으면 null.
+  function activeOfficeEvent(now = officeNow()) {
+    return officeEventsAround(now).find(item => now >= item.start && now <= item.end) || null;
+  }
+
+  /* 확인서에 적히는 근거는 그 행사가 끝나기 전에 있던 기록뿐이다. 전체 건수를
+     쓰면 행사 뒤에 생긴 기록이 지난 감사의 공이 된다 — 없는 공을 적는 셈이다.
+     기록 날짜는 YYYY.MM.DD 고정 폭이라 문자열 비교로 충분하다. */
+  function officeEventEvidenceCount(end) {
+    const cutoff = `${end.getFullYear()}.${String(end.getMonth() + 1).padStart(2, "0")}.${String(end.getDate()).padStart(2, "0")}`;
+    return (Array.isArray(state.records) ? state.records : [])
+      .filter(record => typeof record.date === "string" && record.date <= cutoff).length;
+  }
+
+  /* 창이 닫혔는데 아직 확인서가 없는 회차. 그 시점까지의 파일이 비어 있으면
+     남기지 않는다 — 집사를 통과시킬 기록이 애초에 없었던 회차라,
+     있지도 않은 공을 적는 셈이 된다. */
+  function settleOfficeEvents(now = officeNow()) {
+    if (state.character !== "cat") return null;
+    if (!Array.isArray(state.records) || !state.records.length) return null;
+    const done = new Set(recordedOfficeEvents().map(item => `${item.key}|${item.period}`));
+    const overdue = officeEventsAround(now).filter(item =>
+      now > item.end
+      && (now - item.end) / 86400000 <= OFFICE_EVENT_BACKLOG_DAYS
+      && !done.has(`${item.def.key}|${item.period}`)
+      && officeEventEvidenceCount(item.end) > 0);
+    if (!overdue.length) return null;
+    // 여러 회차가 밀려 있으면 가장 최근 것 하나만 알린다. 나머지도 기록은 남긴다.
+    const entries = overdue.map(item => ({
+      key: item.def.key,
+      period: item.period,
+      label: item.def.label,
+      at: item.end.toISOString(),
+      date: new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
+        .format(item.end).replace(/\. /g, ".").replace(/\.$/, ""),
+      thickness: officeEventEvidenceCount(item.end),
+      volume: currentFileVolumeNumber()
+    }));
+    state.officeEvents = [...recordedOfficeEvents(), ...entries].slice(-24);
+    saveState();
+    return entries[entries.length - 1];
+  }
+
+  const OFFICE_EVENT_LINES = Object.freeze({
+    audit: {
+      active: [
+        "오늘부터 사무국 정기 감사다냥. 상급 기관이 집사 서류를 들여다본다냥.",
+        "감사 기간이다냥. 주인님 파일은 제일 위에 반듯하게 올려뒀다냥.",
+        "감사관이 온다냥… 집사는 안 떨린다냥. 서류가 반듯하면 될 일이라냥."
+      ],
+      settled: [
+        "지난 감사 무사히 넘겼다냥. 주인님이 들려준 기록이 {thickness}건이라 할 말이 많았다냥.",
+        "감사 끝났다냥. 서류가 충실하다고 했다냥… 집사가 잘한 건 아니고 주인님 덕이라냥.",
+        "감사 통과했다냥. 파일 두께를 보더니 아무 말 안 하고 도장만 찍고 갔다냥."
+      ]
+    },
+    commendation: {
+      active: [
+        "연말 표창 심사 기간이다냥. 사무국이 올해 담당들 서류를 본다냥.",
+        "표창 심사가 시작됐다냥… 집사는 기대 안 한다냥. 기대 안 한다냥.",
+        "올해 서류를 전부 다시 넘겨보고 있다냥. 주인님 것부터 봤다냥."
+      ],
+      settled: [
+        "올해 표창 심사 끝났다냥. 집사 이름이 명단에 있었다냥… 주인님 파일 덕이라냥.",
+        "표창 받았다냥. 상장은 사무국이 보관한다냥. 기분은 집사가 보관한다냥.",
+        "올해 심사 통과다냥. {thickness}건을 함께 쌓은 게 그대로 근거가 됐다냥."
+      ]
+    }
+  });
+
+  /* 행사 소식 한 줄. 끝난 회차 확인서를 남기는 것도 여기서 함께 처리한다 —
+     사용자가 홈에 들어온 순간이 이 세계에서 소식을 듣는 유일한 자리라서다. */
+  /* 결과를 아직 안 알린 회차. 모듈 변수로 들고 다니다가 렌더 순서에 걸려
+     알림이 통째로 유실됐다(실측) — 무엇이 언제 부르든 같은 답이 나오도록
+     저장된 기록과 「알린 표시」의 차이로만 판단한다. */
+  function unannouncedOfficeEvent() {
+    const events = recordedOfficeEvents();
+    const last = events[events.length - 1];
+    if (!last) return null;
+    return `${last.key}|${last.period}` === state.officeEventAnnounced ? null : last;
+  }
+
+  function officeEventGreetingLine() {
+    if (state.character !== "cat") return "";
+    const settled = unannouncedOfficeEvent();
+    if (settled) {
+      state.officeEventAnnounced = `${settled.key}|${settled.period}`;
+      saveState();
+    }
+    if (settled) {
+      const pool = OFFICE_EVENT_LINES[settled.key]?.settled;
+      if (pool) return fillContentTemplate(randomItem(pool), { thickness: String(settled.thickness) });
+    }
+    const active = activeOfficeEvent();
+    if (!active) return "";
+    // 진행 중 소식은 하루 한 번만. 같은 날 여러 번 들어와도 인사가 행사에 잡아먹히지 않는다.
+    const seenKey = `${active.def.key}|${active.period}|${today()}`;
+    if (state.officeEventSeen === seenKey) return "";
+    state.officeEventSeen = seenKey;
+    saveState();
+    const pool = OFFICE_EVENT_LINES[active.def.key]?.active;
+    return pool ? randomItem(pool) : "";
+  }
+
   const OWNER_FILE_CATEGORY_LABELS = Object.freeze({
     hygiene: "씻기", hydration: "수분", food: "식사", work: "사회생활",
     home: "집안일", movement: "움직임", social: "연락", other: "기타"
@@ -3269,6 +3470,19 @@
     </section>`;
   }
 
+  /* 행사 확인서 — 그날 자리에 남는 사무국 문서. 제본 확인서와 같은 문법이되
+     테두리 색으로 갈라 둔다(제본은 먹, 행사는 감청). 금박은 쓰지 않는다. */
+  function officeEventMarkup(entry) {
+    const label = escapeHtml(entry.label || (entry.key === "commendation" ? "연말 표창 심사" : "분기 정기 감사"));
+    const passed = entry.key === "commendation" ? "표창 대상 확정" : "이상 없음 · 통과";
+    return `<section class="office-event-note" data-office-event="${escapeHtml(entry.key)}" aria-label="${label} ${passed}">
+      <small>사 무 국 통 보</small>
+      <b>${label} · ${escapeHtml(passed)}</b>
+      <p>심사 근거 · 주인님 파일 ${Number(entry.thickness) || 0}건</p>
+      <span class="office-event-note-line">담당 집사 근무 기록에 반영됨</span>
+    </section>`;
+  }
+
   function renderArchiveRecords() {
     const officialIds = new Set(state.certificates.map(record => record.id));
     // 등급은 기록마다 다른 문구가 아니라 세 갈래다 — 평소 / 희귀 판정 / 공식 인정.
@@ -3320,9 +3534,22 @@
        밀려난다. 필터·검색 중에는 끼우지 않는다 — 찾는 기록만 보여주는 게 그
        화면의 일이다. */
     const bindings = narrowed ? new Map() : new Map(completedFileVolumes().map(volume => [volume.toDate, volume]));
+    // 행사 통보도 그 날짜 그룹 위에 선다. 기록이 없는 날에 끝난 회차는 가장 가까운
+    // 이전 기록일에 붙인다 — 통보만 홀로 뜬 날짜 칸을 만들지 않기 위해서다.
+    const eventsByDate = new Map();
+    if (!narrowed) {
+      const dates = shown.map(group => group.date).filter(Boolean);
+      recordedOfficeEvents().forEach(entry => {
+        const host = dates.includes(entry.date) ? entry.date : dates.find(date => date <= entry.date);
+        if (!host) return;
+        if (!eventsByDate.has(host)) eventsByDate.set(host, []);
+        eventsByDate.get(host).push(entry);
+      });
+    }
     list.innerHTML = shown.map(group => {
       const volume = bindings.get(group.date);
-      return (volume ? fileVolumeBindingMarkup(volume) : "") + ownerFileGroupMarkup(group, officialIds);
+      const events = (eventsByDate.get(group.date) || []).map(officeEventMarkup).join("");
+      return (volume ? fileVolumeBindingMarkup(volume) : "") + events + ownerFileGroupMarkup(group, officialIds);
     }).join("")
       + (hidden > 0 ? `<button class="file-expand-button" type="button" data-owner-file-expand>이전 기록 펼치기 <span>${hidden}일</span></button>` : "");
     inkNewOfficialStamps(list);
@@ -6100,11 +6327,18 @@
 
   function giftCatalogFor(character = state.character) {
     const key = normalizeCharacter(character);
-    return (GIFT_CATALOGS[key] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({
+    const base = (GIFT_CATALOGS[key] || GIFT_CATALOGS.ai).map(([emoji, name], index) => ({
       emoji, name, cost: GIFT_COSTS[index],
       art: key === "cat" ? `${GIFT_ART_PATH}${CAT_GIFT_ART[index]}.webp` : "",
       tall: key === "cat" && CAT_GIFT_TALL.includes(index)
     }));
+    // 계절 선물은 아홉 칸 뒤에 붙는다. 앞 인덱스가 그대로라 저장된 선물이 밀리지
+    // 않고, index >= 7이 희귀 취급이라 감사 편지도 자동으로 딸려온다.
+    if (key !== "cat") return base;
+    return [...base, ...CAT_SEASONAL_GIFTS.map(gift => ({
+      emoji: gift.emoji, name: gift.name, cost: gift.cost, art: gift.art,
+      tall: false, seasonal: gift.eventKey, seasonalNote: gift.note
+    }))];
   }
 
   /* 선물 이력을 새 품목 이름으로 맞춘 사본. 저장 배열 자체는 손대지 않는다.
@@ -6130,10 +6364,31 @@
     $("#gift-desk-butler-name").textContent = state.butlerName || CHARACTER_PROFILES[state.character].defaultName;
     $("#gift-desk-butler-line").textContent = templateOwner(CHARACTER_PROFILES[state.character].briefings[0]);
     setPoseImage($("#gift-desk-butler-image"), state.character, "base");
-    $("#gift-catalog").innerHTML = catalog.map((gift, index) => {
+    /* 진열은 철을 탄다 — 조회는 위에서 이미 항상 되게 해뒀다. 철이 아닌 계절
+       품목은 선반에서만 빠지고, 이미 산 사람의 방·보관함·이력에는 그대로 남는다.
+       data-gift-index는 원래 인덱스를 그대로 쓴다(선택·전달이 그 값을 본다). */
+    const active = activeOfficeEvent();
+    const activeSeason = active?.def.key || "";
+    const seasonNote = $("#gift-season-note");
+    if (seasonNote) {
+      const onOffer = CAT_SEASONAL_GIFTS.find(gift => gift.eventKey === activeSeason);
+      seasonNote.hidden = !(state.character === "cat" && onOffer);
+      seasonNote.textContent = onOffer
+        // 「」 뒤에는 조사를 두지 않는다 — 부호를 사이에 끼우면 받침 교정이 닿지 않는다.
+        ? `${active.def.label} 기간입니다 · 「${onOffer.name}」, 이 철에만 접수되고 다음 철에 다시 들어옵니다.`
+        : "";
+    }
+    $("#gift-catalog").innerHTML = catalog.map((gift, index) => ({ gift, index }))
+      .filter(({ gift }) => !gift.seasonal || gift.seasonal === activeSeason)
+      .map(({ gift, index }) => {
       const affordable = state.points >= gift.cost;
       const interaction = giftInteractionFor(state.character, gift, index);
-      const preferenceLabel = interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
+      /* 계절 품목은 등급 배지 대신 철 배지 하나만 단다. 74px 칸에 배지를 둘 달면
+         그 칸만 세로로 삐져나오고(실측 96→114px), 「희귀」와 「이번 철만」이 서로
+         다른 축의 말이라 나란히 두면 어느 쪽이 요점인지 흐려진다. 감사 편지가
+         딸려온다는 사실은 인수증과 아래 각주가 이미 말한다. */
+      const preferenceLabel = gift.seasonal ? "✦ 이번 철만"
+        : interaction.type === "rare" ? "✦ 희귀" : interaction.type === "duplicate" ? "↺ 기억" : interaction.type === "favorite" ? "♥ 취향" : "";
       // 잠긴 품목에는 이유가 붙어야 한다. "잠김"은 벽이지만 "12P 더"는 다음에 할 일이다.
       const shortfall = affordable ? 0 : gift.cost - state.points;
       // 선반 한 칸. 세로 목록이면 아래 품목을 화면 위까지 끌어올려야 해서
@@ -6141,6 +6396,7 @@
       return `<button class="gift-shelf-item gift-${interaction.type} ${affordable ? "affordable" : "locked"}" type="button" data-gift-index="${index}" ${affordable ? "" : "disabled"} aria-label="${escapeHtml(gift.name)} ${gift.cost}포인트${preferenceLabel ? ` · ${preferenceLabel}` : ""}${affordable ? "" : ` · ${shortfall}포인트 부족`}">
         ${preferenceLabel ? `<mark>${preferenceLabel}</mark>` : ""}
         ${state.character === "cat" && CAT_DESK_TOY_INDEXES.includes(index) ? '<span class="gift-shelf-desk-note">책상에 놓임</span>' : ""}
+
         <span class="gift-shelf-thumb${gift.art ? " has-art" : ""}">${gift.art
           ? `<img src="${gift.art}" alt="" loading="lazy" draggable="false">`
           : gift.emoji}</span>
@@ -6659,6 +6915,10 @@
       $("#assignment-screen").hidden = true;
       $("#main-screen").hidden = false;
     }
+    /* 행사 정산은 첫 렌더보다 먼저다. 나중에 하면 파일 화면이 이미 그려진 뒤라
+       그 회차 확인서가 다음 방문 전까지 파일에 안 보인다(실측). 인사 자리에서
+       쓸 수 있게 결과는 들고 있는다. */
+    if (!previewMode) settleOfficeEvents();
     render();
     $("#app-version").textContent = APP_VERSION;
     trackEvent("app_open", { onboarded: state.onboarded, character: state.character, preview: Boolean(previewMode) });
