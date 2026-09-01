@@ -27,7 +27,10 @@
     /* 몰아친 하루. 「바빴다」는 피로 어휘에 없었다. */
     ["swamped", "tired", "negative", /정신(?:이)?\s*없|눈코\s*뜰\s*새|치였|바빴|바쁘게|쉴\s*틈(?:이)?\s*없|하루\s*종일\s*뛰|숨\s*돌릴\s*틈/i],
     /* 잘된 소식. bigWin이 「합격」만 알아서 "면접 붙었어"가 그냥 넘어갔다. */
-    ["goodnews", "happy", "positive", /붙었|합격(?:했|이|했어)|통과했|뽑혔|당첨|승진했|취직했|계약(?:했|됐)|성사됐|화해했|잘\s*풀렸|해결됐|나았어|완치/i],
+    /* 「~했으면 좋겠다」는 일어난 일이 아니라 바람이다. 성공 어휘 바로 뒤에
+       가정·희망 어미가 붙으면 걸러낸다 — 합격을 바라는 사람에게 축하가 나가는
+       것은 못 알아듣는 것보다 나쁘다. 희망 문장은 폴백의 바람(hope) 경로가 받는다. */
+    ["goodnews", "happy", "positive", /(?:붙었|통과했|뽑혔|승진했|취직했|성사됐|화해했|해결됐|합격했|계약했|계약됐|잘\s*풀렸)(?!으면|다면|음\s*좋|길\s*바|기를\s*바|길\s*빌)|합격이(?!면)|나았어|(?:당첨|완치)(?!(?:됐|되|이)?(?:었)?으?면|되고\s*싶|되길|되기를)/i],
     ["setback", "sad", "negative", /(?:^|[^희소갈열])망(?:했|함|침|쳤|한)|말아먹|죽\s*쒔|폭망|실수(?:했|함|를\s*했|투성)|실패(?:했|함|한|야|다)|엉망|버벅|더듬거|삐끗|꼬였|틀렸|잘\s*안\s*(?:됐|됨|돼)|안\s*풀렸|불합격|탈락|(?:시험|면접|공채|서류|자소서|오디션|대회|경쟁)[^.!?]{0,12}떨어졌/i],
     ["no_motivation", "low", "negative", /아무것도\s*(?:하기|하고)\s*싫|의욕\s*(?:이|은|가)?\s*(?:없|안\s*나|제로|하나도\s*없)|아무것도\s*못\s*(?:하겠|했)|무기력|손\s*하나\s*까딱|다\s*귀찮|몸이\s*안\s*움직/i],
     ["bored", "bored", "neutral", /심심|무료|재미\s*없/i],
@@ -320,8 +323,11 @@
         // 제3자가 한 행동은 사용자의 대업이 아니다. "친구랑 운동했어"처럼 사용자가
         // 함께 했다고 적은 경우만 통과시킨다.
         if (thirdPartyOnlyClause(clause.text)) continue;
-        // 하드 가드 — 이 행동이 속한 절이 부정이면 어떤 경로로도 대업이 될 수 없다.
-        if (found.negated || isNegatedClause(clause.text)) {
+        /* 하드 가드 — 이 행동이 속한 절이 부정이거나 하다 만 것이면 어떤 경로로도
+           대업이 될 수 없다. 그만둔 행동을 activities에 남겨두면 여기서는 완료
+           판정만 막아도, 칭호 선택과 다중 행동 대사가 그 배열을 통째로 읽어서
+           "운동하려다 말았는데 샤워는 했어"에 운동 대업이 발행된다. */
+        if (found.negated || isNegatedClause(clause.text) || ABANDONED_MARK.test(clause.text)) {
           if (!negatedActivities.some(item => item.label === label)) {
             negatedActivities.push({ type, label, snippet: cleanSnippet(clause.text) });
           }
@@ -414,7 +420,8 @@
     // 반응 강도. 감정이 부정적이면 행동이 있어도 위로가 먼저다.
     // 다만 감정 표현 없이 완료 행동만 보고한 경우는, 그게 아무리 하찮아도
     // 과잉집사의 본체인 대업 판정(FORM 05)으로 보낸다. 씻기·물 마시기·설거지가 핵심 재료다.
-    const bigWin = /합격|수상|우승|승진|성공|1등|최우수|드디어|붙었|뽑혔|당첨|취직/i.test(text) || (mood === "happy" && /칭찬/i.test(text));
+    // 성공 어휘 뒤에 가정·희망 어미가 붙으면 아직 일어난 일이 아니다 (goodnews와 같은 가드).
+    const bigWin = /(?:합격|수상|우승|승진|성공|1등|최우수|드디어|붙었|뽑혔|당첨|취직)(?!(?:했|됐|하|되)?(?:았|었)?으?면|하고\s*싶|되고\s*싶|하길|되길|하기를|되기를)/i.test(text) || (mood === "happy" && /칭찬/i.test(text));
     const responseMode = negative ? "comfort"
       : !achievementCandidate ? "conversation"
       : bigWin ? "special-achievement"
@@ -455,7 +462,15 @@
       sentiment,
       priority,
       achievementCandidate: Boolean(achievementCandidate),
-      achievementTitle: achievementCandidate ? achievementTitle(text, activities, mood) : "",
+      /* 칭호는 원문 전체가 아니라 부정·포기 절을 뺀 텍스트에서 뽑는다.
+         원문을 그대로 훑으면 "운동하려다 말았는데 샤워는 했어"의 칭호가
+         하다 만 운동에서 나온다. */
+      achievementTitle: achievementCandidate
+        ? achievementTitle(
+            clauses.filter(clause => !isNegatedClause(clause.text) && !ABANDONED_MARK.test(clause.text))
+              .map(clause => clause.text).join(" "),
+            activities, mood)
+        : "",
       responseMode,
       confidence: Number(Math.min(0.98, 0.42 + hitCount * 0.09).toFixed(2)),
       keywords: keywordsFor(text)

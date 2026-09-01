@@ -3096,8 +3096,18 @@
     return officeEventsAround(now).find(item => now >= item.start && now <= item.end) || null;
   }
 
-  /* 창이 닫혔는데 아직 확인서가 없는 회차. 파일이 비어 있으면 남기지 않는다 —
-     집사를 통과시킬 기록이 애초에 없었던 회차라, 있지도 않은 공을 적는 셈이 된다. */
+  /* 확인서에 적히는 근거는 그 행사가 끝나기 전에 있던 기록뿐이다. 전체 건수를
+     쓰면 행사 뒤에 생긴 기록이 지난 감사의 공이 된다 — 없는 공을 적는 셈이다.
+     기록 날짜는 YYYY.MM.DD 고정 폭이라 문자열 비교로 충분하다. */
+  function officeEventEvidenceCount(end) {
+    const cutoff = `${end.getFullYear()}.${String(end.getMonth() + 1).padStart(2, "0")}.${String(end.getDate()).padStart(2, "0")}`;
+    return (Array.isArray(state.records) ? state.records : [])
+      .filter(record => typeof record.date === "string" && record.date <= cutoff).length;
+  }
+
+  /* 창이 닫혔는데 아직 확인서가 없는 회차. 그 시점까지의 파일이 비어 있으면
+     남기지 않는다 — 집사를 통과시킬 기록이 애초에 없었던 회차라,
+     있지도 않은 공을 적는 셈이 된다. */
   function settleOfficeEvents(now = officeNow()) {
     if (state.character !== "cat") return null;
     if (!Array.isArray(state.records) || !state.records.length) return null;
@@ -3105,7 +3115,8 @@
     const overdue = officeEventsAround(now).filter(item =>
       now > item.end
       && (now - item.end) / 86400000 <= OFFICE_EVENT_BACKLOG_DAYS
-      && !done.has(`${item.def.key}|${item.period}`));
+      && !done.has(`${item.def.key}|${item.period}`)
+      && officeEventEvidenceCount(item.end) > 0);
     if (!overdue.length) return null;
     // 여러 회차가 밀려 있으면 가장 최근 것 하나만 알린다. 나머지도 기록은 남긴다.
     const entries = overdue.map(item => ({
@@ -3115,7 +3126,7 @@
       at: item.end.toISOString(),
       date: new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
         .format(item.end).replace(/\. /g, ".").replace(/\.$/, ""),
-      thickness: state.records.length,
+      thickness: officeEventEvidenceCount(item.end),
       volume: currentFileVolumeNumber()
     }));
     state.officeEvents = [...recordedOfficeEvents(), ...entries].slice(-24);

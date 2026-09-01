@@ -23,7 +23,9 @@ for (const [message, intent] of Object.entries(cases)) assert.equal(chat.classif
 let memory = chat.normalizeMemory({}, "cat");
 const hardDay = chat.respond("cat", "오늘 너무 힘들었어", memory, 0);
 const arrived = chat.respond("cat", "이제 집이야", hardDay.memory, 0);
-assert.match(arrived.reply, /아까 회사 때문에 힘들다 했는데/);
+// 브릿지는 사용자가 말한 것만 되짚는다 — "회사"는 사용자가 말한 적 없는 단어다.
+assert.match(arrived.reply, /아까 많이 힘들다 했는데/);
+assert.ok(!/회사/.test(arrived.reply), "말하지 않은 회사를 지어내지 않는다");
 assert.equal(arrived.memory.previousUserMessage, "이제 집이야");
 assert.equal(arrived.memory.turnCount, 2);
 assert.ok(hardDay.memory.recentActivities.length === 0);

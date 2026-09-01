@@ -30,7 +30,8 @@
         assert(events.length >= 1, "a passed audit window leaves a settlement record");
         const audit = events.find(item => item.key === "audit");
         assert(Boolean(audit), "the quarterly audit is the settled event");
-        assert.equal(audit.thickness, 2, "the certificate cites the file that carried the butler");
+        // 10/01 기록은 9/30에 끝난 감사의 근거가 될 수 없다 — 종료 시점까지의 1건만.
+        assert.equal(audit.thickness, 1, "the certificate cites only records that existed before the audit closed");
 
         doc.querySelector('.bottom-nav [data-view="archive"]').click();
         await wait(150);
