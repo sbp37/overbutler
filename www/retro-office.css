@@ -1,0 +1,6034 @@
+/* ═══════════ 하나의 서류 시스템 ═══════════
+   앞선 패스는 화면마다 다른 색 세계를 만들었고, 그래서 앱이 여러 제품처럼 보였다.
+   이 파일은 반대로 간다 — 베이스를 전부 통일하고, 화면 구분은 카드 위로 살짝
+   튀어나온 파일탭 라벨 색 하나로만 한다.
+
+   공통 베이스 (HOME = home-office.css 를 기준으로 맞춘다)
+     배경    격자 종이 23px · var(--paper)
+     제목    var(--ink)
+     카드    var(--ivory) + 1px var(--doc-line) + 잉크 오프셋 그림자
+     머리글  3px double #b49b83 · 운영 상태 배지는 전 화면 동일
+     버튼    주 행동은 var(--ink) 결재 버튼
+
+   화면 구분 (accent) — 파일탭 라벨 / 소형 태그 / 소형 포인트에만 쓴다.
+   큰 박스 배경으로는 절대 쓰지 않는다.
+     HOME     burgundy   (기준, 수정하지 않는다)
+     RECORDS  blue gray
+     ARCHIVE  blue gray  (기록과 같은 캐비닛의 다른 서랍)
+     WEEKLY   blue gray  (기록 데스크가 올리는 보고서)
+     DIARY    olive
+     MANAGER  slate navy
+     FORM 05  burgundy   (HOME 접수의 결과서라 접수처 색을 그대로 쓴다)
+     GIFT     slate navy (인사국이 발행한다)
+
+   FORM 04(심사표)도 이제 같은 종이 위에 있다 — 어두운 실험실이던 시절의 결정은
+   2026-08-17 사용자 승인으로 대체됐다(docs/CURRENT.md). */
+
+/* ── 재질 위계 ──
+   배경 격자지 < 크라프트(서류철·날짜칩) < 아이보리(문서) < 노랑(메모) < 금박(축하 전용)
+
+   누런기의 원인은 색 하나가 아니라 배경과 문서가 같은 톤이라 층이 없던 것이었다.
+   문서 표면만 아이보리로 올리면 "누런 책상 위에 아이보리 문서" 층이 생긴다.
+   금박은 인증서와 축하 순간에만 쓴다 — 평상 화면에 금색이 돌면 인증서가 안 특별해진다. */
+:root {
+  --paper: #efe8da;        /* 배경 격자지 */
+  --ivory: #faf7f0;        /* 문서 표면 */
+  --memo: #fbf2da;         /* 노트지 — 대비용 3번째 재질 */
+  --kraft: #d3b384;        /* 서류철·날짜칩 */
+  --kraft-deep: #b8935c;
+  --gold: #b98a2e;         /* 인증서 전용 */
+  --gold-hi: #e8cd7a;
+  --gold-dp: #8a6420;
+
+  --tab-records: #5b7383;
+  --tab-diary: #6b6d43;
+  --tab-manager: #414f60;
+  --doc-line: #cbbba6;
+  --doc-line-soft: #e3dacb;
+  --doc-paper: var(--ivory);
+  /* app.css·home-office.css가 문서 표면에 쓰던 토큰을 여기서 아이보리로 돌린다.
+     선언 위치만 옮기면 홈 접수서·발령장·인증서 파일까지 한 번에 같은 층으로 올라온다. */
+  --paper-light: var(--ivory);
+  --doc-shadow: 5px 6px 0 rgba(67, 48, 45, .07);
+  --doc-shadow-sm: 2px 2px 0 rgba(67, 48, 45, .07);
+  --stamp-red: #9d2f3a;
+
+  /* 잉크 3단 — 본문 / 부속 설명 / 라벨. 기존 --ink는 차가운 회갈색이라
+     종이 톤 위에서 층이 안 보였다. 따뜻한 쪽으로 옮겨 재질과 같은 계열로 만든다. */
+  --ink: #332a20;
+  --ink-soft: #7a6c5c;
+  --ink-faint: #a3927c;
+
+  /* 금속 — 클립·스테이플·철끈 전용. 종이 계열 밖의 유일한 색이라
+     사무용품이 "얹혀 있는 물건"으로 읽힌다. */
+  --metal: #9aa0a6;
+  --metal-dk: #6e747a;
+
+  /* 글자 역할 — 기계 인쇄 / 공문 / 집사 육필.
+     집사가 손으로 쓴 것에만 --hand를 쓴다. 시스템 문구에 쓰면 위계가 무너진다. */
+  --disp: Paperlogy, "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  --serif: "Song Myung", "Noto Serif KR", serif;
+  --hand: Gaegu, cursive;
+}
+
+
+/* ═══════════ 0. 사무용품 부품 ═══════════
+   전부 CSS만 쓴다. 이미지 에셋을 늘리지 않고, 캐릭터 중립이라
+   담당이 고양이든 아니든 같은 사무국 책상 위로 읽힌다.
+   부품은 위치를 스스로 정하지 않는다 — 붙이는 쪽에서 top/left만 준다. */
+
+/* 종이 클립 — 바깥 진한 철사 안에 밝은 철사 한 겹. */
+.of-clip {
+  position: absolute; z-index: 6; width: 15px; height: 34px;
+  border: 0; background: none; pointer-events: none;
+}
+.of-clip:before {
+  content: ""; position: absolute; inset: 0;
+  border: 2.3px solid var(--metal-dk); border-bottom: 0; border-radius: 8px 8px 4px 4px;
+}
+.of-clip:after {
+  content: ""; position: absolute; top: 5px; right: 3.5px; bottom: 6px; left: 3.5px;
+  border: 2px solid var(--metal); border-bottom: 0; border-radius: 5px 5px 3px 3px;
+}
+
+/* 스테이플 심 — 앞에서 본 스테이플은 종이 위에 놓인 금속 막대 하나다.
+   다리는 종이 뒤로 넘어가 보이지 않는다. 예전에는 세 변만 그린 ⌐ 모양을
+   종이 위쪽 바깥(top:-3px)에 걸쳐 뒀는데, 겹치는 부분이 2px뿐이라
+   물려 있는 심이 아니라 허공에 뜬 꺾쇠로 읽혔다. */
+.of-staple {
+  position: absolute; z-index: 6; width: 16px; height: 4px;
+  border: 0; border-radius: 1px;
+  background: linear-gradient(var(--metal), var(--metal-dk));
+  box-shadow: 0 1px 1px rgba(45, 35, 22, .28);
+}
+
+/* 2공 펀치 — 배경 격자지가 구멍으로 비쳐 보이게 --paper를 채운다. */
+.of-punch { position: absolute; z-index: 5; top: 0; bottom: 0; left: 9px; width: 14px; pointer-events: none; }
+.of-punch i {
+  position: absolute; left: 0; width: 13px; height: 13px; border-radius: 50%;
+  background: var(--paper); box-shadow: inset 1px 1.5px 2px rgba(45, 35, 22, .28);
+}
+
+/* 파일 패스너(철끈) — 문서 상단을 물고 있는 금속 다리 두 개. */
+.of-fastener {
+  position: absolute; z-index: 7; top: -7px; left: 50%;
+  display: flex; gap: 34px; transform: translateX(-50%); pointer-events: none;
+}
+.of-fastener i {
+  position: relative; width: 8px; height: 24px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--metal-dk), var(--metal) 45%, var(--metal-dk));
+  box-shadow: 0 1.5px 2px rgba(45, 35, 22, .3);
+}
+.of-fastener i:before {
+  content: ""; position: absolute; top: 2px; left: 50%; width: 14px; height: 5px;
+  border-radius: 2px; background: var(--metal); transform: translateX(-50%);
+}
+
+/* 흐린 접수 도장 — 잉크가 마른 고무도장. 진하면 본문을 이기므로 반투명으로 둔다. */
+.of-datestamp {
+  position: absolute; z-index: 6; padding: 5px 9px;
+  border: 2px solid rgba(157, 47, 58, .5); border-radius: 3px;
+  color: rgba(157, 47, 58, .55);
+  font: 800 9.5px/1.35 var(--disp); letter-spacing: .1em; text-align: center;
+  transform: rotate(-7deg); pointer-events: none;
+}
+.of-datestamp b { display: block; font: 800 11.5px/1.1 var(--disp); }
+
+/* 집사가 손으로 쓴 것. 컨테이너 클래스와 겹치지 않게 이름을 분리해 둔다. */
+.of-script { font-family: var(--hand); }
+
+/* ═══════════ 1. 공통 베이스 ═══════════ */
+
+/* 같은 종이 위에 있다는 신호. 화면마다 다른 배경 패턴을 만들지 않는다. */
+#view-home,
+#view-archive,
+#view-manager,
+#view-report {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+}
+.praise-result-modal,
+.gift-modal {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+}
+
+/* 사무국 머리글: HOME과 같은 이중선 */
+.archive-office-header,
+.manager-office-header,
+.report-office-header {
+  align-items: center;
+  margin-bottom: 13px;
+  padding-bottom: 10px;
+  border-bottom: 3px double #b49b83;
+}
+.reaction-office-header {
+  align-items: center;
+  border-bottom: 3px double #b49b83;
+}
+/* 이름표는 전 화면 같은 잉크다. 여기가 갈리면 다른 앱처럼 보인다. */
+.archive-logo-lockup span,
+.manager-logo-lockup span,
+.report-logo-lockup span { color: #7c4a4f; letter-spacing: .2em; }
+.reaction-office-header > div span { color: #7c4a4f; letter-spacing: .18em; }
+
+/* 운영 상태 배지: 알약이 아니라 HOME의 각진 배지로 통일 */
+.archive-office-running,
+.manager-office-running,
+.reaction-office-header > small {
+  border: 1px solid #c2ac93;
+  border-radius: 2px;
+  background: var(--paper);
+  box-shadow: var(--doc-shadow-sm);
+  letter-spacing: .02em;
+}
+.report-header-actions button {
+  border: 1px solid #c2ac93;
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: var(--doc-shadow-sm);
+}
+
+/* 큰 서류 카드: 재질을 하나로. 흐린 blur 그림자를 잉크 오프셋으로 바꾼다. */
+#view-archive .archive-workspace,
+#manager-details .personnel-card,
+#manager-details .butler-roster-card,
+#manager-details .manager-work-card,
+#manager-details .stages-card,
+#view-report .weekly-report-sheet,
+.praise-result-document,
+.gift-receipt {
+  border: 1px solid var(--doc-line);
+  border-radius: 5px;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow);
+}
+/* 카드 안쪽 이중선도 각진 모서리에 맞춘다 */
+#manager-details .personnel-card:before,
+#view-report .weekly-report-sheet:before { border-radius: 3px; }
+.praise-result-document {
+  background: var(--doc-paper);
+  box-shadow: inset 0 0 0 6px var(--ivory), inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+}
+.gift-receipt {
+  box-shadow: inset 0 0 0 6px var(--ivory), inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+}
+#view-archive .office-record-card { background: var(--ivory); box-shadow: var(--doc-shadow-sm); }
+
+/* 큰 제목은 공통 잉크 */
+#view-archive .archive-title-row h1,
+#manager-details .personnel-heading > span,
+#manager-details .manager-section-title h2,
+#view-report #weekly-report-title,
+#result-title { color: var(--ink); }
+
+/* 주 행동 버튼: HOME의 결재 버튼과 같은 잉크 블록 */
+#view-report .weekly-next-button,
+.praise-result-document > .primary-button,
+.gift-receipt > .primary-button {
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+}
+#view-report .weekly-next-button span,
+.praise-result-document > .primary-button span,
+.gift-receipt > .primary-button span { color: #e5a1ad; }
+
+/* 부 행동 버튼: 종이 버튼 */
+#manager-details .recruit-note,
+#manager-details .manager-change-button,
+#view-archive .records-empty button {
+  border: 1px solid var(--doc-line);
+  border-radius: 3px;
+  box-shadow: var(--doc-shadow-sm);
+}
+
+/* ═══════════ 2. 파일탭 라벨 ═══════════
+   HOME의 .file-tab(대업 접수서 · FORM 01)과 같은 조형이다.
+   이미 있는 영문 행정 라벨을 그 자리로 올려서 쓴다 — DOM은 그대로다. */
+
+#view-archive .archive-workspace,
+#manager-details .personnel-card,
+#view-report .weekly-report-sheet,
+.praise-result-document,
+.gift-receipt { overflow: visible; }
+
+/* 탭은 카드 위쪽 가장자리에 걸려야 한다. 중간 컨테이너가 position:relative면
+   그 컨테이너 안쪽에 갇혀 제목을 덮으므로, 기준을 카드로 되돌린다. */
+#manager-details .personnel-heading,
+#view-report .report-title-block,
+.reaction-document-meta { position: static; }
+
+#manager-details .personnel-heading small,
+#view-report .report-title-block:before,
+.reaction-document-meta > span {
+  position: absolute;
+  top: -11px;
+  left: 13px;
+  z-index: 5;
+  padding: 6px 11px;
+  border-radius: 4px 4px 0 0;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .1em;
+  white-space: nowrap;
+}
+
+/* ═══════════ 주인님 파일 표지 ═══════════
+   시안 v4-2. 표지는 카드가 아니라 서류철이다 — 크라프트 겉장이 아이보리 문서를
+   물고 있고, 상단은 철끈이, 오른쪽은 인덱스 탭이 잡는다. 재질이 두 겹이라야
+   "파일을 펼쳐 첫 장을 보는 중"으로 읽힌다. */
+#view-archive .owner-file-folder {
+  position: relative;
+  margin: 34px 0 0;
+  padding: 16px 26px 16px 12px;
+  border-radius: 6px 10px 6px 6px;
+  background: var(--kraft);
+  box-shadow: 4px 5px 0 rgba(45, 35, 22, .14), inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+/* 권 라벨 — 겉장에서 튀어나온 탭. 파일이 1권으로 끝나지 않는다는 예고이기도 하다. */
+#view-archive .owner-file-folder:before {
+  /* 권 번호는 JS가 data-volume-label에 넣는다. 기본값은 마크업 속성에 있다 —
+     attr() 폴백 문법은 아직 브라우저 지원이 얕다. */
+  content: attr(data-volume-label);
+  position: absolute;
+  top: -21px;
+  left: 14px;
+  padding: 7px 16px 6px;
+  border-radius: 6px 6px 0 0;
+  background: var(--kraft);
+  color: var(--ink);
+  font: 800 11px/1 var(--disp);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+
+/* 분류 필터는 칩이 아니라 서류철 옆면의 인덱스 탭이다. */
+#view-archive .record-filters {
+  position: absolute;
+  z-index: 6;
+  top: 24px;
+  right: -1px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#view-archive .record-filters button {
+  position: relative;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 5px;
+  border: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--kraft-deep);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .15);
+  color: #f6ecd9;
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .14em;
+  writing-mode: vertical-rl;
+}
+/* 색인 탭은 얇아야 색인처럼 보이는데, 얇으면 손가락이 못 맞춘다.
+   보이는 폭은 그대로 두고 손이 닿는 범위만 서류 쪽으로 넓힌다.
+   탭 아래에는 눌릴 다른 것이 없으므로 겹쳐도 뺏어가는 조작이 없다. */
+#view-archive .record-filters button:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 44px;
+}
+#view-archive .record-filters button.active {
+  padding-right: 8px;
+  background: var(--stamp-red);
+  color: #f9e9ea;
+}
+
+/* 첫 장 */
+#view-archive .owner-file-doc {
+  position: relative;
+  padding: 22px 17px 16px 34px;
+  border: 1px solid var(--doc-line);
+  background: var(--ivory);
+  box-shadow: 0 1px 0 rgba(45, 35, 22, .06);
+}
+#view-archive .owner-file-doc .of-clip { top: -10px; right: 22px; transform: rotate(5deg); }
+#view-archive .owner-file-doc .of-punch i:nth-child(1) { top: 14%; }
+#view-archive .owner-file-doc .of-punch i:nth-child(2) { top: 58%; }
+#view-archive .owner-file-doc .of-datestamp { right: 12px; bottom: 44px; opacity: .75; }
+#view-archive .owner-file-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+#view-archive .owner-file-head img { flex: 0 0 58px; width: 58px; height: auto; object-fit: contain; }
+#view-archive .owner-file-head > div { min-width: 0; }
+#view-archive .owner-file-role {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--stamp-red);
+  font: 600 9.5px/1.4 var(--disp);
+  letter-spacing: .13em;
+  word-break: keep-all;
+}
+@media (max-width: 385px) {
+  #view-archive .owner-file-role { font-size: 8.5px; letter-spacing: .08em; }
+}
+#view-archive .owner-file-doc h1 {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.2 var(--serif);
+  letter-spacing: 0;
+}
+#view-archive .owner-file-by {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-soft);
+  font: 500 11px/1 var(--disp);
+}
+
+/* 목차 — 점선 리더가 값을 오른쪽 끝으로 끌고 간다. 서류의 기재란은 이렇게 읽힌다. */
+#view-archive .owner-file-toc {
+  margin: 0;
+  padding-top: 3px;
+  border-top: 1.5px solid var(--ink);
+}
+#view-archive .owner-file-toc > div {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 8.5px 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  font: 600 12.5px/1 var(--disp);
+}
+#view-archive .owner-file-toc dt { flex: none; margin: 0; color: var(--ink-soft); }
+#view-archive .owner-file-toc .dots {
+  flex: 1;
+  border-bottom: 2px dotted var(--doc-line);
+  transform: translateY(-3px);
+}
+#view-archive .owner-file-toc dd {
+  margin: 0;
+  color: var(--ink);
+  font: 800 15px/1 var(--disp);
+  white-space: nowrap;
+}
+#view-archive .owner-file-toc dd em {
+  margin-left: 2px;
+  color: var(--ink-soft);
+  font: 600 10.5px/1 var(--disp);
+  font-style: normal;
+}
+
+/* 소견은 집사가 직접 적어 스테이플로 박아 둔 쪽지다. 여기만 육필. */
+#view-archive .owner-file-remark {
+  position: relative;
+  margin: 13px 0 0;
+  padding: 10px 13px 9px;
+  border: 0;
+  border-left: 3px solid var(--kraft-deep);
+  background: var(--memo);
+}
+#view-archive .owner-file-remark .of-staple { top: 8px; right: 14px; transform: rotate(-3deg); }
+#view-archive .owner-file-remark > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #a8913e;
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .16em;
+}
+/* 개구체는 획이 얇아 같은 크기·같은 명도로는 본문보다 흐리게 읽힌다.
+   집사가 손으로 쓴 문장은 이 화면에서 가장 읽히고 싶은 줄이므로
+   한 단계 키우고 잉크를 진하게 쓴다. */
+#view-archive .owner-file-remark > p {
+  margin: 0;
+  color: #3a3125;
+  font: 700 19px/1.5 var(--hand);
+  word-break: keep-all;
+}
+#view-archive .owner-file-record-jump {
+  display: block;
+  margin: 13px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  color: var(--stamp-red);
+  font: 800 11px/1 var(--disp);
+  letter-spacing: .06em;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 2px 0 rgba(45, 35, 22, .12);
+}
+#view-archive .owner-file-record-jump:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(45, 35, 22, .12);
+}
+
+/* 첫 장은 통계보다 방금 맡긴 기록이 먼저 보여야 한다. 파일 기능은 그대로 두고
+   아직 의미 없는 집계와 주간 보고만 접어 첫 보상까지의 거리를 줄인다. */
+#view-archive.is-first-record-file .owner-file-doc { padding-top: 18px; padding-bottom: 12px; }
+#view-archive.is-first-record-file .owner-file-head { margin-bottom: 8px; }
+#view-archive.is-first-record-file .owner-file-head img { flex-basis: 52px; width: 52px; }
+#view-archive.is-first-record-file .owner-file-toc > div { padding-top: 6px; padding-bottom: 6px; }
+#view-archive.is-first-record-file .owner-file-top-row,
+#view-archive.is-first-record-file .owner-file-official-row,
+#view-archive.is-first-record-file .archive-report-link { display: none; }
+#view-archive.is-first-record-file .owner-file-remark { margin-top: 10px; padding-top: 8px; padding-bottom: 8px; }
+#view-archive.is-first-record-file .owner-file-remark > p { font-size: 17px; line-height: 1.4; }
+#view-archive.is-first-record-file .owner-file-record-jump { margin-top: 10px; padding-top: 9px; padding-bottom: 9px; }
+#view-archive.is-first-record-file .owner-file-backup-toggle {
+  min-height: 0;
+  margin: 7px 0 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 11px;
+  text-align: right;
+}
+#view-archive.is-first-record-file .owner-file-backup-toggle::after { margin-left: 5px; }
+
+/* ═══════════ 주인님 파일 본문 ═══════════
+   기록 카드 · 여백 메모 · 인증서 도장이 한 스트림 안에 날짜순으로 공존한다. */
+
+#view-archive .file-date-group { display: grid; gap: 10px; }
+#view-archive .file-date-group + .file-date-group { margin-top: 20px; }
+/* 날짜는 크라프트 칩. 기록 카드(아이보리)보다 한 층 아래 재질이라 서류철 간지로 읽힌다. */
+#view-archive .file-date-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 1px 0;
+}
+#view-archive .file-date-divider > span {
+  flex: none;
+  padding: 7px 12px;
+  border-radius: 3px;
+  background: var(--kraft);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .12), inset 0 1px 0 rgba(255, 255, 255, .35);
+  color: #4a3a24;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+#view-archive .file-date-divider:after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--doc-line);
+}
+
+/* 여백 메모 — 카드가 아니라 기록 위에 덧붙인 노란 노트지다. 왼쪽 44px 들여쓰기로
+   그날 기록에 종속돼 보이게 하고, 살짝 기울여 붙인 종이처럼 둔다. */
+#view-archive .file-margin-note {
+  position: relative;
+  scroll-margin-block: 92px;
+  margin: 0 0 4px 44px;
+  padding: 11px 13px 10px;
+  border: 1px solid #e6d6b4;
+  border-radius: 2px;
+  background: var(--memo);
+  box-shadow: 2px 2.5px 0 rgba(45, 35, 22, .08);
+  transform: rotate(-.5deg);
+}
+#view-archive .file-margin-note.diary-open-target {
+  border-color: rgba(157, 47, 58, .45);
+  box-shadow: 0 0 0 3px rgba(157, 47, 58, .08), 2px 2.5px 0 rgba(45, 35, 22, .08);
+}
+/* 위쪽에 붙인 테이프 조각 */
+#view-archive .file-margin-note:before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 18px;
+  width: 46px;
+  height: 15px;
+  background: rgba(211, 179, 132, .6);
+  border-left: 1px dashed rgba(255, 255, 255, .55);
+  border-right: 1px dashed rgba(255, 255, 255, .55);
+  transform: rotate(-3deg);
+}
+#view-archive .file-margin-note > p {
+  margin: 0;
+  color: #6b5d4d;
+  font: 500 12.5px/1.65 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#view-archive .file-margin-note > small {
+  display: block;
+  margin-top: 7px;
+  color: var(--kraft-deep);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+/* 오늘 것은 봉인 상태 — 같은 노트지 위에 밀랍 색 테이프와 점선 테두리만 얹는다 */
+#view-archive .file-margin-note.diary-teaser {
+  border-style: dashed;
+  border-color: #ddc79b;
+}
+#view-archive .file-margin-note.diary-teaser:before { background: rgba(160, 48, 56, .35); }
+#view-archive .file-margin-note.diary-teaser > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--kraft-deep);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+#view-archive .file-margin-note.diary-teaser > strong,
+#view-archive .file-margin-note.diary-teaser > blockquote,
+#view-archive .file-margin-note.diary-teaser > small { color: #6b5d4d; }
+
+/* 공식 인정 건의 도장 — 장식이 아니라 버튼이다. 눌러서 인증서를 연다.
+   시안 v4-2를 따라 CSS 원형 도장으로 그린다. 이미지 도장은 담당 집사가 바뀌면
+   함께 바뀌어야 할 것처럼 보이는데, 이 도장을 찍는 주체는 집사가 아니라 사무국이다. */
+#view-archive .record-cert-stamp {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 2px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  box-shadow: inset 0 0 0 1px rgba(157, 47, 58, .3);
+  color: var(--stamp-red);
+  font: 800 8.5px/1.2 var(--disp);
+  text-align: center;
+  rotate: 8deg;
+  transform: none;
+}
+#view-archive .record-cert-stamp:active { background: rgba(157, 47, 58, .12); }
+#view-archive #archive-record-list .office-record-card.official:after { display: none; }
+
+/* 이전 기록 펼치기 */
+#view-archive .file-expand-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 16px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: var(--paper);
+  color: #6d5c53;
+  font-size: 12px;
+  font-weight: 850;
+}
+#view-archive .file-expand-button span { color: var(--tab-records); }
+
+/* 필터 칩이 탭 자리를 물려받았다 — 표지 바로 아래 맨 위로 올린다.
+   검색은 기존 order 원칙대로 하단에 그대로 둔다(설계: 검색 하단 유지). */
+/* 칩이 검색 상자 안으로 합쳐지는 리팩터링 때 이 규칙의 대상(.record-filters)이
+   사라져서, 칩이 검색과 함께 목록 아래로 가라앉았다. 지금 칩의 실제 클래스로
+   되돌린다 — 설계는 그대로다: 칩은 표지 바로 아래, 검색은 하단. */
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter {
+  order: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  padding-top: 0;
+  border-top: 0;
+}
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter > span {
+  flex: none;
+  color: var(--ink-faint);
+  font: 800 10px/1 var(--disp);
+  letter-spacing: .08em;
+}
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter .record-grade-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#view-archive[data-archive-mode="records"] #archive-records > .record-grade-filter button {
+  min-height: 40px;
+  padding: 0 13px;
+  font-size: 12px;
+}
+/* 하단에 남는 검색에는 제 이름표를 붙여준다 — 분류 칩이 위로 갔으니 여기는 찾기다. */
+#view-archive[data-archive-mode="records"] #archive-records > .record-find-tools {
+  margin: 18px 0 4px;
+  padding-top: 16px;
+  border-top: 1px dashed #d8c9b6;
+}
+/* 검색 입력에는 이미 제 이름표가 붙어 있다. 구분선만 두고 라벨은 겹쳐 넣지 않는다. */
+
+/* 파일탭이 표지로 올라가면서 작업 영역은 탭 없이 본문만 담는다.
+   남은 머리줄은 일부인과 주간 보고서 링크 한 줄로 눕힌다 — 세로로 세우면
+   표지와 본문 사이에 빈 칸만 생긴다. */
+#view-archive .archive-workspace { position: relative; padding-top: 12px; }
+#view-archive .archive-title-row { align-items: center; justify-content: flex-end; padding: 0 2px 10px; }
+#view-archive .archive-title-aside {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+/* MANAGER — 인사기록카드 위 탭 */
+#manager-details .personnel-card { padding-top: 24px; }
+#manager-details .personnel-heading small {
+  background: var(--tab-manager);
+  color: #fff;
+  letter-spacing: .1em;
+}
+#manager-details .personnel-heading small b { margin-left: 3px; color: #fff; }
+
+/* WEEKLY — 보고서 문서번호 탭 */
+#view-report .weekly-report-sheet { position: relative; padding-top: 24px; }
+#view-report .report-title-block:before {
+  content: "WEEKLY REPORT · FILE 05";
+  background: var(--tab-records);
+}
+
+/* FORM 05 / GIFT — 서식 번호 탭 */
+.praise-result-document { padding-top: 24px; }
+.praise-result-document .reaction-document-meta > span { background: var(--burgundy); }
+.gift-receipt { padding-top: 24px; }
+.gift-receipt .reaction-document-meta > span { background: var(--tab-manager); }
+
+/* ═══════════ 4. 소형 태그 · 소형 포인트 ═══════════
+   알약을 걷어내고, 색은 테두리와 글자에만 남긴다. */
+
+/* 날짜 클립보드 라벨은 걷어낸다 — 시안 v4-2는 날짜를 그룹 간지(크라프트 칩)로만
+   말한다. 상단에 오늘 날짜를 한 번 더 붙이면 같은 말을 두 번 하는 셈이다. */
+#view-archive .archive-title-row time { display: none; }
+#view-archive .archive-title-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+#view-archive .archive-title-aside { display: flex; justify-content: flex-end; margin: 0; padding: 0; }
+#view-archive .archive-report-link { color: var(--tab-records); }
+
+#view-archive .record-search input,
+#view-archive .record-grade-filter select,
+#view-archive .record-find-tools input,
+#view-archive .record-find-tools select {
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: var(--doc-paper);
+}
+#view-archive .record-legend {
+  border-radius: 2px;
+  border-left: 3px solid var(--doc-line);
+  color: #7a6b62;
+}
+
+/* 기록 카드는 아이보리 한 장. 왼쪽 번호 칸만 노트지 색으로 떼어내 문서번호처럼 세운다.
+   비공식 건은 오른쪽 칸이 아예 없다 — 도장 유무가 곧 상태다(시안 B2-1). */
+#view-archive .office-record-card {
+  grid-template-columns: 44px minmax(0, 1fr);
+  min-height: 0;
+  border-radius: 4px;
+  box-shadow: 2.5px 3px 0 rgba(45, 35, 22, .09);
+  overflow: hidden;
+}
+#view-archive .office-record-card.official { grid-template-columns: 44px minmax(0, 1fr) 62px; }
+#view-archive .office-record-card:before { content: none; }
+#view-archive .record-main { padding: 12px 13px; }
+#view-archive .record-approval {
+  gap: 0;
+  padding: 0;
+  border-left: 0;
+}
+#view-archive .record-number {
+  border-right: 1px solid var(--doc-line-soft);
+  background: var(--memo);
+}
+#view-archive .record-number b { color: var(--kraft-deep); font-size: 18px; }
+#view-archive .record-number span { color: #a3927c; font-size: 8px; letter-spacing: .06em; }
+#view-archive .record-approval > span {
+  padding: 4px 7px;
+  border-radius: 2px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  color: #7a6b62;
+  letter-spacing: .02em;
+}
+/* ── 종이 에셋 : 승인 도장 ──
+   승인된 접수 카드에만 실제로 도장이 찍힌다. 원본 PNG의 붉은 테두리 잔상을
+   피하려고 알파만 마스크로 쓰고 색은 사무국 도장색으로 직접 칠한다.
+   가운데가 비어 있어 아래 글자가 그대로 읽힌다. */
+#view-archive .office-record-card.official:after {
+  display: none;
+  content: "";
+  /* 담당 집사 얼굴을 덮지 않도록 본문 칸 오른쪽 아래 빈 자리에 찍는다 */
+  right: 66px;
+  bottom: 3px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: var(--stamp-red);
+  -webkit-mask-image: url("design/paper-assets/stamp-approved.webp");
+  mask-image: url("design/paper-assets/stamp-approved.webp");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: .82;
+  transform: rotate(-7deg);
+  pointer-events: none;
+}
+/* 도장이 붉은 표시를 맡았으므로 상태 라벨은 다른 카드와 같은 서류 태그로 둔다 */
+#view-archive .office-record-card.official .record-approval > span {
+  border-color: var(--doc-line);
+  background: var(--paper);
+  color: #7a6b62;
+}
+#view-archive .record-detail-cta {
+  border-radius: 2px;
+  border-color: var(--tab-records);
+  color: var(--tab-records);
+}
+#view-archive .records-summary { background: #f9f2e8; }
+#view-archive .records-summary-heading i { color: var(--tab-records); border-color: rgba(91, 115, 131, .45); }
+#view-archive .records-summary dd b { color: var(--tab-records); }
+
+/* ═══════════ 6. 중앙인사국 ═══════════ */
+
+#manager-details .personnel-heading { border-bottom: 1px solid var(--doc-line-soft); }
+#manager-details .personnel-paperclip { border-color: #9b7541; }
+#manager-details .manager-nameplate { border-radius: 2px; }
+#manager-details .manager-profile-copy h1 { color: var(--tab-manager); }
+#manager-details #manager-butler-symbol { color: var(--tab-manager); }
+#manager-details .manager-status-line b {
+  padding: 4px 6px;
+  border: 1px solid var(--tab-manager);
+  border-radius: 2px;
+  color: var(--tab-manager);
+}
+#manager-details .manager-handnote {
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: #f9f2e8;
+  box-shadow: var(--doc-shadow-sm);
+}
+
+/* 관계 블록 = 인사기록카드의 비고 / 관찰란 */
+#manager-details .manager-obsession {
+  position: relative;
+  margin-top: 15px;
+  padding-top: 16px;
+  background: #f9f2e8;
+}
+#manager-details .manager-obsession:before {
+  content: "비 고 · 관 찰 기 록";
+  position: absolute;
+  top: -8px;
+  left: 11px;
+  padding: 1px 6px;
+  background: #f9f2e8;
+  color: var(--tab-manager);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+#manager-details .obsession-heading b { color: var(--tab-manager); }
+#manager-details .relationship-summary {
+  border-radius: 2px;
+  border-color: #d3c4b3;
+  background: var(--doc-paper);
+}
+#manager-details .relationship-summary > span {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--tab-manager);
+  border-radius: 2px;
+  color: var(--tab-manager);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .04em;
+}
+#manager-details .relationship-summary > strong { color: var(--ink); }
+#manager-details .relationship-summary > small { color: var(--tab-manager); }
+
+/* 선물은 사내 전달 접수 — 색면 버튼이 아니라 전표 한 장 */
+#manager-details .manager-gift-button {
+  border: 1px solid var(--doc-line);
+  border-radius: 3px;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow-sm);
+}
+#manager-details .manager-gift-button > span {
+  border-radius: 2px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  color: var(--tab-manager);
+}
+#manager-details .manager-gift-button b { color: var(--ink); }
+#manager-details .manager-gift-button small { color: #8a7b71; }
+#manager-details .manager-gift-button small b { color: var(--tab-manager); }
+#manager-details .manager-gift-button > i { color: var(--tab-manager); }
+
+#manager-details .manager-section-title { border-bottom: 1px solid var(--doc-line-soft); }
+#manager-details .manager-section-title h2 span { color: var(--tab-manager); }
+#manager-details .manager-stats { background: #f9f2e8; }
+#manager-details .manager-stats dt { color: var(--tab-manager); }
+#manager-details .stage-list span { border-radius: 2px; border-color: var(--doc-line); }
+#manager-details .manager-roster-person { border-radius: 3px; }
+#manager-details .manager-roster-person.active { border-color: var(--tab-manager); }
+#manager-details .manager-roster-person.active:before { border-bottom-color: var(--tab-manager); }
+#manager-details .manager-roster-person.active small { color: var(--tab-manager); }
+#manager-details .manager-details-back { border-radius: 2px; }
+
+/* ═══════════ 7. 주간 보고서 ═══════════
+   같은 종이 위의 서식이다. 재미는 표와 결재란에서 나오게 하고 색은 아낀다. */
+
+#view-report .report-title-block {
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--doc-line-soft);
+}
+#view-report .report-intro small { color: #8a7b71; }
+#view-report #report-butler-name { color: var(--tab-records); }
+#view-report .report-hero { background: #f9f2e8; }
+#view-report .weekly-rate-card { background: var(--doc-paper); }
+#view-report .weekly-rate-total strong { color: var(--tab-records); }
+#view-report .weekly-rate-total i { border-radius: 0; border-color: var(--doc-line); background: #ece2d5; }
+#view-report .weekly-rate-total i em { border-radius: 0; background: var(--tab-records); }
+#view-report .weekly-days i { border-radius: 0; background: #ece2d5; }
+#view-report .weekly-days i em { border-radius: 0; background: var(--tab-records); }
+#view-report .weekly-summary > div { background: #f9f2e8; }
+/* 항목 기호는 원형 배지가 아니라 서식 칸 */
+#view-report .weekly-summary i {
+  width: 23px;
+  height: 23px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--doc-paper);
+  color: var(--tab-records);
+  font-size: 12px;
+}
+#view-report .weekly-summary dd b { color: var(--tab-records); }
+/* 총평은 결재란. 붉은 결재 도장 하나만 남긴다. */
+#view-report .weekly-comment { background: #f9f2e8; }
+#view-report .weekly-comment > span {
+  border: 2px solid var(--stamp-red);
+  border-radius: 50%;
+  color: var(--stamp-red);
+  transform: rotate(-8deg);
+}
+#view-report .weekly-comment h3 { color: var(--ink); }
+
+/* ═══════════ 8. 심사 결과서 · 선물 인수증 ═══════════ */
+
+/* 서식 번호가 탭으로 올라갔으므로, 남은 모드 배지는 원래 자리(오른쪽)를 지킨다 */
+.reaction-document-meta {
+  justify-content: flex-end;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--doc-line-soft);
+}
+.reaction-document-meta > b {
+  padding: 5px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  color: #7a6b62;
+}
+.praise-result-hero { background: #f9f2e8; }
+.praise-result-deed { background: #f9f2e8; }
+.praise-result-deed small { color: #8a7b71; }
+#result-record-status {
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  color: #7a6b62;
+}
+.praise-result-document blockquote { background: var(--doc-paper); }
+#result-relationship-result { background: #f9f2e8; }
+#result-relationship-result > span { color: var(--burgundy); }
+.praise-result-metrics { background: var(--doc-paper); }
+.praise-result-metrics dt { color: #8a7b71; }
+.praise-result-metrics > div:nth-child(2) dd { color: var(--burgundy); }
+.rare-verdict-note { border-radius: 3px; }
+/* 판정 문구는 판정마다 바뀌므로(칭찬 승인 / 과몰입 폭주 / 희귀 채택) 글자 도장은
+   그대로 두고, 결재가 끝났다는 표시로 서류 자체에 사무국 도장을 한 번 찍는다.
+   가운데가 비어 있어 아래 항목이 그대로 읽힌다. */
+.reaction-stamp { border-color: var(--stamp-red); color: var(--stamp-red); rotate: -11deg; transform: none; animation: none; }
+.praise-result-document { position: relative; }
+.praise-result-document:before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  right: 8px;
+  bottom: 130px;
+  width: 84px;
+  height: 84px;
+  background: var(--stamp-red);
+  -webkit-mask-image: url("design/paper-assets/stamp-approved.webp");
+  mask-image: url("design/paper-assets/stamp-approved.webp");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  opacity: .24;
+  transform: rotate(-9deg);
+  pointer-events: none;
+}
+/* 서식 번호가 탭으로 올라가면서 종이클립이 모드 배지와 같은 모서리에서 겹쳤다.
+   클립을 탭과 배지 사이 빈 자리로 옮긴다. */
+.praise-result-document:after { right: 104px; }
+
+.gift-reaction-hero { background: #f9f2e8; }
+.gift-receipt h1 { color: var(--tab-manager); }
+.gift-receipt > p #gift-received-name { color: var(--tab-manager); }
+.gift-reaction-badge {
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: var(--paper);
+  color: #7a6b62;
+}
+.gift-reaction-badge[data-reaction="favorite"] {
+  border-color: var(--tab-manager);
+  background: #eef0f3;
+  color: var(--tab-manager);
+}
+.gift-receipt blockquote { background: var(--doc-paper); }
+#gift-relationship-result { background: #f9f2e8; }
+#gift-relationship-result > span { color: var(--tab-manager); }
+.gift-result-metrics { border-radius: 3px; border-color: #d3c4b3; background: var(--doc-paper); }
+.gift-result-metrics dt { color: #8a7b71; }
+.gift-result-metrics dd b { color: var(--tab-manager); }
+
+/* ═══════════ 9. 빈 상태 ═══════════
+   연한 박스 하나가 덩그러니 놓이면 심심하다. 미개설 파일철처럼 읽히게 한다. */
+
+#view-archive .records-empty {
+  position: relative;
+  padding: 30px 16px 26px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: #f9f2e8;
+}
+/* 아직 아무것도 적히지 않은 괘선지 */
+#view-archive .records-empty:before {
+  content: "";
+  position: absolute;
+  inset: 14px 15px;
+  background: repeating-linear-gradient(rgba(148, 121, 96, .13) 0 1px, transparent 1px 25px);
+  pointer-events: none;
+}
+#view-archive .records-empty > span {
+  position: relative;
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--doc-paper);
+  color: #8a7b71;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .14em;
+}
+#view-archive .records-empty > p { position: relative; color: #7a6b62; }
+/* 빈 파일의 홈 이동 버튼 — 종이 버튼 하나. 텅 빈 화면에서 유일한 다음 동작이다. */
+#view-archive .records-empty button {
+  position: relative;
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 0 16px;
+  background: var(--doc-paper);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 850;
+}
+/* ── 종이 에셋 : 메모 종이 ──
+   아직 한 장도 안 쓰인 일지 위에 빈 메모지가 한 장 끼워져 있는 정도로만 둔다.
+   본문 위가 아니라 모서리에 걸치고, 좁은 화면에서는 빠진다. */
+#view-archive .records-empty:after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  bottom: -10px;
+  width: 66px;
+  height: 86px;
+  background: url("design/paper-assets/memo-note.webp") no-repeat center / contain;
+  transform: rotate(6deg);
+  pointer-events: none;
+}
+@media (max-width: 372px) {
+  #view-archive .records-empty:after { display: none; }
+}
+
+/* 기록 상세도 기록보관과의 서류다 — 같은 재질, 같은 각진 태그, 같은 탭 색 */
+.record-detail-header { border-bottom: 3px double #b49b83; }
+.record-detail-header > button {
+  border: 1px solid #c2ac93;
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: var(--doc-shadow-sm);
+}
+.record-detail-header > small {
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--paper);
+  color: #7a6b62;
+}
+.record-detail-document {
+  border: 1px solid var(--doc-line);
+  border-radius: 5px;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow);
+}
+.record-detail-meta { border-bottom: 1px solid var(--doc-line-soft); }
+.record-detail-context section {
+  border-radius: 3px;
+  border-color: #d3c4b3;
+  background: #f9f2e8;
+}
+.record-detail-context section > span { color: var(--tab-records); letter-spacing: .08em; }
+.record-detail-briefing-origin {
+  display: inline-block;
+  margin: 7px 0 1px;
+  padding: 3px 7px;
+  border: 1px solid rgba(147, 19, 46, .24);
+  color: var(--burgundy);
+  font: 800 11px/1.35 var(--sans);
+  letter-spacing: .01em;
+}
+.record-detail-briefing-origin[hidden] { display: none; }
+.record-detail-title-copy > small {
+  border-radius: 2px;
+  border-color: var(--doc-line);
+  background: var(--paper);
+  color: #7a6b62;
+}
+.record-detail-title-copy p { color: var(--tab-records); }
+.record-detail-document blockquote { border-radius: 3px; border-color: #d3c4b3; background: var(--doc-paper); }
+.record-detail-facts { border-color: #d3c4b3; background: var(--doc-paper); }
+.record-detail-note { border-left-color: var(--tab-records); background: #f9f2e8; }
+.record-detail-note span { color: var(--tab-records); }
+.record-detail-document > .primary-button {
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+}
+
+/* 인증서 원본 화면도 같은 서류과에서 발급된 것이다 */
+.certificate-screen-header { border-bottom: 3px double #b49b83; }
+.certificate-screen-header > small {
+  border: 1px solid #c2ac93;
+  border-radius: 2px;
+  background: var(--paper);
+  box-shadow: var(--doc-shadow-sm);
+}
+.certificate-screen-header > button {
+  border: 1px solid #c2ac93;
+  border-radius: 3px;
+  background: var(--paper);
+  box-shadow: var(--doc-shadow-sm);
+}
+.certificate-actions button { border-radius: 3px; }
+.certificate-actions .primary-button {
+  border-color: var(--ink);
+  background: var(--ink);
+  box-shadow: 4px 4px 0 rgba(67, 48, 45, .16);
+}
+
+/* ═══════════ 기존 결함 보정 ═══════════
+   사무국 메모지가 담당 집사 총평문 위에 겹쳐 마지막 줄을 덮고 있었다
+   (base 브랜치에서도 같은 좌표로 겹친다). 붙여둔 메모라는 성격은 유지하되
+   히어로 밖으로 내려 글을 가리지 않게 한다. 371px 미만에서는 원래 숨겨진 요소다. */
+#view-report .report-hero { overflow: visible; }
+#view-report .report-memo {
+  position: static;
+  grid-column: 1 / -1;
+  justify-self: end;
+  width: fit-content;
+  margin: -2px 2px 0 0;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  box-shadow: var(--doc-shadow-sm);
+}
+#view-report .report-intro { padding-bottom: 4px; }
+
+/* ═══════════ 접수 창구 (HOME) ═══════════
+   시안 v4-1. 창구 하나가 그대로 보이는 화면이다 —
+   접수대(스테이지) → 자동 발행된 접수 슬립 → 접수서 작성 → 날인.
+   "사무국 정상 운영 중" 배지는 문서 번호로 바꾼다. 배지는 상태를 말할 뿐이지만
+   번호는 지금 손에 든 서류가 무엇인지를 말한다. */
+
+.office-regno {
+  color: var(--ink-soft);
+  font: 700 9.5px/1.6 var(--disp);
+  letter-spacing: .06em;
+  text-align: right;
+}
+.office-regno b { display: block; color: var(--stamp-red); }
+
+#view-home .home-office-header { align-items: baseline; }
+#view-home .home-header-right { display: block; }
+#view-home .home-reception-label { display: none; }
+
+/* 접수대는 화면 폭을 꽉 채운다. 창구는 액자가 아니라 벽이다.
+   좌우 여백은 화면 폭에 따라 달라지므로 변수로 받아 그만큼만 되민다. */
+#view-home { --view-pad: 14px; }
+@media (max-width: 372px) { #view-home { --view-pad: 12px; } }
+@media (max-width: 370px) { #view-home { --view-pad: 11px; } }
+#view-home .home-butler-room {
+  margin: 0 calc(-1 * var(--view-pad));
+  overflow: visible;
+}
+#view-home .home-butler-room .cat-home-room {
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+}
+/* 창구 명패 — 접수대 위쪽 중앙에 걸린 팻말. */
+#view-home .office-counter {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  left: 50%;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 2px;
+  background: var(--ink);
+  color: #efe5d2;
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .2em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .25);
+}
+#view-home .room-pan-hint { bottom: 40px; }
+
+/* 접수 슬립 — 창구 아래로 반쯤 나온 종이. 클립으로 물려 있다. */
+/* 접수 슬립 — 바깥은 클립이 박힌 자리(움직이지 않는다), 안쪽이 종이다. */
+#view-home .reception-slip {
+  position: relative;
+  z-index: 4;
+  display: block;
+  width: auto;
+  max-height: none;
+  margin: -30px 16px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, visibility 0s linear .2s;
+  pointer-events: none;
+}
+#view-home .reception-slip-paper {
+  padding: 15px 16px 11px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .13);
+  rotate: -.6deg;
+}
+#view-home .reception-slip.is-visible { opacity: 1; visibility: visible; transition-delay: 0s; }
+#view-home .reception-slip:after { content: none; }
+#view-home .reception-slip .of-clip { z-index: 7; top: -9px; left: 20px; rotate: -4deg; transform: none; }
+#view-home .reception-slip p {
+  margin: 0;
+  color: var(--ink);
+  font: 600 15.5px/1.55 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  letter-spacing: -.012em;
+  word-break: keep-all;
+}
+#view-home .reception-slip footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--doc-line);
+  color: var(--ink-faint);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .08em;
+}
+/* 서명만 육필이다. 발행 문구는 기계가 찍은 것이라 그대로 둔다. */
+#view-home .reception-slip .slip-sign {
+  color: var(--stamp-red);
+  font: 700 16px/1 var(--hand);
+  letter-spacing: 0;
+  transform: rotate(-2deg);
+}
+
+/* 접수처 제목 — 공문 서체. 옆에 잉크 마른 접수 도장. */
+#view-home .home-hero { padding-top: 44px; }
+#view-home .home-hero > span { display: none; }
+#view-home .home-hero h1 {
+  color: var(--ink);
+  font: 900 23px/1.42 var(--serif);
+  letter-spacing: -.01em;
+}
+#view-home .home-hero p { color: var(--ink-soft); font-size: 12.5px; }
+#view-home .home-hero i.of-datestamp {
+  top: 8px;
+  right: 2px;
+  border: 2px solid rgba(157, 47, 58, .5);
+  border-radius: 3px;
+  background: none;
+  opacity: 1;
+}
+
+/* 접수서 — 2공 펀치로 철해 둔 낱장. */
+#view-home .entry-form {
+  position: relative;
+  padding: 13px 15px 12px 34px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 2.5px 3px 0 rgba(45, 35, 22, .11);
+}
+#view-home .entry-form .of-punch i:nth-child(1) { top: 34px; }
+#view-home .entry-form .of-punch i:nth-child(2) { top: 128px; }
+#view-home .field-heading {
+  margin-bottom: 8px;
+  padding: 0;
+  border: 0;
+}
+#view-home .field-heading strong {
+  color: var(--ink-soft);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#view-home .field-heading span { color: var(--ink-soft); font: 600 9.5px/1 var(--disp); letter-spacing: .16em; }
+#view-home .field-heading b { color: var(--ink-soft); }
+
+/* 罫線 노트 — 붉은 여백선 왼쪽은 비워 두는 서식지의 규칙 그대로. */
+#view-home .achievement-field {
+  position: relative;
+  margin-top: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 31px, var(--doc-line-soft) 31px 32px);
+}
+#view-home .achievement-field:before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 16px;
+  border-left: 1.5px solid rgba(157, 47, 58, .4);
+}
+#view-home .entry-form textarea {
+  min-height: 96px;
+  margin-top: 0;
+  padding: 5px 2px 0 28px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 500 15px/32px "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#view-home .entry-form textarea::placeholder { color: var(--ink-faint); font-weight: 500; }
+#view-home .entry-form textarea:focus { border: 0; box-shadow: none; }
+
+/* 빠른 입력 — 견출지 대신 상단 색띠만. 아이콘은 걷어낸다. */
+#view-home .quick-actions { gap: 6px; margin-top: 4px; }
+#view-home .quick-actions svg { display: none; }
+#view-home .quick-actions button {
+  position: relative;
+  overflow: hidden;
+  padding: 9px 12px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .08);
+}
+#view-home .quick-actions button:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--kraft);
+}
+#view-home .quick-actions button:nth-child(2):before { background: #8ea3bc; }
+#view-home .quick-actions button:nth-child(3):before { background: #9cb08e; }
+#view-home .quick-actions button:nth-child(4):before { background: var(--burgundy); }
+#view-home .quick-actions button:last-child {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+}
+#view-home .quick-actions button:last-child:before { display: none; }
+#view-home .quick-actions button span {
+  color: var(--ink-soft);
+  font: 600 12px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#view-home .quick-actions button:last-child span { color: var(--ink-faint); }
+
+/* 날인선 — 버튼이 아니라 서명란이다. 오른쪽 원형 도장이 진짜 행동이다. */
+#view-home .report-button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px 4px 12px 6px;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#view-home .report-button:active { transform: none; box-shadow: none; }
+#view-home .report-button .report-button-copy { flex: 1; text-align: left; }
+#view-home .report-button b {
+  display: block;
+  color: var(--ink);
+  font: 800 16.5px/1.25 var(--disp);
+  letter-spacing: -.01em;
+}
+#view-home .report-button small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-faint);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#view-home .report-button .of-roundstamp,
+.of-roundstamp {
+  flex: 0 0 62px;
+  width: 62px;
+  height: 62px;
+  float: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2.5px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  box-shadow: inset 0 0 0 1.5px rgba(157, 47, 58, .35);
+  color: var(--stamp-red);
+  font: 800 15px/1 var(--disp);
+  letter-spacing: 0;
+  transform: rotate(-7deg);
+}
+#view-home .report-button .of-roundstamp small,
+.of-roundstamp small { color: var(--stamp-red); font: 700 6.5px/1 var(--disp); letter-spacing: .1em; }
+
+#view-home .form-note {
+  margin-top: 10px;
+  color: var(--ink-faint);
+  font: 500 11px/1.6 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  text-align: center;
+}
+/* 도장 진행칸은 접수 흐름(작성 → 날인)을 끊지 않게 날인선 뒤로 보낸다. */
+#view-home .entry-form { display: flex; flex-direction: column; }
+#view-home .entry-form > .of-punch { position: absolute; }
+#view-home .field-heading { order: 1; }
+#view-home .achievement-field { order: 2; }
+#view-home .quick-actions-label { order: 3; }
+#view-home .quick-actions { order: 3; }
+#view-home .report-button { order: 4; }
+#view-home .form-note { order: 5; }
+#view-home .entry-footnote { order: 6; margin-top: 14px; }
+#view-home .gentle-note { order: 7; }
+
+/* 도장칸 — 빈 칸은 점선, 찍힌 칸은 붉은 실선에 살짝 비뚤게.
+   시안 v4-2의 인증 도장 줄과 같은 조형이라 홈과 파일이 같은 물건으로 읽힌다. */
+#view-home .stamp-progress {
+  padding: 12px 13px 11px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: var(--doc-shadow-sm);
+}
+#view-home .progress-heading strong { color: var(--ink-soft); font: 700 10px/1.5 var(--disp); letter-spacing: .1em; }
+#view-home .progress-heading b { color: var(--stamp-red); font: 800 15px/1 var(--disp); }
+#view-home .stamp-circles { gap: 7px; margin: 10px 0 9px; }
+#view-home .stamp-circles i {
+  width: 36px;
+  height: 36px;
+  border: 1.5px dashed var(--doc-line);
+  background: transparent;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+}
+#view-home .stamp-circles i:after { content: none; }
+#view-home .stamp-circles i.filled {
+  border: 2px solid var(--stamp-red);
+  background: rgba(157, 47, 58, .06);
+  color: var(--stamp-red);
+}
+#view-home .stamp-circles i.filled:before { font: 800 9.5px/1 var(--disp); letter-spacing: -.02em; text-shadow: none; }
+#view-home .stamp-circles i:nth-child(1).filled { transform: rotate(-11deg); }
+#view-home .stamp-circles i:nth-child(2).filled { transform: rotate(6deg); }
+#view-home .stamp-circles i:nth-child(3).filled { transform: rotate(-4deg); }
+#view-home .stamp-circles i:nth-child(4).filled { transform: rotate(9deg); }
+#view-home .stamp-circles i:nth-child(5).filled { transform: rotate(-7deg); }
+#view-home .stamp-progress p { color: var(--ink-faint); font-size: 11px; }
+#view-home .home-hero i.of-datestamp { top: 40px; }
+
+/* ═══════════ 주인님 파일 본문 — 시안 v4-2 보정 ═══════════ */
+
+/* 기록은 서류철 밖 책상 위에 그대로 놓인다. 한 번 더 카드로 감싸면
+   "파일 안의 파일"이 되어 층이 하나 늘어난다. */
+#view-archive .archive-workspace {
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#view-archive .archive-panel { padding: 0; }
+
+/* 칭호는 수여된 이름이다 — 공문 서체에 결재 잉크색. */
+#view-archive .record-main small {
+  display: block;
+  margin-top: 7px;
+  color: var(--burgundy);
+  font: 800 13.5px/1.2 var(--serif);
+  letter-spacing: .01em;
+}
+#view-archive .record-main strong { color: var(--ink); font: 700 14.5px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+#view-archive .record-main p { color: var(--ink-soft); font: 500 11.5px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+
+/* 등록 도장은 제목 오른쪽 빈 자리에 찍는다. 시안 좌표(bottom:44px)는 손글씨 소견을
+   가로질러 마지막 줄을 읽기 어렵게 만드는데, 소견은 이 화면에서 가장 사람 손에
+   가까운 문장이라 가려서는 안 된다. */
+/* top:34px는 제목("주인님 파일") 줄 높이와 정확히 겹친다. 도장은 머리글 위쪽
+   여백으로 올려서 제목도 소견도 가리지 않게 한다. */
+#view-archive .owner-file-doc .of-datestamp { top: 12px; right: 12px; bottom: auto; opacity: .7; }
+/* 도장이 올라간 만큼 머리글 오른쪽을 비워 글자가 도장 밑으로 들어가지 않게 한다. */
+#view-archive .owner-file-head { padding-right: 66px; }
+
+/* 여백 메모 — 테이프 대신 스테이플로 박고, 본문은 집사 육필로. */
+#view-archive .file-margin-note:before { content: none; }
+#view-archive .file-margin-note .of-staple { top: 8px; right: 16px; transform: rotate(3deg); }
+#view-archive .file-margin-note > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--kraft-deep);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .12em;
+}
+#view-archive .file-margin-note > p,
+#view-archive .file-margin-note.diary-teaser > blockquote {
+  margin: 0;
+  color: #3a3125;
+  font: 700 19px/1.5 var(--hand);
+  word-break: keep-all;
+}
+#view-archive .file-margin-note.diary-teaser > strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #3a3125;
+  font: 700 18px/1.5 var(--hand);
+}
+#view-archive .file-margin-note.diary-teaser > small {
+  display: block;
+  margin-top: 6px;
+  color: var(--kraft-deep);
+  font: 700 9px/1.4 var(--disp);
+  letter-spacing: .06em;
+}
+
+/* ═══════════ 인사기록카드 · 집사 명부 (MANAGER) ═══════════
+   시안 v4-5 · v4-6. 집사 화면은 "프로필"이 아니라 인사국이 보관하는 서류다.
+   사진은 액자가 아니라 크라프트 모서리 마운트로 붙어 있고, 관계는 진행바가 아니라
+   결재란이며, 아직 못 만난 집사는 밀랍으로 봉인된 서류 한 장으로만 존재한다. */
+
+#manager-details .personnel-card {
+  position: relative;
+  margin-top: 24px;
+  padding: 0 0 15px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .11);
+}
+#manager-details .personnel-card .of-clip { top: -11px; right: 12px; transform: rotate(6deg); }
+#manager-details .personnel-card .of-punch i:nth-child(1) { top: 22%; }
+#manager-details .personnel-card .of-punch i:nth-child(2) { top: 64%; }
+#manager-details .personnel-card .of-datestamp { right: 14px; bottom: 14px; opacity: .65; }
+
+/* 표제란 — 문서 맨 위를 가로지르는 굵은 선. 탭이 아니라 서류의 머리다. */
+#manager-details .personnel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 11px 34px 10px 15px;
+  border-bottom: 1.5px solid var(--ink);
+}
+#manager-details .personnel-heading > span {
+  color: var(--ink);
+  font: 900 13.5px/1 var(--serif);
+  letter-spacing: .2em;
+}
+#manager-details .personnel-heading small {
+  position: static;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--stamp-red);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .1em;
+}
+
+#manager-details .personnel-grid {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  min-height: 0;
+  padding: 15px 15px 0 32px;
+}
+/* 사진 — 대지에 네 모서리 마운트로 끼워 붙인 인사 사진. */
+#manager-details .manager-character-stage {
+  position: relative;
+  flex: 0 0 96px;
+  width: 96px;
+  padding: 7px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+#manager-details .manager-character-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--paper);
+}
+#manager-details .photo-mount { position: absolute; width: 14px; height: 14px; background: var(--kraft-deep); }
+#manager-details .photo-mount:nth-of-type(1) { top: 0; left: 0; clip-path: polygon(0 0, 100% 0, 0 100%); }
+#manager-details .photo-mount:nth-of-type(2) { top: 0; right: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+#manager-details .photo-mount:nth-of-type(3) { bottom: 0; left: 0; clip-path: polygon(0 0, 0 100%, 100% 100%); }
+#manager-details .photo-mount:nth-of-type(4) { bottom: 0; right: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+
+#manager-details .manager-profile-copy { min-width: 0; }
+#manager-details .manager-status-line { display: block; margin: 0 0 7px; padding: 0; border: 0; }
+#manager-details .manager-status-line > span {
+  color: var(--stamp-red);
+  font: 600 9.5px/1 var(--disp);
+  letter-spacing: .13em;
+}
+#manager-details #manager-title {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.2 var(--serif);
+  letter-spacing: 0;
+}
+#manager-details #manager-butler-desc {
+  margin: 7px 0 0;
+  color: var(--ink-soft);
+  font: 500 12px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+/* 집사 본인의 한마디만 육필. 나머지 기재란은 인사국이 타자로 쳤다. */
+#manager-details .manager-handnote {
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: #4c4234;
+  font: 700 15px/1.35 var(--hand);
+  transform: rotate(-.5deg);
+}
+
+#manager-details .manager-section-label {
+  margin: 13px 15px 0 32px;
+  padding: 8px 0 2px;
+  border-top: 1.5px solid var(--ink);
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .2em;
+}
+#manager-details .manager-facts {
+  margin: 0 15px 0 32px;
+  border: 0;
+  background: none;
+}
+#manager-details .manager-facts > div {
+  display: flex;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  font: 600 12px/1.35 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#manager-details .manager-facts dt { flex: 0 0 62px; color: var(--ink-faint); font-weight: 600; }
+#manager-details .manager-facts dd { margin: 0; color: var(--ink); }
+#manager-details .manager-facts .of-script { color: #4c4234; font: 700 15px/1 var(--hand); }
+
+/* 근무 현황 3단 */
+#manager-details .manager-stats {
+  display: flex;
+  margin: 10px 15px 0 32px;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--doc-line-soft);
+  background: none;
+}
+#manager-details .manager-stats > div {
+  flex: 1;
+  padding: 10px 0 2px;
+  border: 0;
+  text-align: center;
+}
+#manager-details .manager-stats > div + div { border-left: 1px solid var(--doc-line-soft); }
+#manager-details .manager-stats dt { color: var(--ink); font: 800 15px/1 var(--disp); }
+#manager-details .manager-stats dd { margin: 6px 0 0; color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+
+/* 관계 결재란 */
+#manager-details .manager-obsession {
+  margin: 14px 15px 0 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#manager-details .obsession-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+#manager-details #obsession-label {
+  color: var(--ink-soft);
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#manager-details #relationship-next-copy { color: var(--ink-faint); font: 700 13px/1 var(--hand); }
+
+/* ── 관계 결재란 ──
+   관계는 화면마다 다르게 생기면 안 된다. 집사 카드·결과서·선물 결과가
+   전부 같은 결재란 한 줄을 본다. 그래서 규칙을 여기 한 곳에만 쓰고
+   세 곳의 선택자를 함께 묶는다. 아직 지나지 않은 칸은 이름을 가린
+   「?」로 남는다 — 다음 칸이 뭔지 미리 읽히면 도착이 사건이 아니게 된다. */
+#manager-details .stage-list,
+#result-relationship-approval,
+#gift-relationship-approval {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+}
+#manager-details .stage-list > span,
+#result-relationship-approval > span,
+#gift-relationship-approval > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 0;
+  padding: 7px 2px 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ivory);
+  color: var(--ink-faint);
+  font: 600 8.5px/1.1 var(--disp);
+  text-align: center;
+}
+#manager-details .stage-list > span + span,
+#result-relationship-approval > span + span,
+#gift-relationship-approval > span + span { border-left: 1px solid var(--doc-line-soft); }
+#manager-details .stage-list > span b,
+#result-relationship-approval > span b,
+#gift-relationship-approval > span b {
+  display: block;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: -.02em;
+  word-break: keep-all;
+}
+#manager-details .stage-list > span i,
+#result-relationship-approval > span i,
+#gift-relationship-approval > span i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px dashed var(--doc-line);
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font: 800 9px/1 var(--disp);
+  font-style: normal;
+  opacity: 1;
+}
+/* 도장 자국은 조금씩 삐뚤어야 손으로 찍은 것처럼 보인다.
+   transform이 아니라 rotate 속성으로 기울인다 — 도장이 내려앉는 연출이
+   transform: scale을 쓰기 때문에, 둘이 서로를 덮어쓰면 안 된다. */
+#manager-details .stage-list > span.done i,
+#result-relationship-approval > span.done i,
+#gift-relationship-approval > span.done i {
+  border: 2px solid var(--stamp-red);
+  background: rgba(157, 47, 58, .06);
+  color: var(--stamp-red);
+}
+#manager-details .stage-list > span.done:nth-child(1) i,
+#result-relationship-approval > span.done:nth-child(1) i,
+#gift-relationship-approval > span.done:nth-child(1) i { rotate: -10deg; }
+#manager-details .stage-list > span.done:nth-child(2) i,
+#result-relationship-approval > span.done:nth-child(2) i,
+#gift-relationship-approval > span.done:nth-child(2) i { rotate: 7deg; }
+#manager-details .stage-list > span.done:nth-child(3) i,
+#result-relationship-approval > span.done:nth-child(3) i,
+#gift-relationship-approval > span.done:nth-child(3) i { rotate: -5deg; }
+#manager-details .stage-list > span.done:nth-child(5) i,
+#result-relationship-approval > span.done:nth-child(5) i,
+#gift-relationship-approval > span.done:nth-child(5) i { rotate: 6deg; }
+#manager-details .stage-list > span.now,
+#result-relationship-approval > span.now,
+#gift-relationship-approval > span.now { color: var(--stamp-red); }
+#manager-details .stage-list > span.now i,
+#result-relationship-approval > span.now i,
+#gift-relationship-approval > span.now i { border: 1.5px dashed var(--stamp-red); color: var(--stamp-red); }
+/* 아직 안 지난 칸 — 결재란은 비어 있고 이름도 아직 안 적혔다. */
+#manager-details .stage-list > span.locked,
+#result-relationship-approval > span.locked,
+#gift-relationship-approval > span.locked { color: #b3a493; }
+#manager-details .stage-list > span.locked i,
+#result-relationship-approval > span.locked i,
+#gift-relationship-approval > span.locked i {
+  border-color: var(--doc-line-soft);
+  color: #c3b6a6;
+}
+
+/* 도장이 내려앉는다. 이 연출은 단계가 실제로 오른 날에만 붙는다. */
+/* 결재란 도장도 다른 도장과 같은 손으로 찍힌다 — 같은 곡선, 같은 0.18초. */
+@keyframes approval-stamp-land {
+  0% { transform: scale(1.6); opacity: 0; }
+  55% { transform: scale(.96); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes approval-stamp-ring {
+  0% { box-shadow: 0 0 0 0 rgba(157, 47, 58, .32); }
+  100% { box-shadow: 0 0 0 13px rgba(157, 47, 58, 0); }
+}
+#result-relationship-approval > span.just-inked i,
+#gift-relationship-approval > span.just-inked i {
+  animation: approval-stamp-land .18s cubic-bezier(.2, .85, .3, 1) both,
+             approval-stamp-ring .42s ease-out .12s both;
+}
+#result-relationship-approval > span.just-inked b,
+#gift-relationship-approval > span.just-inked b { color: var(--stamp-red); }
+@media (prefers-reduced-motion: reduce) {
+  #result-relationship-approval > span.just-inked i,
+  #gift-relationship-approval > span.just-inked i { animation: none; }
+}
+
+/* 결과서·선물 결과의 관계 칸 — 평소에는 한 줄로 끝난다.
+   결재란과 집사의 말은 단계가 오른 날에만 펼쳐지므로, 읽는 순서는
+   상승 알림 → 결재란 → 집사의 말이 되어야 한다. 예전 규칙이 문장을
+   맨 위로 끌어올리던 order를 여기서 되돌린다. */
+#result-relationship-result,
+#gift-relationship-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+#result-relationship-result > span.relationship-line,
+#gift-relationship-result > span.relationship-line {
+  order: 0;
+  display: block;
+  margin: 0;
+  font: 800 11px/1.3 var(--disp);
+  letter-spacing: .05em;
+}
+#result-relationship-result > #result-relationship-approval,
+#gift-relationship-result > #gift-relationship-approval { order: 1; margin: 8px 0 0; }
+#result-relationship-result > p,
+#gift-relationship-result > p {
+  order: 2;
+  margin: 9px 0 0;
+  color: #584845;
+  font: 700 14px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#result-relationship-result > .relationship-trace-note,
+#gift-relationship-result > .relationship-trace-note {
+  order: 3;
+  display: block;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--doc-line-soft);
+  color: var(--stamp-red);
+  font: 800 10px/1.3 var(--disp);
+  letter-spacing: .05em;
+}
+#result-relationship-result > [hidden],
+#gift-relationship-result > [hidden] { display: none; }
+
+#manager-details .relationship-summary {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+/* 선물 전달 줄 */
+#manager-details .manager-gift-button {
+  margin: 14px 0 0;
+  padding: 13px 15px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .08);
+}
+#manager-details .manager-gift-button b { color: var(--ink); font: 700 13.5px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+#manager-details .manager-gift-button small { color: var(--ink-soft); font: 600 11px/1 var(--disp); }
+
+/* ── 집사 명부 (v4-6) ── */
+#manager-details .butler-roster-card { border: 0; background: none; box-shadow: none; padding: 0; }
+#manager-details .manager-roster { display: block; }
+#manager-details .manager-roster-person {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 13px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 3px 3px 0 rgba(45, 35, 22, .11);
+  text-align: left;
+}
+#manager-details .manager-roster-person img { flex: 0 0 58px; width: 58px; height: auto; object-fit: contain; }
+#manager-details .roster-person-copy { flex: 1; min-width: 0; }
+#manager-details .roster-person-copy b {
+  display: block;
+  color: var(--ink);
+  font: 900 15px/1.2 var(--serif);
+}
+#manager-details .roster-person-copy small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink-soft);
+  font: 600 10px/1.6 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#manager-details .roster-person-seal {
+  display: flex;
+  flex: 0 0 46px;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  color: var(--stamp-red);
+  font: 800 8.5px/1.2 var(--disp);
+  text-align: center;
+  transform: rotate(-8deg);
+}
+#manager-details .manager-roster-person:not(.active) .roster-person-seal {
+  border-color: var(--doc-line);
+  background: transparent;
+  color: var(--ink-faint);
+  transform: rotate(3deg);
+}
+
+/* 봉인된 인사 서류 — 얼굴도 이름도 나오지 않는다. 봉투와 조건 한 줄뿐. */
+#manager-details .sealed-doc {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  margin: 0 0 10px;
+  padding: 13px 14px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  overflow: hidden;
+}
+#manager-details .sealed-doc.near {
+  background: var(--ivory);
+  box-shadow: 2px 2.5px 0 rgba(45, 35, 22, .09);
+}
+#manager-details .sealed-band {
+  position: absolute;
+  top: 9px;
+  right: -34px;
+  padding: 5px 38px 5px 42px;
+  background: var(--stamp-red);
+  box-shadow: 0 1px 2px rgba(45, 35, 22, .2);
+  color: #f6dfe1;
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .34em;
+  transform: rotate(35deg);
+}
+#manager-details .sealed-envelope {
+  position: relative;
+  flex: 0 0 58px;
+  height: 66px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 2px;
+  background: var(--kraft);
+}
+#manager-details .sealed-envelope:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 30px;
+  border-bottom: 1px solid rgba(138, 100, 32, .3);
+  background: linear-gradient(rgba(255, 255, 255, .28), rgba(184, 147, 92, .15));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+#manager-details .sealed-envelope i {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #c9505c, var(--stamp-red) 55%, #6f1e26);
+  box-shadow: 0 1.5px 3px rgba(90, 20, 26, .4), inset 0 1px 1px rgba(255, 200, 205, .4);
+  color: #ffe9ec;
+  font: 900 10px/1 var(--serif);
+  font-style: normal;
+  transform: translateX(-50%) rotate(-6deg);
+}
+#manager-details .sealed-copy { flex: 1; min-width: 0; }
+#manager-details .sealed-copy b {
+  display: block;
+  color: var(--ink-soft);
+  font: 900 14px/1.2 var(--serif);
+  letter-spacing: .04em;
+}
+#manager-details .sealed-copy small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink-faint);
+  font: 600 10px/1.7 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#manager-details .sealed-copy em {
+  display: inline-block;
+  margin-top: 5px;
+  padding-bottom: 2px;
+  border-bottom: 1.5px dotted var(--stamp-red);
+  color: var(--stamp-red);
+  font: 700 11px/1 var(--disp);
+  font-style: normal;
+}
+#manager-details .roster-note {
+  margin: 12px 2px 0;
+  color: var(--ink-faint);
+  font: 700 14px/1.6 var(--hand);
+  transform: rotate(-.4deg);
+}
+
+/* ── v4-5 보정 : 앞선 패스가 만든 액자·타일 조형을 걷어낸다 ── */
+/* 사진은 원형 액자가 아니라 대지에 붙인 인사 사진이다 — 워터마크 도장과 명패를 뺀다. */
+#manager-details .manager-character-stage { height: auto; align-self: flex-start; display: block; }
+#manager-details .manager-character-stage:before { content: none; }
+#manager-details .manager-character-stage img { width: 100%; height: auto; filter: none; }
+#manager-details .manager-nameplate { display: none; }
+/* 관계 블록의 "비 고 · 관 찰 기 록" 라벨은 결재란 제목이 대신한다. 감시 어휘도 함께 걷힌다. */
+#manager-details .manager-obsession:before { content: none; }
+#manager-details .manager-obsession { padding-top: 0; background: none; }
+#manager-details #view-manager .manager-obsession,
+#view-manager .manager-obsession { display: block; padding: 0; }
+#view-manager .manager-obsession .relationship-summary { order: 0; margin-top: 10px; }
+#view-manager .manager-obsession .obsession-heading { order: 0; margin-top: 0; padding-top: 0; border-top: 0; }
+#manager-details .relationship-summary > strong { display: block; margin-top: 4px; }
+#manager-details #relationship-stage-trace {
+  display: block;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--doc-line-soft);
+  color: var(--tab-manager);
+  font: 700 10px/1.35 var(--disp);
+  letter-spacing: .04em;
+}
+#manager-details #relationship-stage-trace[hidden] { display: none; }
+
+/* 명부는 타일이 아니라 서류 한 장씩 쌓인 목록이다. */
+#manager-details .manager-roster { display: block; }
+#manager-details .manager-roster-person { flex: none; min-height: 0; }
+#manager-details .manager-roster-person > .roster-person-copy {
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+  text-align: left;
+}
+#manager-details .manager-roster-person img { width: 58px; height: auto; background: none; }
+#manager-details .manager-roster-person b { margin-top: 0; white-space: normal; overflow: visible; }
+#manager-details .manager-roster-person small { margin-top: 3px; }
+#manager-details .manager-roster-person.active:before { content: none; }
+#manager-details .manager-roster-person.active small { color: var(--ink-soft); font-weight: 600; }
+
+/* ── 담당 인계 확인서 (v4-7) ──
+   확인 다이얼로그는 "정말 하시겠습니까?"만 묻고 무엇을 잃는지는 말하지 않는다.
+   확인서는 넘어가는 것과 남는 것을 항목으로 못 박고, 서명란 한 칸을 비워 둔다. */
+.recruitment-sheet[data-mode="handover"] {
+  position: relative;
+  padding: 0 0 16px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .11);
+  text-align: center;
+}
+.recruitment-sheet[data-mode="handover"] .of-fastener { top: -8px; }
+.recruitment-sheet[data-mode="handover"] .of-datestamp { top: 16px; right: 14px; opacity: .7; }
+.handover-doclabel {
+  display: block;
+  margin: 20px 0 8px;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .26em;
+}
+.recruitment-sheet[data-mode="handover"] h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.35 var(--serif);
+  letter-spacing: .08em;
+  text-align: center;
+}
+.recruitment-sheet[data-mode="handover"] .handover-route {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.recruitment-sheet[data-mode="handover"] .handover-route > div {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.recruitment-sheet[data-mode="handover"] .handover-route img { width: 62px; height: auto; object-fit: contain; }
+.recruitment-sheet[data-mode="handover"] .handover-route b {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-soft);
+  font: 700 11px/1 var(--disp);
+}
+.recruitment-sheet[data-mode="handover"] .handover-route > i {
+  color: var(--ink-soft);
+  font: 400 20px/1 var(--disp);
+  font-style: normal;
+}
+.handover-items { margin: 0 17px; border-top: 1.5px solid var(--ink); text-align: left; }
+.handover-section-label {
+  margin: 0;
+  padding: 9px 0 3px;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .2em;
+}
+.handover-items > div {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  padding: 7.5px 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  color: var(--ink-soft);
+  font: 500 12px/1.55 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+.handover-items > div:before { content: "✓"; flex: none; color: var(--stamp-red); font-weight: 800; }
+.handover-items b { color: var(--ink); }
+/* 서명 2칸 — 전임은 이미 찍었고 후임 칸은 비어 있다. 그 빈칸이 지금 하려는 일이다. */
+.handover-signs { display: flex; gap: 11px; margin: 14px 17px 0; text-align: left; }
+.handover-signs > div {
+  flex: 1;
+  padding: 9px 11px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+}
+.handover-signs dt {
+  margin-bottom: 8px;
+  color: var(--ink-faint);
+  font: 600 9px/1 var(--disp);
+  letter-spacing: .12em;
+}
+.handover-autograph {
+  display: inline-block;
+  color: var(--stamp-red);
+  font: 700 19px/1 var(--hand);
+  transform: rotate(-3deg);
+}
+.handover-blank { position: relative; display: block; height: 21px; border-bottom: 1.5px dotted var(--doc-line); }
+.handover-blank:after {
+  content: "인";
+  position: absolute;
+  top: -4px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px dashed var(--ink-faint);
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+}
+.recruitment-sheet[data-mode="handover"] .handover-go {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  width: calc(100% - 34px);
+  margin: 16px 17px 0;
+  padding: 11px 4px;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.handover-go-copy { flex: 1; text-align: left; }
+.recruitment-sheet[data-mode="handover"] .handover-go-copy b { display: block; color: var(--ink); font: 800 15.5px/1.25 var(--disp); }
+.recruitment-sheet[data-mode="handover"] .handover-go-copy small {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-faint);
+  font: 700 12.5px/1.35 var(--hand);
+}
+.recruitment-sheet[data-mode="handover"] .handover-go .of-roundstamp { flex: 0 0 56px; width: 56px; height: 56px; font-size: 13px; }
+.recruitment-sheet[data-mode="handover"] .secondary-button {
+  width: calc(100% - 34px);
+  margin: 12px 17px 0;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+}
+
+/* ═══════════ 공식 인정 증서 (v4-3) ═══════════
+   금박은 이 화면에서만 쓴다. 평상 화면에 금색이 돌면 인증서가 특별해지지 않는다.
+   별점과 점수는 넣지 않는다 — 사무국은 등급을 매기는 곳이 아니라 인정하는 곳이다.
+   대신 기록 요지 4행이 여백을 공식적으로 채운다. */
+
+.certificate-modal .certframe {
+  position: relative;
+  margin: 20px 0 0;
+  padding: 9px;
+  border: 1.5px solid var(--gold);
+  background:
+    repeating-linear-gradient(45deg, rgba(185, 138, 46, .5) 0 1.5px, transparent 1.5px 5px),
+    linear-gradient(var(--ivory), var(--ivory));
+  box-shadow: 6px 7px 0 rgba(45, 35, 22, .13);
+}
+#certificate-card.certpaper {
+  position: relative;
+  margin: 0;
+  padding: 22px 26px 18px;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(-45deg, rgba(185, 138, 46, .025) 0 1px, transparent 1px 7px),
+    radial-gradient(ellipse 90% 55% at 50% -6%, rgba(185, 138, 46, .08), transparent 55%),
+    var(--ivory);
+  box-shadow: none;
+  text-align: center;
+}
+#certificate-card.certpaper:before,
+#certificate-card.certpaper:after { content: none; }
+
+/* 배경 워터마크 — 종이 안쪽에서 비쳐 나오는 정도로만. */
+.cert-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.cert-watermark b {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 240px;
+  height: 240px;
+  border: 9px solid rgba(51, 42, 32, .033);
+  border-radius: 50%;
+  color: rgba(51, 42, 32, .033);
+  font: 900 100px/1 var(--serif);
+}
+/* 좌우 세로 마이크로텍스트 — 위조 방지 인쇄의 문법. */
+.cert-sidetext {
+  position: absolute;
+  top: 50%;
+  color: rgba(185, 138, 46, .55);
+  font: 700 7.5px/1 var(--disp);
+  letter-spacing: .42em;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.cert-sidetext.left { left: 8px; transform: translateY(-50%) rotate(180deg); }
+.cert-sidetext.right { right: 8px; }
+.cert-corner { position: absolute; width: 30px; height: 30px; color: var(--gold); opacity: .8; }
+.cert-corner svg { width: 100%; height: 100%; }
+.cert-corner.tl { top: 7px; left: 7px; }
+.cert-corner.tr { top: 7px; right: 7px; transform: scaleX(-1); }
+.cert-corner.bl { bottom: 7px; left: 7px; transform: scaleY(-1); }
+.cert-corner.br { bottom: 7px; right: 7px; transform: scale(-1); }
+
+/* 메달 — 리본 두 갈래가 아래로 빠지고 금화가 그 위에 얹힌다. */
+#certificate-card.certpaper .certificate-crest {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  display: block;
+  z-index: 2;
+  width: 72px;
+  height: auto;
+  margin: 0 auto 2px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.cert-coin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, var(--gold-hi) 0%, var(--gold) 46%, var(--gold-dp) 100%);
+  box-shadow: 0 2px 4px rgba(90, 64, 20, .35), inset 0 1px 2px rgba(255, 244, 210, .8), inset 0 -2px 3px rgba(90, 64, 20, .4);
+}
+.cert-coin i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border: 1.5px solid rgba(255, 244, 210, .55);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(90, 64, 20, .3);
+  color: #fdf3d5;
+  font: 900 17px/1 var(--serif);
+  font-style: normal;
+  text-shadow: 0 1px 1px rgba(90, 64, 20, .5);
+}
+.cert-ribbon {
+  position: absolute;
+  top: 44px;
+  width: 15px;
+  height: 27px;
+  background: linear-gradient(var(--stamp-red), #6f2027);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+}
+.cert-ribbon.left { left: 13px; transform: rotate(14deg); }
+.cert-ribbon.right { right: 13px; transform: rotate(-14deg); }
+
+#certificate-card.certpaper .certificate-overline {
+  display: block;
+  margin: 20px 0 10px;
+  color: var(--gold-dp);
+  font: 800 8px/1 var(--disp);
+  letter-spacing: .32em;
+}
+#certificate-card.certpaper #certificate-title {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: var(--ink);
+  font: 900 26px/1.2 var(--serif);
+  letter-spacing: .12em;
+}
+.cert-rule { display: flex; gap: 9px; align-items: center; margin: 11px 24px 0; }
+.cert-rule:before,
+.cert-rule:after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
+.cert-rule:after { background: linear-gradient(90deg, var(--gold), transparent); }
+.cert-rule i { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); }
+#certificate-card.certpaper .certificate-declaration {
+  position: relative;
+  z-index: 2;
+  margin: 12px 0 2px;
+  color: var(--ink-soft);
+  font: 500 11px/1.8 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  white-space: pre-line;
+}
+#certificate-card.certpaper .certificate-recipient {
+  position: relative;
+  z-index: 2;
+  margin: 10px 0 3px;
+  color: var(--ink);
+  font: 800 15px/1 var(--serif);
+}
+#certificate-card.certpaper .certificate-recipient strong { color: var(--stamp-red); font: inherit; }
+#certificate-card.certpaper .certificate-grade.goldchip {
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--gold);
+  border-radius: 20px;
+  background: linear-gradient(rgba(232, 205, 122, .16), rgba(232, 205, 122, .05));
+  color: var(--gold-dp);
+  font: 800 11px/1 var(--disp);
+  letter-spacing: .03em;
+}
+/* 낫표는 수여된 이름을 감싸는 괄호다 — 제목이 아니라 이름이라는 표시. */
+#certificate-card.certpaper #certificate-deed {
+  position: relative;
+  z-index: 2;
+  margin: 11px 2px 0;
+  color: var(--ink);
+  font: 900 21px/1.45 var(--serif);
+  letter-spacing: .01em;
+  word-break: keep-all;
+}
+#certificate-card.certpaper #certificate-deed:before { content: "「"; }
+#certificate-card.certpaper #certificate-deed:after { content: "」"; }
+
+/* 기록 요지 4행 */
+.certificate-brief {
+  position: relative;
+  z-index: 2;
+  margin: 13px 2px 0;
+  padding: 3px 2px;
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+  text-align: left;
+}
+.certificate-brief > div {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  padding: 5.5px 0;
+  font: 600 10.5px/1 var(--disp);
+}
+.certificate-brief > div + div { border-top: 1px dotted rgba(185, 138, 46, .4); }
+.certificate-brief dt { flex: none; margin: 0; color: var(--ink-faint); letter-spacing: .05em; }
+.certificate-brief .dots {
+  flex: 1;
+  border-bottom: 1.5px dotted rgba(185, 138, 46, .45);
+  transform: translateY(-2px);
+}
+.certificate-brief dd { margin: 0; color: var(--ink); font: 700 11px/1 var(--disp); white-space: nowrap; }
+
+/* 서명란 — 발급자 이름은 인쇄, 낙관은 육필. */
+#certificate-card.certpaper .certificate-signoff {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  margin: 13px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--doc-line-soft);
+  text-align: left;
+}
+#certificate-card.certpaper .certificate-signoff img {
+  flex: 0 0 50px;
+  width: 50px;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+  object-fit: contain;
+}
+#certificate-card.certpaper .certificate-signoff:before,
+#certificate-card.certpaper .certificate-signoff:after { content: none; }
+#certificate-card.certpaper .certificate-signoff p {
+  flex: 1;
+  margin: 0;
+  color: var(--ink-soft);
+  font: 500 9.5px/1.6 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#certificate-card.certpaper .certificate-signoff p strong {
+  display: block;
+  color: var(--ink);
+  font: 800 13px/1.4 var(--disp);
+}
+#certificate-card.certpaper .certificate-signoff p span { font-size: inherit; }
+#certificate-card.certpaper .certificate-autograph {
+  display: inline-block;
+  margin-top: 2px;
+  padding-top: 0;
+  border-top: 0;
+  color: var(--stamp-red);
+  font: 700 17px/1 var(--hand);
+  font-style: normal;
+  letter-spacing: 0;
+  transform: rotate(-3deg);
+}
+.certificate-autograph {
+  display: inline-block;
+  margin-top: 2px;
+  color: var(--stamp-red);
+  font: 700 17px/1 var(--hand);
+  font-style: normal;
+  transform: rotate(-3deg);
+}
+/* 밀랍 인장 — 도장이 아니라 봉인이다. 그래서 입체로 찍힌다. */
+#certificate-card.certpaper .official-stamp {
+  position: relative;
+  flex: 0 0 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  margin-right: -8px;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #c9505c 0%, var(--stamp-red) 52%, #6f1e26 100%);
+  box-shadow: 0 2px 5px rgba(90, 20, 26, .4), inset 0 1px 2px rgba(255, 200, 205, .45), inset 0 -2px 3px rgba(60, 12, 17, .5);
+  rotate: -9deg;
+  transform: none;
+  animation: none;
+}
+#certificate-card.certpaper .official-stamp:before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1.5px dashed rgba(255, 220, 224, .5);
+  border-radius: 50%;
+}
+#certificate-card.certpaper .official-stamp span {
+  color: #ffe9ec;
+  font: 900 10.5px/1.3 var(--serif);
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(60, 12, 17, .6);
+}
+
+/* 일련번호 밴드 — 종이 아래 끝까지 밀어붙여 서류의 마감선을 만든다. */
+.certificate-serialband {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+  margin: 12px -26px -18px;
+  padding: 8px 26px 9px;
+  border-top: 1px dashed rgba(185, 138, 46, .5);
+  background: rgba(185, 138, 46, .05);
+  color: var(--ink-faint);
+  font: 700 7.5px/1.5 var(--disp);
+  letter-spacing: .04em;
+  text-align: left;
+}
+.certificate-serialband > span { flex: 1; }
+.certificate-serialband > span:last-child { text-align: right; }
+.certificate-serialband b { color: var(--gold-dp); font: 800 10px/1 var(--disp); letter-spacing: .22em; }
+
+.certificate-modal .certificate-page-title { padding: 16px 0 6px; }
+.certificate-modal .certificate-page-title h1 { font: 900 25px/1.2 var(--serif); letter-spacing: .04em; }
+
+/* ═══════════ 대업 심사 결과서 (v4-4) ═══════════
+   승인은 도장이 말한다. 그래서 제목 자리는 수여된 칭호가 가져간다 —
+   유저가 이 화면에서 가져가는 것은 "승인됨"이 아니라 이름이다. */
+.praise-result-document {
+  position: relative;
+  padding: 0 0 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .1);
+}
+.praise-result-document > .of-clip { top: -11px; left: 9px; transform: rotate(-5deg); }
+.praise-result-document .reaction-document-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 11px 15px 11px 32px;
+  border-bottom: 1.5px solid var(--ink);
+}
+.result-briefing-origin {
+  width: max-content;
+  max-width: calc(100% - 30px);
+  margin: 10px 15px 0;
+  padding: 4px 7px;
+  border-left: 2px solid var(--burgundy);
+  background: rgba(147, 19, 46, .06);
+  color: var(--burgundy);
+  font: 800 11px/1.4 var(--sans);
+}
+.result-briefing-origin[hidden] { display: none; }
+.praise-result-document #result-form-label {
+  position: static;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+  font: 900 13px/1 var(--serif);
+  letter-spacing: .14em;
+}
+.praise-result-document #result-mode-badge {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--stamp-red);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .1em;
+}
+/* 큰 승인 도장 — 이 화면의 주인공이라 문서 위에 비뚤게 얹힌다. */
+.praise-result-document .reaction-stamp {
+  position: absolute;
+  z-index: 3;
+  top: 50px;
+  right: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  width: 82px;
+  height: 82px;
+  margin: 0;
+  padding: 0;
+  border: 3px solid var(--stamp-red);
+  border-radius: 50%;
+  background: rgba(157, 47, 58, .05);
+  box-shadow: inset 0 0 0 2px rgba(157, 47, 58, .35);
+  color: var(--stamp-red);
+  font: 900 18px/1.15 var(--serif);
+  text-align: center;
+  opacity: .92;
+  transform: rotate(11deg);
+}
+.praise-result-hero {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin: 0;
+  padding: 17px 96px 0 16px;
+  border: 0;
+  background: none;
+}
+.praise-result-character-stage {
+  flex: 0 0 88px;
+  align-self: center;
+  width: 88px;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.praise-result-character-stage img { width: 88px; height: auto; object-fit: contain; }
+.praise-result-summary { min-width: 0; padding: 0; }
+.praise-result-summary #result-butler-name {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--kraft-deep);
+  font: 600 10px/1.4 var(--disp);
+  letter-spacing: .06em;
+  word-break: keep-all;
+}
+/* 칭호는 낫표 안에 든다 — 판정 결과가 아니라 수여된 이름이라는 표시. */
+.praise-result-summary #result-title {
+  margin: 0;
+  color: var(--ink);
+  font: 900 21px/1.4 var(--serif);
+  word-break: keep-all;
+}
+.praise-result-summary #result-title:before { content: "「"; }
+.praise-result-summary #result-title:after { content: "」"; }
+.praise-result-deedline {
+  margin: 7px 0 0;
+  color: var(--ink-soft);
+  font: 500 12px/1.4 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+/* 집사 코멘트 — 결재선 밖에서 손으로 적어 스테이플로 박은 쪽지. */
+.praise-result-line {
+  position: relative;
+  margin: 15px 16px 0;
+  padding: 11px 14px 9px;
+  border-left: 3px solid var(--kraft-deep);
+  background: var(--memo);
+}
+.praise-result-line .of-staple { top: 8px; right: 14px; transform: rotate(-3deg); }
+.praise-result-document #result-report {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: #4c4234;
+  font: 700 17.5px/1.5 var(--hand);
+  word-break: keep-all;
+}
+.praise-result-document #result-report:before,
+.praise-result-document #result-report:after { content: none; }
+.praise-result-metrics {
+  display: flex;
+  margin: 13px 16px 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--doc-line-soft);
+  background: none;
+}
+.praise-result-metrics > div {
+  flex: 1;
+  padding: 10px 0 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.praise-result-metrics > div + div { border-left: 1px solid var(--doc-line-soft); }
+.praise-result-metrics dt { margin-bottom: 6px; color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+.praise-result-metrics dd { margin: 0; color: var(--ink); font: 800 13px/1 var(--disp); }
+/* 주 행동은 색면 버튼이 아니라 이중선 결재란이다 — 홈의 날인선과 같은 조형. */
+.praise-result-document > .primary-button {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 18px 16px 0;
+  padding: 13px 0;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+  font: 800 15px/1 var(--disp);
+}
+.praise-result-document > .primary-button span { color: var(--stamp-red); }
+.praise-result-document > .text-button {
+  display: block;
+  margin: 9px auto 0;
+  color: var(--ink-faint);
+  font: 600 12px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.praise-result-document .relationship-result { margin: 13px 16px 0; }
+
+/* ── v4-4 보정 : 앞선 패스가 남긴 겹치는 도장·클립·후광을 걷어낸다 ── */
+/* 승인 도장이 실물로 찍히므로 배경 워터마크 도장은 중복이다. */
+.praise-result-document:before,
+.praise-result-document:after { content: none; }
+.praise-result-character-stage:before { content: none; }
+.praise-result-document blockquote:before,
+.praise-result-document blockquote:after { content: none; }
+.praise-result-character-stage img { height: auto; filter: none; }
+.praise-result-hero,
+.praise-result-line { background: var(--memo); }
+.praise-result-hero { background: none; }
+.praise-result-metrics > div:nth-child(2) dd { color: var(--stamp-red); font-size: 13px; }
+
+/* ═══════════ 대업 심사표 (v4-8) ═══════════
+   기다림을 어두운 실험실 연출로 채우던 화면이다. 사용자 승인 변경으로 낮 종이 톤의
+   심사표가 됐다 — 기다리는 동안 읽을 것이 생기고, 심사 항목에 도장이 차례로 찍히면서
+   "무엇을 보고 판단했는지"가 남는다. 어두운 화면은 두 번째부터는 관문일 뿐이었다. */
+#analysis-overlay.analysis-lab {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+}
+#analysis-overlay .analysis-sheet {
+  position: relative;
+  width: min(100%, 400px);
+  padding: 0 0 17px;
+  border: 1.5px solid var(--ink);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: 5px 6px 0 rgba(45, 35, 22, .11);
+  color: var(--ink);
+}
+#analysis-overlay .of-clip { top: -11px; left: 9px; transform: rotate(-4deg); }
+#analysis-overlay .analysis-top {
+  padding: 11px 15px 11px 32px;
+  border-bottom: 1.5px solid var(--ink);
+}
+#analysis-overlay .analysis-top span { color: var(--ink); font: 900 13px/1 var(--serif); letter-spacing: .18em; }
+#analysis-overlay .analysis-top b { color: var(--stamp-red); font: 700 9px/1 var(--disp); letter-spacing: .08em; }
+#analysis-overlay .analysis-top b i { width: 6px; height: 6px; background: var(--stamp-red); }
+#analysis-overlay .scanner,
+#analysis-overlay .scanner[hidden] { display: none; }
+
+/* 접수 내용 — 심사관이 읽고 있는 그 문장을 그대로 인용해 둔다. */
+#analysis-overlay .analysis-deed {
+  position: relative;
+  margin: 15px 16px 0;
+  padding: 11px 13px;
+  border: 1px solid var(--doc-line-soft);
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+}
+#analysis-overlay .analysis-deed dt {
+  margin-bottom: 6px;
+  color: var(--ink-faint);
+  font: 600 9px/1 var(--disp);
+  letter-spacing: .16em;
+}
+#analysis-overlay .analysis-deed dd {
+  margin: 0;
+  color: var(--ink);
+  font: 600 14.5px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#analysis-overlay .analysis-deed .of-staple { top: 8px; right: 14px; transform: rotate(-3deg); }
+
+/* 심사 항목 — 위에서부터 차례로 도장이 찍힌다. */
+#analysis-overlay .analysis-steps {
+  display: block;
+  margin: 14px 16px 0;
+  padding: 0;
+  border-top: 1.5px solid var(--ink);
+}
+#analysis-overlay .analysis-steps li {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 0;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+}
+#analysis-overlay .analysis-steps li b {
+  flex: 1;
+  color: var(--ink);
+  font: 600 12.5px/1.45 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  word-break: keep-all;
+}
+#analysis-overlay .analysis-steps li span {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px dashed var(--ink-faint);
+  border-radius: 50%;
+  color: var(--ink-faint);
+  font: 700 8.5px/1.2 var(--disp);
+  text-align: center;
+}
+/* 심사 중인 칸만 천천히 돈다 — 기다림이 멈춰 있지 않다는 유일한 신호. */
+#analysis-overlay .analysis-steps li.active span {
+  border-color: var(--stamp-red);
+  color: var(--stamp-red);
+  animation: office-review-spin 7s linear infinite;
+}
+#analysis-overlay .analysis-steps li.active { border-color: var(--doc-line-soft); background: none; color: var(--ink); }
+#analysis-overlay .analysis-steps li.done { color: var(--ink); }
+#analysis-overlay .analysis-steps li.done span {
+  border: 2px solid var(--stamp-red);
+  background: rgba(157, 47, 58, .05);
+  color: var(--stamp-red);
+  font: 800 9px/1.2 var(--disp);
+  animation: none;
+}
+/* 기울기는 rotate 속성이 든다 — 착지 애니가 transform을 쓰기 때문에
+   같은 속성에 두면 둘 중 하나가 사라진다. */
+#analysis-overlay .analysis-steps li.done:nth-child(1) span { rotate: -9deg; transform: none; }
+#analysis-overlay .analysis-steps li.done:nth-child(2) span { rotate: 6deg; transform: none; }
+#analysis-overlay .analysis-steps li.done:nth-child(3) span { rotate: -4deg; transform: none; }
+#analysis-overlay .analysis-steps li.done:nth-child(4) span { rotate: 8deg; transform: none; }
+@keyframes office-review-spin { to { transform: rotate(360deg); } }
+
+/* 심사 중 혼잣말 — 유저가 방금 쓴 문장에 반응하는 담당자의 육필. */
+#analysis-overlay .analysis-note {
+  position: relative;
+  margin: 14px 16px 0;
+  padding: 10px 13px 9px;
+  border-left: 3px solid var(--kraft-deep);
+  background: var(--memo);
+  text-align: left;
+}
+#analysis-overlay .analysis-note .of-staple { top: 8px; right: 14px; transform: rotate(3deg); }
+#analysis-overlay .analysis-note > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #a8913e;
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .14em;
+}
+#analysis-overlay .analysis-note p {
+  margin: 0;
+  color: #4c4234;
+  font: 700 16.5px/1.5 var(--hand);
+  word-break: keep-all;
+}
+#analysis-overlay .analysis-note p:empty { display: none; }
+
+#analysis-overlay .analysis-progress {
+  margin: 15px 16px 0;
+  padding: 11px 12px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: none;
+  text-align: center;
+}
+#analysis-overlay .analysis-progress > div { justify-content: center; gap: 8px; margin-bottom: 7px; }
+#analysis-overlay .analysis-progress > div strong { color: var(--ink-soft); font: 800 12px/1 var(--disp); letter-spacing: .06em; }
+#analysis-overlay .analysis-progress > div span { color: var(--ink-faint); font: 600 11px/1 var(--disp); }
+#analysis-overlay .analysis-progress > b { height: 5px; border-radius: 0; background: var(--doc-line-soft); }
+#analysis-overlay .analysis-progress i { border-radius: 0; background: var(--stamp-red); }
+#analysis-overlay .analysis-footnote { color: var(--ink-faint); font: 500 11px/1.7 "Wanted Sans Variable", "Wanted Sans", sans-serif; }
+@media (prefers-reduced-motion: reduce) {
+  #analysis-overlay .analysis-steps li.active span { animation: none; }
+}
+
+/* ═══════════ v4.1 수정 — 홈 ═══════════ */
+
+/* 슬립은 인사 한 줄이면 된다. 발행 푸터는 종이를 두껍게만 만들었다. */
+#view-home .reception-slip { margin-top: -22px; padding: 0; }
+#view-home .reception-slip-paper { padding: 13px 15px 12px; }
+#view-home .reception-slip p { font-size: 15px; }
+
+/* 제목 — 공문 서체는 문서 안쪽에서 쓰고, 화면 제목은 앱의 목소리로 돌린다. */
+#view-home .home-hero { padding-top: 38px; }
+#view-home .home-hero h1 { font: 800 24px/1.32 var(--disp); letter-spacing: -.02em; }
+#view-home .home-hero i.of-datestamp { top: 30px; }
+
+/* 퀵칩 — 한 줄 소형. 카드가 아니라 견출지 조각이다. */
+#view-home .quick-actions button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 9px 12px 8px;
+  gap: 0;
+}
+#view-home .quick-actions button span { display: block; margin: 0; }
+
+/* 접수 버튼 — 창구에서 뽑는 붉은 티켓. 눌리는 감각이 있어야 버튼으로 읽힌다.
+   점선 내곽은 border가 아니라 outline이다 — border로 만들면 다른 규칙의
+   테두리와 겹칠 때 점선이 문서 밖으로 새어 나온다. */
+#view-home .report-button {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  padding: 4px;
+  border: 1.5px solid #6e1f27;
+  border-top: 1.5px solid #6e1f27;
+  border-bottom: 1.5px solid #6e1f27;
+  border-radius: 4px;
+  background: var(--stamp-red);
+  box-shadow: 3px 3px 0 rgba(45, 35, 22, .2);
+}
+#view-home .report-button .report-ticket-inner {
+  display: block;
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 13px 0 14px;
+  border-radius: 2px;
+  outline: 1.5px dashed rgba(255, 236, 232, .55);
+  outline-offset: -6px;
+  text-align: center;
+}
+#view-home .report-button b {
+  display: block;
+  color: #fdf1ec;
+  font: 800 17px/1 var(--disp);
+  letter-spacing: .01em;
+}
+#view-home .report-button small {
+  display: block;
+  margin-top: 6px;
+  color: rgba(253, 241, 236, .7);
+  font: 600 9px/1 var(--disp);
+  letter-spacing: .18em;
+}
+#view-home .report-button:active {
+  box-shadow: 1px 1px 0 rgba(45, 35, 22, .2);
+  transform: translate(2px, 2px);
+}
+
+/* 도장 진행 — 한 줄로 접는다. 홈의 주인공은 접수지, 진행률이 아니다. */
+#view-home .stamp-progress {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+  padding: 10px 13px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 3px;
+  background: none;
+  box-shadow: none;
+}
+#view-home .progress-heading { flex: 0 0 auto; gap: 5px; }
+#view-home .progress-heading strong { font: 700 10px/1.4 var(--disp); letter-spacing: .08em; }
+#view-home .progress-heading b { font: 700 10px/1.4 var(--disp); }
+#view-home .stamp-circles { flex: 1 1 0; min-width: 0; justify-content: flex-end; gap: 6px; margin: 0; }
+/* 7칸까지 늘어나므로 좁은 화면에서는 칸이 줄어들 수 있어야 한 줄이 유지된다.
+   높이는 폭을 따라가게 둬야 줄어드는 동안에도 도장이 타원이 되지 않는다. */
+#view-home .stamp-circles i { flex: 0 1 32px; width: auto; height: auto; min-width: 0; aspect-ratio: 1; }
+@media (max-width: 400px) {
+  #view-home .stamp-progress { padding: 9px 10px; }
+  #view-home .progress-heading strong { font-size: 9px; letter-spacing: 0; }
+  #view-home .progress-heading b { font-size: 9px; }
+  #view-home .stamp-circles { gap: 4px; }
+  #view-home .stamp-circles i { flex-basis: 26px; font-size: 8px; }
+}
+#view-home .stamp-progress p { display: none; }
+#view-home .stamp-progress:after { display: none; }
+
+/* ═══════════ v4.1 수정 — 파일 ═══════════ */
+
+/* 등급은 브라우저 셀렉트가 아니라 칩이다. 종이 위에서 시스템 UI 하나만
+   튀어나와 있었고, 열어야 뭐가 있는지 알 수 있는 것도 이 화면답지 않았다. */
+#view-archive .record-grade-filter {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+#view-archive .record-grade-filter > span {
+  flex: 0 0 auto;
+  margin: 0 4px 0 0;
+  color: var(--ink-soft);
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .1em;
+}
+#view-archive .record-grade-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+#view-archive .record-grade-chips button {
+  padding: 8px 13px;
+  border: 1px solid var(--doc-line);
+  border-radius: 20px;
+  background: var(--ivory);
+  color: var(--ink-soft);
+  font: 600 11.5px/1 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+}
+#view-archive .record-grade-chips button.active {
+  border-color: var(--stamp-red);
+  background: rgba(157, 47, 58, .06);
+  color: var(--stamp-red);
+  font-weight: 700;
+}
+
+/* 검색과 등급은 같은 줄에 밀어 넣을 수 없다 — 칩 네 개는 자기 줄을 갖는다. */
+#view-archive .record-find-tools { display: block; }
+#view-archive .record-search { display: grid; gap: 5px; margin-bottom: 10px; }
+#view-archive .record-grade-filter { flex-wrap: wrap; }
+
+/* ═══════════ v4.1 수정 — 선물 소포 카드 ═══════════
+   선물은 이 앱이 돈을 버는 자리인데 목록의 한 줄과 구분이 없었다.
+   크라프트 소포에 끈을 십자로 묶고, 집사가 직접 한 줄 붙여 놓는다 —
+   포인트 잔액이 아니라 "기다리는 사람이 있다"가 누를 이유가 된다. */
+#manager-details .gift-parcel-card {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: auto;
+  margin: 16px 2px 0;
+  padding: 14px 15px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  background: var(--kraft);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .16), inset 0 1px 0 rgba(255, 255, 255, .3);
+  text-align: left;
+}
+#manager-details .gift-parcel-card:active {
+  box-shadow: 1px 2px 0 rgba(45, 35, 22, .16), inset 0 1px 0 rgba(255, 255, 255, .3);
+  transform: translate(2px, 2px);
+}
+/* 이 카드의 자식은 전부 span이라, 아이콘 하나를 원형으로 만들던 예전 규칙이
+   제목·문구·잔액에까지 걸린다. 카드 안에서만 그 규칙을 되돌린다. */
+#manager-details .gift-parcel-card > span {
+  display: block;
+  place-items: initial;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+}
+/* 소포 — 끈 두 줄이 가운데서 만나 매듭 하나. */
+#manager-details .gift-parcel-card > .gift-parcel {
+  position: relative;
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border: 1.5px solid var(--kraft-deep);
+  border-radius: 3px;
+  background: #c8a672;
+}
+#manager-details .gift-parcel:before,
+#manager-details .gift-parcel:after { content: ""; position: absolute; background: #8a6a3c; }
+#manager-details .gift-parcel:before { top: 0; bottom: 0; left: 50%; width: 5px; transform: translateX(-50%); }
+#manager-details .gift-parcel:after { top: 50%; right: 0; left: 0; height: 5px; transform: translateY(-50%); }
+#manager-details .gift-parcel i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 15px;
+  height: 15px;
+  border: 3px solid #8a6a3c;
+  border-radius: 50%;
+  background: #c8a672;
+  transform: translate(-50%, -50%);
+}
+#manager-details .gift-parcel-card > .gift-parcel-copy { flex: 1; min-width: 0; }
+#manager-details .gift-parcel-card b {
+  display: block;
+  color: var(--ink);
+  font: 800 16px/1.2 var(--disp);
+}
+#manager-details .gift-parcel-say {
+  display: block;
+  margin-top: 5px;
+  color: #5c4c36;
+  font: 700 13.5px/1.35 var(--hand);
+  word-break: keep-all;
+}
+#manager-details .gift-parcel-card > .gift-parcel-value { flex: 0 0 auto; text-align: right; }
+#manager-details .gift-parcel-value b { color: var(--stamp-red); font: 800 19px/1 var(--disp); }
+#manager-details .gift-parcel-value b:after { content: "P"; }
+#manager-details .gift-parcel-value small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font: 600 9.5px/1 var(--disp);
+}
+/* 기울어진 태그가 시선을 잡는다. 카드 위로 살짝 올라타 있어야 붙인 것으로 읽힌다. */
+#manager-details .gift-parcel-card > .gift-parcel-tag {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  padding: 5px 9px;
+  border: 1.3px solid #6e1f27;
+  border-radius: 2px;
+  background: var(--stamp-red);
+  color: #fdf1ec;
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .1em;
+  transform: rotate(2deg);
+}
+
+/* 집사 코멘트는 종이가 놓이듯 떠오른다 — 빈 칸이 먼저 뜨지 않게 문장은 이미 자리에 있다. */
+.praise-result-document #result-report {
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.praise-result-document #result-report.is-inked { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .praise-result-document #result-report { opacity: 1; transform: none; transition: none; }
+}
+
+/* ═══════════ P1-B ① 선물 접수처 — 보급품 청구서 ═══════════
+   여기가 이 앱이 돈을 버는 자리인데 혼자 모바일 앱 화면이었다. 둥근 카드와
+   3×3 이모지 격자는 사무국 책상 위에 있을 물건이 아니다. 구조는 그대로 두고
+   껍데기만 바꾼다 — 청구 양식 한 장, 그 위에 견출표처럼 붙은 품목표.
+   잠금은 회색으로 흐리는 대신 "얼마가 모자란지"를 적는다. 이유 없는 잠금은
+   벽이지만, 이유 있는 잠금은 다음에 할 일이 된다. */
+.gift-desk-overlay { background: var(--paper); }
+.gift-desk-modal {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .035) 1px, transparent 1px);
+  background-size: 23px 23px;
+  color: var(--ink);
+}
+.gift-desk-header { border-bottom: 3px double #b49b83; }
+.gift-desk-header > button {
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--ivory);
+  color: var(--ink);
+  box-shadow: var(--doc-shadow-sm);
+}
+.gift-desk-header strong { color: var(--ink); font: 800 26px/1 var(--disp); letter-spacing: -.03em; }
+.gift-desk-header div span { color: var(--ink-faint); font: 700 8px/1 var(--disp); letter-spacing: .16em; }
+.gift-desk-header > small {
+  padding: 6px 9px;
+  border: 1px solid var(--doc-line);
+  border-radius: 2px;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 700 10px/1 var(--disp);
+}
+.gift-desk-header > small b { color: var(--tab-manager); font: 800 15px/1 var(--disp); }
+
+/* 청구 양식 한 장 — 모서리는 각지고, 위쪽은 철끈이 물고 있다. */
+.gift-desk-sheet {
+  position: relative;
+  margin-top: 18px;
+  padding: 18px 13px 15px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: var(--doc-shadow);
+}
+.gift-desk-sheet:before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  width: 16px;
+  height: 4px;
+  border-radius: 1px;
+  background: linear-gradient(var(--metal), var(--metal-dk));
+  box-shadow: 0 1px 1px rgba(45, 35, 22, .28);
+}
+.gift-desk-title > span {
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid var(--tab-manager);
+  border-radius: 2px;
+  color: var(--tab-manager);
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .12em;
+}
+.gift-desk-title h1 {
+  margin: 9px 0 4px;
+  color: var(--ink);
+  font: 800 25px/1.15 var(--disp);
+  letter-spacing: -.035em;
+}
+.gift-desk-title p { color: var(--ink-soft); font: 600 12.5px/1.45 var(--disp); }
+
+/* 접수 칸 — 점선 내곽은 outline으로 그린다(border로 만들면 다른 규칙과 겹쳐 샌다). */
+.gift-drop-zone {
+  min-height: 250px;
+  margin: 14px 0 16px;
+  padding: 34px 12px 14px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  outline: 1px dashed var(--doc-line);
+  outline-offset: -6px;
+  background: var(--doc-paper);
+}
+.gift-drop-zone.receiving {
+  border-color: var(--stamp-red);
+  outline-color: var(--stamp-red);
+  background: #fbf4ee;
+  box-shadow: none;
+  transform: none;
+}
+.gift-drop-status {
+  left: 10px;
+  right: 10px;
+  top: 9px;
+  padding: 6px;
+  border: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 700 10.5px/1 var(--disp);
+  letter-spacing: .02em;
+}
+.gift-drop-zone img { filter: none; }
+.gift-drop-zone > strong { color: var(--tab-manager); font: 800 15px/1 var(--disp); }
+.gift-drop-zone > p { color: #5c4c36; font: 700 14.5px/1.4 var(--hand); }
+
+.gift-list-heading { margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--doc-line-soft); }
+.gift-list-heading h2 { color: var(--ink); font: 800 12px/1 var(--disp); letter-spacing: .1em; }
+.gift-list-heading small { color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+
+/* 품목은 견출표다 — 위쪽 색띠 한 줄, 각진 모서리, 아래에 금액 도장. */
+.gift-catalog { gap: 7px; }
+.gift-catalog-item {
+  min-height: 100px;
+  padding: 12px 4px 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: var(--doc-shadow-sm);
+  color: var(--ink);
+}
+.gift-catalog-item:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--doc-line);
+}
+.gift-catalog-item.gift-favorite:before { background: var(--stamp-red); }
+.gift-catalog-item.gift-rare:before { background: var(--gold); }
+.gift-catalog-item.affordable { border-color: var(--doc-line); }
+.gift-catalog-item.selected {
+  border-color: var(--ink);
+  background: var(--memo);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .18);
+}
+/* 못 사는 품목도 품목표에는 있다. 흐릿하게 지우는 대신 금액만 붉게 남긴다. */
+.gift-catalog-item.locked { opacity: 1; filter: none; background: #f3ede2; }
+.gift-catalog-item.locked > span { opacity: .55; }
+.gift-catalog-item > span { font-size: 27px; }
+.gift-catalog-item > strong { margin: 8px 0 5px; font: 700 12px/1 var(--disp); }
+.gift-catalog-item > small {
+  padding: 3px 7px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 800 10px/1 var(--disp);
+}
+.gift-catalog-item.locked > small { border-color: #d8b2ac; background: #fbeeea; color: var(--stamp-red); }
+/* 잠금 사유 — 견출표 아래쪽에 손으로 적어 붙인다. */
+.gift-catalog-item > i {
+  position: absolute;
+  top: auto;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  padding: 3px 0;
+  border-top: 1px solid #e2c9c2;
+  background: #f7ebe6;
+  color: var(--stamp-red);
+  font: 800 8.5px/1 var(--disp);
+  font-style: normal;
+  letter-spacing: .02em;
+  text-align: center;
+}
+.gift-catalog-item > mark {
+  left: 4px;
+  top: 6px;
+  padding: 2px 5px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  color: var(--ink-soft);
+  font: 800 8px/1 var(--disp);
+}
+.gift-catalog-item.gift-favorite > mark { border-color: #d8b2ac; background: #fbeeea; color: var(--stamp-red); }
+.gift-catalog-item.gift-rare > mark { border-color: #d8c08a; background: #faf1d9; color: #806018; }
+
+.gift-history-block { border-top: 1px solid var(--doc-line-soft); }
+.gift-history-block > div strong { color: var(--ink); font: 800 11px/1 var(--disp); letter-spacing: .1em; }
+.gift-history-block > div span { color: var(--tab-manager); font: 800 10px/1 var(--disp); }
+.gift-history-block li {
+  border: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: var(--doc-paper);
+}
+.gift-history-block li b { color: var(--ink); font: 700 12px/1 var(--disp); }
+.gift-history-block li time { color: var(--ink-faint); font: 600 9.5px/1 var(--disp); }
+.gift-history-block li b em {
+  border-radius: 0;
+  border: 1px solid var(--doc-line);
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 800 8px/1 var(--disp);
+}
+.gift-history-block li.empty { color: var(--ink-faint); font: 600 12px/1.4 var(--disp); }
+
+/* ═══════════ P1-B ② 선물 결과 — 집사 얼굴과 한 줄이 화면이다 ═══════════
+   받은 사람의 반응을 보려고 누른 화면인데, 숫자 두 칸이 얼굴만큼 컸다.
+   얼굴과 한 줄을 화면의 대부분으로 올리고, 누적 선물·과몰입은 영수증
+   아래쪽 합계 줄처럼 작게 내린다. 마크업은 건드리지 않고 비중만 바꾼다. */
+.gift-overlay .gift-receipt .gift-reaction-hero {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+.gift-overlay .gift-reaction-hero .gift-character-stage,
+.gift-overlay .gift-reaction-hero .gift-character-stage img {
+  width: min(100%, 272px);
+  margin: 0 auto;
+}
+/* 집사는 조명 박스가 아니라 인수증 종이 위에 서 있다. */
+.gift-overlay .gift-reaction-hero .gift-character-stage {
+  height: auto;
+  background: none;
+}
+.gift-overlay .gift-reaction-hero .gift-character-stage img {
+  height: min(46vh, 330px);
+  object-fit: contain;
+  object-position: center bottom;
+}
+.gift-overlay .gift-reaction-hero .reaction-stamp { right: 10px; bottom: 6px; }
+.gift-overlay .gift-reaction-copy { align-items: center; margin-top: 6px; text-align: center; }
+.gift-overlay .gift-reaction-copy .gift-overline {
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .16em;
+}
+.gift-overlay .gift-reaction-copy h1 {
+  margin: 7px 0 5px;
+  color: var(--ink);
+  font: 800 16px/1.25 var(--disp);
+  letter-spacing: -.03em;
+}
+.gift-overlay .gift-reaction-copy > p { color: var(--ink-soft); font: 600 11.5px/1.5 var(--disp); }
+/* 집사가 한 말 — 이 화면에서 가장 큰 글자다. */
+.gift-overlay .gift-receipt > blockquote {
+  margin: 12px 0 0;
+  padding: 14px 15px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  color: var(--ink);
+  font: 700 18px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  text-align: center;
+  word-break: keep-all;
+}
+/* 합계 줄 — 영수증 맨 아래 작은 숫자 두 칸. */
+.gift-overlay .gift-result-metrics {
+  display: flex;
+  gap: 0;
+  margin: 10px 0 0;
+  padding: 7px 10px;
+  border: 1px solid var(--doc-line-soft);
+  border-radius: 0;
+  background: none;
+}
+.gift-overlay .gift-result-metrics > div {
+  display: flex;
+  flex: 1;
+  gap: 5px;
+  align-items: baseline;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.gift-overlay .gift-result-metrics > div + div { border-left: 1px solid var(--doc-line-soft); }
+.gift-overlay .gift-result-metrics dt { color: var(--ink-faint); font: 600 9.5px/1 var(--disp); letter-spacing: .04em; }
+.gift-overlay .gift-result-metrics dd { margin: 0; color: var(--ink-soft); font: 700 10px/1 var(--disp); }
+.gift-overlay .gift-result-metrics dd b { color: var(--ink-soft); font: 800 12px/1 var(--disp); }
+
+/* 인수증 머리와 꼬리는 얼굴 자리를 뺏지 않을 만큼만 남는다. */
+.gift-overlay .gift-receipt .reaction-document-meta { margin-bottom: 4px; padding: 5px 0; }
+.gift-overlay .reaction-footnote { font-size: 10px; }
+
+/* 인수증 한 장이 한 화면에 들어와야 얼굴이 화면이 된다 — 스크롤이 생기는 순간
+   집사 얼굴과 숫자가 다시 같은 무게가 된다. 남는 여백부터 걷어낸다. */
+.gift-overlay .gift-modal { padding-top: 12px; padding-bottom: 14px; }
+.gift-overlay .gift-receipt { padding: 12px 13px 13px; }
+.gift-overlay .gift-receipt .gift-reaction-hero { margin: 6px 0 0; }
+.gift-overlay .gift-reaction-copy { gap: 0; margin-top: 2px; }
+.gift-overlay .gift-reaction-copy .gift-reaction-badge { margin-top: 5px; min-height: 22px; padding: 3px 8px; }
+.gift-overlay .gift-reaction-copy h1 { margin: 5px 0 3px; }
+.gift-overlay .gift-receipt > blockquote { margin-top: 10px; padding: 12px 14px; }
+.gift-overlay #gift-close { margin-top: 10px; min-height: 46px; padding: 12px 14px; }
+.gift-overlay .reaction-footnote { margin-top: 8px; }
+
+/* ═══════════ P2-1 도장 쾅 ═══════════
+   이 앱의 절정은 전부 도장이다. 그런데 도장이 그냥 나타나기만 했다.
+   내려앉게 만든다 — 1.6배에서 떨어져 0.18초 만에 착지하고, 그 힘으로
+   종이가 한 번 흔들린다. 회전은 transform이 아니라 rotate 속성이 들고 있어서
+   착지 애니가 각 도장의 기존 기울기를 덮어쓰지 않는다.
+   전부 transform/opacity만 쓴다 — 레이아웃을 건드리는 속성은 없다. */
+@keyframes office-stamp-land {
+  0% { transform: scale(1.6); opacity: 0; }
+  55% { transform: scale(.96); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes office-paper-jolt {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  40% { transform: translate3d(0, 1.5px, 0); }
+  75% { transform: translate3d(0, -1px, 0); }
+}
+.ink-land { animation: office-stamp-land .18s cubic-bezier(.2, .85, .3, 1) both; }
+.paper-jolt { animation: office-paper-jolt .18s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .ink-land,
+  .paper-jolt { animation: none; }
+}
+
+/* 인증서 도장은 #id로 잠겨 있어 공용 .ink-land가 못 이긴다. 같은 무게로 한 번 더 쓴다. */
+#certificate-card.certpaper .official-stamp.ink-land {
+  animation: office-stamp-land .18s cubic-bezier(.2, .85, .3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  #certificate-card.certpaper .official-stamp.ink-land { animation: none; }
+}
+
+/* ═══════════ P2-3 접수 슬립 종이 교체 ═══════════
+   집사 말이 바뀔 때 글자만 갈리면 종이라는 설정이 죽는다. 쓴 슬립은 위로
+   빠지고 새 슬립이 아래에서 올라온다. 클립은 접수대에 박혀 있어서 자리를
+   지키고, 종이가 지나가는 힘에 한 번만 흔들린다. 합쳐서 0.25초.
+   종이의 기울기는 rotate 속성이 들고 있어 translate 애니와 겹치지 않는다. */
+@keyframes slip-out {
+  from { transform: translate3d(0, 0, 0); opacity: 1; }
+  to { transform: translate3d(0, -6px, 0); opacity: 0; }
+}
+@keyframes slip-in {
+  from { transform: translate3d(0, 6px, 0); opacity: 0; }
+  to { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+@keyframes slip-clip-wobble {
+  0%, 100% { rotate: -4deg; }
+  45% { rotate: -2deg; }
+  75% { rotate: -5.2deg; }
+}
+#view-home .reception-slip-paper.slip-out { animation: slip-out .12s ease-in both; }
+#view-home .reception-slip-paper.slip-in { animation: slip-in .13s cubic-bezier(.2, .85, .3, 1) both; }
+#view-home .reception-slip .of-clip.slip-wobble { animation: slip-clip-wobble .25s ease-in-out both; }
+@media (prefers-reduced-motion: reduce) {
+  #view-home .reception-slip-paper.slip-out,
+  #view-home .reception-slip-paper.slip-in,
+  #view-home .reception-slip .of-clip.slip-wobble { animation: none; }
+}
+
+/* ═══════════ P2-5 봉인 개봉 ═══════════
+   집사 해금은 이 앱 최대 보상인데 목록이 조용히 바뀌기만 했다. 봉투를 뜯는
+   1.3초를 준다. 네 장면이 시간 위에서 이어 달려서 한 순간에 움직이는 것은
+   하나뿐이다 — 금 → 갈라짐 → 덮개 → 서류. 밀랍 두 조각만 한 쌍으로 같이 떨어진다.
+   이미지 에셋은 쓰지 않는다. 봉투도 인장도 전부 CSS 도형이다. */
+#recruitment-sheet[data-mode="seal"] { min-height: 380px; }
+.seal-open {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  margin: 18px 0 8px;
+}
+.seal-envelope {
+  position: relative;
+  width: min(100%, 260px);
+  height: 272px;
+  perspective: 640px;
+}
+/* 봉투 몸통 — 크라프트 한 장. 서류는 이 뒤에서 올라온다. */
+.seal-envelope:after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  height: 132px;
+  border: 1.5px solid var(--kraft-deep);
+  border-radius: 2px;
+  background: var(--kraft);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .16), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+/* 덮개 — 위쪽 모서리를 축으로 열린다. */
+.seal-flap {
+  position: absolute;
+  right: 0;
+  bottom: 132px;
+  left: 0;
+  /* 열린 덮개는 서류 뒤로 넘어가야 한다 — 위에 남으면 방금 나온 인사 서류를 덮는다. */
+  z-index: 1;
+  height: 74px;
+  border: 1.5px solid var(--kraft-deep);
+  background: #c8a672;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: 50% 0;
+  transform: rotateX(0deg);
+}
+/* 밀랍 인장 — 덮개 끝을 물고 있다. em은 갈라지는 금, i 두 개는 떨어지는 조각. */
+.seal-wax {
+  position: absolute;
+  bottom: 108px;
+  left: 50%;
+  z-index: 6;
+  width: 46px;
+  height: 46px;
+  margin-left: -23px;
+}
+.seal-wax i {
+  position: absolute;
+  top: 0;
+  width: 23px;
+  height: 46px;
+  background: radial-gradient(circle at 42% 34%, #c9505c 0%, var(--stamp-red) 55%, #6f1e26 100%);
+  box-shadow: inset 0 1px 2px rgba(255, 200, 205, .35);
+}
+.seal-wax i:nth-child(1) { left: 0; border-radius: 23px 0 0 23px; }
+.seal-wax i:nth-child(2) { right: 0; border-radius: 0 23px 23px 0; }
+.seal-wax em {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: #4a1017;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+}
+/* 인사 서류 — 봉투 안에서 올라온다. */
+.seal-letter {
+  position: absolute;
+  right: 12px;
+  /* 봉투 몸통 윗변이 바닥에서 132px이다. 서류 본문이 그 선 위에서 끝나야
+     마지막 줄이 잘리지 않는다 — 아래 여백만 몸통 뒤로 숨는다. */
+  bottom: 114px;
+  left: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  padding: 12px 12px 22px;
+  border: 1px solid var(--doc-line);
+  background: var(--ivory);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .1);
+  opacity: 0;
+  transform: translate3d(0, 46px, 0);
+}
+.seal-letter img { width: 56px; height: 66px; object-fit: contain; }
+.seal-letter small { color: var(--ink-faint); font: 700 8.5px/1 var(--disp); letter-spacing: .14em; }
+.seal-letter b { color: var(--ink); font: 800 17px/1.2 var(--disp); letter-spacing: -.03em; }
+.seal-letter span { color: var(--ink-soft); font: 600 11px/1.4 var(--disp); text-align: center; word-break: keep-all; }
+.seal-caption { margin: 0; color: var(--ink-faint); font: 700 12px/1 var(--hand); }
+
+@keyframes seal-crack { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes seal-shard-left {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  to { transform: translate3d(-13px, 16px, 0) rotate(-24deg); opacity: 0; }
+}
+@keyframes seal-shard-right {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  to { transform: translate3d(13px, 16px, 0) rotate(24deg); opacity: 0; }
+}
+/* 금은 조각과 함께 사라진다 — 조각이 떨어졌는데 금만 공중에 남으면 안 된다. */
+@keyframes seal-crack-fade { to { opacity: 0; } }
+@keyframes seal-flap-open { from { transform: rotateX(0deg); } to { transform: rotateX(-165deg); } }
+@keyframes seal-letter-rise {
+  from { opacity: 0; transform: translate3d(0, 46px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.seal-open.is-opening .seal-wax em { animation: seal-crack .25s ease-in both, seal-crack-fade .12s linear .25s both; }
+.seal-open.is-opening .seal-wax i:nth-child(1) { animation: seal-shard-left .3s ease-in .25s both; }
+.seal-open.is-opening .seal-wax i:nth-child(2) { animation: seal-shard-right .3s ease-in .25s both; }
+.seal-open.is-opening .seal-flap { animation: seal-flap-open .35s cubic-bezier(.3, .8, .3, 1) .55s both; }
+.seal-open.is-opening .seal-letter { animation: seal-letter-rise .4s cubic-bezier(.2, .85, .3, 1) .9s both; }
+
+/* 명부에 막 꽂힌 사람 — 어디에 꽂혔는지 한 번만 알려준다. */
+@keyframes personnel-settle {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.personnel-pool-person.just-hired {
+  border-color: var(--stamp-red);
+  animation: personnel-settle .3s cubic-bezier(.2, .85, .3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seal-open.is-opening .seal-wax,
+  .seal-open.is-opening .seal-wax em,
+  .seal-open.is-opening .seal-wax i,
+  .seal-open.is-opening .seal-flap,
+  .seal-open.is-opening .seal-letter,
+  .personnel-pool-person.just-hired { animation: none; }
+  .seal-open.is-opening .seal-letter { opacity: 1; transform: none; }
+}
+
+/* ═══════════ P2-6 사무국 설정 ═══════════
+   설정은 한 줄뿐이다. 서류 위의 체크란처럼 보이게 두고, 스위치도
+   둥근 앱 토글이 아니라 각진 결재 칸으로 만든다. */
+#manager-details .office-settings { margin-top: 14px; }
+#manager-details .office-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--doc-line);
+  background: var(--doc-paper);
+  cursor: pointer;
+}
+#manager-details .office-toggle > span { min-width: 0; }
+#manager-details .office-toggle b { display: block; color: var(--ink); font: 700 13px/1.3 var(--disp); }
+#manager-details .office-toggle small { display: block; margin-top: 3px; color: var(--ink-soft); font: 600 10.5px/1.4 var(--disp); word-break: keep-all; }
+#manager-details .office-toggle input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+#manager-details .office-toggle > i {
+  position: relative;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 26px;
+  border: 1px solid var(--doc-line);
+  background: var(--paper);
+  transition: background-color .16s ease, border-color .16s ease;
+}
+#manager-details .office-toggle > i:before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: var(--kraft-deep);
+  transition: transform .16s ease, background-color .16s ease;
+}
+#manager-details .office-toggle input:checked + i { border-color: var(--stamp-red); background: #f7ebe6; }
+#manager-details .office-toggle input:checked + i:before { background: var(--stamp-red); transform: translate3d(20px, 0, 0); }
+#manager-details .office-toggle input:focus-visible + i { outline: 2px solid var(--stamp-red); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  #manager-details .office-toggle > i,
+  #manager-details .office-toggle > i:before { transition: none; }
+}
+
+/* ═══════════ 아침 훅 — 개봉 통지 슬립 ═══════════
+   어제 쓴 일기가 열린 날에만 홈 상단에 나타난다. 알림 배지가 아니라
+   책상에 올려진 통지서 한 장이다 — 노트지 위 크라프트 태그, 스테이플.
+   하루 한 번의 낙이므로 화려하면 안 되고, 못 보고 지나가도 안 된다. */
+#view-home .diary-open-note {
+  position: relative;
+  display: block;
+  width: auto;
+  margin: 12px 16px 0;
+  padding: 12px 14px 11px;
+  border: 1px solid var(--doc-line);
+  border-left: 3px solid var(--stamp-red);
+  border-radius: 0;
+  background: var(--memo);
+  box-shadow: 2px 3px 0 rgba(45, 35, 22, .12);
+  text-align: left;
+  cursor: pointer;
+}
+#view-home .diary-open-note:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(45, 35, 22, .12); }
+#view-home .diary-open-note .of-staple { top: 7px; right: 13px; rotate: 3deg; }
+#view-home .diary-open-note .diary-open-tag {
+  display: inline-block;
+  margin-bottom: 5px;
+  padding: 2px 6px;
+  border: 1px solid var(--stamp-red);
+  border-radius: 2px;
+  color: var(--stamp-red);
+  font: 800 8.5px/1 var(--disp);
+  letter-spacing: .14em;
+}
+#view-home .diary-open-note b {
+  display: block;
+  color: var(--ink);
+  font: 700 14.5px/1.3 var(--disp);
+  letter-spacing: -.02em;
+}
+#view-home .diary-open-note .diary-open-sub {
+  display: block;
+  margin-top: 4px;
+  color: #5c4c36;
+  font: 700 13px/1.3 var(--hand);
+}
+
+/* ═══════════ 선물의 흔적 — 책상 위에 남는 선물 ═══════════
+   사준 것이 방에 영구히 보인다. 스티커가 아니라 책상에 놓인 물건으로
+   읽히도록 그림자를 바닥에 깔고, 살짝씩 기울인다. */
+/* 전경(책상 앞판)은 z-index 4로 고양이 잘린 밑단을 가린다. 선물은 가릴 이유가
+   없고 오히려 책상 상판 앞쪽에 놓여야 하므로 전경 위로 올린다. */
+.cat-room-gifts { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.cat-room-gift {
+  position: absolute;
+  z-index: 3;
+  padding: 2px;
+  border: 0;
+  background: none;
+  font-size: 23px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 2px rgba(60, 40, 28, .28));
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateX(-50%);
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-room-gift:nth-child(odd) { rotate: -5deg; }
+.cat-room-gift:nth-child(even) { rotate: 4deg; }
+.cat-room-gift:nth-child(3n) { rotate: 8deg; }
+.cat-room-gift > i {
+  position: absolute;
+  right: -8px;
+  bottom: -4px;
+  padding: 1px 3px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 2px;
+  background: var(--kraft);
+  color: #4a3a22;
+  font: 800 8px/1 var(--disp);
+  font-style: normal;
+}
+.cat-room-gift:focus-visible { outline: 2px solid rgba(116, 25, 42, .5); outline-offset: 2px; }
+/* 새로 놓인 물건은 책상에 살짝 내려앉는다 — 도장과 같은 문법, 더 작게. */
+@keyframes room-gift-place {
+  0% { transform: translateX(-50%) translateY(-10px) scale(1.25); opacity: 0; }
+  60% { transform: translateX(-50%) translateY(1px) scale(.98); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+}
+.cat-room-gift.just-placed { animation: room-gift-place .32s cubic-bezier(.2, .85, .3, 1) both; }
+@media (prefers-reduced-motion: reduce) { .cat-room-gift.just-placed { animation: none; } }
+
+/* ═══════════ 봉인 서류 미리보기 ═══════════
+   봉투 창 — 젖빛 유리 너머로 얼굴이 흐릿하게 비친다. 블러가 디테일을
+   숨기고 색감과 윤곽만 남긴다. 말투 한 줄은 육필(--hand)로 샌다. */
+#manager-details .sealed-peek {
+  position: relative;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 64px;
+  overflow: hidden;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 2px;
+  background: var(--kraft);
+}
+/* 흐릿한 사진은 이 크기에선 얼룩으로 읽힌다(실사용 리뷰: "곰팡이 같음").
+   봉인 안은 단색 실루엣 — 형태만 보이는 쪽이 기밀문서 톤에도 맞는다. */
+#manager-details .sealed-peek img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  filter: brightness(0) saturate(0) opacity(.34);
+  transform: scale(1.12);
+}
+#manager-details .sealed-peek i {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #c9505c 0%, var(--stamp-red) 55%, #6f1e26 100%);
+  color: #f6d9d4;
+  font: 800 8px/1 var(--serif);
+  font-style: normal;
+}
+#manager-details .sealed-voice {
+  display: block;
+  margin: 3px 0 4px;
+  color: #5c4c36;
+  font: 700 12.5px/1.35 var(--hand);
+  quotes: "“" "”";
+  word-break: keep-all;
+}
+
+/* ═══════════ 감사 편지 — 파일에 남는 기념 서류 ═══════════
+   희귀 선물에 동봉되는 집사의 편지. 일기(노트지)와 구분되는 편지지 —
+   아이보리 위 밀랍 봉인. 금박은 안 쓴다(인증서 전용). 본문은 육필. */
+#view-archive .gift-letter-note {
+  position: relative;
+  margin: 10px 0 0;
+  padding: 12px 14px 11px;
+  border: 1px solid #d8b2ac;
+  border-left: 3px solid var(--stamp-red);
+  background: var(--ivory);
+  box-shadow: 2px 3px 0 rgba(45, 35, 22, .1);
+}
+#view-archive .gift-letter-note .gift-letter-seal {
+  position: absolute;
+  top: -8px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #c9505c 0%, var(--stamp-red) 55%, #6f1e26 100%);
+  box-shadow: 0 2px 3px rgba(90, 20, 26, .3);
+  color: #f6d9d4;
+  font: 800 10px/1 var(--serif);
+  rotate: -6deg;
+}
+#view-archive .gift-letter-note > span:not(.gift-letter-seal) {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--stamp-red);
+  font: 700 9px/1 var(--disp);
+  letter-spacing: .12em;
+}
+#view-archive .gift-letter-note > p {
+  margin: 0;
+  color: #3a3125;
+  font: 700 19px/1.5 var(--hand);
+  word-break: keep-all;
+}
+#view-archive .gift-letter-note > small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-faint);
+  font: 600 9.5px/1.3 var(--disp);
+  letter-spacing: .05em;
+  text-align: right;
+}
+
+/* 데스크의 동봉 안내 — 사기 전에 가치가 보여야 한다. 한 줄이면 된다. */
+.gift-catalog-note {
+  margin: 9px 2px 0;
+  color: var(--ink-soft);
+  font: 600 10.5px/1.5 var(--disp);
+  word-break: keep-all;
+}
+
+/* ═══════════ 고양이 무대 라운드 (2026-08-19) ═══════════
+   실사용 영상 리뷰 반영: 출력을 고양이 한 곳으로 모으고, 결과서는 6초짜리
+   연출로 다이어트한다. */
+
+/* 슬립 서명 — 종이에 이름이 붙어야 발화가 된다. 치즈 주황 육필. */
+#view-home .reception-slip-paper { position: relative; }
+#view-home .reception-slip-from {
+  position: absolute;
+  right: 13px;
+  bottom: 7px;
+  color: #d9822f;
+  font: 700 15px/1 var(--hand);
+  letter-spacing: 0;
+  transform: rotate(-2.5deg);
+  pointer-events: none;
+}
+/* 서명이 본문 마지막 줄과 겹치지 않게 종이 오른쪽 아래를 비워둔다 */
+#view-home .reception-slip p { padding-right: 46px; }
+
+/* 결과서 지표 행 — 시각 위계를 각주급으로 낮춘다. 주인공은 칭호와 도장이다. */
+.praise-result-metrics dt { font-size: 8.5px; opacity: .82; }
+.praise-result-metrics dd { color: var(--ink-soft); font-weight: 700; font-size: 11.5px; }
+.praise-result-metrics > div:nth-child(2) dd { color: var(--stamp-red); font-size: 11.5px; }
+
+/* 결과서에서 나가는 문 — 인증서 버튼이 없는 날은 닫기가 유일한 출구인데
+   흐린 밑줄 링크라 사람들이 아무 데나 눌러 닫았다. 그 경우에만 결재란으로 승격. */
+#result-certificate-button[hidden] + .text-button {
+  width: calc(100% - 32px);
+  margin: 18px 16px 0;
+  padding: 13px 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  color: var(--ink);
+  font: 800 14px/1 var(--disp);
+  text-decoration: none;
+}
+
+/* 파일 중복 접기 — 같은 대업 재접수는 대표 한 장에 ×N으로 표시된다. */
+.office-record-card .record-repeat-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 5px 2px;
+  border: 1px solid var(--doc-line);
+  border-radius: 8px;
+  background: var(--doc-paper);
+  color: var(--ink-faint);
+  font: 700 10px/1 var(--disp);
+  font-style: normal;
+  vertical-align: 2px;
+}
+
+/* 빠른 칩 세계관화 — "자주 들어오는 민원" 게시 라벨 */
+.quick-actions-label {
+  display: block;
+  margin: 10px 2px 5px;
+  color: var(--ink-faint);
+  font: 700 9.5px/1 var(--disp);
+  letter-spacing: .1em;
+}
+
+/* ═══════════ 선물 2화면 — 사무국 창구로 통일 (2026-08-19) ═══════════
+   기존은 둥근 카드 + 3열 상품 그리드라 모바일 쇼핑몰로 읽혔다.
+   여기는 물건을 파는 곳이 아니라 물건을 접수하는 창구다:
+   ① 창구(캐릭터가 먼저) ② 품목 대장(표) ③ 인수증(도장).
+   기능·드래그·관계 상승 로직은 건드리지 않는다 — 조형만 바꾼다. */
+
+/* ── ① 창구 ── */
+#gift-drop-zone.gift-counter {
+  position: relative;
+  display: block;
+  min-height: 0;
+  margin: 16px 0 0;
+  padding: 40px 12px 12px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  outline: none;
+  background: var(--ivory);
+  background-image:
+    linear-gradient(rgba(94, 72, 58, .04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 72, 58, .03) 1px, transparent 1px);
+  background-size: 19px 19px;
+  box-shadow: var(--doc-shadow);
+  text-align: center;
+  transition: none;
+}
+/* 창구 명패 — 홈 접수대와 같은 조형(검은 명패에 흰 각인). */
+#gift-drop-zone .office-counter {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 50%;
+  margin: 0;
+  padding: 7px 15px;
+  border-radius: 2px;
+  background: var(--ink);
+  color: #efe5d2;
+  font: 700 9.5px/1 var(--disp);
+  letter-spacing: .2em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .25);
+}
+#gift-drop-zone > img {
+  display: block;
+  width: auto;
+  height: 176px;
+  margin: 4px auto 0;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 4px 2px rgba(60, 40, 28, .1));
+  transition: transform .18s ease-out;
+}
+/* 접수 슬립 — 홈 접수대와 같은 부품이다. 클립이 물고 있고 서명이 붙는다. */
+#gift-drop-zone .gift-counter-slip {
+  position: relative;
+  margin: 10px 4px 0;
+  /* 서명은 본문 아래 오른쪽에 앉는다 — 아래 여백을 비워두지 않으면
+     한 줄짜리 대사에서 본문과 나란히 붙어 겹쳐 보인다. */
+  padding: 13px 15px 26px;
+  border: 1px solid var(--doc-line);
+  background: var(--memo);
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .11);
+  rotate: -.5deg;
+  text-align: left;
+}
+#gift-drop-zone .gift-counter-slip .of-clip { z-index: 4; top: -9px; left: 18px; rotate: -4deg; transform: none; }
+#gift-drop-zone .gift-counter-slip > p {
+  margin: 0;
+  color: var(--ink);
+  font: 600 14px/1.5 "Wanted Sans Variable", "Wanted Sans", sans-serif;
+  letter-spacing: -.012em;
+  word-break: keep-all;
+}
+#gift-drop-zone .gift-counter-sign {
+  position: absolute;
+  right: 13px;
+  bottom: 6px;
+  color: #d9822f;
+  font: 700 15px/1 var(--hand);
+  letter-spacing: 0;
+  transform: rotate(-2.5deg);
+}
+/* 접수 쟁반 — 선물을 올려놓는 자리. 점선 칸 하나면 충분하다. */
+#gift-drop-zone .gift-counter-tray {
+  position: static;
+  display: block;
+  margin: 10px 4px 0;
+  padding: 11px 8px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  color: var(--ink-soft);
+  font: 700 11px/1.3 var(--disp);
+  letter-spacing: .02em;
+  word-break: keep-all;
+}
+#gift-drop-zone.receiving {
+  border-color: var(--stamp-red);
+  background-color: #fbf5f1;
+  box-shadow: var(--doc-shadow);
+  transform: none;
+}
+#gift-drop-zone.receiving .gift-counter-tray { border-color: var(--stamp-red); color: var(--stamp-red); }
+#gift-drop-zone.receiving > img { transform: translateY(-3px); }
+#gift-drop-zone.selected .gift-counter-tray {
+  border-style: solid;
+  border-color: var(--ink);
+  background: var(--memo);
+  color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  #gift-drop-zone > img { transition: none; }
+  #gift-drop-zone.receiving > img { transform: none; }
+}
+
+/* ── ② 선반 ── */
+/* 창구 바로 아래 가로 한 줄. 세로 목록이면 아래 칸을 화면 위까지 끌어올려야 해서
+   드래그가 심부름이 된다. 가로 선반은 어느 칸에서든 위로 한 번이면 집사에게 닿는다. */
+.gift-desk-overlay .gift-list-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 15px 2px 8px;
+  padding: 0;
+  border: 0;
+}
+.gift-desk-overlay .gift-list-heading h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 800 12px/1 var(--disp);
+  letter-spacing: .1em;
+}
+.gift-desk-overlay .gift-list-heading small { color: var(--ink-faint); font: 700 10px/1 var(--disp); }
+
+.gift-desk-overlay #gift-catalog {
+  display: flex;
+  gap: 7px;
+  /* 음수 마진으로 화면 끝까지 늘리면 모달 패딩을 넘어 문서에 가로 스크롤이
+     생기고 화면 전체가 밀린다. 선반은 카드 안에서만 스크롤한다. */
+  margin: 0;
+  padding: 9px 2px 11px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-top: 1px solid var(--doc-line);
+  border-bottom: 3px double var(--doc-line);
+  background: var(--ivory);
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.gift-desk-overlay #gift-catalog::-webkit-scrollbar { display: none; }
+
+.gift-desk-overlay .gift-shelf-item {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 74px;
+  min-height: 96px;
+  padding: 9px 4px 7px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow-sm);
+  color: var(--ink);
+  scroll-snap-align: start;
+  /* 가로로 밀면 선반이 스크롤되고, 위로 끌면 선물을 든다.
+     none으로 막으면 선반 자체를 넘길 수가 없다. */
+  touch-action: pan-x;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* 품목 구분은 위쪽 색띠 한 줄 — 견출표와 같은 문법 */
+.gift-desk-overlay .gift-shelf-item:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--doc-line);
+}
+.gift-desk-overlay .gift-favorite:before { background: var(--stamp-red); }
+.gift-desk-overlay .gift-rare:before { background: var(--gold); }
+.gift-desk-overlay .gift-shelf-thumb {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-top: 2px;
+  font-size: 25px;
+  line-height: 1;
+}
+.gift-desk-overlay .gift-shelf-item b {
+  display: block;
+  max-width: 100%;
+  margin-top: 3px;
+  color: var(--ink);
+  font: 700 11.5px/1.2 var(--disp);
+  letter-spacing: -.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gift-desk-overlay .gift-shelf-item small {
+  margin-top: 4px;
+  padding: 2px 6px 1px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--memo);
+  color: var(--ink-soft);
+  font: 800 10px/1.2 var(--disp);
+  font-variant-numeric: tabular-nums;
+}
+/* 취향·희귀 표시는 둥근 pill이 아니라 모서리에 붙인 작은 견출표 */
+.gift-desk-overlay .gift-shelf-item mark {
+  position: absolute;
+  top: 4px;
+  left: 3px;
+  padding: 2px 3px 1px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  font: 800 7.5px/1 var(--disp);
+  letter-spacing: -.02em;
+}
+.gift-desk-overlay .gift-favorite mark { color: var(--stamp-red); }
+.gift-desk-overlay .gift-rare mark { color: var(--gold-dp); }
+.gift-desk-overlay .gift-shelf-item em {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  color: var(--stamp-red);
+  font: 700 8px/1 var(--disp);
+  font-style: normal;
+}
+.gift-desk-overlay .gift-shelf-item.locked { opacity: 1; filter: none; }
+.gift-desk-overlay .gift-shelf-item.locked .gift-shelf-thumb { opacity: .38; filter: grayscale(1); }
+.gift-desk-overlay .gift-shelf-item.locked b,
+.gift-desk-overlay .gift-shelf-item.locked small { color: var(--ink-faint); }
+.gift-desk-overlay .gift-shelf-item.selected {
+  border-color: var(--ink);
+  background: var(--memo);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .2);
+}
+.gift-desk-overlay .gift-shelf-item:active { background: var(--memo); }
+.gift-desk-overlay .gift-shelf-item:focus-visible { outline: 2px solid var(--stamp-red); outline-offset: -2px; }
+
+/* ── ③ 인수증 ── */
+/* 다른 서류와 같은 각진 모서리. 5px 라운드 하나가 게임 UI 티를 냈다. */
+.gift-receipt { border-radius: 0; }
+/* 주 행동은 색면 버튼이 아니라 이중선 결재란이다 — FORM 05와 같은 조형.
+   결과서만 바뀌고 인수증이 남아 있어서 두 화면의 마무리가 서로 달랐다. */
+.gift-receipt > .primary-button {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 18px 16px 0;
+  padding: 13px 0;
+  border: 0;
+  border-top: 2px double var(--ink);
+  border-bottom: 2px double var(--ink);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+  font: 800 15px/1 var(--disp);
+}
+.gift-receipt > .primary-button span { color: var(--stamp-red); }
+/* 반응 배지 — 각진 견출표 */
+.gift-reaction-badge {
+  border-radius: 0;
+  border: 1px solid var(--doc-line);
+  font: 800 9.5px/1 var(--disp);
+  letter-spacing: .06em;
+}
+.gift-result-metrics { border-radius: 0; }
+
+/* 선반이 넘쳐도 문서 자체는 가로로 밀리지 않는다 */
+.gift-desk-modal { overflow-x: hidden; }
+
+/* 인수증 — 품명 한 줄. 판정 문구는 바로 아래 제목이 말한다. */
+.gift-receipt .gift-received {
+  margin: 0 0 5px;
+  color: var(--ink-soft);
+  font: 700 13px/1.3 var(--disp);
+}
+.gift-receipt .gift-received b { color: var(--ink); font-weight: 800; }
+
+/* ═══════════ P1 구조 — 해금을 위로 (2026-08-19) ═══════════ */
+
+/* 하단 탭 봉인점 — 새 지원서가 와 있다는 신호 하나. 숫자도 배지도 아니다. */
+.bottom-nav button { position: relative; }
+.nav-seal-dot {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-left: 7px;
+  border-radius: 50%;
+  background: var(--stamp-red);
+  box-shadow: 0 0 0 2px var(--paper-light, #faf7f0);
+}
+.nav-seal-dot[hidden] { display: none; }
+
+/* 조건이 공개된 서류(진행 중)는 손이 닿는 것이고 "추후 공고"는 아니다. 목록에서
+   둘이 안 갈려서 전부 똑같이 잠긴 것처럼 보였다. 봉인 조형(밀랍·사선 밴드)은
+   그대로 두고 재질과 조건 문구만 갈라 준다. */
+#manager-details .sealed-doc.tracked {
+  background: var(--ivory);
+  box-shadow: 2px 2.5px 0 rgba(45, 35, 22, .1);
+}
+#manager-details .sealed-doc.tracked .sealed-copy em {
+  color: var(--ink);
+  font-weight: 800;
+}
+/* 남은 수치만 붉게 — 문장 전체를 물들이면 경고문이 된다 */
+#manager-details .sealed-doc.tracked .sealed-copy em b { color: var(--stamp-red); }
+
+/* 조건을 다 채운 서류(도착 직전) */
+#manager-details .sealed-doc.near {
+  border-color: var(--stamp-red);
+  background: var(--ivory);
+  box-shadow: 3px 3.5px 0 rgba(157, 47, 58, .14);
+}
+#manager-details .sealed-doc.near .sealed-band {
+  background: var(--stamp-red);
+  color: #f7e6e4;
+}
+#manager-details .sealed-doc.near .sealed-peek { border-color: var(--stamp-red); }
+#manager-details .sealed-doc.near .sealed-peek img { filter: brightness(0) saturate(0) opacity(.42); }
+#manager-details .sealed-doc.near .sealed-copy em {
+  color: var(--stamp-red);
+  font-weight: 800;
+  text-decoration: none;
+}
+/* 준비된 서류에는 개봉을 재촉하는 도장 한 칸 */
+#manager-details .sealed-doc.near .sealed-copy em:after {
+  content: " ▸";
+  font-weight: 900;
+}
+
+/* ── 파일 필터 통합 (2026-08-19) ──
+   필터가 두 세트라 "전체"가 둘, "공식"이 둘이었고 두 공식은 조건까지 같았다.
+   필터는 아래 칩 한 줄로 모으고, 서류철 옆 인덱스 탭은 v4 비주얼의 핵심이라
+   조형만 남겨 색인으로 쓴다 — 이 파일에 무엇이 들어 있는지 적힌 탭이고
+   누를 수 없다. */
+#view-archive .record-filters.record-index { pointer-events: none; }
+#view-archive .record-filters.record-index span {
+  position: relative;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 5px;
+  border: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--kraft-deep);
+  box-shadow: 1.5px 1.5px 0 rgba(45, 35, 22, .15);
+  color: #f6ecd9;
+  font: 700 10px/1 var(--disp);
+  letter-spacing: .14em;
+  writing-mode: vertical-rl;
+  text-align: center;
+}
+/* 색인은 서류철 깊이를 보여주는 장식이라 뒤로 갈수록 옅어진다 */
+#view-archive .record-filters.record-index span:nth-child(2) { background: #c0a071; }
+#view-archive .record-filters.record-index span:nth-child(3) { background: #ad9067; }
+
+/* 통합된 분류 칩 — 범위(전체·오늘) 다음에 종류(일상·희귀·공식 인정) */
+#view-archive .record-grade-chips { flex-wrap: wrap; }
+
+/* ═══════════ R2 전담 파일 명패 (2026-08-20) ═══════════
+   관계가 처음 3단계에 오를 때 주인님이 고른 문구가 인사기록 카드에 새겨진다.
+   "관계 +3"이 아니라 "내 선택 때문에 전에 없던 것이 생겼다"를 만든다. */
+.plate-choice-overlay { align-items: center; justify-content: center; padding: 20px; }
+.plate-choice-sheet {
+  position: relative;
+  width: min(100%, 340px);
+  padding: 22px 18px 16px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--ivory);
+  box-shadow: inset 0 0 0 6px var(--doc-paper), inset 0 0 0 7px rgba(180, 148, 102, .14), var(--doc-shadow);
+  overflow: visible;
+}
+.plate-choice-sheet > .of-clip { top: -10px; left: 22px; rotate: -5deg; }
+.plate-choice-sheet h2 {
+  margin: 14px 0 6px;
+  color: var(--ink);
+  font: 800 21px/1.25 var(--disp);
+  letter-spacing: -.035em;
+}
+.plate-choice-copy {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font: 600 12.5px/1.5 var(--disp);
+  word-break: keep-all;
+}
+.plate-choice-options { display: flex; flex-direction: column; gap: 8px; }
+.plate-choice-options button {
+  display: block;
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: var(--doc-paper);
+  box-shadow: var(--doc-shadow-sm);
+  color: var(--ink);
+  text-align: left;
+}
+.plate-choice-options button:active { background: var(--memo); transform: translateY(1px); }
+.plate-choice-options b { display: block; font: 800 15px/1.2 var(--disp); letter-spacing: -.02em; }
+.plate-choice-options small { display: block; margin-top: 3px; color: var(--ink-faint); font: 600 11px/1.3 var(--disp); }
+.plate-choice-footnote {
+  margin: 13px 0 0;
+  color: var(--ink-faint);
+  font: 600 10px/1.4 var(--disp);
+  text-align: center;
+}
+
+/* 인사기록 카드 명패 — 실물 놋쇠 명패 조형 */
+#manager-details .manager-nameplate {
+  position: absolute;
+  z-index: 3;
+  left: 6px;
+  right: 6px;
+  bottom: 2px;
+  padding: 6px 4px;
+  border: 1px solid #7b5b3c;
+  border-radius: 2px;
+  background: linear-gradient(#8d6c48, #604228);
+  color: #f4e5ce;
+  box-shadow: 0 2px 0 rgba(65, 42, 25, .18);
+  font: 800 10px/1.2 var(--disp);
+  letter-spacing: .02em;
+  text-align: center;
+  word-break: keep-all;
+}
+#manager-details .manager-nameplate[hidden] { display: none; }
+
+/* ═══════════ R3 집사방 — 관계가 물건으로 쌓인다 (2026-08-20) ═══════════
+   방 배경에 이미 소품이 꽉 차 있어서, 얹는 것은 적을수록 좋다.
+   전시 3 + 희귀 1 + 관계 흔적 2 + 보관함 1 = 최대 7칸이 상한이다.
+   자리는 세 단이다 — 희귀(bottom 13%) · 앞줄 선물/보관함(17%) · 흔적 뒷줄(31%). */
+
+/* 희귀 선물 — 고양이 바로 앞, 제일 앞단. 유일하게 받침이 붙는다. */
+.cat-room-gift.room-rare {
+  font-size: 21px;
+  filter: drop-shadow(0 2px 2px rgba(60, 40, 28, .3));
+}
+.cat-room-gift.room-rare:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 26px;
+  height: 4px;
+  border: 1px solid var(--gold-dp);
+  border-radius: 1px;
+  background: linear-gradient(var(--gold-hi), var(--gold));
+  transform: translateX(-50%);
+}
+
+/* 관계 흔적 — 선물보다 약해 보이면 실패다. 종이 태그를 달아 "사무국 비품"으로 세운다. */
+.cat-room-gift.room-trace {
+  /* 태그는 서류 비품이라 선물처럼 굴러다니지 않는다. 기울기를 줄여
+     bbox가 세로로 부푸는 것도 같이 막는다(앞줄 선물과 닿지 않게). */
+  rotate: -2deg;
+  padding: 3px 4px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 1px;
+  background: var(--ivory);
+  box-shadow: 1.5px 2px 0 rgba(45, 35, 22, .22);
+  font-size: 16px;
+  line-height: 1;
+}
+.cat-room-gift.room-trace .room-trace-plate {
+  display: block;
+  padding: 3px 5px;
+  border: 1px solid #7b5b3c;
+  border-radius: 1px;
+  background: linear-gradient(#8d6c48, #604228);
+  color: #f4e5ce;
+  font: 800 7.5px/1.2 var(--disp);
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+/* 보관함 — 넘친 물건은 버려지지 않고 여기로 접힌다. */
+.cat-room-gift.room-storage {
+  font-size: 17px;
+  opacity: .92;
+}
+.cat-room-gift.room-storage > i {
+  right: -5px;
+  bottom: -3px;
+  border-color: var(--kraft-deep);
+  background: var(--kraft);
+  color: #4a3623;
+}
+
+/* ═══════════ R5 선물 그림 연결 (2026-08-21) ═══════════
+   고양이 선물·관계 흔적은 이모지에서 그림으로 갈아탄다. 다른 캐릭터는
+   이모지 그대로라, 그림이 붙은 칸에만 .has-art로 규칙을 건다.
+
+   그림에는 이미 짙은 갈색 외곽선과 접지 그림자가 그려져 있다. 그래서
+   런타임에서 drop-shadow를 또 얹으면 그림자가 두 겹이 된다 — 그림이
+   있는 칸에서는 이모지용 그림자를 끈다. */
+.cat-room-gift.has-art { filter: none; padding: 0; }
+/* 높이는 인라인 style이 정하고, 여기서는 가로로 퍼지는 것만 막는다.
+   object-fit: contain이라 폭이 잘려도 그림은 찌그러지지 않는다. */
+.cat-room-gift.has-art > img {
+  display: block;
+  width: auto;
+  max-width: 40px;
+  object-fit: contain;
+  pointer-events: none;  /* 탭 판정은 버튼이 받는다 */
+  -webkit-user-drag: none;
+}
+.cat-room-gift.room-rare.has-art > img { max-width: 52px; }
+.cat-room-gift.room-trace.has-art > img { max-width: 34px; }
+.cat-room-gift.room-storage.has-art > img { max-width: 30px; }
+.cat-room-gift.room-desk-toy {
+  z-index: 6;
+  rotate: -2deg;
+  cursor: grab;
+  touch-action: none;
+}
+.cat-room-gift.room-desk-toy:active { cursor: grabbing; }
+.cat-room-gift.room-desk-toy.has-art > img { max-width: 56px; }
+/* 흔적은 그림이 곧 종이 태그라 CSS 태그 장식을 걷어낸다. 명패만 예외로
+   남는다(문구가 들어가야 해서 여전히 CSS로 그린다). */
+.cat-room-gift.room-trace.has-art {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  rotate: -2deg;
+}
+.cat-room-gift.room-storage.has-art { opacity: 1; }
+/* 희귀 받침(금박)은 가로형 아래에만 어울린다. 세로 가구 밑에 깔리면
+   가구가 접시에 올라간 것처럼 보인다. */
+.cat-room-gift.room-rare.has-art:after { display: none; }
+
+/* 선반 칸 — 40px 자리에 그림을 꽉 채운다. */
+.gift-desk-overlay .gift-shelf-thumb.has-art { display: block; }
+.gift-desk-overlay .gift-shelf-thumb.has-art > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+.gift-desk-overlay .gift-shelf-item.locked .gift-shelf-thumb.has-art > img { opacity: .38; filter: grayscale(1); }
+
+/* 손끝에 붙어 따라오는 그림자 — 선반 그림 그대로 끌려간다. */
+.gift-drag-ghost.has-art { font-size: 0; }
+.gift-drag-ghost.has-art > img { display: block; width: 52px; height: auto; }
+
+/* 선물 이력 한 줄 */
+#gift-history-list span.has-art { display: block; width: 26px; height: 26px; }
+#gift-history-list span.has-art > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* 인수증 — 방금 건넨 그 그림이 이름 앞에 붙는다. */
+.gift-received-art {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  margin-right: 5px;
+  object-fit: contain;
+  vertical-align: -6px;
+}
+
+/* ═══════════ R6 집사 방 사진 (2026-08-21) ═══════════
+   인증서와 나란히 놓였을 때 다른 종이로 읽혀야 한다 — 증서는 금박 액자,
+   이건 크라프트 서류다. 금색은 한 방울도 쓰지 않는다. */
+#view-manager .room-card-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  /* 카드 오른쪽 아래에는 인사기록의 발령 도장이 붙박이로 앉아 있다.
+     여백을 안 주면 이 버튼이 그 위에 올라가 도장이 글자를 가로지른다. */
+  margin-bottom: 34px;
+  padding: 18px 16px 16px;
+  border: 1px solid var(--kraft-deep);
+  border-radius: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(138, 106, 69, .05) 0 2px, transparent 2px 8px),
+    var(--memo);
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .16);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+/* 클립은 오른쪽 위 모서리에 문다 — 왼쪽에 물리면 제목 첫 글자를 덮는다. */
+#view-manager .room-card-button > .of-clip { top: -9px; right: 20px; left: auto; }
+#view-manager .room-card-button b {
+  display: block;
+  font: 800 15px/1.3 var(--disp);
+  letter-spacing: .01em;
+}
+#view-manager .room-card-button small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font: 500 12px/1.4 var(--body);
+}
+#view-manager .room-card-button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(45, 35, 22, .16); }
+#view-manager .room-card-button[aria-busy="true"] { opacity: .62; cursor: progress; }
+#view-manager .room-card-button[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  #view-manager .room-card-button:active { transform: none; }
+}
+
+/* HOME first viewport intake (2026-08-22)
+   Keep the locked room and intake order, but fit the primary action above the
+   fixed navigation on an 800px-tall phone. */
+#view-home { padding-top: 12px; }
+#view-home .home-office-header { min-height: 68px; margin-bottom: 6px; }
+.office-brand-image {
+  display: block;
+  width: clamp(112px, 32vw, 124px);
+  height: auto;
+}
+.certificate-screen-header .office-brand-image { width: clamp(96px, 28vw, 108px); margin-inline: auto; }
+#view-home .home-logo-lockup small { margin-top: 3px; }
+#view-home #cat-home-room {
+  height: clamp(260px, 34vh, 300px);
+  touch-action: pan-y;
+}
+#view-home .home-hero { padding-top: 20px; }
+#view-home .home-hero h1 { margin-top: 4px; }
+#view-home #entry-description { margin-top: 6px; }
+#view-home .entry-form { margin-top: 8px; }
+#view-home .entry-form textarea { min-height: 72px; height: 72px; }
+#view-home .quick-actions-label { margin: 6px 2px 3px; }
+#view-home .quick-actions { margin: 4px 0 6px; }
+#view-home .report-button { min-height: 52px; margin-top: 8px; }
+#view-home .report-button .report-ticket-inner { padding: 5px 0; }
+
+/* Legacy commemorative certificates stay visible without entering the current
+   official 5/7-certificate lineage. */
+#view-archive .record-legacy-cert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px double var(--ink-soft);
+  border-radius: 50%;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, .34);
+  font: 800 11px/1.05 var(--body);
+  letter-spacing: -.04em;
+  text-align: center;
+  rotate: -5deg;
+}
+#view-archive button.record-legacy-cert { padding: 0; cursor: pointer; }
+#view-archive button.record-legacy-cert:active { background: rgba(122, 108, 92, .12); }
+
+#certificate-card[data-certification="legacy"] .official-stamp {
+  background: radial-gradient(circle at 35% 28%, #9b8a74 0 10%, #746552 52%, #463c31 100%);
+  box-shadow: 0 2px 5px rgba(50, 43, 35, .35), inset 0 1px 2px rgba(255, 246, 226, .35), inset 0 -2px 3px rgba(36, 30, 24, .45);
+}
+
+/* 중앙인사국 사내 사건 접수부. 새 화면을 늘리지 않고 기존 명부 안에서만
+   CAT 전임 집사의 대기 발령 사건을 파생해 보여준다. */
+.personnel-incident-board {
+  margin: 15px 0 4px;
+  padding: 13px 14px 11px;
+  border: 1px solid var(--doc-line);
+  border-top: 3px double var(--ink);
+  background: var(--memo);
+  color: var(--ink);
+  text-align: left;
+}
+.personnel-incident-board > header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--doc-line);
+}
+.personnel-incident-board > header small {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ink-faint);
+  font: 700 8px/1 var(--disp);
+  letter-spacing: .16em;
+}
+.personnel-incident-board > header h3 {
+  margin: 0;
+  font: 900 17px/1.15 var(--serif);
+  letter-spacing: .04em;
+}
+.personnel-incident-board > header > b {
+  flex: none;
+  color: var(--stamp-red);
+  font: 700 9px/1.2 var(--disp);
+  letter-spacing: .04em;
+}
+.personnel-incident-board article {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 3px 9px;
+  padding: 10px 0 9px;
+  border-bottom: 1px dotted var(--doc-line);
+}
+.personnel-incident-board article:last-child { border-bottom: 0; padding-bottom: 1px; }
+.personnel-incident-board article > span {
+  grid-row: 1 / 4;
+  color: var(--ink-faint);
+  font: 700 9px/1.35 var(--disp);
+}
+.personnel-incident-board article > b { font: 800 12px/1.35 var(--disp); }
+.personnel-incident-board article > p { margin: 0; color: var(--ink-soft); font: 500 11px/1.45 var(--body); }
+.personnel-incident-board article > small { color: var(--stamp-red); font: 700 9px/1.3 var(--disp); }
+.personnel-incident-empty { margin: 10px 0 0; color: var(--ink-soft); font: 500 11px/1.5 var(--body); }
+
+@media (max-width: 370px) {
+  .personnel-incident-board article { grid-template-columns: 64px 1fr; gap-column: 7px; }
+}
+
+/* Compact quick actions: keep all five labels intact at 360px. */
+@media (max-width: 370px) {
+  #view-home .quick-actions {
+    gap: 5px;
+  }
+
+  #view-home .quick-actions button {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}
+/* Final CAT desk pose placement. Percentages map the approved 1680x936 room
+   coordinates into the draggable 155% room world without changing its pan. */
+#cat-home-world .cat-home-character{
+  left:39.43%;
+  top:auto;
+  bottom:28%;
+  width:21.15%;
+  height:auto;
+  aspect-ratio:822/1117;
+  transform:none;
+}
+#cat-home-world .cat-home-character[data-desk-pose="working"]{
+  left:39.31%;
+  top:auto;
+  bottom:25.5%;
+  width:21.15%;
+}
+#cat-home-world .cat-home-character[data-desk-pose="surprised"]{
+  left:38.26%;
+  top:auto;
+  bottom:28%;
+  width:23.48%;
+}
+
+/* CAT OFFICE TIME-OF-DAY LIGHTING */
+[data-desk-pose] {
+  transition: filter 520ms ease, opacity 220ms ease;
+}
+
+html[data-cat-room-light="dawn"] [data-desk-pose],
+html[data-cat-room-light="morning"] [data-desk-pose],
+html[data-cat-room-light="day"] [data-desk-pose],
+html[data-cat-room-light="sunset"] [data-desk-pose],
+html[data-cat-room-light="night-on"] [data-desk-pose] {
+  filter: none;
+}
+
+html[data-cat-room-light="night-off"] [data-desk-pose] {
+  filter: brightness(.66) saturate(.72) contrast(.9);
+}
+
+.cat-room-lamp-hotspot {
+  position: absolute;
+  z-index: 12;
+  top: 53%;
+  left: 11%;
+  width: 18%;
+  height: 24%;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cat-room-lamp-hotspot[hidden] {
+  display: none;
+}
+
+.cat-room-lamp-hotspot:focus-visible {
+  outline: 3px solid rgba(255, 239, 184, .9);
+  outline-offset: 2px;
+}
+
+/* Wider room view with horizontal drag; the approved vertical crop stays fixed. */
+#view-home #cat-home-world {
+  inset: 0 auto auto 0;
+  width: 138%;
+  height: 112%;
+  touch-action: pan-y;
+}
+
+#view-home #cat-home-world .cat-home-background,
+#view-home #cat-home-world .cat-home-foreground {
+  background-image: var(--cat-room-image, url("design/rooms/cat-office-time-day.webp"));
+}
+
+#view-home .reception-slip {
+  margin: 8px 16px 0;
+}
+
+/* Today's briefing: a working paper, not a task-manager card. */
+.daily-briefing { position: relative; margin: 12px 18px 0; padding: 15px 14px 13px 22px; border: 1px solid var(--doc-line); background: linear-gradient(90deg, transparent 0 34px, rgba(157, 47, 58, .2) 34px 35px, transparent 35px), repeating-linear-gradient(180deg, transparent 0 31px, rgba(83, 69, 51, .1) 31px 32px), var(--ivory); box-shadow: 3px 4px 0 rgba(45, 35, 22, .12); }
+.daily-briefing[hidden] { display: none; }
+.daily-briefing > .of-clip { top: -8px; left: 16px; transform: rotate(-5deg); }
+.daily-briefing > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-left: 22px; }
+.daily-briefing > header small, .briefing-editor header small, .owner-backup-dialog header small, .owner-file-backup small { color: var(--stamp-red); font: 800 9px/1 var(--disp); letter-spacing: .12em; }
+.daily-briefing > header h2 { margin: 3px 0 0; color: var(--ink); font: 800 18px/1.2 var(--disp); }
+.daily-briefing > header > b { flex: none; padding: 5px 7px; border: 1px solid rgba(157, 47, 58, .45); color: var(--stamp-red); font: 800 10px/1 var(--disp); transform: rotate(1.5deg); }
+.daily-briefing-list { display: grid; gap: 7px; margin-top: 11px; }
+.daily-briefing-empty { margin: 0; padding: 11px 8px 9px 22px; color: var(--ink-soft); font: 600 13px/1.45 var(--body); }
+.daily-briefing-empty b, .daily-briefing-empty span { display: block; }
+.daily-briefing-empty b { color: var(--ink); font-weight: 700; }
+.daily-briefing-empty span { margin-top: 2px; color: var(--ink-faint); font-size: 10px; }
+.daily-briefing-item { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 9px; align-items: center; min-height: 46px; padding: 6px 5px 6px 9px; border-top: 1px solid rgba(83, 69, 51, .13); }
+.briefing-status-stamp { display: grid; justify-items: center; gap: 2px; padding: 0; border: 0; background: transparent; color: var(--ink-faint); cursor: pointer; }
+.briefing-status-stamp i { width: 19px; height: 19px; border: 1.5px solid var(--doc-line); background: rgba(255, 255, 255, .34); }
+.briefing-status-stamp span { font: 700 8px/1.15 var(--disp); }
+.daily-briefing-item.is-complete .briefing-status-stamp { color: var(--stamp-red); transform: rotate(-3deg); }
+.daily-briefing-item.is-complete .briefing-status-stamp i { position: relative; border: 2px solid var(--stamp-red); border-radius: 50%; }
+.daily-briefing-item.is-complete .briefing-status-stamp i:after { content: "처리"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--stamp-red); font: 800 6px/1 var(--disp); }
+.daily-briefing-item.is-closed { opacity: .58; }
+.briefing-item-copy { min-width: 0; }
+.briefing-item-copy time { display: block; color: var(--stamp-red); font: 800 9px/1.2 var(--disp); }
+.daily-briefing-item.is-unscheduled .briefing-item-copy time { color: var(--ink-faint); }
+.briefing-item-copy b { display: block; margin-top: 2px; overflow: hidden; color: var(--ink); font: 700 13px/1.3 var(--body); text-overflow: ellipsis; white-space: nowrap; }
+.briefing-item-copy small { display: block; margin-top: 2px; color: var(--ink-faint); font: 600 8px/1.2 var(--disp); }
+.daily-briefing-item.is-carried .briefing-item-copy small { color: var(--stamp-red); }
+.briefing-item-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.briefing-item-actions button, .briefing-followup button { padding: 5px 7px; border: 1px solid var(--doc-line); background: var(--paper); color: var(--ink-soft); font: 700 9px/1 var(--disp); }
+.briefing-followup { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin: 2px 0 0 58px; padding: 7px 8px; border-left: 2px solid var(--stamp-red); background: rgba(157, 47, 58, .055); }
+.briefing-followup span { flex: 1 0 100%; color: var(--ink-soft); font: 600 10px/1.3 var(--body); }
+.briefing-followup button:first-of-type { border-color: var(--stamp-red); background: var(--stamp-red); color: var(--ivory); }
+.daily-briefing-add { margin: 9px 0 0 22px; padding: 7px 9px; border: 1px dashed var(--doc-line); background: rgba(255, 255, 255, .32); color: var(--ink-soft); font: 700 11px/1 var(--disp); }
+.daily-briefing-add[hidden] { display: none; }
+@keyframes briefing-stamp { 0% { opacity: 0; transform: translateY(-8px) scale(1.45) rotate(-8deg); } 100% { opacity: 1; transform: translateY(0) scale(1) rotate(-3deg); } }
+.daily-briefing-item.just-stamped .briefing-status-stamp { animation: briefing-stamp .24s cubic-bezier(.2, .85, .3, 1) both; }
+.briefing-editor-overlay, .owner-backup-overlay { z-index: 90; display: grid; place-items: end center; padding: 18px; background: rgba(32, 25, 20, .42); }
+.briefing-editor-overlay { place-items: start center; padding: max(12px, env(safe-area-inset-top)) 8px 8px; overflow-y: auto; }
+.briefing-editor-overlay[hidden], .owner-backup-overlay[hidden] { display: none; }
+.briefing-editor, .owner-backup-dialog { position: relative; width: min(100%, 440px); padding: 22px 20px 18px; border: 1.5px solid var(--ink); border-radius: 3px 3px 0 0; background: var(--ivory); box-shadow: 5px 7px 0 rgba(32, 25, 20, .18); }
+.briefing-editor { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; scroll-padding-bottom: 76px; border-radius: 4px; }
+.briefing-editor > .of-clip, .owner-backup-dialog > .of-clip { top: -10px; left: 22px; transform: rotate(-5deg); }
+.briefing-editor header h2, .owner-backup-dialog header h2 { margin: 5px 0 0; color: var(--ink); font: 800 21px/1.25 var(--disp); }
+.briefing-editor header p, .owner-backup-dialog header p { margin: 5px 0 16px; color: var(--ink-soft); font: 600 12px/1.45 var(--body); }
+.briefing-editor > label:not(.briefing-ask-option), .owner-backup-dialog > label { display: grid; gap: 6px; margin-top: 12px; }
+.briefing-editor label > span, .owner-backup-dialog label > span { color: var(--ink); font: 800 11px/1 var(--disp); }
+.briefing-editor input[type="text"], .briefing-editor input[type="time"], .owner-backup-dialog input { width: 100%; min-height: 44px; padding: 10px 11px; border: 1px solid var(--doc-line); border-radius: 0; background: var(--paper); color: var(--ink); font: 600 15px/1.2 var(--body); }
+.briefing-time-field { display: grid; gap: 7px; min-width: 0; margin: 12px 0 0; padding: 0; border: 0; }
+.briefing-time-field legend { margin-bottom: 1px; color: var(--ink); font: 800 11px/1 var(--disp); }
+.briefing-time-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.briefing-time-mode label { position: relative; cursor: pointer; }
+.briefing-time-mode input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.briefing-time-mode span { display: grid; min-height: 38px; place-items: center; border: 1px solid var(--doc-line); background: rgba(255,255,255,.28); color: var(--ink-soft); font: 800 11px/1 var(--disp); }
+.briefing-time-mode input:checked + span { border-color: var(--stamp-red); background: rgba(157,47,58,.07); color: var(--stamp-red); box-shadow: inset 0 -2px 0 rgba(157,47,58,.18); }
+.briefing-time-field > input[type="time"]:disabled { display: none; }
+.briefing-time-field > small { color: var(--ink-faint); font: 600 9px/1.35 var(--body); }
+.briefing-editor label > small, .owner-backup-dialog label > small { color: var(--ink-faint); font: 600 9px/1.35 var(--body); }
+.briefing-ask-option { display: flex; gap: 10px; align-items: center; margin-top: 15px; padding: 10px; border: 1px solid var(--doc-line); background: var(--paper); cursor: pointer; }
+.briefing-ask-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.briefing-ask-option > i { position: relative; flex: 0 0 22px; width: 22px; height: 22px; border: 1.5px solid var(--doc-line); }
+.briefing-ask-option input:checked + i:after { content: "✓"; position: absolute; inset: -5px 0 0 2px; color: var(--stamp-red); font: 800 24px/1 var(--hand); transform: rotate(-7deg); }
+.briefing-ask-option span { min-width: 0; }
+.briefing-ask-option b { display: block; color: var(--ink); font: 800 12px/1.2 var(--disp); }
+.briefing-ask-option small { display: block; margin-top: 3px; color: var(--ink-soft); font: 600 10px/1.35 var(--body); }
+.briefing-editor-actions { display: grid; grid-template-columns: .8fr 1.2fr; gap: 8px; margin-top: 18px; }
+.briefing-editor-actions button { min-height: 45px; border: 1px solid var(--doc-line); background: var(--paper); color: var(--ink-soft); font: 800 12px/1 var(--disp); }
+.briefing-editor-actions button[type="submit"] { border-color: var(--stamp-red); background: var(--stamp-red); color: var(--ivory); }
+.briefing-editor .briefing-editor-actions { position: sticky; z-index: 2; bottom: -18px; margin-right: -20px; margin-left: -20px; padding: 10px 20px max(18px, env(safe-area-inset-bottom)); border-top: 1px solid rgba(83,69,51,.14); background: var(--ivory); }
+.cat-room-briefing-board {
+  position: absolute;
+  z-index: 6;
+  left: var(--board-x, 59%);
+  top: var(--board-y, 60.5%);
+  display: grid;
+  width: 10.2%;
+  aspect-ratio: 1;
+  place-content: center;
+  gap: 3px;
+  border: 0;
+  background: url("design/rooms/cat-briefing-board-empty.webp") center / contain no-repeat;
+  color: #fff4d7;
+  text-align: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.cat-room-briefing-board.is-dragging { z-index: 9; cursor: grabbing; filter: drop-shadow(0 3px 2px rgba(45,35,22,.22)); }
+.cat-room-briefing-board small { font: 400 6px/1 "Jua", var(--disp); text-shadow: 0 1px rgba(45,35,22,.24); }
+.cat-room-briefing-board b { font: 400 21px/.9 "Jua", var(--disp); text-shadow: 0 1px rgba(45,35,22,.24); }
+.cat-room-briefing-board span { font-size: 17px; line-height: 1; }
+.cat-room-briefing-board[hidden] { display: none; }
+html[data-cat-room-light="night-off"] .cat-room-briefing-board { filter: brightness(.66) saturate(.72); }
+.owner-file-backup { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 13px; padding: 12px; border: 1px dashed var(--doc-line); background: rgba(255, 255, 255, .3); }
+.owner-file-backup h2 { margin: 3px 0 0; color: var(--ink); font: 800 14px/1.2 var(--disp); }
+.owner-file-backup p { margin: 4px 0 0; color: var(--ink-soft); font: 600 9.5px/1.35 var(--body); }
+.owner-file-backup > div:last-of-type { display: flex; gap: 5px; }
+.owner-file-backup button { padding: 7px 8px; border: 1px solid var(--doc-line); background: var(--paper); color: var(--ink); font: 700 9px/1.2 var(--disp); }
+.owner-backup-status { min-height: 18px; margin: 10px 0 0; color: var(--stamp-red); font: 700 10px/1.4 var(--body); }
+@media (max-width: 370px) { .daily-briefing { margin-right: 12px; margin-left: 12px; padding-right: 10px; padding-left: 16px; } .daily-briefing > header { padding-left: 20px; } .daily-briefing-item { grid-template-columns: 52px minmax(0, 1fr); } .briefing-item-actions { grid-column: 2; justify-content: flex-start; } .briefing-followup { margin-left: 52px; } .owner-file-backup { grid-template-columns: 1fr; } .owner-file-backup > div:last-of-type { justify-content: stretch; } .owner-file-backup button { flex: 1; } }
+@media (prefers-reduced-motion: reduce) { .daily-briefing-item.just-stamped .briefing-status-stamp { animation: none; } }
+
+/* HOME briefing loop: one relevant sheet stays near the butler; the full list
+   only opens when requested, so FORM 01 remains the primary daily action. */
+#view-home .daily-briefing { margin: 8px 16px 3px; padding: 11px 12px 10px 19px; box-shadow: 2px 3px 0 rgba(45,35,22,.11); }
+#view-home .daily-briefing > header { align-items: center; padding-left: 18px; }
+#view-home .daily-briefing > header h2 { font-size: 16px; }
+#view-home .daily-briefing-toggle { position: absolute; top: 11px; right: 64px; padding: 4px 6px; border: 0; border-bottom: 1px solid var(--doc-line); background: transparent; color: var(--ink-faint); font: 700 8px/1 var(--disp); }
+#view-home .daily-briefing-list { margin-top: 6px; }
+#view-home .daily-briefing-item { min-height: 39px; padding-top: 4px; padding-bottom: 4px; }
+#view-home .daily-briefing:not(.is-expanded) .daily-briefing-item:not(:first-child),
+#view-home .daily-briefing:not(.is-expanded) .daily-briefing-add { display: none; }
+#view-home .daily-briefing:not(.is-expanded) .daily-briefing-item:first-child .briefing-item-actions button[data-briefing-action="edit"],
+#view-home .daily-briefing:not(.is-expanded) .daily-briefing-item:first-child .briefing-item-actions button[data-briefing-action="close"],
+#view-home .daily-briefing:not(.is-expanded) .daily-briefing-item:first-child .briefing-item-actions button[data-briefing-action="carry"] { display: none; }
+#view-home .daily-briefing-empty { padding: 6px 8px 4px 20px; }
+.briefing-item-actions span { align-self: center; color: var(--ink-faint); font: 700 8px/1 var(--disp); }
+.briefing-item-reaction { grid-column: 2 / -1; margin: 2px 0 3px; padding: 7px 8px; border-left: 2px solid #d9822f; background: rgba(217,130,47,.07); color: var(--ink-soft); font: 600 10px/1.4 var(--body); }
+.briefing-item-reaction b { margin-right: 5px; color: #d9822f; font: 700 11px/1 var(--hand); }
+.briefing-suggestion { margin: 8px 0 3px 20px; padding: 9px 10px; border-left: 2px solid var(--stamp-red); background: rgba(157,47,58,.055); }
+.briefing-suggestion[hidden] { display: none; }
+.briefing-suggestion p { margin: 0; color: var(--ink); font: 700 11px/1.35 var(--body); }
+.briefing-suggestion p span { display: block; margin-top: 2px; color: var(--ink-soft); font-weight: 600; }
+.briefing-suggestion div { display: flex; gap: 5px; margin-top: 7px; }
+.briefing-suggestion button { min-height: 30px; padding: 6px 8px; border: 1px solid var(--doc-line); background: var(--paper); color: var(--ink); font: 700 9px/1 var(--disp); }
+.briefing-suggestion button:first-child { border-color: var(--stamp-red); background: var(--stamp-red); color: var(--ivory); }
+.briefing-evening-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 4px 20px; padding: 8px 9px; border-top: 1px solid var(--doc-line); border-bottom: 1px solid var(--doc-line); background: rgba(255,255,255,.22); }
+.briefing-evening-summary[hidden] { display: none; }
+.briefing-evening-summary p { min-width: 0; margin: 0; }
+.briefing-evening-summary b { display: block; color: var(--stamp-red); font: 800 9px/1 var(--disp); letter-spacing: .08em; }
+.briefing-evening-summary span { display: block; margin-top: 4px; color: var(--ink); font: 800 11px/1.2 var(--disp); }
+.briefing-evening-summary small { display: block; margin-top: 3px; color: var(--ink-soft); font: 600 9px/1.35 var(--body); }
+.briefing-evening-summary button { flex: none; min-height: 34px; padding: 7px 9px; border: 1px solid var(--stamp-red); background: var(--paper); color: var(--stamp-red); font: 800 9px/1.15 var(--disp); }
+.briefing-story-context { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 7px 0 9px; padding: 9px 10px; border: 1px solid rgba(157,47,58,.2); border-left: 3px solid var(--stamp-red); background: rgba(157,47,58,.06); }
+.briefing-story-context[hidden] { display: none; }
+.briefing-story-context span { min-width: 0; }
+.briefing-story-context small { display: block; color: var(--stamp-red); font: 800 9px/1 var(--disp); letter-spacing: .06em; }
+.briefing-story-context b { display: block; margin-top: 4px; overflow: hidden; color: var(--ink); font: 750 13px/1.2 var(--body); text-overflow: ellipsis; white-space: nowrap; }
+.briefing-story-context button { flex: none; width: 28px; height: 28px; border: 0; background: transparent; color: var(--ink-faint); font-size: 19px; }
+.owner-story-bundle {
+  margin: 2px 4px 4px 44px;
+  border: 1px solid rgba(83, 69, 51, .18);
+  border-left: 3px solid #d9822f;
+  border-radius: 2px;
+  background: rgba(255, 250, 240, .46);
+}
+.owner-story-bundle summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  list-style: none;
+}
+.owner-story-bundle summary::-webkit-details-marker { display: none; }
+.owner-story-bundle summary span { font: 750 11px/1.2 var(--disp); }
+.owner-story-bundle summary b { margin-left: 6px; color: var(--stamp-red); font: 800 10px/1 var(--disp); }
+.owner-story-bundle summary small { margin-left: auto; color: var(--ink-faint); font: 700 9px/1 var(--disp); }
+.owner-story-bundle summary small::before { content: "펼쳐보기 ↓"; }
+.owner-story-bundle[open] summary small::before { content: "접기 ↑"; }
+.owner-story-bundle ul { margin: 0 11px 10px; padding: 8px 0 0; border-top: 1px dashed var(--doc-line); list-style: none; }
+.owner-story-note { margin: 0; padding: 7px 2px; color: var(--ink); font: 550 12px/1.45 var(--body); word-break: keep-all; }
+.owner-story-note + .owner-story-note { border-top: 1px solid rgba(83, 69, 51, .09); }
+@media (max-width: 370px) {
+  #view-home .daily-briefing { margin-right: 12px; margin-left: 12px; padding-left: 15px; }
+  #view-home .daily-briefing-toggle { right: 57px; }
+  .briefing-item-reaction { grid-column: 1 / -1; }
+  .owner-story-bundle { margin-right: 0; margin-left: 24px; }
+  .owner-story-bundle summary { padding-inline: 10px; }
+}
+@media (max-width: 430px) {
+  .briefing-editor-overlay { place-items: start center; padding: max(8px, env(safe-area-inset-top)) 8px 8px; }
+  .briefing-editor { max-height: calc(100dvh - 16px); padding: 18px 16px 0; }
+  .briefing-editor header p { margin-bottom: 10px; }
+  .briefing-editor .briefing-editor-actions { bottom: 0; margin-right: -16px; margin-left: -16px; padding-right: 16px; padding-left: 16px; }
+  .briefing-evening-summary { align-items: stretch; flex-direction: column; margin-left: 16px; }
+  .briefing-evening-summary button { width: 100%; }
+
+  .daily-briefing-item {
+    grid-template-columns: 52px minmax(0, 1fr);
+    column-gap: 8px;
+  }
+
+  .briefing-item-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .briefing-item-actions button {
+    min-height: 30px;
+    padding-inline: 9px;
+  }
+
+  .briefing-followup {
+    margin-left: 52px;
+  }
+
+  #daily-briefing:has(#daily-briefing-toggle[aria-expanded="false"])
+  .daily-briefing-list {
+    margin-top: 2px;
+  }
+
+  #daily-briefing:has(#daily-briefing-toggle[aria-expanded="false"])
+  .daily-briefing-item {
+    padding-block: 2px;
+  }
+}
+
+/* 일정 추가는 접힌 브리핑에서도 사라지지 않아야 한다. */
+#view-home .daily-briefing .daily-briefing-add:not([hidden]) {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  display: block;
+  margin: 0;
+  padding: 4px 7px;
+  border-style: solid;
+  font-size: 9px;
+}
+
+#view-home .daily-briefing .daily-briefing-add[hidden] {
+  display: none;
+}
+
+/* CAT briefing: keep compact controls clear of the count stamp. */
+#view-home .daily-briefing-toggle {
+  top: 4px;
+  right: 8px;
+  padding: 2px 5px;
+}
+
+#view-home .daily-briefing .daily-briefing-add:not([hidden]) {
+  position: relative;
+  top: auto;
+  right: auto;
+  display: block;
+  width: calc(100% - 22px);
+  min-height: 38px;
+  margin: 11px 0 1px 22px;
+  padding: 8px 12px;
+  border: 1px solid var(--stamp-red);
+  background: var(--stamp-red);
+  color: var(--ivory);
+  font-size: 12px;
+  letter-spacing: .02em;
+  box-shadow: 2px 2px 0 rgba(45, 35, 22, .16);
+}
+
+/* Let the butler's reply sit across the desk edge instead of below the room. */
+#home-butler-room #cat-home-speech {
+  position: relative;
+  z-index: 8;
+  margin-top: -24px;
+}
+
+/* Separate plans from lived moments without adding another card or tab. */
+#daily-briefing:not([hidden]) ~ .home-hero {
+  padding-top: 20px;
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero > #entry-kicker {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--stamp-red);
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .13em;
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero > #entry-kicker::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(157, 47, 58, .25);
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero h1 {
+  margin-top: 7px;
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero #entry-description {
+  margin-top: 4px;
+}
+
+/* Morning keeps clear daylight while retaining a little of the room's warmth. */
+#cat-home-room .cat-home-background[style*="cat-office-time-morning.webp"] {
+  filter: brightness(1.12) saturate(1.06) sepia(0.06);
+}
+
+/* ═══════════ QA 수리 라운드 1 (2026-08-24) ═══════════ */
+
+/* 결과서 종이가 화면을 뚫던 버그.
+   브리핑 배너가 width: max-content(줄바꿈 무시 폭)로 뻗고, 오버레이가 flex라
+   modal의 min-width:auto가 그 내용 폭(400px+)을 이겨서 종이째로 부풀었다.
+   배너 제목이 길수록 오른쪽 변·승인 도장·FORM 라벨이 잘려 나갔다. */
+.praise-result-modal { min-width: 0; }
+.result-briefing-origin {
+  width: fit-content;
+  max-width: calc(100% - 30px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 온보딩 복구 링크 — 발령서 각주 아래 한 줄. 버튼이 아니라 서류 끝의 안내문처럼 */
+.assignment-restore-link {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft, #7a6c5c);
+  font: 500 12px/1.4 var(--body, sans-serif);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ═══════════ QA 수리 라운드 2 (2026-08-24) ═══════════ */
+
+/* 팬 힌트가 책상 위 명패 그림을 정통으로 덮고 있었다. 방을 처음 보는 사람에게
+   가장 먼저 읽혀야 할 소품이 안내 문구에 가리는 셈이라, 힌트를 창구 명패
+   바로 아래로 올린다. 그 자리는 창틀 위 벽이라 가릴 소품이 없다. */
+#view-home .room-pan-hint {
+  top: 54px;
+  bottom: auto;
+}
+
+/* 홈 세로 압축 — 첫 화면에서 접수 입력칸이 통째로 하단 네비에 가려 있었다.
+   방·브리핑·머리글에서 조금씩 걷어내 입력칸 윗동이 접히는 선 위로 올라오게
+   한다. 방은 세계관의 얼굴이라 마지막에, 가장 적게 줄였다. */
+#view-home #cat-home-room {
+  height: clamp(228px, 30vh, 264px);
+}
+
+#home-butler-room #cat-home-speech {
+  margin-top: -30px;
+}
+
+/* 일정이 하나도 없는 날의 브리핑은 안내 두 줄과 버튼뿐인데 자리를 크게 먹었다.
+   빈 상태에서만 조인다 — 일정이 들어차면 원래 여백으로 돌아간다. */
+#view-home .daily-briefing:has(.daily-briefing-empty) {
+  padding-top: 9px;
+  padding-bottom: 8px;
+}
+
+#view-home .daily-briefing:has(.daily-briefing-empty) .daily-briefing-empty {
+  padding-top: 4px;
+  padding-bottom: 2px;
+}
+
+#view-home .daily-briefing:has(.daily-briefing-empty) .daily-briefing-add:not([hidden]) {
+  min-height: 34px;
+  margin-top: 8px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero {
+  padding-top: 13px;
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero h1 {
+  margin-top: 4px;
+}
+
+#view-home .entry-form {
+  margin-top: 6px;
+}
+
+/* 360/390 첫 화면에서도 오늘 이야기 입력칸이 고정 메뉴 뒤로 숨지 않게 한다. */
+@media (max-width: 390px) and (max-height: 850px) {
+  #view-home .home-office-header {
+    min-height: 60px;
+    margin-bottom: 3px;
+  }
+
+  #view-home #cat-home-room {
+    height: clamp(216px, 27vh, 240px);
+  }
+
+  #home-butler-room #cat-home-speech {
+    margin-top: -36px;
+  }
+
+  #view-home .daily-briefing {
+    margin-top: 5px;
+  }
+
+  #daily-briefing:not([hidden]) ~ .home-hero {
+    padding-top: 8px;
+  }
+
+  #view-home .entry-form {
+    margin-top: 2px;
+  }
+}
+
+/* ═══════════ HOME briefing compact pass (2026-08-24) ═══════════
+   The butler owns the moment; the sheet only keeps the remaining paperwork.
+   Completed work stays available behind one deliberate disclosure. */
+#view-home .daily-briefing {
+  padding: 12px 12px 11px 19px;
+  background:
+    linear-gradient(90deg, transparent 0 33px, rgba(157, 47, 58, .18) 33px 34px, transparent 34px),
+    var(--ivory);
+}
+
+#view-home .daily-briefing > header {
+  padding-left: 18px;
+}
+
+#view-home .daily-briefing > header h2,
+#view-home .briefing-completed-head b,
+#view-home .briefing-item-copy b,
+#view-home .briefing-completed-item > b {
+  color: var(--ink-soft);
+}
+
+#view-home .daily-briefing > header > b {
+  padding: 3px 0;
+  border: 0;
+  color: var(--stamp-red);
+  font-size: 9px;
+  transform: none;
+}
+
+#view-home .daily-briefing-toggle {
+  position: static;
+  display: block;
+  min-height: 32px;
+  margin: -3px 0 1px auto;
+  padding: 7px 2px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--doc-line);
+  background: transparent;
+  color: var(--ink-faint);
+  font: 700 9px/1 var(--disp);
+}
+
+#view-home .daily-briefing-list {
+  gap: 0;
+  margin-top: 3px;
+}
+
+#view-home .daily-briefing-item {
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 7px;
+  min-height: 54px;
+  padding: 5px 4px 5px 6px;
+}
+
+#view-home .briefing-status-stamp {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+#view-home .briefing-item-copy time {
+  margin-bottom: 2px;
+  font-size: 9px;
+}
+
+#view-home .briefing-item-copy b {
+  margin-top: 0;
+  font-size: 14px;
+}
+
+#view-home .briefing-item-actions {
+  grid-column: 2;
+  justify-content: flex-start;
+  gap: 5px;
+}
+
+#view-home .briefing-item-actions button,
+#view-home .briefing-followup button {
+  min-height: 40px;
+  padding: 8px 10px;
+  font-size: 9px;
+}
+
+#view-home .briefing-followup {
+  margin-left: 46px;
+  padding: 7px;
+}
+
+#view-home .briefing-item-reaction {
+  display: none;
+}
+
+#view-home .briefing-evening-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin: 5px 0 3px 18px;
+  padding: 7px 0;
+  border-top: 1px solid var(--doc-line);
+  border-bottom: 0;
+  background: transparent;
+}
+
+#view-home .briefing-evening-summary span {
+  margin-top: 3px;
+  font: 700 10px/1.35 var(--body);
+}
+
+#view-home .briefing-evening-summary p {
+  width: auto;
+  min-width: 0;
+}
+
+#view-home .briefing-evening-summary button {
+  width: auto;
+  min-height: 40px;
+  padding: 8px 9px;
+}
+
+#view-home .briefing-completed-group {
+  margin: 5px 0 2px 18px;
+  border-top: 1px solid rgba(83, 69, 51, .14);
+}
+
+#view-home .briefing-completed-head {
+  min-height: 48px;
+  padding: 9px 4px 7px;
+  color: var(--ink);
+}
+
+#view-home .briefing-completed-head b,
+#view-home .briefing-completed-head small {
+  display: block;
+}
+
+#view-home .briefing-completed-head b {
+  font: 800 13px/1.2 var(--disp);
+}
+
+#view-home .briefing-completed-head small {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font: 650 10px/1.3 var(--body);
+}
+
+#view-home .briefing-completed-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 4px 7px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+#view-home .briefing-completed-toggle span {
+  min-width: 0;
+}
+
+#view-home .briefing-completed-toggle b,
+#view-home .briefing-completed-toggle small {
+  display: block;
+}
+
+#view-home .briefing-completed-toggle b {
+  font: 800 12px/1.2 var(--disp);
+}
+
+#view-home .briefing-completed-toggle small {
+  margin-top: 3px;
+  color: var(--ink-faint);
+  font: 600 9px/1.25 var(--body);
+}
+
+#view-home .briefing-completed-toggle i {
+  flex: none;
+  color: var(--stamp-red);
+  font: 800 9px/1 var(--disp);
+  font-style: normal;
+}
+
+#view-home .briefing-completed-list[hidden] {
+  display: none;
+}
+
+#view-home .briefing-completed-item {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  min-height: 44px;
+  padding: 4px 2px;
+  border-top: 1px dashed rgba(83, 69, 51, .14);
+  color: var(--ink-soft);
+}
+
+#view-home .briefing-completed-item > span {
+  color: var(--stamp-red);
+  font: 800 15px/1 var(--hand);
+}
+
+#view-home .briefing-completed-item > b {
+  overflow: hidden;
+  color: var(--ink);
+  font: 700 14px/1.3 var(--body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#view-home .briefing-completed-item > small {
+  color: var(--ink-faint);
+  font: 700 8px/1 var(--disp);
+}
+
+#view-home .briefing-completed-item > button {
+  min-height: 38px;
+  padding: 7px 8px;
+  border: 1px solid rgba(83, 69, 51, .48);
+  background: #fffaf0;
+  color: var(--ink);
+  font: 800 9px/1 var(--disp);
+}
+
+#view-home .daily-briefing .daily-briefing-add:not([hidden]) {
+  width: calc(100% - 18px);
+  min-height: 44px;
+  margin: 9px 0 0 18px;
+  padding: 10px 12px;
+  border-style: solid;
+  border-radius: 5px;
+  border-color: rgba(157, 47, 58, .38);
+  background: var(--stamp-red);
+  color: var(--ivory);
+  font-size: 11px;
+}
+
+#view-home .daily-briefing:not(.is-expanded) .briefing-completed-group {
+  display: block;
+}
+
+#view-home .daily-briefing:not(.is-expanded) .briefing-completed-list {
+  display: none;
+}
+
+#view-home .daily-briefing:not(.is-expanded) .daily-briefing-item:first-child .briefing-item-actions {
+  display: none;
+}
+
+@media (max-width: 370px) {
+  #view-home .daily-briefing-item {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  #view-home .briefing-item-actions,
+  #view-home .briefing-followup {
+    grid-column: 2;
+    margin-left: 0;
+  }
+}
+
+/* Restore the owner-approved HOME crop from 2cd3159. The later compact-height
+   override made the unchanged cat coordinates look enlarged and too high. */
+#view-home #cat-home-room {
+  height: clamp(260px, 34vh, 300px);
+}
+
+#home-butler-room #cat-home-speech {
+  margin-top: -24px;
+}
+
+#view-home .daily-briefing-toggle {
+  color: var(--ink-soft);
+  font-size: 10px;
+}
+
+#view-home .briefing-item-actions button,
+#view-home .briefing-followup button {
+  border-color: rgba(83, 69, 51, .5);
+  background: #fffaf0;
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: 1px 1px 0 rgba(45, 35, 22, .08);
+}
+
+#view-home .briefing-followup {
+  background: rgba(157, 47, 58, .07);
+  color: var(--ink);
+}
+
+#view-home .briefing-followup span {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+#view-home .briefing-followup button:first-of-type {
+  border-color: var(--stamp-red);
+  background: var(--stamp-red);
+  color: var(--ivory);
+}
+
+#daily-briefing:not([hidden]) ~ .home-hero {
+  padding-top: 30px;
+}
+
+#view-home .report-button {
+  outline: none;
+}
+
+#view-home .briefing-editor-actions:has(#briefing-editor-delete:not([hidden])) {
+  grid-template-columns: .8fr .8fr 1.2fr;
+}
+
+#view-home #briefing-editor-delete {
+  color: var(--stamp-red);
+}
+
+/* 고양이에게 직접 건네면 한 번만 뜨는 작은 수령 하트. */
+.gift-heart-pop {
+  position: fixed;
+  z-index: 150;
+  color: var(--stamp-red);
+  font: 900 28px/1 var(--disp);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(.7) rotate(-8deg);
+  text-shadow: 0 2px 0 rgba(255, 250, 240, .9);
+  animation: gift-heart-receive .68s ease-out both;
+}
+
+@keyframes gift-heart-receive {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.65) rotate(-8deg); }
+  35% { opacity: 1; transform: translate(-50%, -55%) scale(1.08) rotate(4deg); }
+  100% { opacity: 0; transform: translate(-50%, -105%) scale(.92) rotate(-2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gift-heart-pop { animation: none; opacity: 1; }
+}
+
+/* Briefing rows use a single paperwork line: stamp, title, two compact actions. */
+#view-home .daily-briefing-item {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 8px;
+  min-height: 47px;
+  padding: 5px 2px 5px 6px;
+}
+
+#view-home .briefing-status-stamp {
+  min-width: 32px;
+  min-height: 32px;
+  margin-left: 8px;
+}
+
+#view-home .briefing-status-stamp i {
+  width: 24px;
+  height: 24px;
+  border: 1.5px dashed rgba(83,69,51,.42);
+  border-radius: 2px;
+  background: rgba(255,255,255,.28);
+  box-shadow: inset 0 -2px 0 rgba(83,69,51,.07);
+}
+
+#view-home .briefing-item-copy b { font-size: 13.5px; }
+
+#view-home .briefing-item-actions {
+  grid-column: 3;
+  flex-wrap: nowrap;
+  align-self: center;
+  gap: 5px;
+}
+
+#view-home .briefing-item-actions button {
+  min-height: 31px;
+  padding: 6px 9px;
+  border: 1px solid #c8b89f;
+  border-radius: 5px;
+  background: #f7efe2;
+  color: #756756;
+  box-shadow: inset 0 -2px 0 #dfd1bc, 1px 1px 0 rgba(45,35,22,.08);
+  font: 800 9px/1 var(--disp);
+}
+
+#view-home .briefing-completed-item {
+  grid-template-columns: 38px minmax(0, 1fr);
+  min-height: 42px;
+}
+
+#view-home .briefing-completed-item > .briefing-completed-stamp {
+  display: grid;
+  width: 31px;
+  height: 23px;
+  place-items: center;
+  border: 2px double var(--stamp-red);
+  border-radius: 50%;
+  color: var(--stamp-red);
+  font: 800 8px/1 var(--disp);
+  transform: rotate(-5deg);
+}
+
+body:has(.briefing-editor-overlay:not([hidden])) #toast {
+  z-index: 140;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  bottom: auto;
+}
+
+/* 접수 창구로 내려가는 단서. 고양이 홈에는 이게 없었다 — 첫 대업 안내 버튼은
+   집사 응답 카드 안에 있는데 그 카드는 방이 대신하느라 숨겨져 있어서다.
+   블록을 새로 얹지 않으려고 머리글 자체를 누를 수 있게 하고, 눌리는 곳이라는
+   표시만 제목 옆에 붙였다. */
+#view-home .home-hero h1 {
+  cursor: pointer;
+}
+
+#view-home .home-hero h1::after {
+  content: "↓";
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--stamp-red);
+  font-size: .62em;
+  font-weight: 800;
+  vertical-align: 0.14em;
+  opacity: .75;
+  transform: translateY(0);
+  transition: transform .25s ease, opacity .25s ease;
+}
+
+#view-home .home-hero h1:active::after {
+  transform: translateY(3px);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #view-home .home-hero h1::after { transition: none; }
+}
+
+/* CAT core loop: the room rewards first, briefing stays a compact side task,
+   and FORM 01 remains the unmistakable primary action. */
+#view-home .daily-briefing[hidden] { display: none !important; }
+
+#daily-briefing:not([hidden]) ~ .home-hero {
+  padding-top: 12px;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 10px;
+  padding-bottom: 9px;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) > header,
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) > .briefing-suggestion,
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) > .briefing-evening-summary {
+  grid-column: 1 / -1;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-list {
+  display: none;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-toggle {
+  grid-column: 1;
+  justify-self: start;
+  min-height: 30px;
+  margin: 0 0 0 35px;
+  padding: 6px 2px 3px;
+}
+
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-add {
+  display: block;
+  grid-column: 2;
+  justify-self: end;
+  width: auto;
+  min-height: 31px;
+  margin: 0;
+  padding: 6px 11px;
+  border: 1px solid #c8b89f;
+  border-radius: 5px;
+  background: #f7efe2;
+  color: #756756;
+  box-shadow: inset 0 -2px 0 #dfd1bc, 1px 1px 0 rgba(45,35,22,.08);
+  font: 800 9px/1 var(--disp);
+}
+
+#view-home .daily-briefing.is-empty .daily-briefing-empty {
+  padding-block: 7px;
+}
+
+#view-home .briefing-ask-option.is-disabled {
+  opacity: .48;
+}
+
+#view-home .home-hero h1[role="button"] {
+  scroll-margin-top: 12px;
+  outline: none;
+}
+
+#view-home .home-hero h1[role="button"]::after {
+  content: "적기 ↓";
+  margin-left: 9px;
+  padding: 5px 7px 4px;
+  border: 1px solid rgba(157,47,58,.35);
+  border-radius: 4px;
+  background: rgba(255,250,240,.72);
+  font: 800 9px/1 var(--disp);
+  vertical-align: .3em;
+}
+
+#view-home .home-hero h1[role="button"]:focus-visible {
+  outline: 2px solid rgba(157,47,58,.5);
+  outline-offset: 5px;
+}
+
+#view-home .entry-form {
+  scroll-margin-top: 10px;
+}
+
+/* CAT manager progressive disclosure. Other characters never receive the
+   compact class, so their existing manager layout is untouched. */
+.manager-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 42px;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid var(--doc-line);
+  border-radius: 5px;
+  background: #f7efe2;
+  color: var(--ink-soft);
+  box-shadow: inset 0 -2px 0 #dfd1bc, 1px 1px 0 rgba(45,35,22,.08);
+  font: 800 11px/1 var(--disp);
+}
+
+.manager-more-toggle[hidden] { display: none; }
+.manager-more-toggle span { color: var(--stamp-red); }
+
+.cat-manager-compact .manager-stats,
+.cat-manager-compact .stages-card {
+  display: none;
+}
+
+/* First five minutes: assignment should introduce the cat and start the
+   relationship, not ask a new user to study an HR table. The same facts are
+   available later in the butler file. */
+.assignment-document .personnel-facts {
+  display: none;
+}
+
+.assignment-document .assignment-copy {
+  margin-top: 8px;
+  margin-bottom: 10px;
+  line-height: 1.48;
+}
+
+.assignment-document .primary-button {
+  margin-top: 12px;
+  min-height: 54px;
+  box-shadow: inset 0 -3px 0 rgba(45,35,22,.24), 2px 3px 0 rgba(45,35,22,.12);
+}
+
+.assignment-document .secondary-button,
+.assignment-document #assignment-restore {
+  min-height: 36px;
+  margin-top: 7px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink-faint);
+  box-shadow: none;
+  font-size: 10px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* A newly handed toy should read as the owner's gift, not as unexplained
+   background decoration. The note appears once and leaves no permanent UI. */
+.cat-room-gift.room-desk-toy.just-placed::after {
+  content: "주인님 선물";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  width: max-content;
+  padding: 4px 6px 3px;
+  border: 1px solid rgba(157,47,58,.38);
+  border-radius: 3px;
+  background: rgba(255,250,240,.94);
+  color: var(--stamp-red);
+  font: 800 8px/1 var(--disp);
+  pointer-events: none;
+  transform: translate(-50%, 5px);
+  animation: cat-gift-origin-note 1.55s ease-out both;
+}
+
+@keyframes cat-gift-origin-note {
+  0% { opacity: 0; transform: translate(-50%, 7px); }
+  18%, 72% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-room-gift.room-desk-toy.just-placed::after { animation-duration: .01ms; }
+}
+
+/* HOME P0 mobile fit: keep each briefing row on one paperwork line at 360px,
+   but do not shrink its two actions into unreadable 9px controls. */
+@media (max-width: 370px) {
+  #view-home .daily-briefing-item {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    column-gap: 6px;
+    padding-right: 1px;
+    padding-left: 4px;
+  }
+
+  #view-home .briefing-status-stamp {
+    min-width: 36px;
+    min-height: 36px;
+    margin-left: 1px;
+  }
+
+  #view-home .briefing-item-actions {
+    gap: 4px;
+  }
+
+  #view-home .briefing-item-actions button {
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+}
+
+/* Keep the CAT reception-slip clip clear of the first text line. */
+#cat-home-speech-paper {
+  padding-left: 40px !important;
+}
+
+/* ═══════════ 출시 심사 수리 (2026-08-31) ═══════════ */
+
+/* 일정이 딱 하나일 때 홈에서 그 일정을 볼 수도 완료할 수도 없었다.
+   접힌 브리핑은 목록을 통째로 숨기는데, 항목이 하나면 「목록 보기」 버튼까지
+   같이 숨는 옛 규칙이 남아 있었다. 옛 레이아웃에서는 한 건짜리 목록이 늘
+   펼쳐져 있어 손잡이가 군더더기였고, 그때는 맞는 규칙이었다. 목록을 접게
+   바꾸면서 그 전제가 사라졌는데 규칙만 남아 막다른 길이 됐다.
+
+   목록을 도로 펴는 대신 손잡이를 살렸다 — 한 건을 펴 두면 접수 입력칸이
+   접히는 선 아래로 내려가는데(360px에서 694→772px), 브리핑은 곁일이고
+   FORM 01이 주역이라는 이 화면의 원칙과 어긋난다. 위쪽 미디어 블록의
+   :only-child 숨김 규칙을 걷어내는 것으로 끝냈다 — 아이디 셋짜리 규칙이라
+   덮어쓰기보다 지우는 편이 정직하다. */
+
+/* 어떤 선물이 방에 남는지 사기 전에 보이게 한다. 지금까지는 건네준 뒤에야
+   각주로 알려줘서, 참치캔을 고른 사람은 방이 그대로인 이유를 알 수 없었다. */
+.gift-desk-overlay .gift-shelf-item .gift-shelf-desk-note {
+  order: 9;
+  margin-top: 3px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: rgba(147, 19, 46, .08);
+  color: var(--stamp-red);
+  font: 800 8px/1.2 var(--disp);
+  letter-spacing: .01em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 지난 날짜의 서류 묶음. 일기는 접지 않으므로 이 손잡이는 서류·편지 앞에만 선다. */
+.file-date-fold { margin: 0; }
+.file-date-fold > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 2px 0 4px;
+  padding: 9px 11px;
+  border: 1px dashed var(--doc-line);
+  background: rgba(255, 250, 242, .5);
+  color: var(--ink-soft);
+  font: 700 11px/1 var(--disp);
+  cursor: pointer;
+  list-style: none;
+}
+.file-date-fold > summary::-webkit-details-marker { display: none; }
+.file-date-fold > summary b { color: var(--stamp-red); font: 800 11px/1 var(--disp); }
+.file-date-fold > summary span::after { content: " ▾"; color: var(--ink-faint); }
+.file-date-fold[open] > summary span::after { content: " ▴"; }
+.file-date-fold[open] > summary { border-style: solid; }
+
+/* ═══════════ 파일 권(卷) — 제본 확인서 (2026-08-31) ═══════════ */
+
+/* 한 권이 닫힌 자리에 서는 문서. 날짜 그룹 사이에 끼므로 카드보다 낮고 어두워야
+   "여기서 한 권이 끝났다"로 읽힌다. 금박 없음 — 축하가 아니라 절차다. */
+.file-volume-binding {
+  position: relative;
+  margin: 16px 2px 18px;
+  padding: 13px 14px 11px 22px;
+  border: 1px solid rgba(83, 69, 51, .45);
+  border-left: 4px solid var(--ink);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(83, 69, 51, .07) 26px 27px),
+    #efe6d4;
+  box-shadow: 3px 4px 0 rgba(45, 35, 22, .16);
+}
+.file-volume-binding small {
+  display: block;
+  color: var(--stamp-red);
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .3em;
+}
+.file-volume-binding b {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink);
+  font: 800 15px/1.25 var(--disp);
+}
+.file-volume-binding p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font: 600 11px/1.4 var(--body);
+}
+.file-volume-binding-note {
+  display: block;
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(83, 69, 51, .3);
+  color: var(--ink-faint);
+  font: 600 10px/1.3 var(--body);
+}
+/* 제본 실 — 왼쪽 변에 꿰맨 자국. 장식은 이 한 줄로 끝낸다. */
+.file-volume-binding-stitch {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: 0;
+  border-left: 2px dashed rgba(83, 69, 51, .4);
+}
+
+
+/* ═══════════ 시각 정돈 라운드 (2026-08-31) ═══════════ */
+
+/* 접수 버튼 부제가 자간 .18em로 부풀어 점선 틀에 눌려 있었다. 자간을 낮추고
+   위아래 숨통을 튼다 — 부제는 읽히면 되지, 눌리면 안 된다. */
+#view-home .report-button small {
+  margin-top: 4px;
+  font-size: 8.5px;
+  letter-spacing: .06em;
+}
+#view-home .report-button .report-ticket-inner { padding: 8px 0 7px; }
+
+/* 안내문이 가운데 정렬 + 아무데서나 줄바꿈이라 「정/상 지급」으로 갈라졌다.
+   단어 단위로만 자른다. */
+#view-home .form-note { word-break: keep-all; }
+
+/* 접힌 브리핑의 「목록 보기」가 밑줄 텍스트라 버튼으로 안 읽혔다.
+   옆의 「+ 일정 적기」와 같은 문법의 낮은 단추로 맞춘다. */
+#view-home .daily-briefing:not(.is-expanded):not(.is-empty) .daily-briefing-toggle {
+  min-height: 31px;
+  margin: 0;
+  padding: 6px 11px;
+  border: 1px solid #d3c4ab;
+  border-radius: 5px;
+  background: rgba(255, 250, 242, .6);
+  color: #756756;
+  font: 800 9px/1 var(--disp);
+  box-shadow: inset 0 -2px 0 rgba(223, 209, 188, .6);
+}
+
+/* 미완료 도장칸이 그냥 빈 점선 상자라 눌러서 완료한다는 게 안 보였다.
+   완료 도장이 앉을 자리라는 힌트를 흐린 원으로 미리 그려 둔다. */
+.daily-briefing-item:not(.is-complete) .briefing-status-stamp i {
+  position: relative;
+  border-radius: 50%;
+  border-style: dashed;
+}
+.daily-briefing-item:not(.is-complete) .briefing-status-stamp i:after {
+  content: "완료";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  font: 800 6px/1 var(--disp);
+  opacity: .55;
+}
+
+/* ═══════════ 사무국 행사 통보 (2026-08-31) ═══════════ */
+
+/* 제본 확인서와 같은 문법의 사무 문서. 구분은 왼쪽 변 색 하나로 한다 —
+   제본은 먹(파일 자체의 일), 행사는 감청(사무국이 보낸 것). 금박 없음. */
+.office-event-note {
+  position: relative;
+  margin: 14px 2px 16px;
+  padding: 12px 14px 10px 18px;
+  border: 1px solid rgba(72, 92, 112, .4);
+  border-left: 4px solid #4a6076;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(72, 92, 112, .05) 26px 27px),
+    #eef0f2;
+  box-shadow: 3px 4px 0 rgba(45, 55, 66, .13);
+}
+.office-event-note small {
+  display: block;
+  color: #4a6076;
+  font: 800 9px/1 var(--disp);
+  letter-spacing: .3em;
+}
+.office-event-note b {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink);
+  font: 800 14px/1.3 var(--disp);
+}
+.office-event-note p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font: 600 11px/1.4 var(--body);
+}
+.office-event-note-line {
+  display: block;
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(72, 92, 112, .28);
+  color: #6b7a88;
+  font: 600 10px/1.3 var(--body);
+}
+/* 표창은 감사보다 드물다 — 같은 문서인데 한 겹만 더 진하다. */
+.office-event-note[data-office-event="commendation"] { border-left-color: #7a1e30; }
+.office-event-note[data-office-event="commendation"] small { color: #7a1e30; }
+
+/* 계절 품목 표시 — 「책상에 놓임」과 같은 자리 문법이되 색으로 갈라 둔다.
+   행사 문서(감청)와 같은 계열이라 이 배지도 감청을 쓴다. */
+.gift-desk-overlay .gift-shelf-item .gift-shelf-season-note {
+  order: 9;
+  margin-top: 3px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: rgba(74, 96, 118, .1);
+  color: #4a6076;
+  font: 800 8px/1.2 var(--disp);
+  letter-spacing: .01em;
+  white-space: nowrap;
+  pointer-events: none;
+}

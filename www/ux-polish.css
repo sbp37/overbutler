@@ -1,0 +1,690 @@
+/* UX polish pass — shared layout, typography, and character rules */
+:root {
+  --ui-font: "Wanted Sans Variable", "Wanted Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --character-column: 120px;
+  --character-height: 224px;
+  --surface-strong: #fffdf9;
+  --surface-soft: #f7f0e7;
+  --content-gap: 14px;
+}
+
+button,
+input,
+textarea,
+select { font-size: max(16px, 1em); }
+
+.document-card,
+.archive-workspace,
+.gift-desk-sheet {
+  box-shadow: 0 5px 14px rgba(70, 48, 37, .055);
+}
+
+/* HOME — one welcoming butler and one speech bubble. */
+#view-home [hidden] { display: none !important; }
+
+#view-home .briefing-character > span,
+#view-home .briefing-panel > small,
+#view-home .butler-role,
+#view-home .home-relationship-status,
+#view-home .briefing-status,
+#view-home .briefing-refresh,
+#view-home .first-deed-guide {
+  display: none !important;
+}
+
+#view-home .briefing-stage {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+  min-height: 218px;
+  padding: 37px 14px 10px;
+  overflow: hidden;
+}
+
+#view-home .briefing-stage::before { display: none; }
+#view-home .briefing-index { left: 14px; top: 11px; padding: 4px 8px; font-size: 10px; }
+#view-home .hero-paperclip { display: none; }
+
+#view-home .briefing-character {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  align-self: end;
+  width: 132px;
+  height: 171px;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+#view-home .briefing-character::after {
+  left: 15px;
+  right: 15px;
+  bottom: 3px;
+}
+
+#view-home .briefing-character img {
+  width: 100%;
+  height: 171px;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+#view-home .briefing-panel {
+  position: relative;
+  margin: 0;
+  padding: 15px 0 8px;
+  min-width: 0;
+  align-self: center;
+}
+
+#view-home .briefing-panel h1 {
+  margin: 0 0 10px;
+  font-size: 21px;
+  line-height: 1.15;
+}
+
+#view-home .briefing-speech {
+  position: relative;
+  min-height: 68px;
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid #d2c2b2;
+  border-radius: 4px 13px 13px 13px;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(70, 48, 37, .05);
+  font-size: 15px;
+  font-weight: 680;
+  line-height: 1.42;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+#view-home .briefing-speech::before {
+  content: "";
+  position: absolute;
+  display: block;
+  left: -8px;
+  top: 11px;
+  width: 9px;
+  height: 12px;
+  border: 0;
+  background: linear-gradient(135deg, transparent 0 48%, #d2c2b2 49% 54%, #fff 55%);
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+}
+
+#view-home .entry-form { padding: 20px 14px 14px; }
+#view-home .entry-form textarea { font-family: var(--ui-font); }
+#view-home .entry-footnote { margin-top: 11px; }
+
+.home-desk-links button {
+  min-height: 92px;
+  padding: 32px 10px 11px;
+}
+
+.home-desk-links button small { display: none; }
+
+.archive-workspace { padding: 18px 13px 14px; }
+.archive-title-row h1 { font-size: 25px; }
+.archive-title-row > div > span { font-size: 10px; }
+
+.office-record-card {
+  grid-template-columns: 48px minmax(0, 1fr) 62px;
+  min-height: 104px;
+}
+
+/* 인증서가 길어서 저장·공유 버튼이 화면 밖에 묻혀 있었다. 스크롤 위치와 상관없이
+   손에 닿도록 아래에 고정한다. 이 앱이 밖으로 퍼지는 유일한 통로다. */
+.certificate-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: 4px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(239, 227, 212, 0) 0%, #efe3d4 20%, #efe3d4 100%);
+}
+
+/* 토스트가 하단 네비 바로 위에 떠서 "집사에게 들려주기" 버튼을 정면으로 가렸다.
+   신규 사용자가 처음 보는 화면에서 제일 눌러야 할 버튼이라 위로 비켜준다. */
+.toast { bottom: calc(150px + var(--safe-bottom)); }
+
+.office-record-card::after { display: none; }
+/* 날짜 한 줄이 들어갈 만큼만 번호 칸을 넓힌다. */
+.office-record-card { grid-template-columns: 62px minmax(0, 1fr) 76px; }
+@media (max-width: 360px) {
+  .office-record-card { grid-template-columns: 58px minmax(0, 1fr) 70px; }
+  .record-number span { font-size: 9px; }
+}
+.record-number b { font-size: 21px; }
+/* 좁은 칸에서 "2026.08.16"이 "2026.08.1 / 6"으로 접히던 것을 막는다. */
+.record-number span { font-size: 10px; white-space: nowrap; }
+.record-main { padding: 11px 9px; }
+.record-main strong {
+  display: -webkit-box;
+  font-size: 15px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.record-main p { margin-top: 4px; -webkit-line-clamp: 1; }
+.record-main small { display: block; margin-top: 5px; }
+.record-approval { gap: 7px; padding: 8px 4px; }
+.record-approval > span { padding: 4px 5px; font-size: 10px; }
+.record-approval figure { display: block; }
+.record-approval img { width: 34px; height: 38px; }
+.record-approval figcaption,
+.record-detail-cta { display: none; }
+
+/* MANAGER — one stable portrait column and one identity column. */
+.personnel-grid {
+  grid-template-columns: 126px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 222px;
+}
+
+.manager-character-stage {
+  align-self: start;
+  width: 126px;
+  height: 220px;
+  min-height: 0;
+  justify-content: flex-end;
+}
+
+.manager-character-stage img {
+  width: 126px;
+  height: 200px;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.manager-profile-copy {
+  align-self: center;
+  min-width: 0;
+  padding: 13px 8px 13px 10px;
+}
+
+.manager-profile-copy h1 { font-size: 21px; line-height: 1.18; }
+.manager-profile-copy > p { font-size: 12px; line-height: 1.5; }
+.manager-status-line span { font-size: 10px; }
+.manager-status-line b { font-size: 10px; }
+.manager-nameplate { font-size: 10px; }
+
+.manager-facts { margin-top: 10px; }
+.manager-facts div { grid-template-columns: 40px minmax(0, 1fr); }
+.manager-facts dt,
+.manager-facts dd { font-size: 11px; }
+
+.manager-handnote {
+  margin: 10px 0 0;
+  padding: 11px 12px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.5;
+  transform: none;
+}
+
+/* Relationship is the primary manager action; recruitment stays secondary. */
+.manager-obsession {
+  padding: 12px 0 0;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.manager-obsession .relationship-summary {
+  margin-top: 11px;
+  padding: 12px;
+  border-left: 3px solid #8b2639;
+  border-top-color: #e1d4c5;
+  background: #fffaf2;
+}
+
+.relationship-summary > span { font-size: 11px; }
+.relationship-summary > strong { font-size: 18px; }
+.relationship-summary > p { margin-top: 5px; font-size: 13px; }
+.relationship-summary > small { font-size: 12px; }
+
+#view-manager .stages-card {
+  padding-top: 13px;
+  padding-bottom: 13px;
+  background: #faf5ed;
+  box-shadow: none;
+}
+
+#view-manager .stage-list span { flex-basis: 92px; min-height: 46px; }
+
+#view-manager .recruit-note {
+  min-height: 68px;
+  padding: 13px 46px 13px 14px;
+  border-style: solid;
+  background: #fffaf2;
+}
+
+#view-manager .recruit-note::before {
+  content: "채용 진행";
+  display: block;
+  margin-bottom: 4px;
+  color: #9a7b50;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .06em;
+}
+
+#view-manager .recruit-note[data-recruit-state="arrived"],
+#view-manager .recruit-note[data-recruit-state="ready"] {
+  border-color: #a44054;
+  background: #fff7f3;
+}
+
+#view-manager .recruit-note[data-recruit-state="arrived"]::before { content: "새 지원서 도착"; color: #8b2639; }
+#view-manager .recruit-note[data-recruit-state="ready"]::before { content: "채용 조건 충족"; color: #8b2639; }
+#view-manager .recruit-note[data-recruit-state="complete"]::before { content: "채용 현황"; }
+#view-manager .recruit-note strong { font-size: 14px; }
+#view-manager #recruit-description { font-size: 12px; }
+
+.butler-roster-card,
+.manager-work-card,
+#view-manager .stages-card { padding: 15px 13px; }
+
+.manager-section-title small { font-size: 11px; }
+.manager-roster-person small { font-size: 10px; }
+.manager-duty-list i { font-size: 10px; }
+.manager-gift-button small { font-size: 10px; }
+
+/* GIFT — fixed portrait stage; copy grows without shifting the character. */
+.gift-desk-sheet { padding: 15px 12px 13px; }
+.gift-drop-zone {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  column-gap: 12px;
+  align-items: center;
+  min-height: 205px;
+  padding: 42px 12px 14px;
+}
+
+.gift-drop-zone img {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  align-self: end;
+  width: 120px;
+  height: 160px;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.gift-drop-zone > strong {
+  grid-column: 2;
+  align-self: end;
+  justify-self: start;
+  font-size: 16px;
+  text-align: left;
+}
+.gift-drop-zone > p {
+  grid-column: 2;
+  align-self: start;
+  justify-self: stretch;
+  min-height: 42px;
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.gift-catalog-item { min-height: 99px; box-shadow: none; }
+.gift-catalog-item > strong { font-size: 12px; }
+.gift-catalog-item > small { font-size: 11px; }
+.gift-history-block { margin-top: 14px; }
+
+.gift-receipt-character img,
+.praise-result-character img { object-fit: contain; object-position: center bottom; }
+
+/* Gift result follows the same left portrait / right copy rule. */
+.gift-reaction-hero {
+  display: grid;
+  grid-template-columns: 122px minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  min-height: 196px;
+  margin: 11px 0 12px;
+  border: 1px solid #dfd2c2;
+  border-radius: 8px;
+  background: #f8f0e5;
+  overflow: hidden;
+}
+
+.gift-reaction-hero .gift-character-stage {
+  align-self: start;
+  width: 122px;
+  height: 196px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: radial-gradient(circle at 50% 55%, #fffdf7 0 32%, #f5eadc 74%);
+}
+
+.gift-reaction-hero .gift-character-stage img {
+  width: 122px;
+  height: 190px;
+  object-position: center bottom;
+}
+
+.gift-reaction-hero .gift-ribbon { width: 82px; height: 82px; top: 31px; }
+.gift-reaction-hero .gift-ribbon::before,
+.gift-reaction-hero .gift-ribbon::after { display: none; }
+.gift-reaction-hero .gift-character-stage::before { left: 10px; top: 35px; }
+.gift-reaction-hero .gift-character-stage::after { right: 9px; top: 61px; }
+.gift-reaction-hero .reaction-stamp { right: 6px; bottom: 8px; width: 49px; height: 49px; font-size: 9px; }
+
+.gift-reaction-copy {
+  align-self: center;
+  min-width: 0;
+  padding: 15px 10px 15px 0;
+  text-align: left;
+}
+
+.gift-reaction-copy .gift-overline { font-size: 11px; }
+.gift-reaction-copy .gift-reaction-badge { margin-top: 7px; }
+.gift-reaction-copy h1 { margin: 8px 0; font-size: 22px; }
+.gift-reaction-copy > p { margin: 0; color: #695953; font-size: 13px; line-height: 1.5; }
+.gift-reaction-copy > p strong { color: #463735; font-size: 14px; }
+.gift-receipt > blockquote { margin-top: 0; transform: none; }
+
+@media (max-width: 390px) {
+  :root { --character-column: 108px; --character-height: 204px; --content-gap: 11px; }
+  #view-home .briefing-stage { grid-template-columns: 122px minmax(0, 1fr); min-height: 210px; padding-right: 12px; padding-left: 12px; }
+  #view-home .briefing-character { width: 122px; height: 163px; }
+  #view-home .briefing-character img { height: 163px; }
+  #view-home .briefing-panel h1 { font-size: 20px; }
+  #view-home .briefing-speech { font-size: 15px; }
+  .personnel-grid { grid-template-columns: 116px minmax(0, 1fr); }
+  .manager-character-stage { width: 116px; height: 208px; }
+  .manager-character-stage img { width: 116px; height: 186px; }
+}
+
+@media (max-width: 370px) {
+  :root { --character-column: 96px; --character-height: 188px; --content-gap: 9px; }
+  #view-home .briefing-stage { grid-template-columns: 112px minmax(0, 1fr); gap: 8px; min-height: 204px; padding-right: 10px; padding-left: 10px; }
+  #view-home .briefing-character { width: 112px; height: 157px; }
+  #view-home .briefing-character img { height: 157px; }
+  #view-home .briefing-panel { padding-top: 12px; }
+  #view-home .briefing-panel h1 { font-size: 19px; }
+  #view-home .briefing-speech { padding: 10px; font-size: 14px; }
+  .personnel-grid { grid-template-columns: 104px minmax(0, 1fr); }
+  .manager-character-stage { width: 104px; height: 198px; }
+  .manager-character-stage img { width: 104px; height: 176px; }
+  .manager-profile-copy { padding-left: 8px; }
+  .manager-profile-copy h1 { font-size: 19px; }
+  .manager-facts div { grid-template-columns: 35px minmax(0, 1fr); }
+  .gift-drop-zone { grid-template-columns: 106px minmax(0, 1fr); min-height: 194px; }
+  .gift-drop-zone img { width: 106px; height: 145px; }
+  .gift-reaction-hero { grid-template-columns: 108px minmax(0, 1fr); gap: 9px; }
+  .gift-reaction-hero .gift-character-stage,
+  .gift-reaction-hero .gift-character-stage img { width: 108px; }
+  .gift-reaction-copy h1 { font-size: 20px; }
+}
+
+/* ───────── FORM 04 → 다크 분석 랩 ─────────
+   초기 릴리스(dist)의 OVERBUTLER ANALYSIS LAB 팝업을 복원. 밝은 전면 서류 화면은
+   글이 많아 정신없다는 피드백로 폐기하고, 어두운 카드 + 원형 스캐너로 되돌린다. */
+#analysis-overlay.analysis-lab { padding: calc(24px + var(--safe-top)) 18px calc(24px + var(--safe-bottom)); }
+#analysis-overlay .analysis-sheet {
+  width: min(100%, 400px);
+  min-height: 0;
+  padding: 18px 18px 20px;
+  border: 0;
+  border-radius: 26px;
+  background: #272023;
+  color: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .4);
+}
+#analysis-overlay .analysis-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+#analysis-overlay .analysis-top span { color: #d2c7c8; }
+#analysis-overlay .analysis-top b { display: flex; align-items: center; gap: 5px; color: #ef9cad; }
+#analysis-overlay .analysis-top b i { width: 7px; height: 7px; border-radius: 50%; background: #ef7f96; animation: lab-blink 1.1s ease-in-out infinite; }
+
+#analysis-overlay .scanner {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin: 14px auto 4px;
+  border: 1px solid #6d5961;
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, #42343a 0 35%, transparent 36%),
+    linear-gradient(transparent 49.5%, #a54b60 50%, transparent 50.5%),
+    linear-gradient(90deg, transparent 49.5%, #a54b60 50%, transparent 50.5%);
+}
+#analysis-overlay .scanner::before,
+#analysis-overlay .scanner::after {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  border: 1px solid #69545c;
+  border-radius: 50%;
+  pointer-events: none;
+}
+#analysis-overlay .scanner::after { inset: 52px; }
+#analysis-overlay .scanner img {
+  position: absolute;
+  inset: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  object-fit: contain;
+}
+/* 캐릭터 위를 훑고 지나가는 스캔 광선 — 사용자가 기억하는 "라인이 움직이는" 재미. */
+#analysis-overlay .scan-beam {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: -8%;
+  height: 34px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, transparent, rgba(239, 156, 173, .38) 45%, rgba(255, 214, 224, .8) 50%, rgba(239, 156, 173, .38) 55%, transparent);
+  filter: blur(.4px);
+  animation: lab-scan 2s cubic-bezier(.45, 0, .55, 1) infinite;
+  pointer-events: none;
+}
+
+#analysis-overlay h2 {
+  margin: 12px 0 4px;
+  text-align: center;
+  color: #fff;
+  font: 850 26px/1.2 Paperlogy, sans-serif;
+  letter-spacing: -.045em;
+}
+#analysis-overlay .analysis-deed {
+  margin: 0 0 16px;
+  text-align: center;
+  color: #e9a7b4;
+  font-size: 13px;
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+#analysis-overlay .analysis-steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#analysis-overlay .analysis-steps li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 0;
+  padding: 12px 13px;
+  border: 1px solid #4d4044;
+  border-radius: 9px;
+  background: #392f33;
+  color: #9e9195;
+  font-size: 13px;
+  font-weight: 700;
+}
+#analysis-overlay .analysis-steps li b { font-weight: 750; }
+#analysis-overlay .analysis-steps li span { flex: none; color: inherit; font-size: 11px; }
+#analysis-overlay .analysis-steps li.active { border-color: #8b3d50; background: #53313b; color: #fff; }
+#analysis-overlay .analysis-steps li.done { color: #e8dfe1; }
+
+#analysis-overlay .analysis-progress {
+  position: static;
+  height: auto;
+  margin-top: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+#analysis-overlay .analysis-progress > div strong { color: #cfc3c6; }
+#analysis-overlay .analysis-progress > div span { color: #ef9cad; font-size: 12px; }
+#analysis-overlay .analysis-progress > div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: #cfc3c6;
+  font-size: 10px;
+  font-weight: 800;
+}
+#analysis-overlay .analysis-progress > div span { color: #ef9cad; }
+#analysis-overlay .analysis-progress > b {
+  display: block;
+  height: 5px;
+  border-radius: 99px;
+  background: #4a3d41;
+  overflow: hidden;
+}
+#analysis-overlay .analysis-progress i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 99px;
+  background: #ef9cad;
+  transition: width .35s;
+}
+#analysis-overlay .analysis-footnote {
+  margin: 13px 0 0;
+  text-align: center;
+  color: #9e9195;
+  font-size: 11px;
+}
+
+@keyframes lab-scan {
+  0% { top: -12%; opacity: 0; }
+  8% { opacity: 1; }
+  46% { top: 96%; opacity: 1; }
+  54% { opacity: 0; }
+  100% { top: -12%; opacity: 0; }
+}
+@keyframes lab-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) {
+  #analysis-overlay .scan-beam, #analysis-overlay .analysis-top b i { animation: none; }
+}
+
+/* ───────── 접수대(집사방)를 홈 맨 위로 ─────────
+   집사방이 별도 탭에 갇혀 있으면 앱을 열었을 때 집사가 보이지 않는다. 홈 최상단에
+   액자 카드로 두어, 앱을 켜자마자 자기 자리에 앉아 있는 집사를 만나게 한다.
+   칩 메뉴와 상세 기록카드는 집사 탭이 그대로 갖는다. */
+.home-butler-room { margin: 0 0 12px; }
+.home-butler-room[hidden] { display: none !important; }
+
+.home-butler-room .cat-home-room {
+  position: relative;
+  width: 100%;
+  height: clamp(238px, 33vh, 306px);
+  border: 1px solid #c9b69e;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #d9c6ae;
+  box-shadow: 0 8px 22px rgba(74, 51, 40, .13);
+  isolation: isolate;
+  touch-action: pan-y;
+}
+
+/* 집사가 방 안에 있으므로 홈 카드의 서 있는 초상은 감춘다. 같은 집사가 두 번 나오는 셈이라. */
+#view-home:has(.home-butler-room:not([hidden])) .briefing-stage {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  padding: 34px 14px 12px;
+}
+#view-home:has(.home-butler-room:not([hidden])) .briefing-character { display: none; }
+
+/* 좌우로 밀 수 있다는 표시: 양쪽 가장자리 그라데이션 + 화살표. */
+.room-pan-cue {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  width: 34px;
+  color: rgba(255, 250, 240, .92);
+  font-size: 22px;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(60, 38, 22, .6);
+  pointer-events: none;
+}
+.room-pan-cue-left {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: 6px;
+  background: linear-gradient(90deg, rgba(58, 38, 22, .34), transparent);
+  animation: room-pan-left 2.4s ease-in-out infinite;
+}
+.room-pan-cue-right {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: 6px;
+  background: linear-gradient(270deg, rgba(58, 38, 22, .34), transparent);
+  animation: room-pan-right 2.4s ease-in-out infinite;
+}
+.cat-home-room.is-dragging .room-pan-cue { opacity: .25; }
+
+.room-pan-hint {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 9px;
+  margin: 0;
+  padding: 5px 11px;
+  transform: translateX(-50%);
+  border-radius: 99px;
+  background: rgba(40, 26, 16, .56);
+  color: #fdf3e6;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.room-pan-hint[hidden] { display: none; }
+
+@keyframes room-pan-left {
+  0%, 100% { transform: translateX(0); opacity: .75; }
+  50% { transform: translateX(-3px); opacity: 1; }
+}
+@keyframes room-pan-right {
+  0%, 100% { transform: translateX(0); opacity: .75; }
+  50% { transform: translateX(3px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-pan-cue { animation: none; }
+}
+
+/* 집사 탭은 이제 어느 집사든 기록카드를 바로 연다. */
+#view-manager .manager-details-back { display: none !important; }

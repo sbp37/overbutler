@@ -1,0 +1,109 @@
+/* REACTIONS — praise verdict and gift receipt */
+.praise-result-overlay,.gift-overlay{place-items:start center;padding:0;background:var(--home-canvas,#f2eadf);overflow-y:auto}
+.praise-result-modal,.gift-modal{width:min(100%,430px);min-height:100dvh;padding:18px 15px calc(27px + env(safe-area-inset-bottom));background-color:#f7efe4;background-image:radial-gradient(rgba(116,88,61,.035) .7px,transparent .8px),linear-gradient(180deg,#faf4eb,#f1e6d8);background-size:6px 6px,100% 100%;color:#403333}
+.reaction-office-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:2px 1px 15px;border-bottom:1px solid #d3c2af}
+.reaction-office-header>div strong{display:block;color:#721c2b;font:900 30px/.95 "Noto Serif KR",serif;letter-spacing:-.075em}
+.reaction-office-header>div span{display:block;margin-top:6px;color:#825856;font-size:8px;font-weight:850;letter-spacing:.15em}
+.reaction-office-header>small{display:flex;align-items:center;gap:6px;margin-top:7px;padding:7px 9px;border:1px solid #cbb9a5;border-radius:99px;background:#fffaf2;color:#5d4f4b;font-size:10px;font-weight:800;white-space:nowrap}
+.reaction-office-header>small i{width:6px;height:6px;border-radius:50%;background:#88182d;box-shadow:0 0 0 3px rgba(136,24,45,.07)}
+.reaction-document-meta{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 0 11px;border-bottom:1px solid #dfd2c2;color:#846e60;font-size:10px;font-weight:850;letter-spacing:.045em}
+.reaction-document-meta b{padding:5px 8px;border:1px solid #ccb789;border-radius:99px;background:#fff8e7;color:#8a652f;font-size:10px;letter-spacing:0;white-space:nowrap}
+.reaction-stamp{display:grid;place-items:center;width:67px;height:67px;border:4px double rgba(129,28,45,.76);border-radius:50%;color:rgba(129,28,45,.88);font:900 11px/1.18 Paperlogy,sans-serif;text-align:center;transform:rotate(-9deg);animation:reaction-stamp-in .46s cubic-bezier(.2,.9,.2,1.25) both}
+.reaction-footnote{margin:11px 4px 0;color:#85746a;font-size:10px;line-height:1.45;text-align:center}
+
+.praise-result-document{position:relative;margin-top:14px;padding:14px 13px 15px;border:1px solid #cdbda9;border-radius:11px;background:linear-gradient(rgba(255,253,248,.97),rgba(255,251,245,.98)),repeating-linear-gradient(45deg,rgba(170,135,72,.025) 0 2px,transparent 2px 8px);box-shadow:inset 0 0 0 6px #fffaf3,inset 0 0 0 7px rgba(180,148,102,.14),0 10px 24px rgba(74,50,37,.09)}
+.praise-result-document:after{content:"";position:absolute;right:21px;top:-7px;width:13px;height:43px;border:2px solid #9b7541;border-bottom-color:transparent;border-radius:8px 8px 3px 3px;transform:rotate(8deg)}
+.praise-result-hero{display:grid;grid-template-columns:56% minmax(0,1fr);align-items:center;min-height:246px;margin-top:11px;border:1px solid #dfd3c5;border-radius:8px;background:#f8f0e5;overflow:hidden}
+.praise-result-character-stage{position:relative;align-self:stretch;display:flex;align-items:flex-end;justify-content:center;min-width:0}
+.praise-result-character-stage:before{content:"OVERBUTLER";position:absolute;left:50%;top:43px;width:130px;height:130px;display:grid;place-items:center;border:4px double rgba(126,68,54,.07);border-radius:50%;color:rgba(126,68,54,.1);font-size:8px;font-weight:900;letter-spacing:.09em;transform:translateX(-50%) rotate(-15deg)}
+.praise-result-character-stage img{position:relative;z-index:2;display:block;width:100%;height:242px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 7px 2px rgba(67,43,30,.08));animation:reaction-character-in .42s ease-out both}
+.reaction-spark{position:absolute;z-index:3;color:#b48943;font-size:20px;animation:reaction-spark 1.2s ease-in-out infinite alternate}.spark-one{left:10px;top:35px}.spark-two{right:5px;top:70px;font-size:15px;animation-delay:.35s}
+.praise-result-summary{position:relative;z-index:2;padding:20px 11px 18px 4px}
+.praise-result-summary>small{display:block;color:#8a7466;font-size:10px;font-weight:800}
+.praise-result-summary h1{margin:7px 0 9px;color:#711b2c;font:900 30px/1.12 "Noto Serif KR",serif;letter-spacing:-.05em;word-break:keep-all}
+.praise-result-summary p{margin:0 0 14px;color:#63544f;font:700 15px/1.4 "Wanted Sans Variable","Wanted Sans",sans-serif;word-break:keep-all}
+.praise-result-summary .reaction-stamp{width:61px;height:61px;font-size:10px}
+.praise-result-deed{position:relative;margin-top:9px;padding:11px 76px 11px 12px;border:1px solid #ddd0c0;border-radius:7px;background:#fff}
+.praise-result-deed small{display:block;color:#907766;font-size:10px;font-weight:850}.praise-result-deed strong{display:block;margin-top:5px;color:#453735;font:850 18px/1.3 Paperlogy,sans-serif;word-break:break-word}
+.praise-result-deed span{position:absolute;right:10px;top:50%;padding:5px 7px;border:2px double #8b2639;color:#7b1b2d;font-size:10px;font-weight:900;transform:translateY(-50%) rotate(-4deg)}
+.praise-result-document blockquote{position:relative;margin:9px 0 0;padding:14px 13px 14px 39px;border:1px solid #ddcdb8;background:#f8eee0;color:#4f413d;font:700 17px/1.44 "Wanted Sans Variable","Wanted Sans",sans-serif;text-align:left;word-break:keep-all;transform:rotate(-.35deg)}
+.praise-result-document blockquote:before{content:"“";position:absolute;left:13px;top:5px;color:#9d6f39;font:900 35px/1 "Noto Serif KR",serif}
+.praise-result-metrics{display:grid;grid-template-columns:1fr .82fr 1.25fr;margin:10px 0 12px;border:1px solid #ded2c4;border-radius:7px;background:#faf5ed;overflow:hidden}
+.praise-result-metrics>div{min-width:0;padding:10px 7px;border-right:1px solid #e2d7ca}.praise-result-metrics>div:last-child{border:0}
+.praise-result-metrics dt{color:#907660;font-size:10px;font-weight:800}.praise-result-metrics dd{margin:5px 0 0;color:#554440;font-size:12px;font-weight:850;line-height:1.3;word-break:keep-all}.praise-result-metrics>div:nth-child(2) dd{color:#7b1b2d;font-size:18px}
+.praise-result-document>.primary-button,.gift-receipt>.primary-button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:54px;margin:0;border:1px solid #5e1723;border-radius:8px;background:linear-gradient(#861f33,#681420);box-shadow:0 3px 0 #4c1019;color:#fff;font-size:14px}
+.praise-result-document>.primary-button span,.gift-receipt>.primary-button span{font-size:20px}
+.praise-result-document>.text-button{display:block;width:100%;min-height:44px;margin-top:6px;color:#71615a;font-size:12px}
+.praise-result-overlay[data-mode="power"] .reaction-office-header>small i{animation:reaction-alert .55s infinite alternate}
+.praise-result-overlay[data-mode="power"] .reaction-document-meta b{border-color:#c38e99;background:#fff1f2;color:#8a1e32}
+.praise-result-overlay[data-mode="power"] .praise-result-hero{border-color:#d1a9b0;background:linear-gradient(135deg,#fff4f3,#f3e5df)}
+.praise-result-overlay[data-mode="power"] .praise-result-summary h1{color:#8a162d}
+.praise-result-overlay[data-mode="power"] .reaction-stamp{border-color:#a21833;color:#9b1730;animation:reaction-stamp-in .46s cubic-bezier(.2,.9,.2,1.25) both,reaction-alert .75s .5s infinite alternate}
+.praise-result-overlay[data-mode="power"] .reaction-spark{color:#a51e36}
+.rare-verdict-note{position:relative;margin:10px 0 0;padding:11px 12px;border:1px solid #b9934e;background:linear-gradient(135deg,#fff9e9,#f5e7c9);box-shadow:inset 3px 0 #9c742f;text-align:left}
+.rare-verdict-note>span{display:block;color:#8c6327;font-size:10px;font-weight:900;letter-spacing:.1em}.rare-verdict-note>strong{display:block;margin-top:4px;color:#6f1b2b;font:850 17px/1.25 "Noto Serif KR",serif}.rare-verdict-note>p{margin:4px 0 0;color:#685444;font-size:12px;line-height:1.45;word-break:keep-all}
+.praise-result-overlay[data-mode="rare"] .reaction-office-header>small i{background:#b0873e;animation:reaction-alert .55s infinite alternate}
+.praise-result-overlay[data-mode="rare"] .reaction-document-meta b{border-color:#b9934e;background:#fff8df;color:#7c5924}
+.praise-result-overlay[data-mode="rare"] .praise-result-hero{border-color:#c8a965;background:radial-gradient(circle at 30% 42%,#fffdf4 0 25%,#f5e8cc 72%)}
+.praise-result-overlay[data-mode="rare"] .praise-result-character-stage:before{border-color:rgba(160,118,42,.18);color:rgba(139,93,25,.16)}
+.praise-result-overlay[data-mode="rare"] .praise-result-summary h1{color:#71182a}
+.praise-result-overlay[data-mode="rare"] .reaction-stamp{border-color:#9b712e;color:#896021;box-shadow:0 0 0 5px rgba(178,137,59,.08);animation:reaction-stamp-in .46s cubic-bezier(.2,.9,.2,1.25) both,reaction-alert .85s .5s infinite alternate}
+.praise-result-overlay[data-mode="rare"] .reaction-spark{color:#c3943e;font-size:23px}
+.praise-result-overlay[data-mode="rare"] .praise-result-deed span{border-color:#a57a35;color:#825a21;background:#fff9e9}
+.praise-result-overlay[data-mode="rare"] .praise-result-document{border-color:#c7ad74;box-shadow:inset 0 0 0 6px #fffaf3,inset 0 0 0 7px rgba(171,127,52,.25),0 10px 24px rgba(74,50,37,.09)}
+.praise-result-overlay[data-mode="rare"] .praise-result-modal{background-image:radial-gradient(rgba(142,106,47,.045) .7px,transparent .8px),linear-gradient(180deg,#fbf4e6,#f1e3c9)}
+
+.manager-gift-button{display:grid;grid-template-columns:39px minmax(0,1fr) auto 14px;gap:9px;align-items:center;width:100%;min-height:56px;margin-top:10px;padding:7px 10px;border:1px solid #d1b87e;border-radius:8px;background:linear-gradient(135deg,#fffaf0,#f4e7d2);color:#5b4942;text-align:left}
+.manager-gift-button>span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#ead4ad;color:#7d5628}.manager-gift-button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.manager-gift-button b{font-size:12px}.manager-gift-button small{color:#8e6a38;font-size:9px;font-weight:800}.manager-gift-button>i{color:#8b2639;font-size:20px;font-style:normal}
+
+.gift-receipt{position:relative;margin-top:14px;padding:14px 13px 15px;border:1px solid #cdbda9;border-radius:11px;background:#fffdf8;box-shadow:inset 0 0 0 6px #fffaf3,inset 0 0 0 7px rgba(180,148,102,.15),0 10px 24px rgba(74,50,37,.09);text-align:center}
+.gift-character-stage{position:relative;height:294px;margin:11px 0 14px;border:1px solid #dfd2c2;border-radius:8px;background:radial-gradient(circle at 50% 45%,#fffdf7 0 28%,#f5eadc 72%);overflow:hidden}
+.gift-character-stage:before,.gift-character-stage:after{content:"✦";position:absolute;color:#b88a44;font-size:19px;animation:reaction-spark 1.1s ease-in-out infinite alternate}.gift-character-stage:before{left:27px;top:53px}.gift-character-stage:after{right:27px;top:78px;animation-delay:.35s}
+.gift-character-stage img{position:relative;z-index:2;display:block;width:100%;height:290px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 7px 2px rgba(67,43,30,.08));animation:gift-character-in .48s cubic-bezier(.2,.85,.25,1.15) both}
+.gift-character-stage .reaction-stamp{position:absolute;z-index:4;right:18px;bottom:15px}
+.gift-ribbon{position:absolute;z-index:1;left:50%;top:22px;width:116px;height:116px;border:1px solid rgba(172,127,55,.18);border-radius:50%;transform:translateX(-50%)}.gift-ribbon:before,.gift-ribbon:after{content:"";position:absolute;top:57px;width:90px;border-top:1px solid rgba(172,127,55,.12)}.gift-ribbon:before{right:90px}.gift-ribbon:after{left:90px}
+.gift-overline{display:block;color:#8f6d44;font-size:10px;font-weight:850;letter-spacing:.07em}
+.gift-receipt h1{margin:7px 0 8px;color:#711b2c;font:900 25px/1.22 "Noto Serif KR",serif;letter-spacing:-.04em;word-break:keep-all}
+.gift-receipt>p{margin:0;color:#695953;font-size:12px;line-height:1.45}.gift-receipt>p strong{color:#463735;font-size:13px}
+.gift-receipt blockquote{margin:12px 3px 0;padding:14px 15px;border:1px solid #ddcdb8;background:#f8eee0;color:#4f413d;font:700 17px/1.44 "Wanted Sans Variable","Wanted Sans",sans-serif;text-align:left;word-break:keep-all;transform:rotate(-.45deg)}
+.gift-result-metrics{display:grid;grid-template-columns:1fr 1fr;margin:10px 0 12px;border:1px solid #dfd3c5;border-radius:7px;background:#faf5ed;overflow:hidden}.gift-result-metrics>div{padding:10px;border-right:1px solid #e2d7ca}.gift-result-metrics>div:last-child{border:0}.gift-result-metrics dt{color:#8d735f;font-size:10px;font-weight:800}.gift-result-metrics dd{margin:5px 0 0;color:#5d4b46;font-size:12px}.gift-result-metrics dd b{color:#7b1b2d;font-size:20px}
+
+@keyframes reaction-character-in{from{opacity:.4;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes gift-character-in{from{opacity:.3;transform:translateY(14px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes reaction-stamp-in{from{opacity:0;transform:rotate(-20deg) scale(1.55)}to{opacity:1;transform:rotate(-9deg) scale(1)}}
+@keyframes reaction-spark{from{opacity:.4;transform:scale(.82) rotate(-8deg)}to{opacity:1;transform:scale(1.12) rotate(7deg)}}
+@keyframes reaction-alert{from{opacity:.55;transform:scale(.96)}to{opacity:1;transform:scale(1.04)}}
+
+@media(max-width:370px){
+  .praise-result-modal,.gift-modal{padding-right:11px;padding-left:11px}
+  .reaction-office-header>div strong{font-size:27px}.reaction-office-header>small{padding:7px;font-size:10px}
+  .praise-result-document,.gift-receipt{padding-right:10px;padding-left:10px}
+  .praise-result-hero{grid-template-columns:55% minmax(0,1fr);min-height:228px}.praise-result-character-stage img{height:224px}.praise-result-summary{padding-right:7px}.praise-result-summary h1{font-size:26px}.praise-result-summary p{font-size:14px}
+  .praise-result-metrics dd{font-size:11px}.praise-result-metrics>div:nth-child(2) dd{font-size:16px}
+  .gift-character-stage{height:265px}.gift-character-stage img{height:261px}.gift-receipt h1{font-size:23px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .reaction-stamp,.praise-result-character-stage img,.gift-character-stage img,.reaction-spark,.gift-character-stage:before,.gift-character-stage:after{animation:none!important}
+}
+
+/* ── FORM 05 정보 위계 ────────────────────────────────
+   2~3초 보고 "내가 이걸 했다고 고양이가 굳이 대업으로 올렸네ㅋㅋ"가 먼저 와야 한다.
+   그런데 서식 제목("집사 주접 승인", 30px)이 집사의 실제 한마디(17px)보다 크고,
+   점수(18px)가 대업명과 같은 크기라 결과서가 성적표처럼 읽혔다.
+   요소는 하나도 지우지 않고 크기와 순서만 조정한다.
+   전부 #id로 걸어 FORM 05에만 적용한다 — .relationship-result는 선물 화면과 공용이다. */
+#result-title{margin-bottom:6px;font-size:22px}
+#result-verdict{margin-bottom:12px;font-size:13px}
+/* 집사의 한마디가 이 문서에서 가장 큰 본문이 된다. */
+#result-report{font-size:19px;line-height:1.5}
+/* 관계는 숫자보다 "집사가 이 기록을 챙겨뒀다"는 문장이 먼저 읽히게 한다. */
+#result-relationship-result{display:flex;flex-direction:column}
+#result-relationship-result>p{order:-1;margin:0 0 9px;color:#584845;font-size:14px}
+#result-relationship-result>span{color:#9a8577;font-size:9px;font-weight:800;letter-spacing:.04em}
+#result-relationship-result>div{margin:4px 0 6px}
+#result-relationship-result>div strong{font-size:14px}
+#result-relationship-result>div small{font-size:9px}
+/* 점수는 보조 정보다. 대업명(18px)이나 집사 한마디보다 커지지 않게 한다. */
+#result-score{font-size:14px}

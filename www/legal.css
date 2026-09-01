@@ -1,0 +1,36 @@
+:root{--paper:#f6efe5;--paper-strong:#fffdf8;--ink:#3d3030;--muted:#74635c;--burgundy:#791829;--line:#d7c7b4;--gold:#a58248;--safe-top:env(safe-area-inset-top,0px);--safe-right:env(safe-area-inset-right,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px)}
+*{box-sizing:border-box}
+html{background:#d8d0c7;color-scheme:light}
+body{margin:0;padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);background:#d8d0c7;color:var(--ink);font-family:"Wanted Sans Variable","Wanted Sans",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;word-break:keep-all}
+a{color:inherit}
+.legal-shell{width:min(100%,720px);min-height:100dvh;margin:0 auto;padding:25px 15px 48px;background-color:var(--paper);background-image:radial-gradient(rgba(116,88,61,.035) .7px,transparent .8px);background-size:6px 6px}
+.legal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:2px 2px 18px;border-bottom:1px solid var(--line)}
+.legal-brand strong{display:block;color:var(--burgundy);font:900 34px/.98 "Noto Serif KR",Georgia,serif;letter-spacing:-.09em}
+.legal-brand span{display:block;margin-top:7px;color:#70424a;font-size:8px;font-weight:850;letter-spacing:.17em}
+.legal-back{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 13px;border:1px solid #d2c2ae;border-radius:99px;background:#fffaf2;text-decoration:none;font-size:12px;font-weight:800}
+.legal-document{position:relative;margin-top:15px;padding:26px 20px 30px;border:1px solid var(--line);border-radius:12px;background:var(--paper-strong);box-shadow:0 8px 19px rgba(71,48,37,.06)}
+.legal-document:before{content:"";position:absolute;inset:7px;border:1px solid rgba(165,130,83,.14);border-radius:8px;pointer-events:none}
+.legal-kicker{position:relative;margin:0;color:var(--burgundy);font-size:11px;font-weight:900;letter-spacing:.1em}
+h1{position:relative;margin:9px 0 7px;color:#4b3836;font:850 28px/1.25 "Noto Serif KR",Georgia,serif;letter-spacing:-.045em}
+.effective{position:relative;margin:0 0 22px;color:var(--muted);font-size:12px;line-height:1.6}
+.summary{position:relative;margin:0 0 23px;padding:15px 16px;border-left:4px solid var(--burgundy);background:#f7ede2;color:#594844;font-size:14px;font-weight:700;line-height:1.7}
+section{position:relative;padding:21px 0;border-top:1px solid #e7ddd1}
+section:first-of-type{border-top:0}
+h2{margin:0 0 10px;color:#4a3836;font:850 18px/1.4 "Noto Serif KR",Georgia,serif;letter-spacing:-.025em}
+h3{margin:17px 0 7px;font-size:14px}
+p,li,dd,dt{font-size:14px;line-height:1.72}
+p{margin:7px 0;color:#5f504b}
+ul,ol{margin:8px 0;padding-left:21px;color:#5f504b}
+li+li{margin-top:6px}
+dl{margin:11px 0;border:1px solid #dfd3c5;border-radius:8px;overflow:hidden}
+dl>div{display:grid;grid-template-columns:112px minmax(0,1fr);border-top:1px solid #e8ded3}
+dl>div:first-child{border-top:0}
+dt,dd{margin:0;padding:11px 12px}
+dt{background:#f6eee4;color:#6c574d;font-weight:850}
+dd{color:#5b4b47}
+.policy-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.policy-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 13px;border:1px solid #ccbba6;border-radius:7px;background:#fffaf2;color:#6d1b2a;font-size:12px;font-weight:800;text-decoration:none}
+.legal-note{margin-top:17px;padding:12px 13px;border:1px dashed #cfbda8;border-radius:8px;background:#faf4ea;color:#78665e;font-size:12px;line-height:1.65}
+.legal-footer{padding:24px 5px 0;color:#84736a;font-size:11px;line-height:1.6;text-align:center}
+@media(max-width:370px){.legal-shell{padding-right:11px;padding-left:11px}.legal-document{padding-right:16px;padding-left:16px}h1{font-size:25px}dl>div{grid-template-columns:94px minmax(0,1fr)}dt,dd{padding-right:9px;padding-left:9px}}
+

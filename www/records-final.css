@@ -1,0 +1,119 @@
+/* RECORDS concept — shared Overbutler duty-office system */
+.main-screen[data-current-view="archive"]>.app-header{display:none}
+#view-archive{padding:22px 16px calc(96px + var(--safe-bottom));background-color:#f5ede2;background-image:radial-gradient(rgba(116,88,61,.035) .7px,transparent .8px),linear-gradient(180deg,#faf4eb 0,#f1e7da 58%,#f7f1e8 100%);background-size:6px 6px,100% 100%}
+.archive-office-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 2px 18px}
+.archive-logo-lockup strong{display:block;color:#721c2b;font:900 34px/.96 "Noto Serif KR",serif;letter-spacing:-.08em}
+.archive-logo-lockup span{display:block;margin-top:7px;color:#7c4c4c;font-size:9px;font-weight:850;letter-spacing:.15em}
+.archive-office-running{display:flex;align-items:center;gap:7px;margin-top:9px;padding:8px 10px;border:1px solid #cbbba7;border-radius:99px;background:#fffaf3;color:#564946;font-size:10px;font-weight:800;white-space:nowrap}
+.archive-office-running i{width:7px;height:7px;border-radius:50%;background:#8b172c;box-shadow:0 0 0 3px rgba(139,23,44,.08)}
+.archive-paperclip{position:absolute;z-index:4;right:15px;top:-4px;width:13px;height:39px;border:2px solid #9b7541;border-bottom-color:transparent;border-radius:8px 8px 3px 3px;transform:rotate(10deg)}
+.archive-workspace{margin-top:16px;padding:20px 13px 15px;border:1px solid #d3c4b1;border-radius:11px;background:#fffdf8;box-shadow:0 8px 20px rgba(70,48,37,.06)}
+.archive-title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:0 2px 11px;border-bottom:1px solid #ded1c1}
+.archive-title-row>div>span{display:block;color:#8b2639;font-size:9px;font-weight:850;letter-spacing:.12em}
+.archive-title-row h1{margin:5px 0 0;color:#392e2d;font:850 27px/1.08 "Noto Serif KR",serif;letter-spacing:-.055em}
+.archive-title-row time{padding:7px 9px;border:1px solid #d5c5b2;border-radius:99px;background:#faf4eb;color:#6f6159;font-size:11px;font-weight:750;white-space:nowrap}
+/* 주간 보고서는 홈 하단 카드 더미에서 여기로 옮겨왔다. 기록 화면의 유일한 추가 요소. */
+.archive-title-aside{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.archive-report-link{min-height:32px;padding:0 2px;border:0;background:transparent;color:#7f2637;font-size:11px;font-weight:850;white-space:nowrap}
+#view-archive .archive-panel.active{display:block}
+.record-filters{display:flex;gap:7px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.record-filters::-webkit-scrollbar{display:none}
+.record-filters button{flex:0 0 auto;min-height:44px;padding:0 14px;border:1px solid #d8cbbb;border-radius:99px;background:#fffdf9;color:#786b63;font-size:12px;font-weight:750}
+.record-filters button.active{border-color:#7a1b2d;background:#7a1b2d;color:#fff}
+.record-find-tools{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px;margin:-3px 0 13px}
+.record-find-tools label{display:grid;gap:5px;min-width:0}
+.record-find-tools label>span{color:#76675f;font-size:11px;font-weight:800}
+.record-find-tools input,.record-find-tools select{width:100%;height:42px;border:1px solid #d6c8b8;border-radius:7px;background:#fffdfa;color:#3f3433;font:700 13px Paperlogy,sans-serif;outline:none}
+.record-find-tools input{padding:0 12px}
+.record-find-tools select{padding:0 28px 0 9px}
+.record-find-tools input:focus,.record-find-tools select:focus{border-color:#8b2639;box-shadow:0 0 0 2px rgba(139,38,57,.09)}
+.archive-record-list{display:grid;gap:10px}
+.office-record-card{position:relative;display:grid;grid-template-columns:58px minmax(0,1fr) 76px;min-height:122px;border:1px solid #d8ccbd;border-radius:9px;background:#fff;box-shadow:0 4px 9px rgba(74,51,40,.05);overflow:visible;cursor:pointer}
+.office-record-card:focus-visible{outline:2px solid #8b2639;outline-offset:2px}
+.office-record-card:before{content:"";position:absolute;left:9px;top:50%;width:7px;height:7px;border:2px solid #80552e;border-radius:50%;background:#fffdf8;transform:translate(-50%,-50%)}
+.office-record-card.official:after{content:"인정됨";position:absolute;right:-5px;bottom:7px;padding:4px 5px;border:3px double rgba(137,31,48,.72);color:rgba(137,31,48,.78);font-size:10px;font-weight:900;transform:rotate(-8deg)}
+.record-number{display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid #e3d9cc;color:#77675f;text-align:center}
+.record-number b{color:#7b1b2d;font:850 24px/1 Paperlogy,sans-serif}
+.record-number span{display:block;margin-top:6px;font-size:10px;line-height:1.25}
+.record-main{align-self:center;min-width:0;padding:13px 9px}
+.record-main strong{display:block;color:#352b2b;font-size:15px;line-height:1.3;word-break:keep-all}
+.record-main p{display:-webkit-box;margin:5px 0 4px;color:#786a64;font-size:12px;line-height:1.4;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden}
+.record-main small{color:#a07843;font-size:11px;font-weight:750}
+.record-approval{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px 5px;border-left:1px solid #e3d9cc}
+.record-approval>span{padding:4px 7px;border:1px solid #cdbd9e;border-radius:99px;color:#8c6a34;background:#fffaf0;font-size:10px;font-weight:850;white-space:nowrap}
+.office-record-card.official .record-approval>span{border-color:#d7afb6;color:#8b2639;background:#fff4f3}
+.office-record-card.praise .record-approval>span{border-color:#c7c9c1;color:#667064;background:#f0f2ed}
+.record-approval figure{display:flex;align-items:center;gap:4px;margin:0}
+.record-approval img{width:28px;height:33px;object-fit:contain}
+.record-approval figcaption{color:#625651;font-size:10px;font-weight:750;line-height:1.25}
+.record-approval button,.record-detail-cta{position:relative;z-index:2;display:grid;place-items:center;min-height:32px;padding:0 9px;border:1px solid #8b2639;border-radius:5px;background:#fff;color:#8b2639;font-size:10px;font-weight:850}
+.records-empty{padding:38px 16px;border:1px dashed #d4c5b3;background:#faf4eb;text-align:center}
+.records-empty span{color:#a18f80;font-size:9px;font-weight:850;letter-spacing:.16em}
+.records-empty p{margin:8px 0 0;color:#786a63;font-size:13px;line-height:1.55}
+.records-summary{position:relative;margin-top:13px;padding:14px 11px 11px;border:1px solid #d8cbbb;border-radius:9px;background:#faf5ed}
+.records-summary-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.records-summary-heading span{color:#423535;font-size:14px;font-weight:850}
+.records-summary-heading i{padding:4px 6px;border:2px double rgba(123,27,45,.55);color:rgba(123,27,45,.75);font-size:9px;font-style:normal;font-weight:900;transform:rotate(-3deg)}
+.records-summary dl{display:grid;grid-template-columns:repeat(3,1fr);margin:0;border:1px solid #e0d5c8;background:#fff}
+.records-summary dl>div{padding:10px 4px;border-right:1px solid #e5ddd2;text-align:center}
+.records-summary dl>div:last-child{border:0}
+.records-summary dt{color:#776b63;font-size:11px;font-weight:700}
+.records-summary dd{margin:4px 0 0;color:#3f3433;font-size:11px}
+.records-summary dd b{margin-right:2px;color:#7b1b2d;font:850 20px Paperlogy,sans-serif}
+
+.record-detail-overlay{z-index:41;align-items:flex-end;padding:0;background:rgba(42,30,28,.48);backdrop-filter:blur(3px)}
+.record-detail-sheet{width:min(100%,480px);max-height:94dvh;padding:14px 14px calc(18px + env(safe-area-inset-bottom));border-radius:20px 20px 0 0;background:#f6efe5;box-shadow:0 -14px 40px rgba(48,31,27,.2);overflow:auto}
+.record-detail-header{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:9px;padding:4px 2px 14px;border-bottom:1px solid #d6c7b5}
+.record-detail-header>button{width:40px;height:40px;border:1px solid #d0c0ad;border-radius:50%;background:#fffaf2;color:#433535;font-size:21px}
+.record-detail-header>div{min-width:0}.record-detail-header strong{display:block;color:#751a2c;font:900 24px/1 "Noto Serif KR",serif;letter-spacing:-.07em}.record-detail-header div span{display:block;margin-top:3px;color:#8c796a;font-size:8px;font-weight:850;letter-spacing:.12em}
+.record-detail-header>small{padding:6px 8px;border:1px solid #ccbdaa;border-radius:99px;background:#fff9f0;color:#7c2333;font-size:10px;font-weight:850;white-space:nowrap}
+.record-detail-document{position:relative;margin-top:13px;padding:16px 14px 12px;border:1px solid #d4c4b1;border-radius:10px;background:#fffdf8;box-shadow:0 8px 18px rgba(69,46,36,.08)}
+.record-detail-document:before{content:"";position:absolute;right:20px;top:-9px;width:12px;height:37px;border:2px solid #9a7544;border-bottom-color:transparent;border-radius:8px;transform:rotate(9deg)}
+.record-detail-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid #e0d5c8;color:#8a786d;font-size:10px;font-weight:800;letter-spacing:.06em}
+.record-detail-context{display:grid;gap:8px;padding:12px 0 2px}.record-detail-context section{padding:10px 11px;border:1px solid #ded2c4;border-radius:7px;background:#faf5ed}.record-detail-context section>span{display:block;margin-bottom:5px;color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.05em}.record-detail-context p{margin:0;color:#443637;font-size:13px;line-height:1.5;word-break:keep-all}.record-detail-context section:nth-child(2) p{font-weight:850}.record-detail-context section:nth-child(3){background:#f5ede1}.record-detail-context section:nth-child(3) p{position:relative;padding-left:11px}.record-detail-context section:nth-child(3) p:before{content:"“";position:absolute;left:0;color:#a48456;font-weight:900}.record-detail-context section:nth-child(3) p+p{margin-top:5px}
+.record-detail-hero{display:grid;grid-template-columns:122px minmax(0,1fr);align-items:end;gap:8px;min-height:185px;padding:12px 0 10px}
+.record-detail-portrait{align-self:stretch;display:flex;align-items:flex-end;justify-content:center;border-radius:8px;background:radial-gradient(circle at 50% 58%,#fff 0 43%,transparent 70%)}
+.record-detail-portrait img{width:135px;height:178px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 5px 2px rgba(62,42,34,.08))}
+.record-detail-title-copy{align-self:center;min-width:0}.record-detail-title-copy>small{display:inline-block;padding:5px 8px;border:1px solid #d3b27d;border-radius:99px;background:#fff9eb;color:#8d642b;font-size:10px;font-weight:850}.record-detail-title-copy h2{margin:9px 0 7px;color:#3d3030;font:850 22px/1.3 "Noto Serif KR",serif;letter-spacing:-.05em;word-break:keep-all}.record-detail-title-copy p{margin:0;color:#8b2639;font-size:12px;font-weight:800;word-break:keep-all}
+.record-detail-document blockquote{position:relative;margin:0;padding:14px 15px 14px 20px;border:1px solid #d9cbbb;border-radius:8px;background:#faf4ea;color:#443637;font:700 18px/1.45 "Wanted Sans Variable","Wanted Sans",sans-serif;word-break:keep-all}.record-detail-document blockquote:before{content:"“";position:absolute;left:7px;top:4px;color:#aa8b5c;font:900 23px serif}
+.record-detail-facts{display:grid;grid-template-columns:repeat(3,1fr);margin:12px 0;border:1px solid #dfd3c6;background:#fff}.record-detail-facts>div{min-width:0;padding:10px 5px;border-right:1px solid #e7ded3;text-align:center}.record-detail-facts>div:last-child{border:0}.record-detail-facts dt{color:#83736b;font-size:10px;font-weight:750}.record-detail-facts dd{margin:5px 0 0;color:#3e3332;font-size:12px;font-weight:850;line-height:1.3;word-break:keep-all}
+.record-detail-note{display:flex;align-items:flex-start;gap:9px;margin-bottom:12px;padding:9px 10px;border-left:3px solid #9a7543;background:#f6efe4}.record-detail-note span{color:#8b2639;font-size:8px;font-weight:900;letter-spacing:.1em;white-space:nowrap}.record-detail-note p{margin:0;color:#74665f;font-size:11px;line-height:1.4}
+.record-detail-document>.primary-button{min-height:50px}.record-detail-document>.text-button{min-height:42px;margin-top:3px;color:#74665f}
+
+@media(max-width:370px){
+  #view-archive{padding-right:12px;padding-left:12px}
+  .archive-logo-lockup strong{font-size:31px}
+  .archive-office-running{padding:7px 8px;font-size:9px}
+  .archive-workspace{padding-right:10px;padding-left:10px}
+  .office-record-card{grid-template-columns:50px minmax(0,1fr) 70px}
+  .record-main{padding-right:7px;padding-left:7px}
+  .record-main strong{font-size:14px}
+  .record-find-tools{grid-template-columns:minmax(0,1fr) 104px}
+  .record-detail-sheet{padding-right:11px;padding-left:11px}
+  .record-detail-document{padding-right:11px;padding-left:11px}
+  .record-detail-hero{grid-template-columns:108px minmax(0,1fr)}
+  .record-detail-portrait img{width:119px;height:165px}
+  .record-detail-title-copy h2{font-size:20px}
+}
+
+/* 실제 기록이 먼저. 관리 도구는 목록 아래로 내린다.
+   DOM은 그대로 두고 순서만 바꿔, 필터/검색 동작에 손대지 않는다. */
+#view-archive[data-archive-mode="records"] #archive-records{display:flex;flex-direction:column}
+#view-archive[data-archive-mode="records"] #archive-records>.archive-record-list{order:1}
+#view-archive[data-archive-mode="records"] #archive-records>.record-legend{order:2}
+#view-archive[data-archive-mode="records"] #archive-records>.records-summary{order:3}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters{order:4}
+#view-archive[data-archive-mode="records"] #archive-records>.record-find-tools{order:5}
+
+/* 아래로 내려간 관리 도구는 목록과 구분되게, 그리고 조용하게. */
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters{
+  position:relative;margin:18px 0 10px;padding-top:26px;border-top:1px dashed #d8c9b6;
+}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters:before{
+  content:"기록 분류 · 찾기";position:absolute;left:1px;top:9px;
+  color:#9a8879;font-size:10px;font-weight:850;letter-spacing:.04em;white-space:nowrap;
+}
+#view-archive[data-archive-mode="records"] #archive-records>.record-filters button{min-height:38px;padding:0 12px;font-size:11px}
+#view-archive[data-archive-mode="records"] #archive-records>.record-find-tools{margin:0 0 4px}
+#view-archive[data-archive-mode="records"] #archive-records>.record-legend{margin:11px 0 0;font-size:11px}
+#view-archive[data-archive-mode="records"] #archive-records>.records-summary{margin-top:12px}

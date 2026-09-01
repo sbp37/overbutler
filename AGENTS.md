@@ -28,6 +28,7 @@ Repository is the Overbutler web app.
 문법:  node --check app.js
 테스트: node tests/chat-engine.test.js
         node tests/message-interpreter.test.js
+node tests/understanding-attack.test.js
 회귀:  브라우저로 tests/cat-regression.html 열기 (7 fixtures · 107 checks)
 ```
 

@@ -1,0 +1,172 @@
+/* Contextual response layer: the quiet counterpart to FORM 05.
+   Additive only — no existing HOME / CAT HOME / FORM 05 rules are touched. */
+
+.gentle-note{
+  margin-top:12px;
+  padding:13px 14px 14px;
+  border:1px solid #d9cbb6;
+  border-left:4px solid #a8834a;
+  border-radius:10px;
+  background:linear-gradient(180deg,#fffdf7,#fbf5ea);
+  box-shadow:0 3px 9px rgba(80,55,38,.06);
+  animation:gentle-note-in .34s cubic-bezier(.2,.85,.25,1) both;
+}
+.gentle-note[hidden]{display:none}
+
+.gentle-note>header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:9px;
+  margin-bottom:9px;
+}
+.gentle-note>header span{
+  color:#8a6b3d;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.045em;
+}
+.gentle-note>header b{
+  flex:none;
+  padding:4px 8px;
+  border:1px solid #d3c0a4;
+  border-radius:99px;
+  background:#fffaf0;
+  color:#7c6446;
+  font-size:9px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+/* 집사 답변이 이 카드의 주인공이다. 기록/도장 정보보다 크고 먼저 온다. */
+.gentle-note-reply{
+  margin:0;
+  color:#3d3230;
+  font:700 16px/1.5 "Wanted Sans Variable","Wanted Sans",sans-serif;
+  letter-spacing:-.01em;
+  word-break:keep-all;
+  white-space:pre-line;
+}
+.gentle-note-reply:empty{display:none}
+
+/* 발견한 대업은 답변에 딸린 부가 정보. 눈에 띄되 답변을 이기지 않는다. */
+.gentle-note-deed{
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:4px 8px;
+  margin-top:10px;
+  padding-top:9px;
+  border-top:1px dashed #ddcdb4;
+}
+.gentle-note-deed[hidden]{display:none}
+.gentle-note-deed>span{
+  flex:none;
+  color:#8a6b3d;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.02em;
+}
+.gentle-note-deed>span::before{content:"📎 ";}
+.gentle-note-title{
+  margin:0;
+  color:#4a3a33;
+  font:800 14px/1.35 "Wanted Sans Variable","Wanted Sans",sans-serif;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+}
+.gentle-note-copy{
+  margin:6px 0 0;
+  color:#8b7a6f;
+  font-size:11px;
+  line-height:1.5;
+  word-break:keep-all;
+}
+.gentle-note-copy:empty{display:none}
+
+/* Comfort keeps a softer, warmer edge than a plain record. */
+.gentle-note[data-tone="comfort"]{
+  border-left-color:#a8626f;
+  background:linear-gradient(180deg,#fffcf9,#fbf1ef);
+}
+.gentle-note[data-tone="comfort"]>header span{color:#8d5763}
+.gentle-note[data-tone="comfort"]>header b{border-color:#dcbfc2;color:#82525d}
+
+@keyframes gentle-note-in{
+  from{opacity:0;transform:translateY(-5px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+@media(max-width:372px){
+  .gentle-note{padding:12px 12px 13px}
+  .gentle-note-reply{font-size:15px}
+  .gentle-note-title{font-size:13px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .gentle-note{animation:none}
+}
+.diary-teaser{display:grid;gap:7px;margin-top:10px;padding:12px;border:1px solid #d7c7ae;border-radius:8px;background:rgba(250,244,232,.9)}
+.diary-teaser>span{color:#8b2639;font-size:9px;font-weight:900;letter-spacing:.08em}
+.diary-teaser>strong{color:#463836;font-size:13px;line-height:1.45;word-break:keep-all}
+.diary-teaser>blockquote{margin:1px 0 0!important;border-left-color:#b39a6a!important;color:#65564e!important;font-size:15px!important;font-style:normal;white-space:pre-line}
+.diary-teaser>small{color:#806d5e;font-size:11px;font-weight:750;line-height:1.4}
+
+/* 선물 접수처는 집사 탭 칩 안에만 있어서 홈에서는 존재 자체가 보이지 않았다.
+   집사에게 하는 일이니 집사 카드 바로 아래에 두고, 어디에도 안 보이던 선물 포인트도 함께 노출한다. */
+.home-gift-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  margin-top:12px;
+  padding:12px 14px;
+  border:1px solid #d9cbb6;
+  border-radius:11px;
+  background:linear-gradient(180deg,#fffdf7,#f9f2e5);
+  box-shadow:0 3px 9px rgba(80,55,38,.06);
+  color:#4e4038;
+  font:inherit;
+  text-align:left;
+}
+.home-gift-link>span{
+  flex:1 1 auto;
+  min-width:0;
+  font-size:14px;
+  font-weight:850;
+  letter-spacing:-.01em;
+}
+.home-gift-link>span::before{content:"🎁";margin-right:7px}
+.home-gift-link>b{
+  flex:none;
+  padding:4px 9px;
+  border:1px solid #d3c0a4;
+  border-radius:99px;
+  background:#fffaf0;
+  color:#7c6446;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.home-gift-link>b i{font-style:normal;color:#8b2639;font-size:12px}
+.home-gift-link>em{flex:none;color:#a08a6e;font-style:normal;font-size:15px}
+.home-gift-link:active{transform:translateY(1px)}
+
+@media(max-width:300px){
+  .home-gift-link{padding:11px}
+  .home-gift-link>span{font-size:13px}
+}
+
+/* 기록 카드의 "대업 후보 / 공식 인정" 배지가 무엇으로 갈리는지 알려주는 안내. */
+.record-legend{
+  margin:0 0 10px;
+  padding:9px 11px;
+  border:1px dashed #d3c4ae;
+  border-radius:9px;
+  background:rgba(255,252,245,.72);
+  color:#7d6c62;
+  font-size:11px;
+  line-height:1.55;
+  word-break:keep-all;
+}
+.record-legend:empty{display:none}
