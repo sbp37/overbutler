@@ -161,6 +161,37 @@ async function memoRoundTrip(seed) {
   await close();
 }
 
+/* 결과서 — 칭호 + 대업 + 치즈냥 한마디가 주인공. 지표 세 칸(NO. · 판정 · n/5)은 없고,
+   관계 줄에는 숫자가 없다. 첫 기록에는 증서 버튼이 없다(LOCKED · 5건). */
+async function resultContract() {
+  const { page, errors, close } = await openState(STATES["D1 기록 0"], "home");
+  await page.fill("#achievement-input", "씻었어");
+  await page.click("#report-button");
+  await page.waitForSelector("#praise-result-overlay:not([hidden])", { timeout: 8000 });
+  await page.waitForTimeout(400);
+  const seen = await page.evaluate(`(() => { ${probe}
+    const doc = document.querySelector(".praise-result-document");
+    return {
+      title: box("#result-title"), deed: box("#result-deed"), report: box("#result-report"), stamp: box("#result-stamp"),
+      metrics: box(".praise-result-metrics"), share: box("#result-share"), closeButton: box("#result-close"),
+      certificate: box("#result-certificate-button"),
+      kicker: document.querySelector("#result-relationship-kicker")?.textContent.trim() || "",
+      percentDisplay: getComputedStyle(document.querySelector("#analysis-percent")).display,
+      height: doc ? Math.round(doc.getBoundingClientRect().height) : 0
+    };
+  })()`);
+  console.log(`\n[결과서 · 첫 기록] 문서 높이 ${seen.height} · 관계 줄 「${seen.kicker}」`);
+  check(errors.length === 0, `페이지 오류 없음 ${errors[0] || ""}`);
+  check(seen.title?.visible && seen.deed?.visible && seen.report?.visible && seen.stamp?.visible, "칭호 · 대업 · 한마디 · 도장이 보인다");
+  check(seen.metrics?.exists && !seen.metrics.visible, "지표 세 칸(NO. · 판정 · n/5)은 결과서에 없다(DOM은 남는다)");
+  check(!/\d/.test(seen.kicker), "관계 줄에 숫자가 없다");
+  check(seen.share?.visible && seen.closeButton?.visible, "내보내기와 돌아가기는 그대로다");
+  check(seen.certificate && !seen.certificate.visible, "첫 기록에는 증서 버튼이 없다(5건 LOCKED)");
+  check(seen.percentDisplay === "none", "심사표의 % 숫자는 없다(막대만)");
+  await close();
+  return seen.height;
+}
+
 async function main() {
   browser = await chromium.launch({
     executablePath: process.env.PLAYWRIGHT_CHROMIUM || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
@@ -176,6 +207,7 @@ async function main() {
   ] };
   homes["D1 일정 1"] = await homeContract("D1 일정 1", scheduled);
   await memoRoundTrip(scheduled);
+  const resultHeight = await resultContract();
 
   // 성공 기준 — 기록 0건·1건·10건의 홈에서 보이는 조작 요소 집합이 같다.
   const sets = Object.entries(homes).filter(([label]) => !label.includes("일정")).map(([label, seen]) => [label, seen.controls.join(",")]);
@@ -194,11 +226,12 @@ async function main() {
   console.log("");
   Object.entries(heights).forEach(([label, height]) => console.log(`  집사 탭 ${label}: ${height}px`));
   Object.entries(homes).forEach(([label, seen]) => console.log(`  홈 ${label}: ${seen.height}px`));
+  console.log(`  결과서 문서: ${resultHeight}px`);
   if (failures.length) {
     failures.forEach(message => console.error(`FAIL ${message}`));
     process.exit(1);
   }
-  console.log("subtraction-surfaces: 집사 탭·홈 계약 통과");
+  console.log("subtraction-surfaces: 집사 탭·홈·결과서 계약 통과");
 }
 
 main().catch(error => { console.error(error); process.exit(1); });

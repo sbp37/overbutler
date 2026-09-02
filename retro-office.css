@@ -6194,3 +6194,13 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
    붙는 규칙(위 5033·4930줄)이 있어서 자식 일괄 숨김만으로는 남는다 — 이름을 불러 끈다. */
 #view-home .daily-briefing.is-memo .daily-briefing-add:not([hidden]),
 #view-home .daily-briefing.is-memo .daily-briefing-toggle { display: none; }
+
+/* ═══════════ 뺄셈 라운드 (2026-09-02) — 결과서·심사표 ═══════════
+   결과서의 주인공은 칭호 + 대업 + 치즈냥 한마디다. 하단 지표 세 칸(접수 번호 · 판정 · 도장 n/5)은
+   시스템 계기판이라 뒤로 보낸다 — 접수 번호·판정은 기록 상세(RECORD NO. · 상태 · 판정)에 그대로
+   있고, n/5는 파일 표지 한 곳에만 산다. 판정 자체는 도장(승인/희귀 채택/과몰입 폭주)이 이미 말한다.
+   마크업·렌더는 그대로다 — 되돌리려면 이 줄만 지운다. */
+.praise-result-metrics { display: none; }
+
+/* 심사표의 % 숫자 — 진행 막대만 남긴다. 기다림을 채우는 건 고양이 연출이지 퍼센트가 아니다. */
+#analysis-percent { display: none; }
