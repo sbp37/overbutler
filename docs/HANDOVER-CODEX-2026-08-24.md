@@ -76,6 +76,7 @@
   시선을 빼앗지 않는 크기가 기준이다.
 - 사운드는 기본 꺼짐이며 사용자가 켠 경우에만 동작한다. 선택된 CAT-FIRST 파일은
   `design/sound-assets/final-v2/`에 있다.
+  (2026-09-02 뒤집힘 — 기본이 켜짐으로 바뀌었다. 사유는 `docs/NEXT-CODEX.md` 참조.)
 - 일반 버튼과 하단 이동은 `ui-warm-move`, 완료는 `stamp-tiny-complete`, 선물은
   `gift-warm`, 관계 해금은 `relationship-unlock`을 사용한다.
 - 고양이 터치는 `cat-mrrp`, `cat-nyang`, `cat-nose` 중 상황에 맞게 하나만 재생한다.

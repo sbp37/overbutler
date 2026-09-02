@@ -1047,7 +1047,7 @@
     startDate: new Date().toDateString(), todos: [], diary: [],
     missionDone: false, missionDate: null, currentMission: null,
     onboarded: false, fame: 0, obsession: 5, gifts: 0,
-    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: false, fastTrackNoticed: false, fileVolumesNoticed: 0, officeEvents: [], officeEventSeen: "", officeEventAnnounced: "",
+    records: [], achievements: [], certificates: [], rerolled: false, catHomeHintDone: false, soundOn: true, fastTrackNoticed: false, fileVolumesNoticed: 0, officeEvents: [], officeEventSeen: "", officeEventAnnounced: "",
     briefings: [], journalEntries: [], briefingIntroDates: [], briefingEveningDates: [],
     catBriefingBoardPosition: { x: 59, y: 60.5 },
     catBriefingBoardPositionVersion: 3,
@@ -1289,8 +1289,9 @@
     // 개봉 통지를 이미 읽은 일기 날짜들. 최근 60개만 들고 있으면 충분하다.
     merged.diaryOpenedDates = (Array.isArray(raw.diaryOpenedDates) ? raw.diaryOpenedDates : []).map(value => storedText(value)).filter(Boolean).slice(-60);
     merged.catHomeHintDone = Boolean(raw.catHomeHintDone);
-    // 소리는 기본이 꺼짐이다. 저장된 값이 없으면 켜지지 않는다.
-    merged.soundOn = Boolean(raw.soundOn);
+    // 소리는 기본이 켜짐이다. 저장된 값이 없으면(=처음 온 파일) 켠 채로 시작한다.
+    // 단, 직접 끈 사람의 선택은 그대로 존중한다 — false가 저장돼 있으면 꺼진 채다.
+    merged.soundOn = raw.soundOn == null ? true : Boolean(raw.soundOn);
     merged.fastTrackNoticed = Boolean(raw.fastTrackNoticed);
     const legacyAchievements = Array.isArray(raw.achievements) ? raw.achievements.filter(item => objectValue(item) === item) : [];
     const rawCertificates = Array.isArray(raw.certificates) ? raw.certificates.filter(item => objectValue(item) === item) : [];
@@ -7012,6 +7013,16 @@
 
   function bindEvents() {
     OfficeSound.warm();
+    // 소리가 기본으로 켜져 있으므로, 오디오를 여는 제스처가 더 이상 토글 클릭이라는
+    // 보장이 없다. 어디를 처음 만지든 그 순간 컨텍스트를 연다 — 자동재생 정책은
+    // "사용자 제스처 안에서 열렸는가"만 보기 때문에, 첫 터치를 놓치면 첫 소리를 놓친다.
+    const primeSoundOnce = () => {
+      document.removeEventListener("pointerdown", primeSoundOnce);
+      document.removeEventListener("keydown", primeSoundOnce);
+      if (state.soundOn) OfficeSound.prime();
+    };
+    document.addEventListener("pointerdown", primeSoundOnce, { passive: true });
+    document.addEventListener("keydown", primeSoundOnce);
     const cueGeneralControl = target => {
       const control = target.closest?.("button, [role='button'], [data-view]");
       // 방 안 물건(#cat-room-gifts)도 제외한다 — 탭하면 슬립이 갈리며 종이음이
