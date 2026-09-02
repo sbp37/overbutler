@@ -1,0 +1,81 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CAT home first screen fixture</title>
+<body>
+<script src="fixture-assertions.js"></script>
+<script>
+  /* 첫 화면 계약 — 아직 아무것도 없는 사람의 홈에서는, 접수 입력보다 먼저 놓인
+     장식(브리핑·도장 게이지·날짜 도장)을 접어 FORM 01과 접수 버튼이 첫 화면
+     안에 들어오게 한다.
+
+     이 하네스의 iframe은 hidden이라 레이아웃이 없다 — 픽셀 위치는 여기서 잴 수
+     없다. 그래서 여기서는 **접힘을 만드는 구조 계약**만 지키고, 실제 접수 버튼이
+     하단 네비 위에 있는지는 Playwright 측정으로 따로 확인한다
+     (360/390/430px, docs/NEXT-CODEX.md에 수치 기록). */
+  const seed = {
+    onboarded: true, username: "테스트", character: "cat", butlerName: "치즈냥",
+    ownedButlers: ["cat"], records: [], briefings: [],
+    diary: [], journalEntries: [], certificates: [], giftHistory: []
+  };
+  localStorage.setItem("butlermaker_v1", JSON.stringify(seed));
+  if (new URLSearchParams(location.search).has("assert")) {
+    runFixtureAssertions({
+      target: "../index.html?fixture-no-overlay-observer=1",
+      check: async (frame, assert, wait) => {
+        const win = frame.contentWindow;
+        await wait(200);
+        const doc = frame.contentDocument;
+        const folded = el => Boolean(el) && (el.hidden || win.getComputedStyle(el).display === "none");
+
+        assert(doc.documentElement.hasAttribute("data-home-first-run"), "an empty file opens the first-screen home");
+        assert(folded(doc.querySelector("#daily-briefing")), "the briefing folds away while there is nothing to brief");
+        assert(folded(doc.querySelector("#view-home .entry-footnote")), "an empty stamp gauge does not push the submit button down");
+        assert(folded(doc.querySelector("#view-home .home-hero i.of-datestamp")), "the date stamp waits until there is a filing history");
+        assert(folded(doc.querySelector("#view-home .quick-actions-label")), "the quick-chip label folds; the chips themselves stay");
+        assert(!folded(doc.querySelector("#view-home .quick-actions")), "one-tap first deed chips stay on the first screen");
+        assert(Boolean(doc.querySelector("#achievement-input")) && !doc.querySelector("#report-button").hidden, "FORM 01 and its submit button are present");
+        // 제목 줄바꿈을 접어도 낱말이 붙지 않는다 ("오늘은 어떻게보내셨나요").
+        assert(/어떻게\s보내셨나요/.test(doc.querySelector("#home-title").textContent), "the folded title keeps its word spacing");
+
+        /* 일정이 하나라도 있으면 이 사람은 브리핑을 이미 쓰는 중이다 — 접지 않는다. */
+        const withPlan = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        const now = new Date();
+        const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        withPlan.briefings = [{ id: "b1", date: key, title: "치과 예약", completed: false }];
+        win.localStorage.setItem("butlermaker_v1", JSON.stringify(withPlan));
+        win.location.reload();
+        await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
+        await wait(250);
+        const doc2 = frame.contentDocument;
+        const folded2 = el => Boolean(el) && (el.hidden || frame.contentWindow.getComputedStyle(el).display === "none");
+        assert(!doc2.documentElement.hasAttribute("data-home-first-run"), "a registered plan leaves the first-screen mode");
+        assert(!folded2(doc2.querySelector("#daily-briefing")), "a registered plan keeps the briefing on screen");
+
+        /* 첫 접수가 들어오면 원래 홈 구조로 돌아온다. */
+        const withRecord = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        withRecord.briefings = [];
+        withRecord.records = [{
+          id: "r1", deed: "생활권 질서 회복 완료", sourceText: "방청소 했어", nickname: "생활력의 수호자",
+          grade: "국가적 성취", date: "2026.09.01", number: 1, report: "접수다냥.", character: "cat", category: "home"
+        }];
+        win.localStorage.setItem("butlermaker_v1", JSON.stringify(withRecord));
+        win.location.reload();
+        await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
+        await wait(250);
+        const doc3 = frame.contentDocument;
+        const folded3 = el => Boolean(el) && (el.hidden || frame.contentWindow.getComputedStyle(el).display === "none");
+        assert(!doc3.documentElement.hasAttribute("data-home-first-run"), "the first record restores the ordinary home");
+        assert(!folded3(doc3.querySelector("#daily-briefing")), "the briefing comes back after the first record");
+        assert(!folded3(doc3.querySelector("#view-home .entry-footnote")), "the stamp gauge comes back after the first record");
+
+        // 저장 데이터는 이 판정 때문에 바뀌지 않는다.
+        const stored = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        assert.equal(stored.records.length, 1, "the first-screen judgement never writes to stored records");
+        assert.equal((stored.briefings || []).length, 0, "the first-screen judgement never writes to stored plans");
+      }
+    });
+  } else {
+    location.replace("../index.html");
+  }
+</script>
+</body>

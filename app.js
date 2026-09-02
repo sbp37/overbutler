@@ -7516,11 +7516,30 @@
     return "처리 전";
   }
 
+  /* ── 첫 화면 판정 ──
+     기록도 일정도 아직 하나도 없는 사람. 이 상태에서는 홈에 접수 입력보다
+     먼저 놓인 카드들(브리핑·개봉 통지)이 정작 첫 행동인 FORM 01을 화면 밖으로
+     밀어낸다. 측정값: 390px에서 접수 버튼 하단이 921px, 하단 네비는 772px —
+     첫 접수를 하려면 스크롤을 해야 했다.
+
+     일정이 하나라도 있으면(오늘 것이든 지난 것이든) 이 사람은 브리핑을 이미
+     쓰고 있으므로 접지 않는다. 접수가 한 건이라도 생기면 판정이 풀려
+     기존 홈 구조로 그대로 돌아간다. 저장 상태는 건드리지 않는다 — 순수 판정이다. */
+  function isHomeFirstRun() {
+    return state.character === "cat"
+      && state.onboarded
+      && !(state.records || []).length
+      && !(state.briefings || []).length
+      && !pendingBriefingSuggestion;
+  }
+
   function renderDailyBriefing() {
     ensureBriefingUI();
     const section = $("#daily-briefing");
     if (!section) return;
-    section.hidden = state.character !== "cat" || !state.onboarded;
+    const firstRun = isHomeFirstRun();
+    document.documentElement.toggleAttribute("data-home-first-run", firstRun);
+    section.hidden = state.character !== "cat" || !state.onboarded || firstRun;
     if (section.hidden) return;
     const items = briefingItems();
     const activeItems = items.filter(item => !item.closedAt);

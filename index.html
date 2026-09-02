@@ -209,7 +209,10 @@
         <section class="home-hero">
           <span id="entry-kicker">오늘 이야기 · 창구 01</span>
           <i class="of-datestamp" aria-hidden="true">접수<b id="home-datestamp">08. 17</b></i>
-          <h1 id="home-title">오늘은 어떻게<br>보내셨나요?</h1>
+          <!-- <br> 뒤의 공백은 첫 화면에서 줄바꿈을 접었을 때(CSS `data-home-first-run`)
+               「어떻게보내셨나요」로 붙지 않게 하는 것이다. 줄바꿈이 살아 있는 평소에는
+               줄머리 공백이라 렌더링에서 무시된다. -->
+          <h1 id="home-title">오늘은 어떻게<br> 보내셨나요?</h1>
           <p id="entry-description">잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.</p>
         </section>
 
