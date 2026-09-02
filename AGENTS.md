@@ -31,6 +31,7 @@ Repository is the Overbutler web app.
         node tests/understanding-attack.test.js      # 이해 공격 세트 61문장
 회귀:  브라우저로 tests/cat-regression.html 열기 (10 fixtures · 187 checks)
 뷰포트: node tests/viewport-first-screen.js          # 첫 화면 360/390/430 (로컬 서버 필요)
+사운드: node tests/sound-default.js                  # 기본 켜짐·꺼짐 존중 (로컬 서버 필요)
 ```
 
 ### 실수 상위 5개 — 문서를 안 읽더라도 이건 알아야 한다
@@ -74,7 +75,8 @@ Repository is the Overbutler web app.
 
 ```
 node --check app.js  →  세 테스트 스위트  →  tests/cat-regression.html
-→  node tests/viewport-first-screen.js  →  360/390/430 세 폭 확인
+→  node tests/viewport-first-screen.js  →  node tests/sound-default.js
+→  360/390/430 세 폭 확인
 ```
 
 **회귀 검사표를 빠뜨리지 마라.** 한 번 이렇게 샜다 — fixture 하나가 하네스
