@@ -66,7 +66,8 @@
   }
 
   function ensureBackupDisclosure() {
-    const panel = document.querySelector("#view-archive .owner-file-backup");
+    // 뺄셈 라운드 — 보관본 패널은 사무국 설정(집사 탭)으로 옮겨졌다. 위치에 묶지 않는다.
+    const panel = document.querySelector(".owner-file-backup");
     if (!panel || panel.dataset.disclosureReady === "true") return;
 
     panel.dataset.disclosureReady = "true";

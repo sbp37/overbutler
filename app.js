@@ -3495,8 +3495,18 @@
     </section>`;
   }
 
+  /* 뺄셈 라운드(2026-09-02) — 분류 칩·검색·범례는 걸러낼 게 생긴 뒤에 나온다.
+     기록 0건인 파일에 필터 다섯 개와 검색창이 먼저 서 있었다. 10건부터 조건부 노출.
+     필터 상태(recordGrade·recordSearch)는 그대로라 켜지는 순간 그대로 동작한다. */
+  const ARCHIVE_TOOLS_MIN_RECORDS = 10;
+
   function renderArchiveRecords() {
     const officialIds = new Set(state.certificates.map(record => record.id));
+    const toolsReady = state.records.length >= ARCHIVE_TOOLS_MIN_RECORDS;
+    [".record-grade-filter", ".record-find-tools", "#record-legend"].forEach(selector => {
+      const element = $(`#view-archive ${selector}`);
+      if (element) element.hidden = !toolsReady;
+    });
     // 등급은 기록마다 다른 문구가 아니라 세 갈래다 — 평소 / 희귀 판정 / 공식 인정.
     // 저장된 grade 문자열을 그대로 나열하면 목록이 기록 수만큼 늘어나기만 했다.
     $$("#record-grade-filter button").forEach(button => {
@@ -7630,8 +7640,10 @@
         </form>
       </div>`);
 
-    const ownerRemark = $(".owner-file-remark");
-    if (ownerRemark) ownerRemark.insertAdjacentHTML("afterend", `
+    /* 뺄셈 라운드(2026-09-02) — 보관본 관리는 파일 표지가 아니라 사무국 설정에 산다.
+       설정성 기능이 기록 0건인 표지 한가운데 서 있었다. 버튼 id·핸들러·오버레이는 그대로다. */
+    const ownerRemark = $("#view-manager .office-settings") || $(".owner-file-remark");
+    if (ownerRemark) ownerRemark.insertAdjacentHTML(ownerRemark.matches(".office-settings") ? "beforeend" : "afterend", `
       <section class="owner-file-backup" aria-labelledby="owner-file-backup-title">
         <div><small>PRIVATE BACKUP</small><h2 id="owner-file-backup-title">내 파일 보관</h2><p>가입 없이 암호화된 파일로 기기 밖에 보관합니다.</p></div>
         <div><button id="owner-backup-export" type="button">보관본 만들기</button><button id="owner-backup-import" type="button">보관본 불러오기</button></div>

@@ -51,7 +51,7 @@
   letter-spacing: -0.02em;
 }
 
-#view-archive .owner-file-backup-toggle {
+.owner-file-backup-toggle {
   width: 100%;
   min-height: 42px;
   margin: 10px 0 8px;
@@ -65,18 +65,18 @@
   text-align: left;
 }
 
-#view-archive .owner-file-backup-toggle::after {
+.owner-file-backup-toggle::after {
   content: "펼치기 +";
   float: right;
   color: var(--burgundy);
   font-size: 11px;
 }
 
-#view-archive .owner-file-backup-toggle[aria-expanded="true"]::after {
+.owner-file-backup-toggle[aria-expanded="true"]::after {
   content: "접기 -";
 }
 
-#view-archive .owner-file-backup.is-collapsed {
+.owner-file-backup.is-collapsed {
   display: none !important;
 }
 

@@ -6204,3 +6204,19 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
 
 /* 심사표의 % 숫자 — 진행 막대만 남긴다. 기다림을 채우는 건 고양이 연출이지 퍼센트가 아니다. */
 #analysis-percent { display: none; }
+
+/* ═══════════ 뺄셈 라운드 (2026-09-02) — 파일 ═══════════
+   파일 = 지금까지. 기록 0건인 파일 탭이 1,448px였다 — 걸러낼 게 없는데 필터·검색·요약이
+   먼저 나왔다. 분류 칩·검색·범례는 기록 10건부터(renderArchiveRecords가 hidden을 건다).
+
+   주간 보고서 — 이번엔 앞에서 치우기만 한다. 「5건부터」 같은 규칙은 만들지 않는다(오너 결정 —
+   해금 규칙 하나를 더 만드는 건 이 라운드와 반대다). 파일 타임라인 때 별도 물건으로 필요한지 재판단. */
+#view-archive .archive-report-link { display: none; }
+
+/* 기록 요약 카드(오늘 접수 · 공식 인정 · 누적 명성) — 표지가 이미 두께·날수를 말한다.
+   점수 체계 노출은 「감시 금지」 원칙과도 결이 다르다. 렌더는 그대로, 화면에서만 뺀다. */
+#view-archive .records-summary { display: none; }
+
+/* 보관본 관리 — 사무국 설정(집사 탭)으로 옮겨졌다. 설정 카드 안에서는 점선 패널 하나로 충분하다. */
+#view-manager .office-settings .owner-file-backup-toggle { margin: 12px 0 0; }
+#view-manager .office-settings .owner-file-backup { margin-top: 8px; }

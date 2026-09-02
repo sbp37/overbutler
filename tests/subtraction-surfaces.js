@@ -192,6 +192,40 @@ async function resultContract() {
   return seen.height;
 }
 
+/* 파일 — 지금까지. 필터·검색·범례는 10건부터, 주간 보고서·요약 카드는 앞에서 치웠고,
+   보관본 관리는 사무국 설정으로 갔다. 표지의 「인증 도장 n / 5」는 첫 기록부터 보인다. */
+async function archiveContract(label, seed) {
+  const { page, errors, close } = await openState(seed, "archive");
+  const seen = await page.evaluate(`(() => { ${probe}
+    return {
+      height: document.documentElement.scrollHeight,
+      chips: box("#view-archive .record-grade-filter"), search: box("#view-archive .record-find-tools"), legend: box("#record-legend"),
+      weekly: box("#view-archive .archive-report-link"), summary: box("#view-archive .records-summary"),
+      backupInArchive: Boolean(document.querySelector("#view-archive .owner-file-backup, #view-archive .owner-file-backup-toggle")),
+      backupInSettings: Boolean(document.querySelector("#view-manager .office-settings .owner-file-backup-toggle")),
+      stampRow: box(".owner-file-stamp-row"), stampText: document.querySelector("#owner-file-stamp-progress")?.textContent.trim(),
+      cover: box(".owner-file-folder"), list: box("#archive-record-list"),
+      emptyCta: box("#view-archive .records-empty button")
+    };
+  })()`);
+  const count = seed.records.length;
+  console.log(`\n[파일 · ${label}] 높이 ${seen.height} · 도장 「${seen.stampText}」`);
+  check(errors.length === 0, `페이지 오류 없음 ${errors[0] || ""}`);
+  check(seen.cover?.visible, "파일 표지가 보인다");
+  check(seen.stampRow?.visible && /^\d+ \/ \d+$/.test(seen.stampText || ""), "표지에 「인증 도장 n / 5」 행이 보인다(유일한 n/5)");
+  const toolsExpected = count >= 10;
+  check(Boolean(seen.chips?.visible) === toolsExpected, toolsExpected ? "10건부터 분류 칩이 나온다" : `기록 ${count}건에는 분류 칩이 없다`);
+  check(Boolean(seen.search?.visible) === toolsExpected, toolsExpected ? "10건부터 검색이 나온다" : `기록 ${count}건에는 검색이 없다`);
+  check(Boolean(seen.legend?.visible) === toolsExpected, toolsExpected ? "10건부터 범례가 나온다" : `기록 ${count}건에는 범례가 없다`);
+  check(seen.weekly?.exists && !seen.weekly.visible, "주간 보고서 링크는 앞에서 치웠다(DOM은 남는다)");
+  check(seen.summary?.exists && !seen.summary.visible, "기록 요약 카드는 없다(DOM은 남는다)");
+  check(!seen.backupInArchive && seen.backupInSettings, "보관본 관리는 파일이 아니라 사무국 설정에 있다");
+  if (count === 0) check(seen.emptyCta?.visible, "기록 0건에는 첫 기록 유도 하나가 있다");
+  else check(seen.list?.visible, "기록 목록이 보인다");
+  await close();
+  return seen.height;
+}
+
 async function main() {
   browser = await chromium.launch({
     executablePath: process.env.PLAYWRIGHT_CHROMIUM || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
@@ -208,6 +242,8 @@ async function main() {
   homes["D1 일정 1"] = await homeContract("D1 일정 1", scheduled);
   await memoRoundTrip(scheduled);
   const resultHeight = await resultContract();
+  const archives = {};
+  for (const [label, seed] of Object.entries(STATES)) archives[label] = await archiveContract(label, seed);
 
   // 성공 기준 — 기록 0건·1건·10건의 홈에서 보이는 조작 요소 집합이 같다.
   const sets = Object.entries(homes).filter(([label]) => !label.includes("일정")).map(([label, seen]) => [label, seen.controls.join(",")]);
@@ -227,11 +263,12 @@ async function main() {
   Object.entries(heights).forEach(([label, height]) => console.log(`  집사 탭 ${label}: ${height}px`));
   Object.entries(homes).forEach(([label, seen]) => console.log(`  홈 ${label}: ${seen.height}px`));
   console.log(`  결과서 문서: ${resultHeight}px`);
+  Object.entries(archives).forEach(([label, height]) => console.log(`  파일 ${label}: ${height}px`));
   if (failures.length) {
     failures.forEach(message => console.error(`FAIL ${message}`));
     process.exit(1);
   }
-  console.log("subtraction-surfaces: 집사 탭·홈·결과서 계약 통과");
+  console.log("subtraction-surfaces: 집사 탭·홈·결과서·파일 계약 통과");
 }
 
 main().catch(error => { console.error(error); process.exit(1); });
