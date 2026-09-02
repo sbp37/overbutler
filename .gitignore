@@ -1,2 +1,6 @@
 dist/runtime/
 
+# 네이티브 빌드 부산물 — 절대 main에 들어오면 안 된다.
+# 2026-09-02에 git add -A로 node_modules 2,386개·www 160개가 브랜치에 섞인 사고가 있었다.
+node_modules/
+www/
