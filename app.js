@@ -7827,20 +7827,39 @@
   }
 
   /* ── 첫 화면 판정 ──
-     기록도 일정도 아직 하나도 없는 사람. 이 상태에서는 홈에 접수 입력보다
-     먼저 놓인 카드들(브리핑·개봉 통지)이 정작 첫 행동인 FORM 01을 화면 밖으로
-     밀어낸다. 측정값: 390px에서 접수 버튼 하단이 921px, 하단 네비는 772px —
-     첫 접수를 하려면 스크롤을 해야 했다.
+     접수 입력보다 먼저 놓인 카드들(브리핑·개봉 통지)이 정작 첫 행동인 FORM 01을
+     화면 밖으로 밀어낸다. 측정값: 390px에서 접수 버튼 하단이 921px, 하단 네비는
+     772px — 첫 접수를 하려면 스크롤을 해야 했다.
 
-     일정이 하나라도 있으면(오늘 것이든 지난 것이든) 이 사람은 브리핑을 이미
-     쓰고 있으므로 접지 않는다. 접수가 한 건이라도 생기면 판정이 풀려
-     기존 홈 구조로 그대로 돌아간다. 저장 상태는 건드리지 않는다 — 순수 판정이다. */
+     처음엔 `records 0`만 봤는데 그건 구멍이었다. 대업으로 안 올라간 이야기만
+     쌓은 사람(journalEntries), 일기만 남은 사람, 기록을 지웠지만 선물을 준 적
+     있는 사람이 전부 「완전 신규」로 판정돼, 이미 쓰던 사람의 홈이 갑자기
+     접혔다. 그래서 **접수 여부가 아니라 「치즈냥을 실제로 쓴 흔적」**을 본다.
+
+     흔적은 반드시 고양이 것만 센다. 강아지만 쓰던 사람이 치즈냥을 처음 열면
+     그건 진짜 첫 화면이 맞다 — 다른 캐릭터 기록 때문에 막히면 안 된다.
+
+     새 플래그를 저장하지 않는다. 이미 있는 상태에서 계산되는 순수 판정이라,
+     흔적이 생기는 순간 저절로 풀리고 저장 데이터는 그대로다. */
+  function isCatOwnedEntry(entry) {
+    // 캐릭터 표시가 없는 옛 항목은 고양이 것으로 본다 — 모르는 쪽으로 기울일 때
+    // 「첫 화면을 안 켠다」가 안전한 방향이다(쓰던 사람의 홈을 접지 않는다).
+    return normalizeCharacter(entry?.butler?.character || entry?.character || "cat") === "cat";
+  }
+
+  function catUsageTraceCount() {
+    const lists = [state.records, state.journalEntries, state.diary, state.giftHistory];
+    const traced = lists.reduce((sum, list) =>
+      sum + (Array.isArray(list) ? list.filter(isCatOwnedEntry).length : 0), 0);
+    // 브리핑은 고양이 전용 기능이라 캐릭터 표시가 없다. 있으면 그대로 흔적이다.
+    return traced + (Array.isArray(state.briefings) ? state.briefings.length : 0);
+  }
+
   function isHomeFirstRun() {
     return state.character === "cat"
       && state.onboarded
-      && !(state.records || []).length
-      && !(state.briefings || []).length
-      && !pendingBriefingSuggestion;
+      && !pendingBriefingSuggestion
+      && catUsageTraceCount() === 0;
   }
 
   function renderDailyBriefing() {
