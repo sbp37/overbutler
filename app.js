@@ -5095,6 +5095,23 @@
     return result;
   }
 
+  /* 소견 48줄은 전부 대업 이름으로 시작한다. 파일·기록 상세에서는 그게 맞다 —
+     거기서는 소견만 따로 읽히기 때문이다. 그런데 결과서(FORM 05)에는 바로 위에
+     같은 문구가 큰 글씨로 이미 박혀 있어서, 2cm 간격으로 같은 말이 두 번 나온다.
+
+     저장된 소견은 건드리지 않고 이 화면에서만 겹치는 앞머리를 걷어낸다.
+     뒤에 조사가 붙은 형태(「{deed}라니」)는 문장이 부서지므로 그대로 둔다 —
+     공백·말줄임·문장부호로 끊기는 경우만 잘라낸다. */
+  function reportWithoutLeadingDeed(report, deed) {
+    const text = String(report || "").trim();
+    const label = String(deed || "").trim();
+    if (!label || !text.startsWith(label)) return text;
+    const rest = text.slice(label.length);
+    if (!/^[\s…·\-–—.,!?"”』」]/.test(rest)) return text;
+    const trimmed = rest.replace(/^[\s…·\-–—.,!?"”』」]+/, "").trim();
+    return trimmed.length >= 6 ? trimmed : text;
+  }
+
   function openPraiseResult(record) {
     const sourceBriefing = record.sourceBriefingId
       ? state.briefings.find(item => String(item.id) === String(record.sourceBriefingId))
@@ -5152,7 +5169,7 @@
     reportNode.classList.remove("is-inked");
     // 결과서 소견은 한 문장만 싣는다. 전문은 파일에 그대로 보관된다 —
     // 이 화면은 6초짜리 연출이지 독서 화면이 아니다.
-    reportNode.textContent = firstSentenceOf(record.report);
+    reportNode.textContent = firstSentenceOf(reportWithoutLeadingDeed(record.report, record.deed));
     $("#result-rare-note").hidden = !rare;
     // 증서는 공식 인정을 받은 날에만 나온다. 대업마다 기념 증서를 내주면
     // 5건을 모아야 받는 공식 인정이 아무 의미가 없어진다.
@@ -7556,7 +7573,9 @@
       : completedItems.length ? "오늘 끝!" : "일정 없음";
     const addButton = $("#daily-briefing-add");
     addButton.hidden = items.length >= BRIEFING_DAILY_LIMIT;
-    addButton.textContent = items.length ? "+ 일정 적기" : "+ 첫 일정 적기";
+    // 「첫」은 정말 처음일 때만 붙인다. 오늘 것만 세면, 일주일을 써도 일정을
+    // 안 적은 사람에게는 계속 「첫 일정」이라고 불러 아무것도 안 쌓인 것처럼 보인다.
+    addButton.textContent = (state.briefings || []).length ? "+ 일정 적기" : "+ 첫 일정 적기";
     $("#daily-briefing-toggle").hidden = !items.length;
     const list = $("#daily-briefing-list");
     const eveningSummary = $("#briefing-evening-summary");

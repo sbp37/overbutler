@@ -2636,10 +2636,15 @@
   opacity: .92;
   transform: rotate(11deg);
 }
+/* min-height 246px는 고양이가 224px이던 옛 그리드 레이아웃(reaction-final.css)의
+   잔재다. 여기서 이미지를 88px로 줄이면서 그 규칙만 남아, 내용(168px)보다 78px 큰
+   빈칸이 칭호와 소견 사이에 그대로 벌어져 있었다. 도장은 이 블록과 형제라
+   높이를 줄여도 자리가 흔들리지 않는다. */
 .praise-result-hero {
   display: flex;
   gap: 14px;
   align-items: center;
+  min-height: 0;
   margin: 0;
   padding: 17px 96px 0 16px;
   border: 0;
@@ -2668,12 +2673,17 @@
   word-break: keep-all;
 }
 /* 칭호는 낫표 안에 든다 — 판정 결과가 아니라 수여된 이름이라는 표시. */
+/* 칭호 칸은 승인 도장이 오른쪽 96px을 차지해서 144px밖에 안 된다. 폭은 못 늘리니
+   줄을 고르게 나눈다 — 그냥 두면 「무대를 끝낸 / 자」처럼 닫는 낫표만 떨어진다.
+   미지원 브라우저는 지금과 같이 동작한다. */
 .praise-result-summary #result-title {
   margin: 0;
   color: var(--ink);
   font: 900 21px/1.4 var(--serif);
   word-break: keep-all;
+  text-wrap: balance;
 }
+.praise-result-summary #result-butler-name { text-wrap: balance; }
 .praise-result-summary #result-title:before { content: "「"; }
 .praise-result-summary #result-title:after { content: "」"; }
 .praise-result-deedline {

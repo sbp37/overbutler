@@ -54,6 +54,13 @@
         assert(Boolean(doc.querySelector("#result-title").textContent.trim()), "first submission reaches the result sheet");
         assert(doc.querySelector("#result-deed").textContent.includes("씻"), "result sheet reflects the submitted story");
         assert(doc.querySelector("#result-report").textContent.includes("맡긴 첫 이야기") && doc.querySelector("#result-report").textContent.includes("잘하고 싶어서"), "first CAT result shows first-owner rookie enthusiasm");
+        /* 소견은 대업 이름으로 시작하는데, 결과서에는 바로 위에 같은 문구가 이미
+           크게 박혀 있다. 표시할 때만 겹치는 앞머리를 걷어낸다 — 저장된 소견은
+           파일에서 그대로 읽혀야 하므로 손대지 않는다. */
+        const shownReport = doc.querySelector("#result-report").textContent.trim();
+        const shownDeed = doc.querySelector("#result-deed").textContent.replace(/[“”"]/g, "").trim();
+        assert(!shownReport.startsWith(shownDeed), "the result sheet does not print the deed twice in a row");
+        assert(String(JSON.parse(localStorage.getItem("butlermaker_v1")).records[0].report).startsWith(shownDeed), "the stored report keeps its full opening for the file");
         assert.equal(doc.querySelector("#result-close").textContent.trim(), "집사에게 돌아가기", "saved first record returns to the butler without offering a second save");
         assert(doc.querySelector("#result-footnote").textContent.includes("주인님 파일 첫 장 보관 완료"), "first CAT result confirms where the shared first record was stored");
         stored = JSON.parse(localStorage.getItem("butlermaker_v1"));
