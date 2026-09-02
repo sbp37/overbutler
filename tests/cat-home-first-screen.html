@@ -110,8 +110,29 @@
         const doc3 = frame.contentDocument;
         const folded3 = el => Boolean(el) && (el.hidden || frame.contentWindow.getComputedStyle(el).display === "none");
         assert(!doc3.documentElement.hasAttribute("data-home-first-run"), "the first record restores the ordinary home");
-        assert(!folded3(doc3.querySelector("#daily-briefing")), "the briefing comes back after the first record");
-        assert(!folded3(doc3.querySelector("#view-home .entry-footnote")), "the stamp gauge comes back after the first record");
+        /* 뺄셈 라운드(2026-09-02) — 첫 접수 뒤에도 홈은 그대로 조용하다. 일정이 없으면
+           브리핑은 없고, 도장 n/5는 홈이 아니라 파일 표지 한 곳에만 산다. */
+        assert(folded3(doc3.querySelector("#daily-briefing")), "no plans → the briefing stays off the home even after the first record");
+        assert(folded3(doc3.querySelector("#view-home .entry-footnote")), "the stamp gauge stays off the home after the first record");
+        assert(doc3.querySelector("#owner-file-stamp-progress").textContent.trim() === "1 / 5", "the file cover carries the only n/5 (1 / 5 after the first record)");
+        assert(frame.contentWindow.getComputedStyle(doc3.querySelector(".owner-file-stamp-row")).display !== "none", "the first-record file cover still shows the stamp row");
+
+        /* 일정이 하나 생기면 카드가 아니라 메모 한 줄로 나타난다. */
+        const withMemoPlan = JSON.parse(win.localStorage.getItem("butlermaker_v1"));
+        const memoNow = new Date();
+        const todayKey = `${memoNow.getFullYear()}-${String(memoNow.getMonth() + 1).padStart(2, "0")}-${String(memoNow.getDate()).padStart(2, "0")}`;
+        withMemoPlan.briefings = [{ id: "b1", date: todayKey, title: "치과 예약", time: "14:00", completed: false, completedAt: null, askAfter: false, createdAt: memoNow.toISOString() }];
+        win.localStorage.setItem("butlermaker_v1", JSON.stringify(withMemoPlan));
+        win.location.reload();
+        await new Promise(resolve => frame.addEventListener("load", resolve, { once: true }));
+        await wait(250);
+        const doc4 = frame.contentDocument;
+        const folded4 = el => Boolean(el) && (el.hidden || frame.contentWindow.getComputedStyle(el).display === "none");
+        assert(!folded4(doc4.querySelector("#daily-briefing")) && doc4.querySelector("#daily-briefing").classList.contains("is-memo"), "a plan shows up as the one-line memo, not the card");
+        assert(!folded4(doc4.querySelector("#daily-briefing-memo")) && doc4.querySelector("#daily-briefing-memo-title").textContent.includes("치과 예약"), "the memo names the plan");
+        assert(folded4(doc4.querySelector("#daily-briefing-add")), "「+ 일정 적기」 waits behind the memo");
+        withMemoPlan.briefings = [];
+        win.localStorage.setItem("butlermaker_v1", JSON.stringify(withMemoPlan));
 
         // 저장 데이터는 이 판정 때문에 바뀌지 않는다.
         const stored = JSON.parse(win.localStorage.getItem("butlermaker_v1"));

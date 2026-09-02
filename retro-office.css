@@ -6146,3 +6146,51 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
   font: 600 13px/1 var(--disp);
 }
 #manager-details .manager-change-button span { font-size: 18px; color: var(--ink-soft); }
+
+/* ═══════════ 뺄셈 라운드 (2026-09-02) — 홈 ═══════════
+   성공 기준: 처음 온 사람도 10일 쓴 사람도 홈에서 해야 할 행동이 하나로 보인다.
+
+   도장 진행도 카드(n/5)·과몰입 심사·도장 규칙 각주는 홈에서 뺀다. 첫 화면 라운드는
+   첫 접수 전에만 접었고 첫 접수 뒤엔 그대로 돌아왔다 — "첫 접수 전만 깔끔해졌다".
+   n/5는 파일 표지 한 곳에만 남는다. 마크업·렌더는 그대로라 되돌리려면 이 두 줄만 지운다. */
+#view-home .entry-footnote,
+#view-home .form-note { display: none; }
+
+/* 파일 표지의 도장 진행도 — 숫자 한 군데. 첫 기록 파일이 감추는 행(최다·공식 인정)과 달리 이 행은 남는다. */
+#view-archive .owner-file-stamp-row dd { color: var(--ink); font-weight: 800; }
+
+/* 브리핑 — 일정이 있을 때 홈에 보이는 건 카드가 아니라 메모 한 줄.
+   개봉 통지(.diary-open-note)와 같은 얇은 줄이라 홈에 두 겹의 종이가 생기지 않는다. */
+#view-home .daily-briefing.is-memo {
+  margin: 10px 16px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+#view-home .daily-briefing.is-memo > *:not(.daily-briefing-memo) { display: none; }
+#view-home .daily-briefing-memo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 37px;
+  padding: 8px 12px;
+  border: 1px solid var(--doc-line);
+  border-left: 3px solid var(--ink-soft);
+  border-radius: 0;
+  background: var(--memo);
+  box-shadow: 2px 3px 0 rgba(45, 35, 22, .12);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+#view-home .daily-briefing-memo[hidden] { display: none; }
+#view-home .daily-briefing-memo:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(45, 35, 22, .12); }
+#view-home .daily-briefing-memo-tag { flex: none; padding: 2px 5px; border: 1px solid var(--doc-line); color: var(--ink-soft); font: 800 9px/1 var(--disp); letter-spacing: .06em; }
+#view-home .daily-briefing-memo b { flex: none; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 12.5px/1.2 var(--disp); }
+#view-home .daily-briefing-memo-sub { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-soft); font: 600 11px/1.2 var(--disp); text-align: right; }
+/* 메모 상태에서는 「+ 일정 적기」·「목록 보기」도 없다. 둘 다 absolute로 카드 모서리에
+   붙는 규칙(위 5033·4930줄)이 있어서 자식 일괄 숨김만으로는 남는다 — 이름을 불러 끈다. */
+#view-home .daily-briefing.is-memo .daily-briefing-add:not([hidden]),
+#view-home .daily-briefing.is-memo .daily-briefing-toggle { display: none; }

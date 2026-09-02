@@ -2359,6 +2359,11 @@
       ? `${cover.topCategory.label} · ${cover.topCategory.count}건`
       : cover.thickness ? "같은 분야 2건부터" : "아직 없음";
     $("#owner-file-official").textContent = cover.officialCount;
+    /* n/5 도장 진행도는 여기 한 곳에만 산다(뺄셈 라운드 · 오너 결정). 홈·결과서·파일 세 군데
+       숫자는 복잡함이고, 파일 표지 한 군데 「서류가 쌓인다」는 동기다. 홈은 오늘, 파일은 지금까지. */
+    const stampStatus = certificationStatus();
+    const stampProgress = $("#owner-file-stamp-progress");
+    if (stampProgress) stampProgress.textContent = `${stampStatus.progress} / ${stampStatus.target}`;
     $("#owner-file-remark").textContent = firstCatRecord
       ? "주인님이 맡긴 첫 장이다냥. 잘하고 싶어서 제일 좋은 표지를 골랐다냥."
       : cover.remark;
@@ -7572,6 +7577,13 @@
     if (!entryForm || $("#daily-briefing")) return;
     $("#view-home .home-hero").insertAdjacentHTML("beforebegin", `
       <section class="daily-briefing" id="daily-briefing" aria-labelledby="daily-briefing-title">
+        <!-- 뺄셈 라운드 — 일정이 있을 때 홈에 보이는 건 카드가 아니라 이 메모 한 줄이다.
+             누르면 원래 카드(목록·수정·내일로·+ 일정 적기)가 그대로 펼쳐진다. -->
+        <button class="daily-briefing-memo" id="daily-briefing-memo" type="button" hidden>
+          <span class="daily-briefing-memo-tag">오늘 메모</span>
+          <b id="daily-briefing-memo-title"></b>
+          <span class="daily-briefing-memo-sub" id="daily-briefing-memo-sub"></span>
+        </button>
         <span class="of-clip" aria-hidden="true"></span>
         <header>
           <div><small>TODAY'S BRIEFING</small><h2 id="daily-briefing-title">오늘의 브리핑</h2></div>
@@ -7628,6 +7640,10 @@
 
     $("#daily-briefing-add").addEventListener("click", () => openBriefingEditor());
     $("#daily-briefing-toggle").addEventListener("click", toggleDailyBriefing);
+    $("#daily-briefing-memo").addEventListener("click", () => {
+      haptic(15);
+      if (!$("#daily-briefing").classList.contains("is-expanded")) toggleDailyBriefing();
+    });
     $("#briefing-story-context-close").addEventListener("click", clearBriefingStoryContext);
     $("#briefing-editor-overlay").addEventListener("click", event => {
       if (event.target === event.currentTarget || event.target.closest("[data-briefing-close]")) closeBriefingEditor();
@@ -7895,12 +7911,35 @@
     if (!section) return;
     const firstRun = isHomeFirstRun();
     document.documentElement.toggleAttribute("data-home-first-run", firstRun);
-    section.hidden = state.character !== "cat" || !state.onboarded || firstRun;
-    if (section.hidden) return;
     const items = briefingItems();
     const activeItems = items.filter(item => !item.closedAt);
     const completedItems = activeItems.filter(item => item.completed);
     const remainingItems = activeItems.filter(item => !item.completed).sort((a, b) => Number(Boolean(b.promptPending)) - Number(Boolean(a.promptPending)) || String(a.time || "99:99").localeCompare(String(b.time || "99:99")));
+    /* 뺄셈 라운드(2026-09-02) — 일정이 없으면 홈에 브리핑은 아예 없다.
+       「+ 첫 일정 적기」 빈 카드는 첫 접수 직후 새 명사(일정)를 하나 더 소개하는 일이었다.
+       일정은 두 길로만 생긴다: 주인님이 미래 문장(「내일 발표야」)을 말해 집사가 제안하거나,
+       이미 있는 일정 카드를 펼쳐 더 적거나. 홈에서 해야 할 행동은 하나여야 한다. */
+    const nothingToShow = !activeItems.length && !pendingBriefingSuggestion;
+    section.hidden = state.character !== "cat" || !state.onboarded || firstRun || nothingToShow;
+    if (section.hidden) {
+      section.classList.remove("is-expanded", "is-memo");
+      syncBriefingRoomTrace(remainingItems.length, activeItems.length > 0);
+      return;
+    }
+    // 일정이 있으면 카드가 아니라 치즈냥이 들고 있는 메모 한 줄. 누르면 카드가 펼쳐진다.
+    const memoMode = activeItems.length > 0 && !pendingBriefingSuggestion && !section.classList.contains("is-expanded");
+    section.classList.toggle("is-memo", memoMode);
+    const memo = $("#daily-briefing-memo");
+    memo.hidden = !memoMode;
+    if (memoMode) {
+      const lead = remainingItems[0];
+      $("#daily-briefing-memo-title").textContent = lead
+        ? `${lead.title}${remainingItems.length > 1 ? ` 외 ${remainingItems.length - 1}건` : ""}`
+        : `오늘 일정 ${completedItems.length}건 끝`;
+      $("#daily-briefing-memo-sub").textContent = lead
+        ? `${lead.time ? `${briefingTimeLabel(lead)} · ` : ""}집사가 챙기는 중 →`
+        : "집사가 도장 찍어뒀다냥 →";
+    }
     section.classList.toggle("is-empty", !items.length);
     if (!items.length) {
       section.classList.remove("is-expanded");
@@ -7953,6 +7992,8 @@
     section.classList.toggle("is-expanded", expanded);
     $("#daily-briefing-toggle").setAttribute("aria-expanded", String(expanded));
     $("#daily-briefing-toggle").textContent = expanded ? "목록 접기" : "목록 보기";
+    // 접으면 메모 한 줄로 돌아간다. renderDailyBriefing이 is-memo를 다시 계산한다.
+    renderDailyBriefing();
   }
 
   function handleBriefingSectionAction(event) {
