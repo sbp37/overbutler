@@ -209,7 +209,10 @@
         <section class="home-hero">
           <span id="entry-kicker">오늘 이야기 · 창구 01</span>
           <i class="of-datestamp" aria-hidden="true">접수<b id="home-datestamp">08. 17</b></i>
-          <h1 id="home-title">오늘은 어떻게<br>보내셨나요?</h1>
+          <!-- <br> 뒤의 공백은 첫 화면에서 줄바꿈을 접었을 때(CSS `data-home-first-run`)
+               「어떻게보내셨나요」로 붙지 않게 하는 것이다. 줄바꿈이 살아 있는 평소에는
+               줄머리 공백이라 렌더링에서 무시된다. -->
+          <h1 id="home-title">오늘은 어떻게<br> 보내셨나요?</h1>
           <p id="entry-description">잘한 일도, 힘든 일도, 별일 없던 하루도 접수됩니다.</p>
         </section>
 
@@ -561,6 +564,10 @@
           <div><dt>도장</dt><dd id="result-record-status">1 / 5</dd></div>
         </dl>
         <button class="primary-button" id="result-certificate-button" type="button">공식 인증서 발급 <span>→</span></button>
+        <!-- 결과서를 그대로 한 장으로 내보낸다. 증서(유효 대업 5건)와 다른 물건이라
+             금박을 쓰지 않는다 — 매일 나오는 서류에 증서를 발급하면 5건의 의미가
+             사라진다. 자랑거리는 등급이 아니라 수여된 칭호다. -->
+        <button class="text-button result-share-button" id="result-share" type="button">이 결과서 내보내기 <span aria-hidden="true">↗</span></button>
         <button class="text-button" id="result-close" type="button">집사에게 돌아가기</button>
       </article>
       <p class="reaction-footnote" id="result-footnote">집사 사무국 과몰입 관리 규정에 따라 자동 결재되었습니다.</p>

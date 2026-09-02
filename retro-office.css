@@ -2636,10 +2636,15 @@
   opacity: .92;
   transform: rotate(11deg);
 }
+/* min-height 246px는 고양이가 224px이던 옛 그리드 레이아웃(reaction-final.css)의
+   잔재다. 여기서 이미지를 88px로 줄이면서 그 규칙만 남아, 내용(168px)보다 78px 큰
+   빈칸이 칭호와 소견 사이에 그대로 벌어져 있었다. 도장은 이 블록과 형제라
+   높이를 줄여도 자리가 흔들리지 않는다. */
 .praise-result-hero {
   display: flex;
   gap: 14px;
   align-items: center;
+  min-height: 0;
   margin: 0;
   padding: 17px 96px 0 16px;
   border: 0;
@@ -2668,12 +2673,17 @@
   word-break: keep-all;
 }
 /* 칭호는 낫표 안에 든다 — 판정 결과가 아니라 수여된 이름이라는 표시. */
+/* 칭호 칸은 승인 도장이 오른쪽 96px을 차지해서 144px밖에 안 된다. 폭은 못 늘리니
+   줄을 고르게 나눈다 — 그냥 두면 「무대를 끝낸 / 자」처럼 닫는 낫표만 떨어진다.
+   미지원 브라우저는 지금과 같이 동작한다. */
 .praise-result-summary #result-title {
   margin: 0;
   color: var(--ink);
   font: 900 21px/1.4 var(--serif);
   word-break: keep-all;
+  text-wrap: balance;
 }
+.praise-result-summary #result-butler-name { text-wrap: balance; }
 .praise-result-summary #result-title:before { content: "「"; }
 .praise-result-summary #result-title:after { content: "」"; }
 .praise-result-deedline {
@@ -3718,12 +3728,17 @@
    어제 쓴 일기가 열린 날에만 홈 상단에 나타난다. 알림 배지가 아니라
    책상에 올려진 통지서 한 장이다 — 노트지 위 크라프트 태그, 스테이플.
    하루 한 번의 낙이므로 화려하면 안 되고, 못 보고 지나가도 안 된다. */
+/* 한 줄짜리 통지로 눕힌다. 세로로 쌓인 통지서 한 장이 접수 입력(FORM 01)을
+   화면 밖으로 밀어내고 있었다(실측 124px). 아침 훅이라 놓치면 안 되지만,
+   오늘 할 일보다 앞자리를 차지할 이유는 없다. */
 #view-home .diary-open-note {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: auto;
-  margin: 12px 16px 0;
-  padding: 12px 14px 11px;
+  margin: 10px 16px 0;
+  padding: 8px 12px;
   border: 1px solid var(--doc-line);
   border-left: 3px solid var(--stamp-red);
   border-radius: 0;
@@ -3732,11 +3747,20 @@
   text-align: left;
   cursor: pointer;
 }
+/* 화살표는 여는 동작의 표시라 남기고, 본문은 제목이 이미 다 말한다. */
+#view-home .diary-open-note::after {
+  content: "→";
+  margin-left: auto;
+  color: var(--stamp-red);
+  font: 800 13px/1 var(--disp);
+}
 #view-home .diary-open-note:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(45, 35, 22, .12); }
-#view-home .diary-open-note .of-staple { top: 7px; right: 13px; rotate: 3deg; }
+/* 한 줄이 되면서 스테이플 자리가 글자와 겹친다. 클립류는 여기서만 뺀다. */
+#view-home .diary-open-note .of-staple { display: none; }
 #view-home .diary-open-note .diary-open-tag {
+  flex: none;
   display: inline-block;
-  margin-bottom: 5px;
+  margin-bottom: 0;
   padding: 2px 6px;
   border: 1px solid var(--stamp-red);
   border-radius: 2px;
@@ -3746,15 +3770,23 @@
 }
 #view-home .diary-open-note b {
   display: block;
+  min-width: 0;
+  overflow: hidden;
   color: var(--ink);
-  font: 700 14.5px/1.3 var(--disp);
+  font: 700 13.5px/1.35 var(--disp);
   letter-spacing: -.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+/* 제목이 이미 "어제 일기가 개봉됐습니다"라고 다 말한다. 부연은 화면에서만
+   빼고 DOM에는 남겨 화면 낭독기에는 그대로 읽히게 한다. */
 #view-home .diary-open-note .diary-open-sub {
-  display: block;
-  margin-top: 4px;
-  color: #5c4c36;
-  font: 700 13px/1.3 var(--hand);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ═══════════ 선물의 흔적 — 책상 위에 남는 선물 ═══════════
@@ -6032,3 +6064,64 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
   white-space: nowrap;
   pointer-events: none;
 }
+
+/* ═══════════ 첫 화면 — 아직 아무것도 없는 사람의 홈 ═══════════
+   기록도 일정도 0인 상태에서만 켜진다(app.js `isHomeFirstRun`).
+   이 사람이 지금 해야 하는 일은 하나뿐인데, 접수 입력(FORM 01)과 접수 버튼이
+   화면 밖에 있었다 — 실측 390px에서 버튼 하단 921px / 하단 네비 772px.
+
+   방 높이·고양이 위치·말풍선은 손대지 않는다(LOCKED). 대신 아직 내용이 없는
+   장식만 접는다. 접수가 한 건이라도 생기면 판정이 풀려 원래 홈으로 돌아간다. */
+
+/* 날짜 도장은 접수 이력이 있을 때 의미가 생긴다. 그 자리를 비우려고
+   잡아둔 44px 여백도 같이 회수한다. */
+:root[data-home-first-run] #view-home .home-hero { padding-top: 6px; }
+:root[data-home-first-run] #view-home .home-hero i.of-datestamp { display: none; }
+:root[data-home-first-run] #view-home .home-hero h1 { line-height: 1.28; }
+
+/* 도장 진행도(0/5)와 과몰입 심사는 쌓인 것을 보여주는 칸이다. 쌓인 게 없으면
+   빈 게이지가 접수 버튼을 아래로 밀 뿐이다. 첫 접수 뒤에 다시 나온다. */
+:root[data-home-first-run] #view-home .entry-footnote { display: none; }
+
+/* 「자주 들어오는 민원」 라벨 — 칩 자체가 뭘 하는 건지 이미 말한다.
+   접수 버튼을 화면 안으로 들이는 데 쓰는 19px이 더 값지다. */
+:root[data-home-first-run] #view-home .quick-actions-label { display: none; }
+:root[data-home-first-run] #view-home .quick-actions { margin-top: 8px; margin-bottom: 4px; }
+
+/* 「오늘 이야기 · FORM 01」은 바로 위 제목과 같은 말이다. 첫 화면에서만 접는다
+   — 글자 수 표시는 살려서 입력 피드백은 남긴다. */
+:root[data-home-first-run] #view-home .field-heading { margin-bottom: 0; }
+:root[data-home-first-run] #view-home .field-heading strong { display: none; }
+
+:root[data-home-first-run] #view-home .entry-form { padding-top: 9px; }
+:root[data-home-first-run] #view-home .home-hero { padding-top: 2px; }
+/* 제목의 줄바꿈은 마크업에 박혀 있어서 두 줄을 강제한다(27px). 첫 화면에서만
+   한 줄로 눕힌다 — 「오늘은 어떻게 보내셨나요?」는 360px에서도 한 줄에 들어간다. */
+:root[data-home-first-run] #view-home .home-hero h1 { font-size: 21px; }
+:root[data-home-first-run] #view-home .home-hero h1 br { display: none; }
+/* 「무엇이든 접수된다」는 첫 사용자에게 제일 중요한 문장이라 지우지 않는다.
+   대신 한 줄에 들어가게만 조인다. */
+:root[data-home-first-run] #view-home .home-hero p { font-size: 11.5px; line-height: 1.45; }
+
+/* ═══════════ 결과서 내보내기 ═══════════
+   증서 발급 버튼(유효 대업 5건에만 나온다)이 있을 때도, 없을 때도 같은 자리에
+   선다. 돌아가기와 경쟁하지 않도록 무게는 한 단계 낮춘다 — 자랑은 권유가 아니라
+   선택이고, 이 화면의 본래 동작은 접수를 끝내고 돌아가는 것이다. */
+#praise-result-overlay .result-share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: rgba(255, 251, 243, .72);
+  color: var(--kraft-deep);
+  font: 700 13px/1 var(--disp);
+  letter-spacing: .01em;
+}
+#praise-result-overlay .result-share-button span { font-size: 12px; }
+#praise-result-overlay .result-share-button:active { transform: translate(1px, 1px); }
+#praise-result-overlay .result-share-button[aria-busy="true"] { opacity: .6; }
