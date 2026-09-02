@@ -61,6 +61,19 @@
         const shownDeed = doc.querySelector("#result-deed").textContent.replace(/[“”"]/g, "").trim();
         assert(!shownReport.startsWith(shownDeed), "the result sheet does not print the deed twice in a row");
         assert(String(JSON.parse(localStorage.getItem("butlermaker_v1")).records[0].report).startsWith(shownDeed), "the stored report keeps its full opening for the file");
+
+        /* 결과서는 접수할 때마다 나오는 서류라 그대로 내보낼 수 있다. 증서는
+           유효 대업 5건을 모아야 나오는 별개 물건이므로(LOCKED) 여기서 같이
+           발급되면 안 된다 — 매일 증서가 나오면 그 5건이 무의미해진다. */
+        const shareButton = doc.querySelector("#result-share");
+        assert(Boolean(shareButton) && !shareButton.hidden, "every result sheet can be exported as it is");
+        assert(doc.querySelector("#result-certificate-button").hidden, "the certificate stays locked behind the five-record milestone");
+        const cardApi = frame.contentWindow.OVERBUTLER_APP;
+        const firstRecord2 = JSON.parse(localStorage.getItem("butlermaker_v1")).records[0];
+        const shareText = cardApi.resultCardShareText(firstRecord2);
+        assert(shareText.includes(firstRecord2.nickname) && shareText.includes(firstRecord2.deed), "the share text carries the awarded title and the deed");
+        assert(!/증서|인증서/.test(shareText), "the everyday result card never calls itself a certificate");
+        assert.equal(cardApi.resultVerdictLabel(firstRecord2), doc.querySelector("#result-verdict").textContent.trim(), "the exported verdict matches the screen");
         assert.equal(doc.querySelector("#result-close").textContent.trim(), "집사에게 돌아가기", "saved first record returns to the butler without offering a second save");
         assert(doc.querySelector("#result-footnote").textContent.includes("주인님 파일 첫 장 보관 완료"), "first CAT result confirms where the shared first record was stored");
         stored = JSON.parse(localStorage.getItem("butlermaker_v1"));

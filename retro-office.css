@@ -6102,3 +6102,26 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
 /* 「무엇이든 접수된다」는 첫 사용자에게 제일 중요한 문장이라 지우지 않는다.
    대신 한 줄에 들어가게만 조인다. */
 :root[data-home-first-run] #view-home .home-hero p { font-size: 11.5px; line-height: 1.45; }
+
+/* ═══════════ 결과서 내보내기 ═══════════
+   증서 발급 버튼(유효 대업 5건에만 나온다)이 있을 때도, 없을 때도 같은 자리에
+   선다. 돌아가기와 경쟁하지 않도록 무게는 한 단계 낮춘다 — 자랑은 권유가 아니라
+   선택이고, 이 화면의 본래 동작은 접수를 끝내고 돌아가는 것이다. */
+#praise-result-overlay .result-share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 8px;
+  border: 1px solid var(--doc-line);
+  border-radius: 0;
+  background: rgba(255, 251, 243, .72);
+  color: var(--kraft-deep);
+  font: 700 13px/1 var(--disp);
+  letter-spacing: .01em;
+}
+#praise-result-overlay .result-share-button span { font-size: 12px; }
+#praise-result-overlay .result-share-button:active { transform: translate(1px, 1px); }
+#praise-result-overlay .result-share-button[aria-busy="true"] { opacity: .6; }

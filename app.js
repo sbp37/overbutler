@@ -5283,6 +5283,29 @@
     return lines;
   }
 
+  /* 칭호는 어절에서 나눈다. 글자 단위로 자르면 「중력을 이겨낸 전 / 설의 수호자」처럼
+     낱말 가운데가 갈라져, 수여된 이름이 아니라 깨진 문자열로 보인다.
+     띄어쓰기가 없는 한 덩어리는 어쩔 수 없이 글자 단위로 넘긴다. */
+  function canvasWordLines(ctx, text, maxWidth, maxLines = 2) {
+    const words = String(text || "").split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    const lines = [];
+    let line = "";
+    for (const word of words) {
+      const test = line ? `${line} ${word}` : word;
+      if (line && ctx.measureText(test).width > maxWidth) {
+        lines.push(line);
+        line = word;
+        if (lines.length === maxLines) return canvasTextLines(ctx, text, maxWidth, maxLines);
+      } else line = test;
+    }
+    if (line) lines.push(line);
+    if (lines.some(item => ctx.measureText(item).width > maxWidth)) {
+      return canvasTextLines(ctx, text, maxWidth, maxLines);
+    }
+    return lines;
+  }
+
   function drawCenteredCanvasLines(ctx, lines, x, startY, lineHeight) {
     lines.forEach((line, index) => ctx.fillText(line, x, startY + index * lineHeight));
     return startY + Math.max(1, lines.length) * lineHeight;
@@ -5939,6 +5962,273 @@
     ctx.textAlign = "center";
     void KRAFT;
     return canvasToBlob(canvas);
+  }
+
+  /* 화면(openPraiseResult)과 같은 판정을 카드도 써야 한다. 두 곳에 같은 삼항을
+     두면 한쪽만 고쳐질 자리라 여기서 한 번만 정한다. */
+  function resultVerdictMode(record) {
+    if (record?.verdictType === "rare" || record?.rare) return "rare";
+    if (record?.pose === "power" || record?.verdictType === "power") return "power";
+    return "praise";
+  }
+  function resultVerdictLabel(record) {
+    const mode = resultVerdictMode(record);
+    return mode === "rare" ? "희귀 채택" : mode === "power" ? "과몰입 폭주" : "칭찬 지급";
+  }
+  function resultStampLabel(record) {
+    const mode = resultVerdictMode(record);
+    return mode === "rare" ? "희귀" : mode === "power" ? "폭주" : "승인";
+  }
+
+  /* ── 결과서 공유 카드 ──
+     증서는 유효 대업 5건을 모아야 나오는 물건이다(LOCKED). 매일 뜨는 결과서에
+     증서를 또 발급하면 그 5건이 아무 의미가 없어진다. 그래서 이 카드는 증서가
+     아니라 **결과서 그대로**다 — 금박도 액자도 쓰지 않고, 화면에서 본 FORM 05를
+     그대로 종이 한 장에 옮긴다. 자랑거리는 등급이 아니라 칭호이므로 칭호를
+     제일 크게 둔다. */
+  async function createResultCardBlob(record) {
+    if (document.fonts?.ready) await document.fonts.ready;
+    const butler = record.butler || snapshotButler(record);
+    const owner = certificateOwnerName(record);
+    const portrait = await loadCanvasImage(assetFor(butler.character, record.pose || "praise"));
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    const DISP = 'Paperlogy, "Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const BODY = '"Wanted Sans Variable", "Wanted Sans", sans-serif';
+    const SERIF = '"Song Myung", "Noto Serif KR", serif';
+    const HAND = 'Gaegu, cursive';
+    const INK = "#332a20";
+    const INK_SOFT = "#7a6c5c";
+    const INK_FAINT = "#a3927c";
+    const IVORY = "#faf7f0";
+    const MEMO = "#f7edd3";
+    const KRAFT = "#8a6f4e";
+    const STAMP = "#9d2f3a";
+    const LINE = "#d8c9b2";
+
+    // 격자 종이 바닥 — 증서와 같은 책상 위라는 표시.
+    ctx.fillStyle = "#efe8da";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(94, 72, 58, .05)";
+    ctx.lineWidth = 2;
+    for (let x = 0; x <= canvas.width; x += 64) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y <= canvas.height; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+
+    // 서류 한 장. 액자 대신 잉크 테두리 — 여기가 증서와 갈리는 지점이다.
+    const P = { x: 60, y: 84, w: 960, h: 1182 };
+    ctx.fillStyle = "rgba(45, 35, 22, .12)";
+    ctx.fillRect(P.x + 14, P.y + 16, P.w, P.h);
+    ctx.fillStyle = IVORY;
+    ctx.fillRect(P.x, P.y, P.w, P.h);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(P.x, P.y, P.w, P.h);
+
+    // 문서 머리 — 화면의 「대 업 심 사 결 과 서 / FORM 05」 줄
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = INK;
+    ctx.font = `800 34px ${DISP}`;
+    const formTitle = resultVerdictMode(record) === "rare" ? "희귀대업판정서"
+      : resultVerdictMode(record) === "power" ? "긴급과몰입결과서" : "대업심사결과서";
+    drawTrackedText(ctx, formTitle, P.x + 52, P.y + 78, 10, "left");
+    ctx.textAlign = "right";
+    ctx.fillStyle = STAMP;
+    ctx.font = `800 21px ${DISP}`;
+    drawTrackedText(ctx, "FORM 05", P.x + P.w - 52, P.y + 74, 3, "right");
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(P.x + 52, P.y + 108);
+    ctx.lineTo(P.x + P.w - 52, P.y + 108);
+    ctx.stroke();
+
+    /* 도장은 아래에 찍는다. 화면에서는 오른쪽 위에 있지만, 1080px 카드에서
+       위에 두면 칭호가 쓸 폭을 96px 빼앗아 「생활력의 수호자」가 도장 위로
+       겹쳐 올라간다. 실제 공문서도 결재란은 아래다 — 비어 있던 하단도 채워진다. */
+    const stamp = { x: P.x + P.w - 176, y: P.y + P.h - 232, r: 92 };
+    ctx.save();
+    ctx.translate(stamp.x, stamp.y);
+    ctx.rotate(-0.06);
+    ctx.strokeStyle = STAMP;
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.arc(0, 0, stamp.r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(157, 47, 58, .07)";
+    ctx.fill();
+    ctx.fillStyle = STAMP;
+    ctx.font = `800 52px ${SERIF}`;
+    ctx.textAlign = "center";
+    ctx.fillText(resultStampLabel(record), 0, 20);
+    ctx.restore();
+
+    // 집사 그림 + 칭호. 칭호가 이 카드의 주인공이다.
+    const portraitBox = { x: P.x + 52, y: P.y + 150, w: 250, h: 250 };
+    drawContainedCanvasImage(ctx, portrait, portraitBox.x, portraitBox.y, portraitBox.w, portraitBox.h);
+
+    const textLeft = portraitBox.x + portraitBox.w + 34;
+    const textWidth = P.x + P.w - 52 - textLeft;
+    ctx.textAlign = "left";
+    ctx.fillStyle = KRAFT;
+    ctx.font = `600 21px ${DISP}`;
+    const fieldLabel = OWNER_FILE_CATEGORY_LABELS[record.category] || "일상";
+    ctx.fillText(`${fieldLabel} 분야 · ${displayGrade(record)}`, textLeft, P.y + 186);
+
+    /* 낫표가 다음 줄에 혼자 남으면 수여된 이름이 아니라 잘린 문자열로 보인다.
+       한 줄에 들어가는 크기부터 차례로 시도하고, 그래도 두 줄이면 마지막 줄에
+       글자가 남는 크기를 고른다. */
+    const titleText = `「${record.nickname || "오늘의 대업"}」`;
+    ctx.fillStyle = INK;
+    let titleSize = 62;
+    let titleLines = [];
+    for (const size of [62, 56, 50, 44, 38]) {
+      ctx.font = `900 ${size}px ${SERIF}`;
+      titleLines = canvasWordLines(ctx, titleText, textWidth, 2);
+      titleSize = size;
+      if (titleLines.length === 1) break;
+      if (Array.from(titleLines[titleLines.length - 1]).length > 1) break;
+    }
+    ctx.font = `900 ${titleSize}px ${SERIF}`;
+    let cursor = P.y + 262;
+    titleLines.forEach(line => { ctx.fillText(line, textLeft, cursor); cursor += titleSize + 12; });
+
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `500 30px ${BODY}`;
+    const deedLines = canvasTextLines(ctx, `“${record.deed}”`, textWidth, 2);
+    deedLines.forEach(line => { ctx.fillText(line, textLeft, cursor + 4); cursor += 42; });
+
+    // 집사 소견 — 화면과 같은 메모지. 겹치는 앞머리는 화면과 똑같이 걷어낸다.
+    const memoTop = Math.max(cursor + 54, P.y + 470);
+    const memoText = firstSentenceOf(reportWithoutLeadingDeed(record.report, record.deed));
+    ctx.font = `700 34px ${HAND}`;
+    const memoLines = canvasTextLines(ctx, memoText, P.w - 190, 4);
+    const memoHeight = 60 + memoLines.length * 48;
+    ctx.fillStyle = MEMO;
+    ctx.fillRect(P.x + 52, memoTop, P.w - 104, memoHeight);
+    ctx.fillStyle = KRAFT;
+    ctx.fillRect(P.x + 52, memoTop, 8, memoHeight);
+    ctx.fillStyle = INK;
+    memoLines.forEach((line, index) => ctx.fillText(line, P.x + 86, memoTop + 62 + index * 48));
+
+    // 접수 정보 — 화면 하단 3칸과 같은 항목.
+    const metricsTop = memoTop + memoHeight + 64;
+    ctx.strokeStyle = LINE;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(P.x + 52, metricsTop);
+    ctx.lineTo(P.x + P.w - 52, metricsTop);
+    ctx.stroke();
+    const metrics = [
+      ["접수 번호", `NO. ${record.number || 1}`],
+      ["판정", resultVerdictLabel(record)],
+      ["접수일", record.date || today()]
+    ];
+    const columnWidth = (P.w - 104) / metrics.length;
+    ctx.textAlign = "center";
+    metrics.forEach(([label, value], index) => {
+      const center = P.x + 52 + columnWidth * (index + 0.5);
+      ctx.fillStyle = INK_FAINT;
+      ctx.font = `600 22px ${DISP}`;
+      ctx.fillText(label, center, metricsTop + 52);
+      ctx.fillStyle = index === 1 ? STAMP : INK;
+      ctx.font = `800 32px ${DISP}`;
+      ctx.fillText(value, center, metricsTop + 98);
+    });
+
+    // 발신자 — 누구의 파일에서 나온 종이인지.
+    ctx.textAlign = "left";
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `700 22px ${DISP}`;
+    drawTrackedText(ctx, "과잉집사 · OVERBUTLER DUTY OFFICE", P.x + 52, P.y + P.h - 46, 2, "left");
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#b1604a";
+    ctx.font = `700 34px ${HAND}`;
+    // certificateOwnerName은 이미 호칭까지 붙여준다 — 여기서 또 붙이면 겹친다.
+    // 도장은 이 줄보다 위에서 끝나므로 오른쪽 끝까지 붙여도 안 부딪힌다.
+    ctx.fillText(`${owner} 파일`, P.x + P.w - 52, P.y + P.h - 42);
+    ctx.textAlign = "center";
+    return canvasToBlob(canvas);
+  }
+
+  function resultCardFilename(record) {
+    const nickname = String(record.nickname || record.deed || "대업").replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 32).replace(/-+$/g, "") || "대업";
+    return `과잉집사-결과서-${nickname}.png`;
+  }
+
+  function resultCardShareText(record) {
+    return `${certificateOwnerName(record)}의 오늘 하루가 대업으로 접수됐습니다.\n「${record.nickname || "오늘의 대업"}」\n${record.deed}\n#과잉집사 #오늘의대업`;
+  }
+
+  function downloadResultCardBlob(blob, record) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = resultCardFilename(record);
+    link.href = url;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* 카드는 누를 때마다 그 건의 결과서다. 한 건에 묶여 있으니 같은 장이 다시
+     나와야 하고, 그래서 이 건에 대해서만 blob을 캐시한다. */
+  let resultCardBlobCache = { id: "", promise: null };
+  async function resultCardBlobFor(record) {
+    if (resultCardBlobCache.id !== record.id || !resultCardBlobCache.promise) {
+      resultCardBlobCache = { id: record.id, promise: createResultCardBlob(record).catch(() => null) };
+    }
+    const blob = await resultCardBlobCache.promise;
+    if (!blob) throw new Error("Result card image unavailable");
+    return blob;
+  }
+
+  async function shareResultCard() {
+    const record = currentCertificate;
+    if (!record) return;
+    const button = $("#result-share");
+    const text = resultCardShareText(record);
+    let blob = null;
+    setCertificateActionPending(button, true, "결과서 준비 중…");
+    try {
+      blob = await resultCardBlobFor(record);
+      const file = new File([blob], resultCardFilename(record), { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "과잉집사 대업 심사 결과서", text, files: [file] });
+        trackEvent("result_card_share", { character: record.character, source: "native_file" });
+        return;
+      }
+      if (navigator.share) {
+        downloadResultCardBlob(blob, record);
+        await navigator.share({ title: "과잉집사 대업 심사 결과서", text, url: window.location.origin });
+        trackEvent("result_card_share", { character: record.character, source: "native_link" });
+        return;
+      }
+      downloadResultCardBlob(blob, record);
+      const copied = await copyCertificateText(text);
+      trackEvent("result_card_share", { character: record.character, source: copied ? "download_copy" : "download" });
+      showToast(copied ? "결과서 이미지를 저장하고 문구를 복사했습니다." : "결과서 이미지를 저장했습니다.");
+    } catch (error) {
+      if (error.name === "AbortError") {
+        trackEvent("result_card_share", { character: record.character, source: "cancelled" });
+      } else {
+        try {
+          blob ||= await resultCardBlobFor(record);
+          downloadResultCardBlob(blob, record);
+          await copyCertificateText(text);
+          trackEvent("result_card_share", { character: record.character, source: "error_fallback" });
+          showToast("공유 대신 결과서 이미지와 문구를 준비했습니다.");
+        } catch {
+          trackEvent("result_card_share", { character: record.character, source: "failed" });
+          showToast("결과서 카드 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
+      }
+    } finally {
+      setCertificateActionPending(button, false, "");
+    }
   }
 
   function downloadCertificateBlob(blob, record) {
@@ -6875,6 +7165,7 @@
     });
     $("#result-certificate-button").addEventListener("click", issueCertificateFromResult);
     $("#result-close").addEventListener("click", closePraiseResult);
+    $("#result-share").addEventListener("click", shareResultCard);
     $("#praise-result-overlay").addEventListener("click", event => { if (event.target.id === "praise-result-overlay") closePraiseResult(); });
     $("#gift-close").addEventListener("click", closeGift);
     $("#gift-overlay").addEventListener("click", event => { if (event.target.id === "gift-overlay") closeGift(); });
@@ -6974,6 +7265,8 @@
     certificationStatus,
     // 공유 이미지는 화면과 같은 증서여야 한다. 회귀 확인용으로 생성기를 그대로 연다.
     createCertificateBlob,
+    // 결과서 카드도 같은 이유로 연다 — 나가는 그림이 화면과 다르면 안 된다.
+    createResultCardBlob, resultCardShareText, resultVerdictLabel,
     ownerFileCover, groupRecordsByDate, ownerFileRemark, ownerFileTier,
     chat: CHAT_ENGINE,
     timeGreetingFor: getTimeGreeting
