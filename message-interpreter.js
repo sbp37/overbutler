@@ -13,7 +13,7 @@
   const EMOTIONS = [
     ["tired", "tired", "negative", /힘들|지쳤|지쳐|죽겠다|죽겠네|기\s*빨|기빨|녹초|피곤|고단|진이\s*빠|방전|개힘/i],
     // 울었다는 말은 피로가 아니라 슬픔이다. tired보다 먼저 받아야 "쉬어라냥"으로 안 흘러간다.
-    ["sad", "sad", "negative", /우울|속상|슬프|슬퍼|서럽|눈물|울었|울어버|펑펑|마음\s*아프|허무|공허|울적/i],
+    ["sad", "sad", "negative", /우울|속상|슬프|슬퍼|서럽|눈물|울었|울어버|울면서|펑펑|마음\s*아프|허무|공허|허하|울적|최악(?:이었|이야|임|이네)/i],
     ["angry", "angry", "negative", /짜증|빡쳐|빡침|개빡|화나|화났|열받|기분\s*나빠|분하/i],
     ["worried", "worried", "negative", /걱정|고민|불안|초조|어떡하|어떻게\s*해야|막막/i],
     /* 한 일의 결과가 나빴다는 보고. 이게 없으면 "발표했는데 완전 망했어"가
@@ -31,7 +31,7 @@
        가정·희망 어미가 붙으면 걸러낸다 — 합격을 바라는 사람에게 축하가 나가는
        것은 못 알아듣는 것보다 나쁘다. 희망 문장은 폴백의 바람(hope) 경로가 받는다. */
     ["goodnews", "happy", "positive", /(?:붙었|통과했|뽑혔|승진했|취직했|성사됐|화해했|해결됐|합격했|계약했|계약됐|잘\s*풀렸)(?!으면|다면|음\s*좋|길\s*바|기를\s*바|길\s*빌)|합격이(?!면)|나았어|(?:당첨|완치)(?!(?:됐|되|이)?(?:었)?으?면|되고\s*싶|되길|되기를)/i],
-    ["setback", "sad", "negative", /(?:^|[^희소갈열])망(?:했|함|침|쳤|한)|말아먹|죽\s*쒔|폭망|실수(?:했|함|를\s*했|투성)|실패(?:했|함|한|야|다)|엉망|버벅|더듬거|삐끗|꼬였|틀렸|잘\s*안\s*(?:됐|됨|돼)|안\s*풀렸|불합격|탈락|(?:시험|면접|공채|서류|자소서|오디션|대회|경쟁)[^.!?]{0,12}떨어졌/i],
+    ["setback", "sad", "negative", /(?:^|[^희소갈열])망(?:했|함|침|쳤|한)|말아먹|죽\s*쒔|폭망|실수(?:했|함|를\s*했|투성)|실패(?:했|함|한|야|다)|엉망|버벅|더듬거|삐끗|꼬였|틀렸|잘\s*안\s*(?:됐|됨|돼)|안\s*풀렸|불합격|탈락|(?:시험|면접|공채|서류|자소서|오디션|대회|경쟁)[^.!?]{0,12}(?:떨어졌|떨어짐)|(?:떨어짐|불합격|탈락)/i],
     ["no_motivation", "low", "negative", /아무것도\s*(?:하기|하고)\s*싫|의욕\s*(?:이|은|가)?\s*(?:없|안\s*나|제로|하나도\s*없)|아무것도\s*못\s*(?:하겠|했)|무기력|손\s*하나\s*까딱|다\s*귀찮|몸이\s*안\s*움직/i],
     ["bored", "bored", "neutral", /심심|무료|재미\s*없/i],
     ["hungry", "hungry", "neutral", /배\s*고파|배고파|허기|굶었|꼬르륵|(?:밥|끼니)\s*못\s*먹/i],
@@ -47,7 +47,9 @@
     ["greeting", /안녕|하이|ㅎㅇ|hello|반가워|^\s*(?:나\s*|이제\s*)?왔(?:어요?|다)/i],
     ["goodbye", /갈게|이만\s*갈|나중에\s*봐|바이|안녕히/i],
     ["sleep", /잘게|자러\s*갈|잘\s*자|굿\s*나잇|굿나잇|잠들/i],
-    ["question", /\?|뭐\s*해|뭐하|왜\s|어떻게\s|무엇|알아\?/i]
+    // 물음표 없는 반말 질문이 통째로 빠져 있었다 — "너 이름이 뭐야"가 질문으로
+    // 안 잡혀서 집사 자기소개 대신 인용 되묻기가 나갔다.
+    ["question", /\?|뭐\s*해|뭐하|왜\s|어떻게\s|무엇|알아\?|뭐야|뭐냐|뭔데|누구야|누구냐|어디야|언제야|맞나|맞냐/i]
   ];
 
   // 완료 서술 뒤에 미래형 어미가 바로 따라오면(예: "먹을 거임", "할 거야") 아직 하지 않은
@@ -87,7 +89,9 @@
   // 완료 근거. 이게 절에 없으면 그 행동이 끝났다는 증거가 없다("설거지"만 적힌
   // 문장은 할 예정일 수도 있다). 빠른 입력 칩("씻음", "물 한 잔 마심")은
   // 받침 ㅁ 명사형이라 아래 endsWithNominalizer가 따로 받는다.
-  const COMPLETION_MARK = /함|완료|끝냈|끝났|마쳤|마무리|해냄|다녀옴/;
+  // "발표 끝내고 축하받았어" — 끝낸 뒤 다음 행동으로 이어지는 형태도 완료다.
+  // "끝내려고"·"끝내야"는 안 걸리게 어미를 묶어둔다.
+  const COMPLETION_MARK = /함|완료|끝냈|끝났|끝내(?:고|서|니까|니)|마쳤|마무리|해냄|다녀옴/;
   /* "산책하고 왔어"의 완료 증거는 뒤 절에 있다. 절 나누기가 "-고"에서 자르는
      바람에 「산책하」와 「왔어」로 갈라져, 행동이 있는 절에는 시제가 없고
      시제가 있는 절에는 행동이 없어 대업으로 안 올라갔다.
@@ -128,7 +132,9 @@
 
   // 절 끝이 받침 ㅁ 명사형인가 — "씻음 / 마심 / 보냄 / 일어남".
   function endsWithNominalizer(clause) {
-    const last = String(clause || "").replace(/[.!?~\s]+$/, "").slice(-1);
+    // 채팅에서는 "발표 잘끝냄ㅋㅋㅋ"처럼 웃음 꼬리가 어미 뒤에 붙는다. 끝 글자만
+    // 보는 검사라 이 꼬리 하나에 완료 판정이 통째로 날아갔다. 먼저 털어낸다.
+    const last = String(clause || "").replace(/[ㅋㅎㅠㅜ]+/g, "").replace(/[.!?~\s]+$/, "").slice(-1);
     if (!last) return false;
     const code = last.charCodeAt(0);
     if (code < 0xac00 || code > 0xd7a3) return false;
@@ -156,6 +162,42 @@
 
   function clauseFor(clauses, index) {
     return clauses.find(clause => index >= clause.start && index < clause.end) || clauses[clauses.length - 1];
+  }
+
+  /* ── 구경한 것은 내 하루가 아니다 ──
+     "정신없는 예능 봤어"의 「정신없는」은 예능 얘기고, "운동 유튜브만 봤어"의
+     「운동」은 화면 속 일이다. 그런데 규칙은 문장 전체에서 어휘만 찾으므로
+     둘 다 주인님이 한 일·겪은 일로 잡혔다 — 안 한 운동에 대업이 나갔다.
+     보고 들은 절은 활동·감정 판정에서 통째로 뺀다. 다른 절은 그대로 산다
+     ("영화 봤는데 재밌었어"의 「재밌었어」는 주인님 것이다). */
+  const SPECTATOR_MEDIA = /영화|드라마|예능|유튜브|영상|방송|중계|뉴스|웹툰|만화책|다큐|쇼츠|릴스|틱톡|넷플|경기(?:를|는)?\s*(?:봤|보)/;
+  const SPECTATOR_VERB = /봤|봄|보다가|보는|보고|시청|정주행|틀어\s*놓|틀어놓/;
+  function isSpectatorClause(clause) {
+    const value = String(clause || "");
+    if (/구경(?:했|함|하다|만|하고|하느라)/.test(value)) return true;
+    return SPECTATOR_MEDIA.test(value) && SPECTATOR_VERB.test(value);
+  }
+
+  /* 남에게 일어난 일도 내 하루가 아니다. 활동 쪽에는 이미 가드가 있었지만
+     감정 쪽에는 없어서 "동생이 시험 떨어졌어"가 주인님의 실패로 잡혔다.
+     「친구 둘이」처럼 수량사가 끼어드는 형태까지 본다. */
+  const THIRD_PARTY_COUNTED = /(?:친구|엄마|아빠|어머니|아버지|부모님|동생|언니|오빠|누나|형|남친|여친|애인|남편|아내|아이|아들|딸|동료|팀장|상사|선배|후배|걔|쟤)(?:들)?\s*(?:둘|셋|넷|두\s*명|세\s*명|몇\s*명|끼리)?\s*(?:가|이|은|는)/;
+  function isThirdPartyClause(clause) {
+    const value = String(clause || "");
+    return (THIRD_PARTY_COUNTED.test(value) || THIRD_PARTY_SUBJECT.test(value))
+      && !THIRD_PARTY_COMPANION.test(value)
+      && !FIRST_PERSON_SUBJECT.test(value);
+  }
+
+  /* 감정 판정에 쓸 "주인님 몫" 문장. 구경한 절과 남의 절을 걷어낸다.
+     전부 걷히면 빈 문자열이 되고, 그때는 아무 감정도 만들지 않는 것이 맞다. */
+  function selfEmotionText(value) {
+    const text = safeText(value);
+    if (!text) return "";
+    const kept = negationClauses(text)
+      .filter(clause => !isSpectatorClause(clause.text) && !isThirdPartyClause(clause.text))
+      .map(clause => clause.text);
+    return kept.join(" ").replace(/\s+/g, " ").trim();
   }
 
   function isNegatedClause(clause) {
@@ -198,6 +240,8 @@
     ["activity", "빨래 완료", /빨래/i],
     ["activity", "청소 완료", /청소|방\s*정리|정리\s*했/i],
     ["activity", "답장 완료", /답장|연락\s*(?:했|함)|메일\s*(?:보냈|완료)/i],
+    // 서류를 내는 건 흔한 하루인데 규칙이 없어서 통째로 freeform이었다.
+    ["activity", "서류 제출 완료", /(?:서류|신청서|원서|과제|보고서|자소서|이력서|리포트)(?:를|은|는|도)?\s*(?:다\s*)?(?:냈|내고|제출|접수(?:했|함))/i],
     // "발표 잘 끝냈어"의 "잘" 하나에 깨지지 않게 짧은 부사 자리를 허용한다.
     ["achievement", "발표 완료", /발표(?:를|는|도)?[^.!?]{0,6}?(?:했|함|마쳤|끝)/i],
     ["activity", "외출 일정 완료", /다녀왔|갔다\s*왔|외출/i]
@@ -303,8 +347,17 @@
     const activities = [];
     const activityTypes = [];
 
+    // 감정은 주인님 몫 절에서만 읽는다 — 구경한 것과 남의 일은 빼고 본다.
+    const selfText = selfEmotionText(text);
+    /* 「~인 줄 알았는데 됐어」는 실패담이 아니라 반전된 소식이다. 앞 절의 부정
+       어휘(망했/떨어졌)를 그대로 읽으면 축하할 자리에 위로가 나간다 — 정반대다.
+       뒤집는 절이 뒤따를 때만 앞 절의 부정을 무효로 본다. */
+    const reversalHead = /(?:줄\s*(?:알았|알았는데|알았어)|인\s*줄|일\s*줄|하는\s*줄)/;
+    const reversalTail = /(?:됐|됬|되었|잘\s*(?:됐|됨|봤|나왔)|붙었|합격|통과|해냈|끝냈|괜찮았|성공|살았|남았)/;
+    const reversed = reversalHead.test(text) && reversalTail.test(text.slice(text.search(reversalHead)));
     for (const [intent, mood, sentiment, pattern] of EMOTIONS) {
-      if (!matchesActive(text, pattern)) continue;
+      if (!matchesActive(selfText, pattern)) continue;
+      if (reversed && (intent === "setback" || intent === "sad")) continue;
       intents.push(intent);
       moods.push(mood);
       sentiments.push(sentiment);
@@ -323,6 +376,8 @@
         // 제3자가 한 행동은 사용자의 대업이 아니다. "친구랑 운동했어"처럼 사용자가
         // 함께 했다고 적은 경우만 통과시킨다.
         if (thirdPartyOnlyClause(clause.text)) continue;
+        // 화면 속에서 본 행동은 주인님이 한 일이 아니다("운동 유튜브만 봤어").
+        if (isSpectatorClause(clause.text)) continue;
         /* 하드 가드 — 이 행동이 속한 절이 부정이거나 하다 만 것이면 어떤 경로로도
            대업이 될 수 없다. 그만둔 행동을 activities에 남겨두면 여기서는 완료
            판정만 막아도, 칭호 선택과 다중 행동 대사가 그 배열을 통째로 읽어서
