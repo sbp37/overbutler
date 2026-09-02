@@ -4342,6 +4342,12 @@
     return rows.join("");
   }
 
+  /* 뺄셈 라운드(2026-09-02) — 집사 탭은 「내 집사와의 관계」 하나여야 한다.
+     신규 지원서·집사 목록·근무 기록 카드는 다중 캐릭터 판매를 전제로 한 화면인데
+     CAT-FIRST인 지금은 첫날부터 다른 캐릭터를 광고하는 꼴이 됐다. 코드·상태·해금
+     로직은 전부 그대로 두고 화면에서만 뺀다. 캐릭터 판매를 열 때 이 값 하나만 켠다. */
+  const ROSTER_SURFACES_VISIBLE = false;
+
   function renderManager() {
     const stat = ensureButlerStat(state.character);
     const profile = CHARACTER_PROFILES[state.character];
@@ -4425,6 +4431,10 @@
       $("#recruit-description").textContent = "눌러서 보유 집사와 담당·대기 발령 기록을 확인하세요.";
     }
     $("#recruit-note").classList.toggle("available", state.pendingApplicants.length > 0);
+    // 렌더는 위에서 전부 끝내고 마지막에 가린다 — 켤 때 다시 채울 게 없도록.
+    $("#recruit-note").hidden = !ROSTER_SURFACES_VISIBLE;
+    $(".butler-roster-card").hidden = !ROSTER_SURFACES_VISIBLE;
+    $(".manager-work-card").hidden = !ROSTER_SURFACES_VISIBLE;
     configureCatHome();
   }
 

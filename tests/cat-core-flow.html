@@ -14,7 +14,8 @@
         const until = async (test, timeout = 5000) => {
           const started = Date.now();
           while (!test()) {
-            if (Date.now() - started >= timeout) throw new Error("core flow timed out");
+            // 어느 대기에서 멈췄는지 모르면 flake를 못 고친다 — 조건식을 같이 남긴다.
+            if (Date.now() - started >= timeout) throw new Error(`core flow timed out at: ${String(test).replace(/\s+/g, " ").slice(0, 160)}`);
             await wait(50);
           }
         };
@@ -39,10 +40,12 @@
         assert.equal(stored.character, "cat", "onboarding persists CAT assignment");
         await until(() => {
           const copy = doc.querySelector("#cat-home-speech-paper").textContent;
-          return copy.includes("잘하고 싶") || copy.includes("첫 발령");
+          // 첫 만남 인사는 CAT_FIRST_MEETING 다섯 줄에서 무작위다. 세 줄만 맞추면 2/5 확률로
+          // 헛되이 실패한다 — 다섯 줄이 저마다 가진 조각을 전부 받는다.
+          return ["잘하고 싶", "첫 발령", "받아 적는 건", "접수한다냥", "자리부터 만들어뒀"].some(piece => copy.includes(piece));
         });
         const firstMeetingCopy = doc.querySelector("#cat-home-speech-paper").textContent;
-        assert(firstMeetingCopy.includes("잘하고 싶") || firstMeetingCopy.includes("첫 발령"), "first CAT home greeting keeps rookie enthusiasm or responsibility");
+        assert(["잘하고 싶", "첫 발령", "받아 적는 건", "접수한다냥", "자리부터 만들어뒀"].some(piece => firstMeetingCopy.includes(piece)), "first CAT home greeting is one of the five first-meeting lines");
         assert((firstMeetingCopy.match(/테스트주인님/g) || []).length <= 1, "first CAT home greeting does not repeat the owner name");
         assert.equal(doc.querySelector("#room-pan-hint"), null, "CAT room keeps drag and edge arrows without covering the butler with a floating hint");
 

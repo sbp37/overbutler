@@ -44,6 +44,10 @@
     const deedCount = Number.parseInt(document.getElementById("stat-deeds")?.textContent || "0", 10) || 0;
     const gated = isCatManager() && deedCount === 0;
     button.classList.toggle("is-first-story-gate", gated);
+    // 뺄셈 라운드 — 기록 0건에는 비활성 카드를 보여주지 않고 아예 없앤다.
+    // 「선물은 첫 이야기 뒤에」는 안내가 아니라 첫날부터 명사 하나를 더 소개하는 일이었다.
+    // 첫 기록이 생기면 아래 코드가 그대로 살아나므로, 아래 게이트 문구는 남겨둔다.
+    button.hidden = gated;
 
     let note = button.querySelector(".first-gift-gate-note");
     if (gated && !note) {

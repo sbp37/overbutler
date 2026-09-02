@@ -6125,3 +6125,24 @@ body:has(.briefing-editor-overlay:not([hidden])) #toast {
 #praise-result-overlay .result-share-button span { font-size: 12px; }
 #praise-result-overlay .result-share-button:active { transform: translate(1px, 1px); }
 #praise-result-overlay .result-share-button[aria-busy="true"] { opacity: .6; }
+
+/* ═══════════ 뺄셈 라운드 (2026-09-02) — 집사 탭 ═══════════
+   집사 탭은 「내 집사와의 관계」 하나여야 한다. 카드 순서는 DOM이 아니라
+   manager-final.css의 flex order가 정하므로(AGENTS.md 실수 #2) 여기서 order로 옮긴다.
+
+   담당·대기 발령 관리 — 설정성 기능이다. 큰 잉크 버튼으로 관계 카드 사이에 서 있던
+   것을 사무국 설정 아래 조용한 줄 하나로 내린다. 기능은 그대로다. */
+#view-manager .manager-change-button { order: 10; }
+#view-manager .app-information { order: 11; }
+#manager-details .manager-change-button {
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 0 14px;
+  border: 1px dashed var(--doc-line);
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-soft);
+  font: 600 13px/1 var(--disp);
+}
+#manager-details .manager-change-button span { font-size: 18px; color: var(--ink-soft); }
